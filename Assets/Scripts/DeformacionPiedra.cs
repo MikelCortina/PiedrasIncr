@@ -244,7 +244,7 @@ public class DeformacionPiedra : MonoBehaviour
         particulasPolvo.Emit(Mathf.RoundToInt(Mathf.Lerp(minP, maxP, pct)));
     }
 
-    void DeformarMalla(Vector3 puntoImpactoLocal)
+    public void DeformarMalla(Vector3 puntoImpactoLocal)
     {
         bool mallaModificada = false;
 
@@ -284,7 +284,40 @@ public class DeformacionPiedra : MonoBehaviour
             GetComponent<MeshCollider>().sharedMesh = malla;
         }
     }
+    public void PulirUniformemente(float cantidadDesgaste)
+    {
+        bool mallaModificada = false;
 
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            float distCentro = vertices[i].magnitude;
+
+            // Si el vértice aún sobresale del radio esférico perfecto
+            if (distCentro > radioObjetivoMinimo)
+            {
+                // Lo reducimos de forma uniforme
+                float nuevaDist = Mathf.Max(distCentro - cantidadDesgaste, radioObjetivoMinimo);
+                vertices[i] = vertices[i].normalized * nuevaDist;
+                mallaModificada = true;
+            }
+        }
+
+        if (mallaModificada)
+        {
+            if (!mallaClonada)
+            {
+                malla = Instantiate(GetComponent<MeshFilter>().sharedMesh);
+                mallaClonada = true;
+            }
+
+            malla.vertices = vertices;
+            malla.RecalculateNormals();
+            malla.RecalculateBounds();
+
+            GetComponent<MeshFilter>().sharedMesh = malla;
+            GetComponent<MeshCollider>().sharedMesh = malla;
+        }
+    }
     public float ObtenerPorcentajeDesgasteHaciaEsfera()
     {
         if (malla == null) return 0f;
