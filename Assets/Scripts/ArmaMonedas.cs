@@ -11,6 +11,22 @@ public class ArmaLanzadora : MonoBehaviour
     public Transform puntoDisparo;
     public GameObject prefabProyectil;
 
+    [Header("Efectos Visuales (Giro con Inercia)")]
+    public Transform objetoGiratorio;
+    public float velocidadGiroZ = 500f;
+    [Tooltip("Qué tan rápido alcanza la velocidad máxima al disparar")]
+    public float aceleracionGiro = 5f;
+    [Tooltip("Qué tan rápido frena al soltar el gatillo (valores bajos = más inercia)")]
+    public float desaceleracionGiro = 2f;
+
+    [Header("Animación del Modelo (Sway & Bobbing)")]
+    public float intensidadSway = 0.02f;
+    public float limiteSway = 0.06f;
+    public float intensidadInclinacion = 2f;
+    public float velocidadBobbing = 10f;
+    public float intensidadBobbing = 0.015f;
+    public float suavidadAnimacion = 8f;
+
     [Header("Animación (Blend Shape)")]
     public SkinnedMeshRenderer mallaArma;
     public int indiceBlendShape = 1;
@@ -43,10 +59,18 @@ public class ArmaLanzadora : MonoBehaviour
 
     private bool armaEquipada = false;
     private float tiempoProximoDisparo = 0f;
-    private Vector3 escalaOriginalArma;
 
+    private Vector3 escalaOriginalArma;
     private float retrocesoActual = 0f;
     private float pesoActualBlend = 0f;
+
+    // --- VARIABLES DE ANIMACIÓN ---
+    private Vector3 posicionInicialModelo;
+    private Quaternion rotacionInicialModelo;
+    private float temporizadorBobbing = 0f;
+
+    // --- VARIABLE DE VELOCIDAD ACTUAL ---
+    private float velocidadGiroActual = 0f;
 
     void Start()
     {
@@ -55,6 +79,9 @@ public class ArmaLanzadora : MonoBehaviour
         if (modeloArma != null)
         {
             escalaOriginalArma = modeloArma.transform.localScale;
+            posicionInicialModelo = modeloArma.transform.localPosition;
+            rotacionInicialModelo = modeloArma.transform.localRotation;
+
             modeloArma.SetActive(false);
         }
     }
@@ -66,15 +93,30 @@ public class ArmaLanzadora : MonoBehaviour
         if (armaEquipada)
         {
             ManejarDisparo();
+            ManejarGiroObjeto();
             ManejarRetrocesoVisual();
             ManejarBlendShape();
+            ActualizarAnimacionModelo();
         }
     }
 
     void AlternarArma()
     {
         armaEquipada = !armaEquipada;
-        if (modeloArma != null) modeloArma.SetActive(armaEquipada);
+
+        if (modeloArma != null)
+        {
+            modeloArma.SetActive(armaEquipada);
+
+            if (armaEquipada)
+            {
+                modeloArma.transform.localPosition = posicionInicialModelo;
+                modeloArma.transform.localRotation = rotacionInicialModelo;
+                temporizadorBobbing = 0f;
+                velocidadGiroActual = 0f; // Reiniciamos la inercia al sacar el arma
+            }
+        }
+
         if (armaEquipada && sonidoEquipar != null) audioSource.PlayOneShot(sonidoEquipar, 0.8f);
     }
 
@@ -87,19 +129,69 @@ public class ArmaLanzadora : MonoBehaviour
         }
     }
 
+    // --- NUEVO: SISTEMA DE INERCIA ---
+    void ManejarGiroObjeto()
+    {
+        if (objetoGiratorio == null) return;
+
+        if (Input.GetKey(teclaDisparo))
+        {
+            // Acelera suavemente hacia la velocidad máxima
+            velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, velocidadGiroZ, Time.deltaTime * aceleracionGiro);
+        }
+        else
+        {
+            // Frena suavemente hacia 0 cuando sueltas el botón
+            velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, 0f, Time.deltaTime * desaceleracionGiro);
+        }
+
+        // Si todavía tiene algo de velocidad residual, lo seguimos girando
+        if (Mathf.Abs(velocidadGiroActual) > 0.1f)
+        {
+            objetoGiratorio.Rotate(0f, 0f, velocidadGiroActual * Time.deltaTime, Space.Self);
+        }
+    }
+
+    void ActualizarAnimacionModelo()
+    {
+        if (modeloArma == null) return;
+
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+        float movX = Input.GetAxis("Horizontal");
+        float movY = Input.GetAxis("Vertical");
+
+        float moveX = Mathf.Clamp(mouseX * intensidadSway, -limiteSway, limiteSway);
+        float moveY = Mathf.Clamp(mouseY * intensidadSway, -limiteSway, limiteSway);
+        Vector3 posicionObjetivo = posicionInicialModelo + new Vector3(-moveX, -moveY, 0f);
+
+        if (Mathf.Abs(movX) > 0.1f || Mathf.Abs(movY) > 0.1f)
+        {
+            temporizadorBobbing += Time.deltaTime * velocidadBobbing;
+            posicionObjetivo.y += Mathf.Sin(temporizadorBobbing) * intensidadBobbing;
+            posicionObjetivo.x += Mathf.Cos(temporizadorBobbing * 0.5f) * (intensidadBobbing * 1.5f);
+        }
+        else
+        {
+            temporizadorBobbing = 0f;
+        }
+
+        float tiltZ = Mathf.Clamp((movX + mouseX) * intensidadInclinacion, -intensidadInclinacion * 2f, intensidadInclinacion * 2f);
+        float tiltX = Mathf.Clamp(-mouseY * intensidadInclinacion, -intensidadInclinacion, intensidadInclinacion);
+        Quaternion rotacionObjetivo = rotacionInicialModelo * Quaternion.Euler(tiltX, 0f, -tiltZ);
+
+        modeloArma.transform.localPosition = Vector3.Lerp(modeloArma.transform.localPosition, posicionObjetivo, Time.deltaTime * suavidadAnimacion);
+        modeloArma.transform.localRotation = Quaternion.Slerp(modeloArma.transform.localRotation, rotacionObjetivo, Time.deltaTime * suavidadAnimacion);
+    }
+
     void Disparar()
     {
         if (prefabProyectil != null && puntoDisparo != null)
         {
-            // 1. Calcular la dirección final del disparo con la dispersión
             Vector2 dispersionAleatoria = Random.insideUnitCircle * anguloDispersion;
             Quaternion rotacionDispersion = Quaternion.Euler(dispersionAleatoria.y, dispersionAleatoria.x, 0f);
             Vector3 direccionFinal = (puntoDisparo.rotation * rotacionDispersion) * Vector3.forward;
 
-            // --- ORIENTACIÓN TIPO FRISBEE ---
-            // Para que actúe como un disco volador que se orienta a la cámara:
-            // Usamos la rotación de la cámara (puntoDisparo) pero proyectada al vector de avance, 
-            // asegurando que la cara del objeto (Eje X) acompañe el vuelo y el eje superior mire al cielo de la cámara.
             Quaternion rotacionFrisbee = Quaternion.LookRotation(direccionFinal, puntoDisparo.up);
 
             GameObject proyectil = Instantiate(prefabProyectil, puntoDisparo.position, rotacionFrisbee);
@@ -107,10 +199,8 @@ public class ArmaLanzadora : MonoBehaviour
             Rigidbody rb = proyectil.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                // Empuje frontal en la dirección calculada
                 rb.AddForce(direccionFinal * fuerzaDisparo, ForceMode.Impulse);
 
-                // Giro puro en el eje Y local de la moneda (para que ruede como un frisbee en el aire)
                 float fuerzaGiro = Random.Range(-15f, 15f);
                 rb.AddRelativeTorque(new Vector3(0f, fuerzaGiro, 0f), ForceMode.Impulse);
             }
@@ -124,7 +214,6 @@ public class ArmaLanzadora : MonoBehaviour
             Destroy(proyectil, vidaProyectil);
         }
 
-        // Efectos
         if (particulasDisparo != null) particulasDisparo.Play();
 
         if (audioSource != null && sonidoDisparo != null)

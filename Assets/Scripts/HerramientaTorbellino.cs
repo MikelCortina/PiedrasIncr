@@ -3,9 +3,18 @@ using System.Collections.Generic;
 
 public class HerramientaTorbellino : MonoBehaviour
 {
-    [Header("Controles")]
+    [Header("Controles y Modelo")]
     public KeyCode teclaEquipar = KeyCode.Alpha4;
     public bool equipada = false;
+    public GameObject modeloHerramienta;
+
+    [Header("Animación del Modelo (Sway & Bobbing)")]
+    public float intensidadSway = 0.02f;
+    public float limiteSway = 0.06f;
+    public float intensidadInclinacion = 2f;
+    public float velocidadBobbing = 10f;
+    public float intensidadBobbing = 0.015f;
+    public float suavidadAnimacion = 8f;
 
     [Header("Raycast y Apuntado")]
     public LayerMask capaSuelo;
@@ -21,10 +30,7 @@ public class HerramientaTorbellino : MonoBehaviour
     public float radioOjoTornado = 3f;
     public float velocidadRotacion = 25f;
 
-    // --- NUEVO: Multiplicador de erosión mientras giran ---
-    [Tooltip("Multiplicador de erosión de la piedra mientras está en el tornado (0.5 = mitad de desgaste)")]
     public float multiplicadorErosionTornado = 0.5f;
-
     public string tagPiedra = "Piedra";
 
     [Header("Efectos en el Jugador")]
@@ -35,19 +41,28 @@ public class HerramientaTorbellino : MonoBehaviour
 
     private bool torbellinoActivo = false;
     private Vector3 posicionActualTorbellino;
-
     private Vector3 posicionAnteriorTorbellino;
     private Vector3 velocidadTraslacionTornado;
-
     private HashSet<Rigidbody> piedrasAtrapadas = new HashSet<Rigidbody>();
 
     private float velocidadOriginalMovimiento;
     private float sensibilidadOriginalCamara;
     private bool penalizacionAplicada = false;
 
+    private Vector3 posicionInicialModelo;
+    private Quaternion rotacionInicialModelo;
+    private float temporizadorBobbing = 0f;
+
     void Start()
     {
         camaraPrincipal = Camera.main;
+
+        if (modeloHerramienta != null)
+        {
+            posicionInicialModelo = modeloHerramienta.transform.localPosition;
+            rotacionInicialModelo = modeloHerramienta.transform.localRotation;
+            modeloHerramienta.SetActive(equipada);
+        }
 
         if (efectoVisualTorbellino != null) efectoVisualTorbellino.gameObject.SetActive(false);
         if (circuloAreaVisual != null)
@@ -63,7 +78,32 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(teclaEquipar)) equipada = !equipada;
+        if (Input.GetKeyDown(teclaEquipar))
+        {
+            equipada = !equipada;
+
+            if (modeloHerramienta != null)
+            {
+                modeloHerramienta.SetActive(equipada);
+
+                if (equipada)
+                {
+                    modeloHerramienta.transform.localPosition = posicionInicialModelo;
+                    modeloHerramienta.transform.localRotation = rotacionInicialModelo;
+                    temporizadorBobbing = 0f;
+                }
+            }
+
+            if (!equipada)
+            {
+                ApagarTorbellino();
+            }
+        }
+
+        if (equipada)
+        {
+            ActualizarAnimacionModelo();
+        }
 
         if (equipada && Input.GetMouseButton(0))
         {
@@ -128,6 +168,38 @@ public class HerramientaTorbellino : MonoBehaviour
         }
     }
 
+    void ActualizarAnimacionModelo()
+    {
+        if (modeloHerramienta == null) return;
+
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+        float movX = Input.GetAxis("Horizontal");
+        float movY = Input.GetAxis("Vertical");
+
+        float moveX = Mathf.Clamp(mouseX * intensidadSway, -limiteSway, limiteSway);
+        float moveY = Mathf.Clamp(mouseY * intensidadSway, -limiteSway, limiteSway);
+        Vector3 posicionObjetivo = posicionInicialModelo + new Vector3(-moveX, -moveY, 0f);
+
+        if (Mathf.Abs(movX) > 0.1f || Mathf.Abs(movY) > 0.1f)
+        {
+            temporizadorBobbing += Time.deltaTime * velocidadBobbing;
+            posicionObjetivo.y += Mathf.Sin(temporizadorBobbing) * intensidadBobbing;
+            posicionObjetivo.x += Mathf.Cos(temporizadorBobbing * 0.5f) * (intensidadBobbing * 1.5f);
+        }
+        else
+        {
+            temporizadorBobbing = 0f;
+        }
+
+        float tiltZ = Mathf.Clamp((movX + mouseX) * intensidadInclinacion, -intensidadInclinacion * 2f, intensidadInclinacion * 2f);
+        float tiltX = Mathf.Clamp(-mouseY * intensidadInclinacion, -intensidadInclinacion, intensidadInclinacion);
+        Quaternion rotacionObjetivo = rotacionInicialModelo * Quaternion.Euler(tiltX, 0f, -tiltZ);
+
+        modeloHerramienta.transform.localPosition = Vector3.Lerp(modeloHerramienta.transform.localPosition, posicionObjetivo, Time.deltaTime * suavidadAnimacion);
+        modeloHerramienta.transform.localRotation = Quaternion.Slerp(modeloHerramienta.transform.localRotation, rotacionObjetivo, Time.deltaTime * suavidadAnimacion);
+    }
+
     void AplicarPenalizacionAlJugador()
     {
         if (!penalizacionAplicada)
@@ -150,7 +222,6 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void ApagarTorbellino()
     {
-        // --- NUEVO: Devolver a las piedras su erosión original al soltarlas ---
         foreach (Rigidbody rb in piedrasAtrapadas)
         {
             if (rb != null)
@@ -210,15 +281,17 @@ public class HerramientaTorbellino : MonoBehaviour
                 {
                     piedrasAtrapadas.Add(rb);
 
-                    // --- NUEVO: Al atraparlas, reducimos su fuerza de erosión ---
                     DeformacionPiedra deformacion = rb.GetComponent<DeformacionPiedra>();
-                    if (deformacion != null) deformacion.multiplicadorErosion = multiplicadorErosionTornado;
+                    if (deformacion != null)
+                    {
+                        // --- NUEVO: Despertamos la piedra (le quitamos el IsKinematic y reseteamos el antijitter) ---
+                        deformacion.Despertar();
+                        deformacion.multiplicadorErosion = multiplicadorErosionTornado;
+                    }
                 }
             }
         }
 
-        // Antes de limpiar nulos, devolvemos a 1 a los que se hayan salido del radio por error o limpieza
-        // En tu caso particular con el "Muro Invisible" no suelen salir, pero por si destruyes alguna.
         piedrasAtrapadas.RemoveWhere(rb => rb == null || !rb.gameObject.activeInHierarchy);
 
         Vector3 velTornadoPlana = new Vector3(velocidadTraslacionTornado.x, 0f, velocidadTraslacionTornado.z);
