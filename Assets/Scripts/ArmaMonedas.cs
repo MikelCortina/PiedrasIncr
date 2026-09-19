@@ -251,7 +251,10 @@ public class ArmaLanzadora : MonoBehaviour
             puntoDisparo.position,
             rotacionFrisbee
         );
-
+        if (proyectil.GetComponent<ProyectilArma>() == null)
+        {
+            proyectil.AddComponent<ProyectilArma>();
+        }
         // -------------------------
         // FÍSICAS DEL PROYECTIL
         // -------------------------
