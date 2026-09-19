@@ -6547,6 +6547,7 @@ GameObject:
   - component: {fileID: 584387198}
   - component: {fileID: 584387197}
   - component: {fileID: 584387205}
+  - component: {fileID: 584387208}
   m_Layer: 2
   m_Name: Player
   m_TagString: Player
@@ -6891,6 +6892,24 @@ MonoBehaviour:
   sonidoRecoger: {fileID: 8300000, guid: 0cd6c12ae8f939b4aac50ffb05fb5eb4, type: 3}
   volumenSonido: 1
   cooldownSonido: 0.025
+--- !u!114 &584387208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 584387196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4a4d758db1f8c142bb47aaf26835b5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  equipamientoActual: 0
+  agarreLanzamiento: {fileID: 584387204}
+  armaLanzadora: {fileID: 2046494809}
+  herramientaTorbellino: {fileID: 2046494812}
+  teclaArmaLanzadora: 51
+  teclaTorbellino: 52
 --- !u!1 &591945832
 GameObject:
   m_ObjectHideFlags: 0

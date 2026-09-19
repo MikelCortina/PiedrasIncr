@@ -88,8 +88,6 @@ public class ArmaLanzadora : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(teclaEquipar)) AlternarArma();
-
         if (armaEquipada)
         {
             ManejarDisparo();
@@ -99,10 +97,12 @@ public class ArmaLanzadora : MonoBehaviour
             ActualizarAnimacionModelo();
         }
     }
-
-    void AlternarArma()
+    public void SetEquipada(bool equipada)
     {
-        armaEquipada = !armaEquipada;
+        if (armaEquipada == equipada)
+            return;
+
+        armaEquipada = equipada;
 
         if (modeloArma != null)
         {
@@ -112,12 +112,16 @@ public class ArmaLanzadora : MonoBehaviour
             {
                 modeloArma.transform.localPosition = posicionInicialModelo;
                 modeloArma.transform.localRotation = rotacionInicialModelo;
+
                 temporizadorBobbing = 0f;
-                velocidadGiroActual = 0f; // Reiniciamos la inercia al sacar el arma
+                velocidadGiroActual = 0f;
             }
         }
 
-        if (armaEquipada && sonidoEquipar != null) audioSource.PlayOneShot(sonidoEquipar, 0.8f);
+        if (armaEquipada && sonidoEquipar != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(sonidoEquipar, 0.8f);
+        }
     }
 
     void ManejarDisparo()

@@ -78,27 +78,7 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(teclaEquipar))
-        {
-            equipada = !equipada;
 
-            if (modeloHerramienta != null)
-            {
-                modeloHerramienta.SetActive(equipada);
-
-                if (equipada)
-                {
-                    modeloHerramienta.transform.localPosition = posicionInicialModelo;
-                    modeloHerramienta.transform.localRotation = rotacionInicialModelo;
-                    temporizadorBobbing = 0f;
-                }
-            }
-
-            if (!equipada)
-            {
-                ApagarTorbellino();
-            }
-        }
 
         if (equipada)
         {
@@ -168,6 +148,31 @@ public class HerramientaTorbellino : MonoBehaviour
         }
     }
 
+
+    public void SetEquipada(bool nuevoEstado)
+    {
+        if (equipada == nuevoEstado)
+            return;
+
+        equipada = nuevoEstado;
+
+        if (modeloHerramienta != null)
+        {
+            modeloHerramienta.SetActive(equipada);
+
+            if (equipada)
+            {
+                modeloHerramienta.transform.localPosition = posicionInicialModelo;
+                modeloHerramienta.transform.localRotation = rotacionInicialModelo;
+                temporizadorBobbing = 0f;
+            }
+        }
+
+        if (!equipada)
+        {
+            ApagarTorbellino();
+        }
+    }
     void ActualizarAnimacionModelo()
     {
         if (modeloHerramienta == null) return;
