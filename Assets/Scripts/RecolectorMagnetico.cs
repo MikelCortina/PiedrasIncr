@@ -9,6 +9,7 @@ public class RecolectorMagnetico : MonoBehaviour
     public float velocidadAtraccion = 15f;
     public float distanciaRecoleccion = 1.5f;
 
+
     [Header("Protección de Creación")]
     [Tooltip("Tiempo mínimo que debe pasar desde que se crea la moneda para poder ser atraída")]
     public float tiempoInmunidadCreacion = 1.5f;
@@ -30,12 +31,14 @@ public class RecolectorMagnetico : MonoBehaviour
     public float cooldownSonido = 0.05f;
     private float ultimoTiempoSonido = 0f;
 
+    private Cartera cartera;
     private AudioSource audioSource;
     private List<GameObject> objetosAtrayendo = new List<GameObject>();
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
+        cartera = GetComponent<Cartera>();
     }
 
     void Update()
@@ -105,6 +108,13 @@ public class RecolectorMagnetico : MonoBehaviour
 
     void Recoger(GameObject objeto)
     {
+        Moneda moneda = objeto.GetComponent<Moneda>();
+
+        if (moneda != null && cartera != null)
+        {
+            cartera.AnadirMonedas(moneda.valor);
+        }
+
         if (sonidoRecoger != null && Time.time >= ultimoTiempoSonido + cooldownSonido)
         {
             audioSource.pitch = Random.Range(0.90f, 1.10f);

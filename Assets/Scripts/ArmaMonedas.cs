@@ -19,6 +19,12 @@ public class ArmaLanzadora : MonoBehaviour
     [Tooltip("Qué tan rápido frena al soltar el gatillo (valores bajos = más inercia)")]
     public float desaceleracionGiro = 2f;
 
+    [Header("Economía")]
+    public Cartera cartera;
+
+    [Min(1)]
+    public int costePorDisparo = 1;
+
     [Header("Animación del Modelo (Sway & Bobbing)")]
     public float intensidadSway = 0.02f;
     public float limiteSway = 0.06f;
@@ -74,7 +80,11 @@ public class ArmaLanzadora : MonoBehaviour
 
     void Start()
     {
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        if (cartera == null)
+            cartera = GetComponentInParent<Cartera>();
 
         if (modeloArma != null)
         {
@@ -190,42 +200,120 @@ public class ArmaLanzadora : MonoBehaviour
 
     void Disparar()
     {
-        if (prefabProyectil != null && puntoDisparo != null)
+        // Comprobamos que el arma está configurada correctamente
+        if (prefabProyectil == null || puntoDisparo == null)
         {
-            Vector2 dispersionAleatoria = Random.insideUnitCircle * anguloDispersion;
-            Quaternion rotacionDispersion = Quaternion.Euler(dispersionAleatoria.y, dispersionAleatoria.x, 0f);
-            Vector3 direccionFinal = (puntoDisparo.rotation * rotacionDispersion) * Vector3.forward;
-
-            Quaternion rotacionFrisbee = Quaternion.LookRotation(direccionFinal, puntoDisparo.up);
-
-            GameObject proyectil = Instantiate(prefabProyectil, puntoDisparo.position, rotacionFrisbee);
-
-            Rigidbody rb = proyectil.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.AddForce(direccionFinal * fuerzaDisparo, ForceMode.Impulse);
-
-                float fuerzaGiro = Random.Range(-15f, 15f);
-                rb.AddRelativeTorque(new Vector3(0f, fuerzaGiro, 0f), ForceMode.Impulse);
-            }
-
-            CrecimientoProyectil animCrecimiento = proyectil.AddComponent<CrecimientoProyectil>();
-            animCrecimiento.Configurar(escalaMaxima, velocidadCrecimiento);
-
-            ProteccionMagnetica animInmunidad = proyectil.AddComponent<ProteccionMagnetica>();
-            animInmunidad.Configurar(tiempoInmunidad);
-
-            Destroy(proyectil, vidaProyectil);
+            return;
         }
 
-        if (particulasDisparo != null) particulasDisparo.Play();
+        // Comprobamos que tenemos una cartera
+        if (cartera == null)
+        {
+            Debug.LogWarning("ArmaLanzadora: No se ha encontrado una Cartera.");
+            return;
+        }
 
+        // Intentamos pagar el disparo
+        if (!cartera.GastarMonedas(costePorDisparo))
+        {
+            Debug.Log("No hay monedas suficientes para disparar.");
+            return;
+        }
+
+        // -------------------------
+        // DISPERSIÓN DEL DISPARO
+        // -------------------------
+        Vector2 dispersionAleatoria =
+            Random.insideUnitCircle * anguloDispersion;
+
+        Quaternion rotacionDispersion =
+            Quaternion.Euler(
+                dispersionAleatoria.y,
+                dispersionAleatoria.x,
+                0f
+            );
+
+        Vector3 direccionFinal =
+            (puntoDisparo.rotation * rotacionDispersion)
+            * Vector3.forward;
+
+        Quaternion rotacionFrisbee =
+            Quaternion.LookRotation(
+                direccionFinal,
+                puntoDisparo.up
+            );
+
+        // -------------------------
+        // CREAR PROYECTIL
+        // -------------------------
+        GameObject proyectil = Instantiate(
+            prefabProyectil,
+            puntoDisparo.position,
+            rotacionFrisbee
+        );
+
+        // -------------------------
+        // FÍSICAS DEL PROYECTIL
+        // -------------------------
+        Rigidbody rb = proyectil.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.AddForce(
+                direccionFinal * fuerzaDisparo,
+                ForceMode.Impulse
+            );
+
+            float fuerzaGiro = Random.Range(-15f, 15f);
+
+            rb.AddRelativeTorque(
+                new Vector3(0f, fuerzaGiro, 0f),
+                ForceMode.Impulse
+            );
+        }
+
+        // -------------------------
+        // CRECIMIENTO DEL PROYECTIL
+        // -------------------------
+        CrecimientoProyectil animCrecimiento =
+            proyectil.AddComponent<CrecimientoProyectil>();
+
+        animCrecimiento.Configurar(
+            escalaMaxima,
+            velocidadCrecimiento
+        );
+
+        // -------------------------
+        // INMUNIDAD AL IMÁN
+        // -------------------------
+        ProteccionMagnetica animInmunidad =
+            proyectil.AddComponent<ProteccionMagnetica>();
+
+        animInmunidad.Configurar(tiempoInmunidad);
+
+        // Destruir proyectil pasado un tiempo
+        Destroy(proyectil, vidaProyectil);
+
+        // -------------------------
+        // PARTÍCULAS
+        // -------------------------
+        if (particulasDisparo != null)
+        {
+            particulasDisparo.Play();
+        }
+
+        // -------------------------
+        // SONIDO
+        // -------------------------
         if (audioSource != null && sonidoDisparo != null)
         {
             audioSource.pitch = Random.Range(0.9f, 1.1f);
             audioSource.PlayOneShot(sonidoDisparo, 0.7f);
         }
 
+        // -------------------------
+        // RETROCESO VISUAL
+        // -------------------------
         retrocesoActual = fuerzaRetrocesoVisual;
         pesoActualBlend = pesoMaximoBlendShape;
     }
