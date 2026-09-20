@@ -6,18 +6,17 @@ public struct PiezaGiratoria
 {
     [Tooltip("La parte del modelo que va a girar")]
     public Transform objeto;
-    [Tooltip("Velocidad m�xima en el eje Z para esta pieza en concreto")]
+    [Tooltip("Velocidad máxima en el eje Z para esta pieza en concreto")]
     public float velocidadMaximaZ;
 }
 
 public class HerramientaTorbellino : MonoBehaviour
 {
-    [Header("Controles y Modelo")]
-    public KeyCode teclaEquipar = KeyCode.Alpha4;
+    [Header("Modelo")]
     public bool equipada = false;
     public GameObject modeloHerramienta;
 
-    [Header("Animaci�n del Modelo (Sway & Bobbing)")]
+    [Header("Animación del Modelo (Sway & Bobbing)")]
     public float intensidadSway = 0.02f;
     public float limiteSway = 0.06f;
     public float intensidadInclinacion = 2f;
@@ -26,7 +25,7 @@ public class HerramientaTorbellino : MonoBehaviour
     public float suavidadAnimacion = 8f;
 
     [Header("Efectos Visuales (Giro con Inercia)")]
-    [Tooltip("Lista de piezas del modelo que girar�n, cada una con su propia velocidad")]
+    [Tooltip("Lista de piezas del modelo que girarán, cada una con su propia velocidad")]
     public PiezaGiratoria[] piezasGiratorias;
 
     public float aceleracionGiro = 5f;
@@ -37,17 +36,17 @@ public class HerramientaTorbellino : MonoBehaviour
     public LayerMask capaSuelo;
     public float alcanceMaximo = 100f;
 
-    [Tooltip("Sistema de part�culas que aparecer� en el punto donde toca el tornado (Se mueve y rota)")]
+    [Tooltip("Sistema de partículas que aparecerá en el punto donde toca el tornado (Se mueve y rota)")]
     public ParticleSystem particulasTorbellino;
 
-    [Tooltip("Sistemas de part�culas que se activan al usar la herramienta pero NO cambian su posici�n ni rotaci�n (ej: humo en el motor del arma)")]
+    [Tooltip("Sistemas de partículas que se activan al usar la herramienta pero NO cambian su posición ni rotación")]
     public ParticleSystem[] particulasEstaticas;
 
-    [Header("Visualizaci�n del �rea")]
+    [Header("Visualización del Área")]
     public LineRenderer circuloAreaVisual;
     public int segmentosCirculo = 50;
 
-    [Header("F�sicas Estables del V�rtice")]
+    [Header("Físicas Estables del Vórtice")]
     public float radioAtraccion = 15f;
     public float radioOjoTornado = 3f;
     public float velocidadRotacion = 25f;
@@ -120,34 +119,41 @@ public class HerramientaTorbellino : MonoBehaviour
         if (scriptCamara != null) sensibilidadOriginalCamara = scriptCamara.sensibilidadRaton;
     }
 
-    void Update()
+    // --- NUEVO: Función pública llamada por GestorEquipamiento.cs ---
+    public void SetEquipada(bool estado)
     {
+        if (equipada == estado) return;
+        equipada = estado;
 
+        if (modeloHerramienta != null)
+        {
+            modeloHerramienta.SetActive(equipada);
 
-                if (equipada)
+            if (equipada)
+            {
+                modeloHerramienta.transform.localPosition = posicionInicialModelo;
+                modeloHerramienta.transform.localRotation = rotacionInicialModelo;
+                temporizadorBobbing = 0f;
+                intensidadGiroActual = 0f;
+
+                if (particulasEstaticas != null)
                 {
-                    modeloHerramienta.transform.localPosition = posicionInicialModelo;
-                    modeloHerramienta.transform.localRotation = rotacionInicialModelo;
-                    temporizadorBobbing = 0f;
-                    intensidadGiroActual = 0f;
-
-                    // --- SOLUCI�N: Despertar las part�culas est�ticas al sacar el arma ---
-                    if (particulasEstaticas != null)
+                    foreach (ParticleSystem ps in particulasEstaticas)
                     {
-                        foreach (ParticleSystem ps in particulasEstaticas)
-                        {
-                            if (ps != null && !ps.isPlaying) ps.Play(true);
-                        }
+                        if (ps != null && !ps.isPlaying) ps.Play(true);
                     }
                 }
             }
-
-            if (!equipada)
-            {
-                ApagarTorbellino();
-            }
         }
 
+        if (!equipada)
+        {
+            ApagarTorbellino();
+        }
+    }
+
+    void Update()
+    {
         if (equipada)
         {
             ActualizarAnimacionModelo();
@@ -256,7 +262,6 @@ public class HerramientaTorbellino : MonoBehaviour
             ParticleSystem[] sistemasHijos = particulasTorbellino.GetComponentsInChildren<ParticleSystem>();
             foreach (ParticleSystem ps in sistemasHijos)
             {
-                // --- SOLUCI�N: Si vamos a emitir y estaba apagado, lo arrancamos ---
                 if (activar && !ps.isPlaying) ps.Play(false);
 
                 var emision = ps.emission;
@@ -276,7 +281,6 @@ public class HerramientaTorbellino : MonoBehaviour
                     ParticleSystem[] estaticasHijas = psEstatica.GetComponentsInChildren<ParticleSystem>();
                     foreach (ParticleSystem psHija in estaticasHijas)
                     {
-                        // --- SOLUCI�N: Hacemos lo mismo con todos los hijos est�ticos ---
                         if (activar && !psHija.isPlaying) psHija.Play(false);
 
                         var emision = psHija.emission;

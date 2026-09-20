@@ -6019,10 +6019,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2046494806}
     m_Modifications:
-    - target: {fileID: 7071182760956848314, guid: cbc9bf60e43d6fc46913cb08d23fae1b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 7492c9b185cd3474dab4db0e3666acb4, type: 2}
     - target: {fileID: -8679921383154817045, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       propertyPath: m_LocalScale.x
       value: 4
@@ -6107,6 +6103,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: f12cfa0749b2633478684be83546d5f0, type: 2}
+    - target: {fileID: 7071182760956848314, guid: cbc9bf60e43d6fc46913cb08d23fae1b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7492c9b185cd3474dab4db0e3666acb4, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -6119,9 +6119,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       insertIndex: -1
       addedObject: {fileID: 834848178}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 699544828}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1073836445}
@@ -6157,10 +6154,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabPiedra: {fileID: 6288764415059956693, guid: aca5b2d9ebe9c7047a38b631a75ee26b, type: 3}
+  generarMeteoritoInicial: 1
   alturaCielo: 600
   alturaSuelo: 400
   tagSuelo: Floor
   tiempoEntreSpawns: 2
+  cantidadPorOleada: 1
+  tiempoEntreMeteoritosOleada: 0.15
   curvaAceleracion:
     serializedVersion: 2
     m_Curve:
@@ -6189,6 +6189,7 @@ MonoBehaviour:
   capaColisionSuelo:
     serializedVersion: 2
     m_Bits: 8
+  sistemaActivo: 1
 --- !u!4 &384408574
 Transform:
   m_ObjectHideFlags: 0
@@ -6319,7 +6320,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1813423941}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 819202638588524887, guid: 30f375eee10907640aa0b87639e4800e, type: 3}
       propertyPath: looping
@@ -6565,16 +6566,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1623011180}
   m_SourcePrefab: {fileID: 100100000, guid: 88df7b9393f8a3e40b4d418d250b2891, type: 3}
---- !u!4 &435459401 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6006112292533357862, guid: c713947fa5c034e4b96803dc11fd054e, type: 3}
-  m_PrefabInstance: {fileID: 1160905422}
-  m_PrefabAsset: {fileID: 0}
---- !u!120 &435459402 stripped
-LineRenderer:
-  m_CorrespondingSourceObject: {fileID: 689428605219487196, guid: c713947fa5c034e4b96803dc11fd054e, type: 3}
-  m_PrefabInstance: {fileID: 1160905422}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &467909917
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7573,12 +7564,22 @@ MonoBehaviour:
   - nombreFase: erttrr
     impactosParaSiguienteFase: 3
     visualFase: {fileID: 1978108736}
+    lluviaActiva: 1
+    tiempoEntreSpawns: 2
+    cantidadPorOleada: 1
   - nombreFase: 2fase
     impactosParaSiguienteFase: 5
     visualFase: {fileID: 467909918}
+    lluviaActiva: 1
+    tiempoEntreSpawns: 2
+    cantidadPorOleada: 1
   - nombreFase: 
     impactosParaSiguienteFase: 0
     visualFase: {fileID: 0}
+    lluviaActiva: 1
+    tiempoEntreSpawns: 2
+    cantidadPorOleada: 1
+  lluviaMeteoritos: {fileID: 0}
   faseActual: 0
   impactosActuales: 0
 --- !u!4 &641001703
@@ -7958,16 +7959,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 701981482}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &699544828 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3003401207126340660, guid: 30f375eee10907640aa0b87639e4800e, type: 3}
-  m_PrefabInstance: {fileID: 1836832674}
-  m_PrefabAsset: {fileID: 0}
---- !u!198 &699544830 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 4299762416135251967, guid: 30f375eee10907640aa0b87639e4800e, type: 3}
-  m_PrefabInstance: {fileID: 1836832674}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &701981481
 GameObject:
   m_ObjectHideFlags: 0
@@ -8212,7 +8203,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1813423941}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1844727230434977549, guid: d4fee32b09f03e948815fb49f96e5259, type: 3}
       propertyPath: looping
@@ -13686,6 +13677,16 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 955582333}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &994780672 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
+  m_PrefabInstance: {fileID: 384122232}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &994780673 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
+  m_PrefabInstance: {fileID: 384122232}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1069769442
 GameObject:
   m_ObjectHideFlags: 0
@@ -19177,7 +19178,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1813423941}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 819202638588524887, guid: 30f375eee10907640aa0b87639e4800e, type: 3}
       propertyPath: looping
@@ -21213,37 +21214,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1995621682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1813423940
-GameObject:
-  m_ObjectHideFlags: 8
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cbc9bf60e43d6fc46913cb08d23fae1b, type: 3}
-  m_PrefabInstance: {fileID: 384122232}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1813423941}
-  m_Layer: 0
-  m_Name: 'Torbellino (1) (Missing Prefab with guid: cbc9bf60e43d6fc46913cb08d23fae1b)'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1813423941
-Transform:
-  m_ObjectHideFlags: 8
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cbc9bf60e43d6fc46913cb08d23fae1b, type: 3}
-  m_PrefabInstance: {fileID: 384122232}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1813423940}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.052673254, z: -0, w: 0.9986118}
-  m_LocalPosition: {x: 5.2563477, y: -12.799988, z: 22.906532}
-  m_LocalScale: {x: 6.6000004, y: 6.6000004, z: 6.6000004}
-  m_ConstrainProportionsScale: 1
-  m_Children: []
-  m_Father: {fileID: 2046494806}
-  m_LocalEulerAnglesHint: {x: 0, y: -6.039, z: 0}
 --- !u!1 &1843668107
 GameObject:
   m_ObjectHideFlags: 0
@@ -21286,7 +21256,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1813423941}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 819202638588524887, guid: 30f375eee10907640aa0b87639e4800e, type: 3}
       propertyPath: looping
@@ -22021,7 +21991,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 594678036}
-  - {fileID: 1813423941}
+  - {fileID: 994780673}
   - {fileID: 1614843568}
   m_Father: {fileID: 584387202}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -22176,9 +22146,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6eab59fadeadfe4593c48571197d504, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teclaEquipar: 52
   equipada: 1
-  modeloHerramienta: {fileID: 1813423940}
+  modeloHerramienta: {fileID: 994780672}
   intensidadSway: 0.1
   limiteSway: 0.24
   intensidadInclinacion: 8
@@ -22204,7 +22173,7 @@ MonoBehaviour:
   particulasEstaticas:
   - {fileID: 108149674}
   - {fileID: 834848180}
-  - {fileID: 699544830}
+  - {fileID: 0}
   - {fileID: 1073836443}
   circuloAreaVisual: {fileID: 0}
   segmentosCirculo: 50
