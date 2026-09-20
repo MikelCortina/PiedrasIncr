@@ -1,6 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+[System.Serializable]
+public struct PiezaGiratoria
+{
+    [Tooltip("La parte del modelo que va a girar")]
+    public Transform objeto;
+    [Tooltip("Velocidad máxima en el eje Z para esta pieza en concreto")]
+    public float velocidadMaximaZ;
+}
+
 public class HerramientaTorbellino : MonoBehaviour
 {
     [Header("Controles y Modelo")]
@@ -16,10 +25,23 @@ public class HerramientaTorbellino : MonoBehaviour
     public float intensidadBobbing = 0.015f;
     public float suavidadAnimacion = 8f;
 
+    [Header("Efectos Visuales (Giro con Inercia)")]
+    [Tooltip("Lista de piezas del modelo que girarán, cada una con su propia velocidad")]
+    public PiezaGiratoria[] piezasGiratorias;
+
+    public float aceleracionGiro = 5f;
+    public float desaceleracionGiro = 2f;
+    private float intensidadGiroActual = 0f;
+
     [Header("Raycast y Apuntado")]
     public LayerMask capaSuelo;
     public float alcanceMaximo = 100f;
-    public Transform efectoVisualTorbellino;
+
+    [Tooltip("Sistema de partículas que aparecerá en el punto donde toca el tornado (Se mueve y rota)")]
+    public ParticleSystem particulasTorbellino;
+
+    [Tooltip("Sistemas de partículas que se activan al usar la herramienta pero NO cambian su posición ni rotación (ej: humo en el motor del arma)")]
+    public ParticleSystem[] particulasEstaticas;
 
     [Header("Visualización del Área")]
     public LineRenderer circuloAreaVisual;
@@ -41,6 +63,8 @@ public class HerramientaTorbellino : MonoBehaviour
 
     private bool torbellinoActivo = false;
     private Vector3 posicionActualTorbellino;
+    private Vector3 normalActualTorbellino = Vector3.up;
+
     private Vector3 posicionAnteriorTorbellino;
     private Vector3 velocidadTraslacionTornado;
     private HashSet<Rigidbody> piedrasAtrapadas = new HashSet<Rigidbody>();
@@ -64,7 +88,27 @@ public class HerramientaTorbellino : MonoBehaviour
             modeloHerramienta.SetActive(equipada);
         }
 
-        if (efectoVisualTorbellino != null) efectoVisualTorbellino.gameObject.SetActive(false);
+        if (particulasTorbellino != null)
+        {
+            particulasTorbellino.transform.SetParent(null);
+            if (!particulasTorbellino.isPlaying) particulasTorbellino.Play(true);
+            particulasTorbellino.Clear(true);
+        }
+
+        if (particulasEstaticas != null)
+        {
+            foreach (ParticleSystem ps in particulasEstaticas)
+            {
+                if (ps != null)
+                {
+                    if (!ps.isPlaying) ps.Play(true);
+                    ps.Clear(true);
+                }
+            }
+        }
+
+        ControlarEmisionParticulas(false);
+
         if (circuloAreaVisual != null)
         {
             circuloAreaVisual.positionCount = segmentosCirculo + 1;
@@ -91,6 +135,16 @@ public class HerramientaTorbellino : MonoBehaviour
                     modeloHerramienta.transform.localPosition = posicionInicialModelo;
                     modeloHerramienta.transform.localRotation = rotacionInicialModelo;
                     temporizadorBobbing = 0f;
+                    intensidadGiroActual = 0f;
+
+                    // --- SOLUCIÓN: Despertar las partículas estáticas al sacar el arma ---
+                    if (particulasEstaticas != null)
+                    {
+                        foreach (ParticleSystem ps in particulasEstaticas)
+                        {
+                            if (ps != null && !ps.isPlaying) ps.Play(true);
+                        }
+                    }
                 }
             }
 
@@ -103,6 +157,7 @@ public class HerramientaTorbellino : MonoBehaviour
         if (equipada)
         {
             ActualizarAnimacionModelo();
+            ManejarGiroObjetos();
         }
 
         if (equipada && Input.GetMouseButton(0))
@@ -111,12 +166,14 @@ public class HerramientaTorbellino : MonoBehaviour
 
             bool puntoValidoEncontrado = false;
             Vector3 nuevoPuntoTorbellino = posicionActualTorbellino;
+            Vector3 nuevaNormalTorbellino = normalActualTorbellino;
 
             if (Physics.Raycast(ray, out RaycastHit hit, 2000f, capaSuelo))
             {
                 if (hit.distance <= alcanceMaximo)
                 {
                     nuevoPuntoTorbellino = hit.point;
+                    nuevaNormalTorbellino = hit.normal;
                     puntoValidoEncontrado = true;
                 }
                 else
@@ -125,6 +182,7 @@ public class HerramientaTorbellino : MonoBehaviour
                     if (Physics.Raycast(puntoLimiteAire + (Vector3.up * 50f), Vector3.down, out RaycastHit hitAbajo, 150f, capaSuelo))
                     {
                         nuevoPuntoTorbellino = hitAbajo.point;
+                        nuevaNormalTorbellino = hitAbajo.normal;
                         puntoValidoEncontrado = true;
                     }
                     else if (torbellinoActivo) puntoValidoEncontrado = true;
@@ -136,6 +194,7 @@ public class HerramientaTorbellino : MonoBehaviour
                 if (Physics.Raycast(puntoLimiteAire, Vector3.down, out RaycastHit hitAbajo, 200f, capaSuelo))
                 {
                     nuevoPuntoTorbellino = hitAbajo.point;
+                    nuevaNormalTorbellino = hitAbajo.normal;
                     puntoValidoEncontrado = true;
                 }
                 else if (torbellinoActivo) puntoValidoEncontrado = true;
@@ -146,15 +205,17 @@ public class HerramientaTorbellino : MonoBehaviour
                 if (!torbellinoActivo) posicionAnteriorTorbellino = nuevoPuntoTorbellino;
 
                 posicionActualTorbellino = nuevoPuntoTorbellino;
+                normalActualTorbellino = nuevaNormalTorbellino;
                 torbellinoActivo = true;
 
-                if (efectoVisualTorbellino != null)
+                if (particulasTorbellino != null)
                 {
-                    if (!efectoVisualTorbellino.gameObject.activeSelf) efectoVisualTorbellino.gameObject.SetActive(true);
-                    efectoVisualTorbellino.position = posicionActualTorbellino;
+                    particulasTorbellino.transform.position = posicionActualTorbellino;
+                    particulasTorbellino.transform.up = normalActualTorbellino;
                 }
-                DibujarCirculo(posicionActualTorbellino);
 
+                ControlarEmisionParticulas(true);
+                DibujarCirculo(posicionActualTorbellino, normalActualTorbellino);
                 AplicarPenalizacionAlJugador();
             }
             else
@@ -165,6 +226,73 @@ public class HerramientaTorbellino : MonoBehaviour
         else
         {
             ApagarTorbellino();
+        }
+    }
+
+    void ManejarGiroObjetos()
+    {
+        if (piezasGiratorias == null || piezasGiratorias.Length == 0) return;
+
+        if (torbellinoActivo && Input.GetMouseButton(0))
+        {
+            intensidadGiroActual = Mathf.Lerp(intensidadGiroActual, 1f, Time.deltaTime * aceleracionGiro);
+        }
+        else
+        {
+            intensidadGiroActual = Mathf.Lerp(intensidadGiroActual, 0f, Time.deltaTime * desaceleracionGiro);
+        }
+
+        if (intensidadGiroActual > 0.01f)
+        {
+            foreach (PiezaGiratoria pieza in piezasGiratorias)
+            {
+                if (pieza.objeto != null)
+                {
+                    float velocidadActual = pieza.velocidadMaximaZ * intensidadGiroActual;
+                    pieza.objeto.Rotate(0f, 0f, velocidadActual * Time.deltaTime, Space.Self);
+                }
+            }
+        }
+    }
+
+    void ControlarEmisionParticulas(bool activar)
+    {
+        if (particulasTorbellino != null)
+        {
+            ParticleSystem[] sistemasHijos = particulasTorbellino.GetComponentsInChildren<ParticleSystem>();
+            foreach (ParticleSystem ps in sistemasHijos)
+            {
+                // --- SOLUCIÓN: Si vamos a emitir y estaba apagado, lo arrancamos ---
+                if (activar && !ps.isPlaying) ps.Play(false);
+
+                var emision = ps.emission;
+                if (emision.enabled != activar)
+                {
+                    emision.enabled = activar;
+                }
+            }
+        }
+
+        if (particulasEstaticas != null)
+        {
+            foreach (ParticleSystem psEstatica in particulasEstaticas)
+            {
+                if (psEstatica != null)
+                {
+                    ParticleSystem[] estaticasHijas = psEstatica.GetComponentsInChildren<ParticleSystem>();
+                    foreach (ParticleSystem psHija in estaticasHijas)
+                    {
+                        // --- SOLUCIÓN: Hacemos lo mismo con todos los hijos estáticos ---
+                        if (activar && !psHija.isPlaying) psHija.Play(false);
+
+                        var emision = psHija.emission;
+                        if (emision.enabled != activar)
+                        {
+                            emision.enabled = activar;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -235,7 +363,8 @@ public class HerramientaTorbellino : MonoBehaviour
         piedrasAtrapadas.Clear();
         velocidadTraslacionTornado = Vector3.zero;
 
-        if (efectoVisualTorbellino != null) efectoVisualTorbellino.gameObject.SetActive(false);
+        ControlarEmisionParticulas(false);
+
         if (circuloAreaVisual != null) circuloAreaVisual.gameObject.SetActive(false);
 
         RestaurarValoresJugador();
@@ -252,7 +381,7 @@ public class HerramientaTorbellino : MonoBehaviour
         }
     }
 
-    void DibujarCirculo(Vector3 centro)
+    void DibujarCirculo(Vector3 centro, Vector3 normal)
     {
         if (circuloAreaVisual == null) return;
         if (!circuloAreaVisual.gameObject.activeSelf) circuloAreaVisual.gameObject.SetActive(true);
@@ -260,11 +389,17 @@ public class HerramientaTorbellino : MonoBehaviour
         float angulo = 0f;
         float pasoAngulo = 360f / segmentosCirculo;
 
+        Quaternion rotacionPlano = Quaternion.FromToRotation(Vector3.up, normal);
+
         for (int i = 0; i < (segmentosCirculo + 1); i++)
         {
             float x = Mathf.Sin(Mathf.Deg2Rad * angulo) * radioAtraccion;
             float z = Mathf.Cos(Mathf.Deg2Rad * angulo) * radioAtraccion;
-            circuloAreaVisual.SetPosition(i, centro + new Vector3(x, 0.2f, z));
+
+            Vector3 posicionRelativa = new Vector3(x, 0.2f, z);
+            Vector3 posicionRotada = rotacionPlano * posicionRelativa;
+
+            circuloAreaVisual.SetPosition(i, centro + posicionRotada);
             angulo += pasoAngulo;
         }
     }
@@ -284,7 +419,6 @@ public class HerramientaTorbellino : MonoBehaviour
                     DeformacionPiedra deformacion = rb.GetComponent<DeformacionPiedra>();
                     if (deformacion != null)
                     {
-                        // --- NUEVO: Despertamos la piedra (le quitamos el IsKinematic y reseteamos el antijitter) ---
                         deformacion.Despertar();
                         deformacion.multiplicadorErosion = multiplicadorErosionTornado;
                     }

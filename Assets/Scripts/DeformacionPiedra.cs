@@ -67,7 +67,12 @@ public class DeformacionPiedra : MonoBehaviour
         tiempoNacimiento = Time.time;
         malla = GetComponent<MeshFilter>().sharedMesh;
         vertices = malla.vertices;
+
         rb = GetComponent<Rigidbody>();
+
+        // --- SOLUCIÓN AL TUNNELLING (Atravesar el suelo) ---
+        // Forzamos al motor de físicas a predecir la trayectoria entre fotogramas
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         CalcularRadioObjetivo();
 
@@ -248,7 +253,6 @@ public class DeformacionPiedra : MonoBehaviour
     {
         bool mallaModificada = false;
 
-        // --- APLICACIÓN DEL MULTIPLICADOR ---
         float fuerzaErosionFinal = fuerzaDeErosion * multiplicadorErosion;
 
         for (int i = 0; i < vertices.Length; i++)
@@ -292,10 +296,8 @@ public class DeformacionPiedra : MonoBehaviour
         {
             float distCentro = vertices[i].magnitude;
 
-            // Si el vértice aún sobresale del radio esférico perfecto
             if (distCentro > radioObjetivoMinimo)
             {
-                // Lo reducimos de forma uniforme
                 float nuevaDist = Mathf.Max(distCentro - cantidadDesgaste, radioObjetivoMinimo);
                 vertices[i] = vertices[i].normalized * nuevaDist;
                 mallaModificada = true;
