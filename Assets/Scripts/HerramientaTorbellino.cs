@@ -6,7 +6,7 @@ public struct PiezaGiratoria
 {
     [Tooltip("La parte del modelo que va a girar")]
     public Transform objeto;
-    [Tooltip("Velocidad máxima en el eje Z para esta pieza en concreto")]
+    [Tooltip("Velocidad mï¿½xima en el eje Z para esta pieza en concreto")]
     public float velocidadMaximaZ;
 }
 
@@ -17,7 +17,7 @@ public class HerramientaTorbellino : MonoBehaviour
     public bool equipada = false;
     public GameObject modeloHerramienta;
 
-    [Header("Animación del Modelo (Sway & Bobbing)")]
+    [Header("Animaciï¿½n del Modelo (Sway & Bobbing)")]
     public float intensidadSway = 0.02f;
     public float limiteSway = 0.06f;
     public float intensidadInclinacion = 2f;
@@ -26,7 +26,7 @@ public class HerramientaTorbellino : MonoBehaviour
     public float suavidadAnimacion = 8f;
 
     [Header("Efectos Visuales (Giro con Inercia)")]
-    [Tooltip("Lista de piezas del modelo que girarán, cada una con su propia velocidad")]
+    [Tooltip("Lista de piezas del modelo que girarï¿½n, cada una con su propia velocidad")]
     public PiezaGiratoria[] piezasGiratorias;
 
     public float aceleracionGiro = 5f;
@@ -37,17 +37,17 @@ public class HerramientaTorbellino : MonoBehaviour
     public LayerMask capaSuelo;
     public float alcanceMaximo = 100f;
 
-    [Tooltip("Sistema de partículas que aparecerá en el punto donde toca el tornado (Se mueve y rota)")]
+    [Tooltip("Sistema de partï¿½culas que aparecerï¿½ en el punto donde toca el tornado (Se mueve y rota)")]
     public ParticleSystem particulasTorbellino;
 
-    [Tooltip("Sistemas de partículas que se activan al usar la herramienta pero NO cambian su posición ni rotación (ej: humo en el motor del arma)")]
+    [Tooltip("Sistemas de partï¿½culas que se activan al usar la herramienta pero NO cambian su posiciï¿½n ni rotaciï¿½n (ej: humo en el motor del arma)")]
     public ParticleSystem[] particulasEstaticas;
 
-    [Header("Visualización del Área")]
+    [Header("Visualizaciï¿½n del ï¿½rea")]
     public LineRenderer circuloAreaVisual;
     public int segmentosCirculo = 50;
 
-    [Header("Físicas Estables del Vórtice")]
+    [Header("Fï¿½sicas Estables del Vï¿½rtice")]
     public float radioAtraccion = 15f;
     public float radioOjoTornado = 3f;
     public float velocidadRotacion = 25f;
@@ -122,13 +122,7 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(teclaEquipar))
-        {
-            equipada = !equipada;
 
-            if (modeloHerramienta != null)
-            {
-                modeloHerramienta.SetActive(equipada);
 
                 if (equipada)
                 {
@@ -137,7 +131,7 @@ public class HerramientaTorbellino : MonoBehaviour
                     temporizadorBobbing = 0f;
                     intensidadGiroActual = 0f;
 
-                    // --- SOLUCIÓN: Despertar las partículas estáticas al sacar el arma ---
+                    // --- SOLUCIï¿½N: Despertar las partï¿½culas estï¿½ticas al sacar el arma ---
                     if (particulasEstaticas != null)
                     {
                         foreach (ParticleSystem ps in particulasEstaticas)
@@ -262,7 +256,7 @@ public class HerramientaTorbellino : MonoBehaviour
             ParticleSystem[] sistemasHijos = particulasTorbellino.GetComponentsInChildren<ParticleSystem>();
             foreach (ParticleSystem ps in sistemasHijos)
             {
-                // --- SOLUCIÓN: Si vamos a emitir y estaba apagado, lo arrancamos ---
+                // --- SOLUCIï¿½N: Si vamos a emitir y estaba apagado, lo arrancamos ---
                 if (activar && !ps.isPlaying) ps.Play(false);
 
                 var emision = ps.emission;
@@ -282,7 +276,7 @@ public class HerramientaTorbellino : MonoBehaviour
                     ParticleSystem[] estaticasHijas = psEstatica.GetComponentsInChildren<ParticleSystem>();
                     foreach (ParticleSystem psHija in estaticasHijas)
                     {
-                        // --- SOLUCIÓN: Hacemos lo mismo con todos los hijos estáticos ---
+                        // --- SOLUCIï¿½N: Hacemos lo mismo con todos los hijos estï¿½ticos ---
                         if (activar && !psHija.isPlaying) psHija.Play(false);
 
                         var emision = psHija.emission;

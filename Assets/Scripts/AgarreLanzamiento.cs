@@ -16,23 +16,44 @@ public class AgarreLanzamiento : MonoBehaviour
 
     private AudioSource audioSource;
     private Rigidbody objetoSostenido;
+    private GestorEquipamiento gestorEquipamiento;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
+        gestorEquipamiento = FindObjectOfType<GestorEquipamiento>();
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(1) && objetoSostenido == null) IntentarAgarrar();
-        if (Input.GetMouseButtonUp(1) && objetoSostenido != null) LanzarObjeto();
-    }
+        // No permitimos agarrar piedras con una herramienta equipada
+        if (gestorEquipamiento != null && !gestorEquipamiento.PuedeUsarManos())
+        {
+            return;
+        }
 
+        if (Input.GetMouseButtonDown(1) && objetoSostenido == null)
+        {
+            IntentarAgarrar();
+        }
+
+        if (Input.GetMouseButtonUp(1) && objetoSostenido != null)
+        {
+            LanzarObjeto();
+        }
+    }
     void LateUpdate()
     {
-        if (Input.GetMouseButton(1) && objetoSostenido != null) SostenerObjeto();
-    }
+        if (gestorEquipamiento != null && !gestorEquipamiento.PuedeUsarManos())
+        {
+            return;
+        }
 
+        if (Input.GetMouseButton(1) && objetoSostenido != null)
+        {
+            SostenerObjeto();
+        }
+    }
     void IntentarAgarrar()
     {
         // --- 1. PRIORIDAD: COMPROBAR SI ESTÁ INSPECCIONANDO UNA ROCA CON EL AIM ASSIST ---

@@ -28,15 +28,23 @@ public class SistemaPatada : MonoBehaviour
 
     private AudioSource audioSource;
     private AgarreLanzamiento scriptAgarre;
+    private GestorEquipamiento gestorEquipamiento;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
         scriptAgarre = FindObjectOfType<AgarreLanzamiento>();
+        gestorEquipamiento = FindObjectOfType<GestorEquipamiento>();
     }
-
     void Update()
     {
+        // Si tenemos cualquier herramienta equipada, no podemos patear
+        if (gestorEquipamiento != null && !gestorEquipamiento.PuedeUsarManos())
+        {
+            return;
+        }
+
+        // Si estamos sujetando una piedra tampoco podemos patear
         if (scriptAgarre != null && scriptAgarre.EstaSosteniendoPiedra())
         {
             return;
@@ -47,7 +55,6 @@ public class SistemaPatada : MonoBehaviour
             DarPatada();
         }
     }
-
     void DarPatada()
     {
         Collider[] objetosGolpeados = Physics.OverlapSphere(puntoGolpe.position, radioGolpe, capaPiedra);
