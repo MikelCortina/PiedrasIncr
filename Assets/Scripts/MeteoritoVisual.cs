@@ -93,14 +93,14 @@ public class MeteoritoVisual : MonoBehaviour
             objetoHijoVisual.localScale = escalaInicialHijo * multiplicadorEscala;
         }
 
-        // 2. Reducir estelas
+        /* 2. Reducir estelas
         for (int i = 0; i < estelasMeteorito.Count; i++)
         {
             if (estelasMeteorito[i] != null)
             {
                 estelasMeteorito[i].time = tiemposOriginalesEstelas[i] * progresoCaida;
             }
-        }
+        }*/
 
         // 3. Aumentar emisión de partículas de fricción
         if (particulasFriccion != null)

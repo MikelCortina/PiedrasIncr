@@ -14,7 +14,6 @@ public class DeformacionPiedra : MonoBehaviour
     public float fuerzaDeErosion = 0.1f;
     public float fuerzaMinimaChoque = 1.0f;
 
-    // --- NUEVO: Multiplicador dinámico de erosión (el Torbellino lo modificará) ---
     [HideInInspector]
     public float multiplicadorErosion = 1f;
 
@@ -69,10 +68,11 @@ public class DeformacionPiedra : MonoBehaviour
         vertices = malla.vertices;
 
         rb = GetComponent<Rigidbody>();
-
-        // --- SOLUCIÓN AL TUNNELLING (Atravesar el suelo) ---
-        // Forzamos al motor de físicas a predecir la trayectoria entre fotogramas
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+        // --- SOLUCIÓN 1: Forzar MeshCollider Convexo ---
+        MeshCollider mc = GetComponent<MeshCollider>();
+        if (mc != null) mc.convex = true;
 
         CalcularRadioObjetivo();
 
@@ -252,7 +252,6 @@ public class DeformacionPiedra : MonoBehaviour
     public void DeformarMalla(Vector3 puntoImpactoLocal)
     {
         bool mallaModificada = false;
-
         float fuerzaErosionFinal = fuerzaDeErosion * multiplicadorErosion;
 
         for (int i = 0; i < vertices.Length; i++)
@@ -284,10 +283,13 @@ public class DeformacionPiedra : MonoBehaviour
             malla.RecalculateNormals();
             malla.RecalculateBounds();
 
+            MeshCollider mc = GetComponent<MeshCollider>();
+            mc.sharedMesh = malla;
+            mc.convex = true; // --- Mantener Convexidad ---
             GetComponent<MeshFilter>().sharedMesh = malla;
-            GetComponent<MeshCollider>().sharedMesh = malla;
         }
     }
+
     public void PulirUniformemente(float cantidadDesgaste)
     {
         bool mallaModificada = false;
@@ -316,10 +318,13 @@ public class DeformacionPiedra : MonoBehaviour
             malla.RecalculateNormals();
             malla.RecalculateBounds();
 
+            MeshCollider mc = GetComponent<MeshCollider>();
+            mc.sharedMesh = malla;
+            mc.convex = true; // --- Mantener Convexidad ---
             GetComponent<MeshFilter>().sharedMesh = malla;
-            GetComponent<MeshCollider>().sharedMesh = malla;
         }
     }
+
     public float ObtenerPorcentajeDesgasteHaciaEsfera()
     {
         if (malla == null) return 0f;
