@@ -48,9 +48,16 @@ public class LluviaMeteoritos : MonoBehaviour
     [SerializeField] private bool sistemaActivo = true;
 
     private Coroutine rutinaLluvia;
-
     void Start()
     {
+        // Siempre lanzamos un único meteorito inicial
+        // para poder arrancar la economía.
+        if (generarMeteoritoInicial)
+        {
+            SpawnearMeteorito();
+        }
+
+        // La lluvia continua solo empieza si está activa.
         if (sistemaActivo)
         {
             IniciarRutinaLluvia();

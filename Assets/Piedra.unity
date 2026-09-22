@@ -6112,10 +6112,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabPiedra: {fileID: 6288764415059956693, guid: aca5b2d9ebe9c7047a38b631a75ee26b, type: 3}
+  generarMeteoritoInicial: 1
   alturaCielo: 600
   alturaSuelo: 400
   tagSuelo: Floor
   tiempoEntreSpawns: 2
+  cantidadPorOleada: 1
+  tiempoEntreMeteoritosOleada: 0.15
   curvaAceleracion:
     serializedVersion: 2
     m_Curve:
@@ -6144,6 +6147,7 @@ MonoBehaviour:
   capaColisionSuelo:
     serializedVersion: 2
     m_Bits: 8
+  sistemaActivo: 1
 --- !u!4 &384408574
 Transform:
   m_ObjectHideFlags: 0
@@ -7387,12 +7391,22 @@ MonoBehaviour:
   - nombreFase: erttrr
     impactosParaSiguienteFase: 3
     visualFase: {fileID: 1978108736}
+    lluviaActiva: 0
+    tiempoEntreSpawns: 2
+    cantidadPorOleada: 1
   - nombreFase: 2fase
     impactosParaSiguienteFase: 5
     visualFase: {fileID: 467909918}
+    lluviaActiva: 1
+    tiempoEntreSpawns: 2
+    cantidadPorOleada: 1
   - nombreFase: 
     impactosParaSiguienteFase: 0
     visualFase: {fileID: 0}
+    lluviaActiva: 1
+    tiempoEntreSpawns: 2
+    cantidadPorOleada: 1
+  lluviaMeteoritos: {fileID: 384408573}
   faseActual: 0
   impactosActuales: 0
 --- !u!4 &641001703
