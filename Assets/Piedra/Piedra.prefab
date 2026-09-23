@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 5018282818217630466}
   - component: {fileID: 5098474625224291455}
   - component: {fileID: 7096758023050926148}
+  - component: {fileID: 2538320947263091022}
   m_Layer: 9
   m_Name: Piedra
   m_TagString: Piedra
@@ -70,7 +71,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 1c7004ba0e99c5f40aa944a3011bf674, type: 2}
+  - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -154,6 +155,7 @@ MonoBehaviour:
   radioDeImpacto: 0.5
   fuerzaDeErosion: 0.1
   fuerzaMinimaChoque: 1
+  multiplicadorErosion: 1
   retrasoEfectosInicial: 0
   particulasPolvo: {fileID: 4848957872013385739}
   fuerzaMinimaParticulas: 8
@@ -217,6 +219,28 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2538320947263091022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6288764415059956693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.5
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
 --- !u!1001 &2221087246942737944
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -94,19 +94,37 @@ public class GeneradorPiedra : MonoBehaviour
 
     void HacerLowPoly(Mesh malla)
     {
+        // 1. Calculamos las normales suaves ANTES de separar las caras
+        malla.RecalculateNormals();
+        Vector3[] normalesSuaves = malla.normals;
+
         Vector3[] verticesViejos = malla.vertices;
         int[] triangulosViejos = malla.triangles;
+
         Vector3[] verticesNuevos = new Vector3[triangulosViejos.Length];
         int[] triangulosNuevos = new int[triangulosViejos.Length];
 
+        // 2. Preparamos una lista para guardar las normales suaves (Flat Kit las leerá de aquí)
+        List<Vector3> normalesParaFlatKit = new List<Vector3>(triangulosViejos.Length);
+
         for (int i = 0; i < triangulosViejos.Length; i++)
         {
-            verticesNuevos[i] = verticesViejos[triangulosViejos[i]];
+            int indiceOriginal = triangulosViejos[i];
+
+            verticesNuevos[i] = verticesViejos[indiceOriginal];
             triangulosNuevos[i] = i;
+
+            // Copiamos la normal suave correspondiente a este vértice
+            normalesParaFlatKit.Add(normalesSuaves[indiceOriginal]);
         }
 
         malla.vertices = verticesNuevos;
         malla.triangles = triangulosNuevos;
+
+        // 3. Inyectamos las normales suaves en el canal UV3 (índice 2), que es TEXCOORD2 en el shader de Flat Kit
+        malla.SetUVs(2, normalesParaFlatKit);
+
+        // 4. Recalculamos las normales reales para que la iluminación del objeto se vea Low Poly (facetada)
         malla.RecalculateNormals();
         malla.RecalculateBounds();
     }

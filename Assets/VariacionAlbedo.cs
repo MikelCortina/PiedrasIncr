@@ -10,9 +10,14 @@ public struct ConfiguracionMaterial
     public Color nuevoColor;
     public Texture nuevaTextura;
 
+    [Header("Cel Shading (Single)")]
+    public Color colorSombreado;
+    public float selfShadingSize;
+    public float edgeSize;
+    public float localizedShading;
+
     [Header("Contorno")]
     public Color colorContorno;
-    // Eliminado el [Range(0f, 10f)] para permitir valores infinitos
     public float grosorContorno;
 }
 
@@ -51,12 +56,20 @@ public class VariacionAlbedo : MonoBehaviour
 
             render.GetPropertyBlock(propBlock, config.indiceMaterial);
 
+            // Albedo
             propBlock.SetColor("_BaseColor", config.nuevoColor);
             if (config.nuevaTextura != null)
             {
                 propBlock.SetTexture("_BaseMap", config.nuevaTextura);
             }
 
+            // Cel Shading
+            propBlock.SetColor("_ColorDim", config.colorSombreado);
+            propBlock.SetFloat("_SelfShadingSize", config.selfShadingSize);
+            propBlock.SetFloat("_ShadowEdgeSize", config.edgeSize);
+            propBlock.SetFloat("_Flatness", config.localizedShading);
+
+            // Contorno
             propBlock.SetColor("_OutlineColor", config.colorContorno);
             propBlock.SetFloat("_OutlineWidth", config.grosorContorno);
 

@@ -72,6 +72,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Coin
       objectReference: {fileID: 0}
+    - target: {fileID: -1461304994638716399, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: -516098083770646512, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
       propertyPath: m_Layer
       value: 8
@@ -92,10 +96,14 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Coin
       objectReference: {fileID: 0}
+    - target: {fileID: 7071182760956848314, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 7202271454713460447, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 28db1f4ee7e96a84cada6b396a4f45d3, type: 2}
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 8513859187771203891, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
       propertyPath: m_Layer
       value: 8
@@ -117,9 +125,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4717660744702941617}
+    - targetCorrespondingSourceObject: {fileID: -516098083770646512, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1486166365504309682}
+    - targetCorrespondingSourceObject: {fileID: -5568371526223589888, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2333572029764572460}
     - targetCorrespondingSourceObject: {fileID: 8513859187771203891, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5231298703616614897}
+    - targetCorrespondingSourceObject: {fileID: 8513859187771203891, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6408881389586395166}
   m_SourcePrefab: {fileID: 100100000, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
 --- !u!1 &1694223824119742619 stripped
 GameObject:
@@ -148,6 +165,82 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -7387706064836869012, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+--- !u!114 &6408881389586395166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694223824119742619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 0.7058824, g: 0.49019608, b: 0.08235294, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+--- !u!1 &1833573916525879736 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -516098083770646512, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+  m_PrefabInstance: {fileID: 7035847773956415912}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1486166365504309682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1833573916525879736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 0.7058824, g: 0.49019608, b: 0.08235294, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+--- !u!1 &5989068272105828264 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -5568371526223589888, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
+  m_PrefabInstance: {fileID: 7035847773956415912}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2333572029764572460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5989068272105828264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
 --- !u!1 &7882763434476444921 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 5ce105c16fb7da544a43722b5ac6e538, type: 3}
