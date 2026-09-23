@@ -1,8 +1,21 @@
+using System;
 using UnityEngine;
 
 public class CinturonAsteroides : MonoBehaviour
 {
-    // --- NUEVO: Estructura pública para pasarle los datos a la Lluvia ---
+    [Serializable]
+    public struct FormaAnillo
+    {
+        // --- NUEVO: Cantidad configurable por fase ---
+        public int cantidadAsteroides;
+
+        public float radioInterior;
+        public float radioExterior;
+        public float elevacionCinturon;
+        public float grosorAltura;
+        public Vector3 escalaHumo;
+    }
+
     public struct DatosSpawnMeteorito
     {
         public float anguloInicial;
@@ -15,11 +28,16 @@ public class CinturonAsteroides : MonoBehaviour
     {
         public Transform transformAsteroide;
         public float anguloActual;
-        public float distanciaAlCentro;
+
+        public float factorRadio;
+        public float factorAltura;
+
         public float velocidadOrbita;
-        public float offsetAlturaY;
         public Vector3 ejeRotacionLocal;
         public float velocidadRotacionLocal;
+
+        public float offsetActualExplosion;
+        public float velocidadRadial;
     }
 
     [Header("Referencias")]
@@ -29,24 +47,29 @@ public class CinturonAsteroides : MonoBehaviour
     [Header("Rotación del Objetivo Central")]
     public Vector3 ejeRotacionObjetivo = Vector3.up;
     public float velocidadRotacionObjetivo = 15f;
+    [HideInInspector] public bool rotacionPausada = false;
 
-    [Header("Orientación Dinámica (Hacia el Jugador)")]
+    [Header("Orientación Dinámica")]
     public Transform jugador;
     public string tagJugador = "Player";
     public float inclinacionX = 15f;
 
-    [Header("Forma del Anillo")]
-    public int cantidadAsteroides = 200;
-    public float radioInterior = 40f;
-    public float radioExterior = 60f;
-    public float elevacionCinturon = 10f;
-    public float grosorAltura = 5f;
+    [Header("Generación (Solo si no usa Gestor)")]
+    public int cantidadInicialAsteroides = 200;
 
-    // --- NUEVO: Zona de Caída ---
+    [Header("Transición de Forma")]
+    public float velocidadTransicionForma = 2f;
+
+    private FormaAnillo formaObjetivo;
+
+    [HideInInspector] public float radioInterior = 40f;
+    [HideInInspector] public float radioExterior = 60f;
+    [HideInInspector] public float elevacionCinturon = 10f;
+    [HideInInspector] public float grosorAltura = 5f;
+    private Vector3 escalaBaseHumo = Vector3.one;
+
     [Header("Fracción de Caída (Drop Zone)")]
-    [Tooltip("El ángulo central desde donde se permite que caigan los meteoritos (0 a 360)")]
     [Range(0f, 360f)] public float anguloCentroCaida = 180f;
-    [Tooltip("La amplitud en grados de la zona de caída. 90 significa 45 grados a cada lado del centro.")]
     [Range(10f, 360f)] public float aperturaCaida = 90f;
 
     [Header("Movimiento y Variación")]
@@ -54,6 +77,24 @@ public class CinturonAsteroides : MonoBehaviour
     public Vector2 rangoVelocidadRotacionLocal = new Vector2(10f, 50f);
     public Vector2 rangoEscala = new Vector2(500f, 500f);
 
+    [Header("Física de Explosión (Asteroides)")]
+    public float fuerzaExplosionMin = 40f;
+    public float fuerzaExplosionMax = 100f;
+    public float rigidezResorteAsteroides = 25f;
+    public float amortiguacionAsteroides = 5f;
+
+    [Header("Física de Explosión (Humo Visual)")]
+    public ParticleSystem particulasAnilloHumo;
+    public float fuerzaExplosionHumo = 3f;
+    public float rigidezResorteHumo = 25f;
+    public float amortiguacionHumo = 5f;
+    public float escalaHumoInvisible = 1.5f;
+
+    private Color colorOriginalHumo;
+    private float multiplicadorHumoActual = 1f;
+    private float velocidadRadialHumo = 0f;
+
+    private ParticleSystem.Particle[] particulasHumoBuffer;
     private AsteroideOrbital[] arrayAsteroides;
 
     void Start()
@@ -66,41 +107,143 @@ public class CinturonAsteroides : MonoBehaviour
             if (objJugador != null) jugador = objJugador.transform;
         }
 
-        GenerarCinturon();
+        if (particulasAnilloHumo != null)
+        {
+            escalaBaseHumo = particulasAnilloHumo.transform.localScale;
+            colorOriginalHumo = particulasAnilloHumo.main.startColor.color;
+            particulasHumoBuffer = new ParticleSystem.Particle[particulasAnilloHumo.main.maxParticles];
+        }
+
+        // Si el Gestor no lo ha inicializado antes, lo hacemos aquí con el valor base
+        if (arrayAsteroides == null || arrayAsteroides.Length == 0)
+        {
+            AjustarCantidadAsteroides(cantidadInicialAsteroides);
+        }
     }
 
-    void GenerarCinturon()
+    // --- NUEVO: Motor dinámico para cambiar la cantidad de pedazos ---
+    private void AjustarCantidadAsteroides(int nuevaCantidad)
     {
-        arrayAsteroides = new AsteroideOrbital[cantidadAsteroides];
+        if (arrayAsteroides == null)
+            arrayAsteroides = new AsteroideOrbital[0];
 
-        for (int i = 0; i < cantidadAsteroides; i++)
+        int cantidadActual = arrayAsteroides.Length;
+        if (nuevaCantidad == cantidadActual) return;
+
+        if (nuevaCantidad < cantidadActual)
         {
-            GameObject prefabAleatorio = prefabsAsteroides[Random.Range(0, prefabsAsteroides.Length)];
-            GameObject nuevoAsteroide = Instantiate(prefabAleatorio, transform);
-            Destroy(nuevoAsteroide.GetComponent<Rigidbody>());
-            float escalaRandom = Random.Range(rangoEscala.x, rangoEscala.y);
-            nuevoAsteroide.transform.localScale = new Vector3(escalaRandom, escalaRandom, escalaRandom);
-
-            arrayAsteroides[i] = new AsteroideOrbital
+            // Hay menos: Destruimos los que sobran
+            for (int i = nuevaCantidad; i < cantidadActual; i++)
             {
-                transformAsteroide = nuevoAsteroide.transform,
-                anguloActual = Random.Range(0f, 360f),
-                distanciaAlCentro = Random.Range(radioInterior, radioExterior),
-                velocidadOrbita = Random.Range(rangoVelocidadOrbita.x, rangoVelocidadOrbita.y),
-                offsetAlturaY = Random.Range(-grosorAltura, grosorAltura),
-                ejeRotacionLocal = Random.onUnitSphere,
-                velocidadRotacionLocal = Random.Range(rangoVelocidadRotacionLocal.x, rangoVelocidadRotacionLocal.y)
-            };
-
-            if (Random.value > 0.5f) arrayAsteroides[i].velocidadOrbita *= -1f;
+                if (arrayAsteroides[i].transformAsteroide != null)
+                {
+                    Destroy(arrayAsteroides[i].transformAsteroide.gameObject);
+                }
+            }
+            Array.Resize(ref arrayAsteroides, nuevaCantidad);
         }
+        else
+        {
+            // Hay más: Redimensionamos y generamos los que faltan
+            Array.Resize(ref arrayAsteroides, nuevaCantidad);
+
+            for (int i = cantidadActual; i < nuevaCantidad; i++)
+            {
+                GameObject prefabAleatorio = prefabsAsteroides[UnityEngine.Random.Range(0, prefabsAsteroides.Length)];
+                GameObject nuevoAsteroide = Instantiate(prefabAleatorio, transform);
+                Destroy(nuevoAsteroide.GetComponent<Rigidbody>());
+
+                float escalaRandom = UnityEngine.Random.Range(rangoEscala.x, rangoEscala.y);
+                nuevoAsteroide.transform.localScale = new Vector3(escalaRandom, escalaRandom, escalaRandom);
+
+                arrayAsteroides[i] = new AsteroideOrbital
+                {
+                    transformAsteroide = nuevoAsteroide.transform,
+                    anguloActual = UnityEngine.Random.Range(0f, 360f),
+                    factorRadio = UnityEngine.Random.value,
+                    factorAltura = UnityEngine.Random.Range(-1f, 1f),
+
+                    velocidadOrbita = UnityEngine.Random.Range(rangoVelocidadOrbita.x, rangoVelocidadOrbita.y),
+                    ejeRotacionLocal = UnityEngine.Random.onUnitSphere,
+                    velocidadRotacionLocal = UnityEngine.Random.Range(rangoVelocidadRotacionLocal.x, rangoVelocidadRotacionLocal.y),
+                    offsetActualExplosion = 0f,
+                    velocidadRadial = 0f
+                };
+
+                if (UnityEngine.Random.value > 0.5f) arrayAsteroides[i].velocidadOrbita *= -1f;
+
+                // Los colocamos en su sitio base para que no parpadeen en el centro antes de explotar
+                float radioBase = Mathf.Lerp(radioInterior, radioExterior, arrayAsteroides[i].factorRadio);
+                float alturaBaseY = grosorAltura * arrayAsteroides[i].factorAltura;
+                nuevoAsteroide.transform.position = ObtenerPosicionEnCinturon(arrayAsteroides[i].anguloActual, radioBase, alturaBaseY);
+            }
+        }
+    }
+
+    public void CambiarForma(FormaAnillo nuevaForma)
+    {
+        formaObjetivo = nuevaForma;
+        AjustarCantidadAsteroides(nuevaForma.cantidadAsteroides);
+    }
+
+    public void AplicarFormaInmediata(FormaAnillo forma)
+    {
+        formaObjetivo = forma;
+        radioInterior = forma.radioInterior;
+        radioExterior = forma.radioExterior;
+        elevacionCinturon = forma.elevacionCinturon;
+        grosorAltura = forma.grosorAltura;
+        escalaBaseHumo = forma.escalaHumo;
+        AjustarCantidadAsteroides(forma.cantidadAsteroides);
     }
 
     void Update()
     {
+        radioInterior = Mathf.Lerp(radioInterior, formaObjetivo.radioInterior, Time.deltaTime * velocidadTransicionForma);
+        radioExterior = Mathf.Lerp(radioExterior, formaObjetivo.radioExterior, Time.deltaTime * velocidadTransicionForma);
+        elevacionCinturon = Mathf.Lerp(elevacionCinturon, formaObjetivo.elevacionCinturon, Time.deltaTime * velocidadTransicionForma);
+        grosorAltura = Mathf.Lerp(grosorAltura, formaObjetivo.grosorAltura, Time.deltaTime * velocidadTransicionForma);
+        escalaBaseHumo = Vector3.Lerp(escalaBaseHumo, formaObjetivo.escalaHumo, Time.deltaTime * velocidadTransicionForma);
+
+        if (particulasAnilloHumo != null)
+        {
+            float desplazamientoHumo = multiplicadorHumoActual - 1f;
+            float aceleracionHumo = (-rigidezResorteHumo * desplazamientoHumo) - (amortiguacionHumo * velocidadRadialHumo);
+
+            velocidadRadialHumo += aceleracionHumo * Time.deltaTime;
+            multiplicadorHumoActual += velocidadRadialHumo * Time.deltaTime;
+
+            particulasAnilloHumo.transform.localScale = new Vector3(
+                escalaBaseHumo.x * multiplicadorHumoActual,
+                escalaBaseHumo.y * multiplicadorHumoActual,
+                escalaBaseHumo.z
+            );
+
+            float porcentajeAlfa = Mathf.InverseLerp(escalaHumoInvisible, 1f, multiplicadorHumoActual);
+            var main = particulasAnilloHumo.main;
+            Color nuevoColor = colorOriginalHumo;
+            nuevoColor.a *= porcentajeAlfa;
+            main.startColor = nuevoColor;
+
+            if (particulasHumoBuffer != null)
+            {
+                int particulasVivas = particulasAnilloHumo.GetParticles(particulasHumoBuffer);
+                byte alphaCalculado = (byte)Mathf.Clamp(colorOriginalHumo.a * porcentajeAlfa * 255f, 0f, 255f);
+
+                for (int i = 0; i < particulasVivas; i++)
+                {
+                    Color32 colorParticula = particulasHumoBuffer[i].startColor;
+                    colorParticula.a = alphaCalculado;
+                    particulasHumoBuffer[i].startColor = colorParticula;
+                }
+
+                particulasAnilloHumo.SetParticles(particulasHumoBuffer, particulasVivas);
+            }
+        }
+
         if (objetivoOrbita == null || arrayAsteroides == null) return;
 
-        if (velocidadRotacionObjetivo != 0f)
+        if (velocidadRotacionObjetivo != 0f && !rotacionPausada)
         {
             objetivoOrbita.Rotate(ejeRotacionObjetivo, velocidadRotacionObjetivo * Time.deltaTime, Space.Self);
         }
@@ -108,18 +251,26 @@ public class CinturonAsteroides : MonoBehaviour
         for (int i = 0; i < arrayAsteroides.Length; i++)
         {
             arrayAsteroides[i].anguloActual += arrayAsteroides[i].velocidadOrbita * Time.deltaTime;
-
             if (arrayAsteroides[i].anguloActual > 360f) arrayAsteroides[i].anguloActual -= 360f;
             else if (arrayAsteroides[i].anguloActual < 0f) arrayAsteroides[i].anguloActual += 360f;
 
+            float desplazamientoAsteroide = arrayAsteroides[i].offsetActualExplosion;
+            float aceleracionAsteroide = (-rigidezResorteAsteroides * desplazamientoAsteroide) - (amortiguacionAsteroides * arrayAsteroides[i].velocidadRadial);
+
+            arrayAsteroides[i].velocidadRadial += aceleracionAsteroide * Time.deltaTime;
+            arrayAsteroides[i].offsetActualExplosion += arrayAsteroides[i].velocidadRadial * Time.deltaTime;
+
+            float radioBase = Mathf.Lerp(radioInterior, radioExterior, arrayAsteroides[i].factorRadio);
+            float alturaBaseY = grosorAltura * arrayAsteroides[i].factorAltura;
+            float distanciaTotal = radioBase + arrayAsteroides[i].offsetActualExplosion;
+
             Vector3 posicionFinal = ObtenerPosicionEnCinturon(
                 arrayAsteroides[i].anguloActual,
-                arrayAsteroides[i].distanciaAlCentro,
-                arrayAsteroides[i].offsetAlturaY
+                distanciaTotal,
+                alturaBaseY
             );
 
             arrayAsteroides[i].transformAsteroide.position = posicionFinal;
-
             arrayAsteroides[i].transformAsteroide.Rotate(
                 arrayAsteroides[i].ejeRotacionLocal,
                 arrayAsteroides[i].velocidadRotacionLocal * Time.deltaTime,
@@ -128,9 +279,20 @@ public class CinturonAsteroides : MonoBehaviour
         }
     }
 
-    // =======================================================
-    // --- LÓGICA DE COORDENADAS Y ZONA DE CAÍDA ---
-    // =======================================================
+    public void ExplotarCinturon()
+    {
+        if (arrayAsteroides == null) return;
+
+        for (int i = 0; i < arrayAsteroides.Length; i++)
+        {
+            arrayAsteroides[i].velocidadRadial = UnityEngine.Random.Range(fuerzaExplosionMin, fuerzaExplosionMax);
+        }
+
+        if (particulasAnilloHumo != null)
+        {
+            velocidadRadialHumo = fuerzaExplosionHumo;
+        }
+    }
 
     public void ObtenerMatrizCinturon(out Vector3 centro, out Quaternion rotacion)
     {
@@ -165,28 +327,23 @@ public class CinturonAsteroides : MonoBehaviour
 
     public DatosSpawnMeteorito ObtenerDatosSpawnMeteorito()
     {
-        float velocidadO = Random.Range(rangoVelocidadOrbita.x, rangoVelocidadOrbita.y);
-        if (Random.value > 0.5f) velocidadO *= -1f;
+        float velocidadO = UnityEngine.Random.Range(rangoVelocidadOrbita.x, rangoVelocidadOrbita.y);
+        if (UnityEngine.Random.value > 0.5f) velocidadO *= -1f;
 
         return new DatosSpawnMeteorito
         {
-            anguloInicial = Random.Range(0f, 360f),
-            distanciaAlCentro = Random.Range(radioInterior, radioExterior),
-            alturaY = Random.Range(-grosorAltura, grosorAltura),
+            anguloInicial = UnityEngine.Random.Range(0f, 360f),
+            distanciaAlCentro = UnityEngine.Random.Range(radioInterior, radioExterior),
+            alturaY = UnityEngine.Random.Range(-grosorAltura, grosorAltura),
             velocidadOrbita = velocidadO
         };
     }
 
     public bool EstaEnZonaDeCaida(float angulo)
     {
-        // DeltaAngle nos da la distancia más corta entre dos ángulos, evitando bugs al pasar de 360 a 0
         float diferencia = Mathf.Abs(Mathf.DeltaAngle(anguloCentroCaida, angulo));
         return diferencia <= (aperturaCaida / 2f);
     }
-
-    // =======================================================
-    // --- GIZMOS ---
-    // =======================================================
 
     void OnDrawGizmosSelected()
     {
@@ -194,34 +351,23 @@ public class CinturonAsteroides : MonoBehaviour
 
         ObtenerMatrizCinturon(out Vector3 centroElevado, out Quaternion rotacionAnillo);
 
-        // 1. Dibujar anillo completo tenue
         Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.2f);
         DibujarArcoGizmo(centroElevado, radioInterior, rotacionAnillo, 0f, 360f);
         DibujarArcoGizmo(centroElevado, radioExterior, rotacionAnillo, 0f, 360f);
 
-        // 2. Dibujar zona de caída destacada (Roja)
         Gizmos.color = Color.red;
         float anguloInicio = anguloCentroCaida - (aperturaCaida / 2f);
         float anguloFin = anguloCentroCaida + (aperturaCaida / 2f);
 
         DibujarArcoGizmo(centroElevado, radioInterior, rotacionAnillo, anguloInicio, anguloFin);
         DibujarArcoGizmo(centroElevado, radioExterior, rotacionAnillo, anguloInicio, anguloFin);
-
-        // Líneas laterales para cerrar la porción
-        Vector3 pInteriorInicio = ObtenerPosicionEnCinturon(anguloInicio, radioInterior, 0f);
-        Vector3 pExteriorInicio = ObtenerPosicionEnCinturon(anguloInicio, radioExterior, 0f);
-        Vector3 pInteriorFin = ObtenerPosicionEnCinturon(anguloFin, radioInterior, 0f);
-        Vector3 pExteriorFin = ObtenerPosicionEnCinturon(anguloFin, radioExterior, 0f);
-
-        Gizmos.DrawLine(pInteriorInicio, pExteriorInicio);
-        Gizmos.DrawLine(pInteriorFin, pExteriorFin);
     }
 
     void DibujarArcoGizmo(Vector3 centro, float radio, Quaternion rotacionAnillo, float anguloInicio, float anguloFin)
     {
         int segmentos = 40;
         float rango = Mathf.Abs(Mathf.DeltaAngle(anguloInicio, anguloFin));
-        if (rango < 0.1f && anguloFin - anguloInicio >= 360f) rango = 360f; // Caso de círculo completo
+        if (rango < 0.1f && anguloFin - anguloInicio >= 360f) rango = 360f;
 
         float paso = rango / segmentos;
 
