@@ -51,6 +51,16 @@ public class HerramientaTorbellino : MonoBehaviour
     public float radioOjoNivel2 = 2.25f;
     public float radioOjoNivel3 = 3.4f;
 
+
+    [Header("Mejora - Alcance del Torbellino")]
+    [SerializeField, Range(1, 3)]
+    private int nivelAlcance = 1;
+
+    public float alcanceNivel1 = 20f;
+    public float alcanceNivel2 = 30f;
+    public float alcanceNivel3 = 45f;
+
+    public int NivelAlcance => nivelAlcance;
     public int NivelRadio => nivelRadio;
     private Camera camaraPrincipal;
 
@@ -72,8 +82,10 @@ public class HerramientaTorbellino : MonoBehaviour
     private void OnValidate()
     {
         nivelRadio = Mathf.Clamp(nivelRadio, 1, 3);
+        nivelAlcance = Mathf.Clamp(nivelAlcance, 1, 3);
 
         AplicarNivelRadio();
+        AplicarNivelAlcance();
     }
     void Start()
     {
@@ -407,4 +419,49 @@ public class HerramientaTorbellino : MonoBehaviour
     {
         return nivelRadio >= 3;
     }
+
+    public bool MejorarAlcance()
+    {
+        if (nivelAlcance >= 3)
+        {
+            return false;
+        }
+
+        nivelAlcance++;
+
+        AplicarNivelAlcance();
+
+        Debug.Log(
+            "Alcance del Torbellino mejorado a nivel " +
+            nivelAlcance +
+            " | Alcance: " +
+            alcanceMaximo
+        );
+
+        return true;
+    }
+
+    private void AplicarNivelAlcance()
+    {
+        switch (nivelAlcance)
+        {
+            case 1:
+                alcanceMaximo = alcanceNivel1;
+                break;
+
+            case 2:
+                alcanceMaximo = alcanceNivel2;
+                break;
+
+            case 3:
+                alcanceMaximo = alcanceNivel3;
+                break;
+        }
+    }
+
+    public bool AlcanceAlMaximo()
+    {
+        return nivelAlcance >= 3;
+    }
 }
+

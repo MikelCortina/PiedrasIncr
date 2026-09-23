@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class TiendaTrabajo : MonoBehaviour
 {
     // =====================================================
-    // REFERENCIAS
+    // REFERENCIAS GENERALES
     // =====================================================
 
     [Header("Referencias")]
@@ -25,10 +25,10 @@ public class TiendaTrabajo : MonoBehaviour
 
 
     // =====================================================
-    // TORBELLINO
+    // TORBELLINO - COMPRA
     // =====================================================
 
-    [Header("Torbellino")]
+    [Header("Torbellino - Compra")]
     public int precioTorbellino = 1;
 
     public Button botonComprarTorbellino;
@@ -38,12 +38,35 @@ public class TiendaTrabajo : MonoBehaviour
 
 
     // =====================================================
-    // MEJORAS DEL TORBELLINO
+    // PANEL DE MEJORAS
     // =====================================================
 
-    [Header("Mejoras Radio Torbellino")]
+    [Header("Torbellino - Panel Mejoras")]
+    public GameObject panelMejorasTorbellino;
+
+
+    // =====================================================
+    // MEJORA RADIO
+    // =====================================================
+
+    [Header("Torbellino - Mejora Radio")]
+    public Button botonMejorarRadio;
+    public TextMeshProUGUI textoBotonRadio;
+
     public int precioRadioNivel2 = 5;
     public int precioRadioNivel3 = 10;
+
+
+    // =====================================================
+    // MEJORA ALCANCE
+    // =====================================================
+
+    [Header("Torbellino - Mejora Alcance")]
+    public Button botonMejorarAlcance;
+    public TextMeshProUGUI textoBotonAlcance;
+
+    public int precioAlcanceNivel2 = 5;
+    public int precioAlcanceNivel3 = 10;
 
 
     // =====================================================
@@ -80,17 +103,11 @@ public class TiendaTrabajo : MonoBehaviour
     public void ComprarArmaLuna()
     {
         if (cartera == null || gestorEquipamiento == null)
-        {
             return;
-        }
 
-        // Si ya está comprada, no hacemos nada
         if (gestorEquipamiento.ArmaLanzadoraDesbloqueada())
-        {
             return;
-        }
 
-        // Intentamos pagar
         if (!cartera.GastarMonedas(precioArmaLuna))
         {
             Debug.Log(
@@ -100,7 +117,6 @@ public class TiendaTrabajo : MonoBehaviour
             return;
         }
 
-        // Desbloqueamos el arma
         gestorEquipamiento.DesbloquearArmaLanzadora();
 
         Debug.Log("¡Arma de la Luna comprada!");
@@ -110,11 +126,39 @@ public class TiendaTrabajo : MonoBehaviour
 
 
     // =====================================================
-    // TORBELLINO
-    // COMPRA + MEJORAS CON EL MISMO BOTÓN
+    // COMPRAR TORBELLINO
     // =====================================================
 
-    public void AccionTorbellino()
+    public void ComprarTorbellino()
+    {
+        if (cartera == null || gestorEquipamiento == null)
+            return;
+
+        if (gestorEquipamiento.TorbellinoDesbloqueado())
+            return;
+
+        if (!cartera.GastarMonedas(precioTorbellino))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para comprar el Torbellino."
+            );
+
+            return;
+        }
+
+        gestorEquipamiento.DesbloquearTorbellino();
+
+        Debug.Log("¡Torbellino comprado!");
+
+        ActualizarTienda();
+    }
+
+
+    // =====================================================
+    // MEJORAR RADIO
+    // =====================================================
+
+    public void ComprarMejoraRadioTorbellino()
     {
         if (cartera == null ||
             gestorEquipamiento == null ||
@@ -123,88 +167,46 @@ public class TiendaTrabajo : MonoBehaviour
             return;
         }
 
-
-        // -------------------------------------------------
-        // 1. TODAVÍA NO TENEMOS EL TORBELLINO
-        // -------------------------------------------------
-
         if (!gestorEquipamiento.TorbellinoDesbloqueado())
         {
-            if (!cartera.GastarMonedas(precioTorbellino))
-            {
-                Debug.Log(
-                    "No tienes monedas suficientes para comprar el Torbellino."
-                );
-
-                return;
-            }
-
-            gestorEquipamiento.DesbloquearTorbellino();
-
-            Debug.Log("¡Torbellino comprado!");
-
-            ActualizarTienda();
-
+            Debug.Log("Primero tienes que comprar el Torbellino.");
             return;
         }
-
-
-        // -------------------------------------------------
-        // 2. RADIO YA ESTÁ AL MÁXIMO
-        // -------------------------------------------------
 
         if (herramientaTorbellino.RadioAlMaximo())
         {
-            Debug.Log(
-                "El radio del Torbellino ya está al máximo."
-            );
-
+            Debug.Log("El radio del Torbellino ya está al máximo.");
             return;
         }
 
-
-        // -------------------------------------------------
-        // 3. CALCULAMOS EL PRECIO DE LA SIGUIENTE MEJORA
-        // -------------------------------------------------
-
-        int precioMejora;
+        int precio;
 
         if (herramientaTorbellino.NivelRadio == 1)
         {
-            precioMejora = precioRadioNivel2;
+            precio = precioRadioNivel2;
         }
         else if (herramientaTorbellino.NivelRadio == 2)
         {
-            precioMejora = precioRadioNivel3;
+            precio = precioRadioNivel3;
         }
         else
         {
             return;
         }
 
-
-        // -------------------------------------------------
-        // 4. PAGAMOS
-        // -------------------------------------------------
-
-        if (!cartera.GastarMonedas(precioMejora))
+        if (!cartera.GastarMonedas(precio))
         {
             Debug.Log(
-                "No tienes monedas suficientes para mejorar el Torbellino."
+                "No tienes monedas suficientes para mejorar el radio."
             );
 
             return;
         }
 
-
-        // -------------------------------------------------
-        // 5. MEJORAMOS
-        // -------------------------------------------------
-
         herramientaTorbellino.MejorarRadio();
 
         Debug.Log(
-            "Torbellino mejorado. Nivel de radio: " +
+            "Radio mejorado a nivel " +
             herramientaTorbellino.NivelRadio
         );
 
@@ -213,15 +215,73 @@ public class TiendaTrabajo : MonoBehaviour
 
 
     // =====================================================
-    // ACTUALIZAR INTERFAZ
+    // MEJORAR ALCANCE
+    // =====================================================
+
+    public void ComprarMejoraAlcanceTorbellino()
+    {
+        if (cartera == null ||
+            gestorEquipamiento == null ||
+            herramientaTorbellino == null)
+        {
+            return;
+        }
+
+        if (!gestorEquipamiento.TorbellinoDesbloqueado())
+        {
+            Debug.Log("Primero tienes que comprar el Torbellino.");
+            return;
+        }
+
+        if (herramientaTorbellino.AlcanceAlMaximo())
+        {
+            Debug.Log("El alcance del Torbellino ya está al máximo.");
+            return;
+        }
+
+        int precio;
+
+        if (herramientaTorbellino.NivelAlcance == 1)
+        {
+            precio = precioAlcanceNivel2;
+        }
+        else if (herramientaTorbellino.NivelAlcance == 2)
+        {
+            precio = precioAlcanceNivel3;
+        }
+        else
+        {
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precio))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para mejorar el alcance."
+            );
+
+            return;
+        }
+
+        herramientaTorbellino.MejorarAlcance();
+
+        Debug.Log(
+            "Alcance mejorado a nivel " +
+            herramientaTorbellino.NivelAlcance
+        );
+
+        ActualizarTienda();
+    }
+
+
+    // =====================================================
+    // ACTUALIZAR TIENDA
     // =====================================================
 
     private void ActualizarTienda()
     {
         if (gestorEquipamiento == null)
-        {
             return;
-        }
 
 
         // =================================================
@@ -233,23 +293,14 @@ public class TiendaTrabajo : MonoBehaviour
 
         if (textoBotonArma != null)
         {
-            if (armaComprada)
-            {
-                textoBotonArma.text = "COMPRADO";
-            }
-            else
-            {
-                textoBotonArma.text =
-                    "COMPRAR - " +
-                    precioArmaLuna +
-                    " moneda";
-            }
+            textoBotonArma.text = armaComprada
+                ? "COMPRADO"
+                : "COMPRAR - " + precioArmaLuna + " moneda";
         }
 
         if (botonComprarArma != null)
         {
-            botonComprarArma.interactable =
-                !armaComprada;
+            botonComprarArma.interactable = !armaComprada;
         }
 
 
@@ -262,104 +313,140 @@ public class TiendaTrabajo : MonoBehaviour
 
 
         // -------------------------------------------------
-        // TODAVÍA NO COMPRADO
+        // BOTÓN DE COMPRA
         // -------------------------------------------------
 
-        if (!torbellinoComprado)
+        if (botonComprarTorbellino != null)
         {
-            if (textoBotonTorbellino != null)
-            {
-                textoBotonTorbellino.text =
-                    "COMPRAR TORBELLINO - " +
-                    precioTorbellino +
-                    " monedas";
-            }
+            botonComprarTorbellino.gameObject.SetActive(
+                !torbellinoComprado
+            );
+        }
 
-            if (botonComprarTorbellino != null)
-            {
-                botonComprarTorbellino.interactable = true;
-            }
-
-            return;
+        if (textoBotonTorbellino != null)
+        {
+            textoBotonTorbellino.text =
+                "COMPRAR TORBELLINO - " +
+                precioTorbellino +
+                " monedas";
         }
 
 
         // -------------------------------------------------
-        // SI NO ENCONTRAMOS LA HERRAMIENTA
+        // MOSTRAR/OCULTAR MEJORAS
         // -------------------------------------------------
+
+        if (panelMejorasTorbellino != null)
+        {
+            panelMejorasTorbellino.SetActive(
+                torbellinoComprado
+            );
+        }
+
+
+        // Si todavía no está comprado,
+        // no necesitamos actualizar las mejoras.
+        if (!torbellinoComprado)
+            return;
 
         if (herramientaTorbellino == null)
-        {
-            if (textoBotonTorbellino != null)
-            {
-                textoBotonTorbellino.text =
-                    "ERROR TORBELLINO";
-            }
-
-            if (botonComprarTorbellino != null)
-            {
-                botonComprarTorbellino.interactable = false;
-            }
-
             return;
-        }
 
 
-        // -------------------------------------------------
-        // NIVEL 1 -> NIVEL 2
-        // -------------------------------------------------
+        // =================================================
+        // RADIO
+        // =================================================
 
         if (herramientaTorbellino.NivelRadio == 1)
         {
-            if (textoBotonTorbellino != null)
+            if (textoBotonRadio != null)
             {
-                textoBotonTorbellino.text =
+                textoBotonRadio.text =
                     "MEJORAR RADIO NIVEL 2 - " +
                     precioRadioNivel2 +
                     " monedas";
             }
 
-            if (botonComprarTorbellino != null)
+            if (botonMejorarRadio != null)
             {
-                botonComprarTorbellino.interactable = true;
+                botonMejorarRadio.interactable = true;
             }
         }
-
-        // -------------------------------------------------
-        // NIVEL 2 -> NIVEL 3
-        // -------------------------------------------------
-
         else if (herramientaTorbellino.NivelRadio == 2)
         {
-            if (textoBotonTorbellino != null)
+            if (textoBotonRadio != null)
             {
-                textoBotonTorbellino.text =
+                textoBotonRadio.text =
                     "MEJORAR RADIO NIVEL 3 - " +
                     precioRadioNivel3 +
                     " monedas";
             }
 
-            if (botonComprarTorbellino != null)
+            if (botonMejorarRadio != null)
             {
-                botonComprarTorbellino.interactable = true;
+                botonMejorarRadio.interactable = true;
+            }
+        }
+        else
+        {
+            if (textoBotonRadio != null)
+            {
+                textoBotonRadio.text =
+                    "RADIO NIVEL MÁXIMO";
+            }
+
+            if (botonMejorarRadio != null)
+            {
+                botonMejorarRadio.interactable = false;
             }
         }
 
-        // -------------------------------------------------
-        // NIVEL 3
-        // -------------------------------------------------
 
-        else
+        // =================================================
+        // ALCANCE
+        // =================================================
+
+        if (herramientaTorbellino.NivelAlcance == 1)
         {
-            if (textoBotonTorbellino != null)
+            if (textoBotonAlcance != null)
             {
-                textoBotonTorbellino.text =
-                    "RADIO MÁXIMO";
+                textoBotonAlcance.text =
+                    "MEJORAR ALCANCE NIVEL 2 - " +
+                    precioAlcanceNivel2 +
+                    " monedas";
             }
 
-            if (botonComprarTorbellino != null)
+            if (botonMejorarAlcance != null)
             {
-                botonComprarTorbellino.interactable = false;
+                botonMejorarAlcance.interactable = true;
+            }
+        }
+        else if (herramientaTorbellino.NivelAlcance == 2)
+        {
+            if (textoBotonAlcance != null)
+            {
+                textoBotonAlcance.text =
+                    "MEJORAR ALCANCE NIVEL 3 - " +
+                    precioAlcanceNivel3 +
+                    " monedas";
+            }
+
+            if (botonMejorarAlcance != null)
+            {
+                botonMejorarAlcance.interactable = true;
+            }
+        }
+        else
+        {
+            if (textoBotonAlcance != null)
+            {
+                textoBotonAlcance.text =
+                    "ALCANCE NIVEL MÁXIMO";
+            }
+
+            if (botonMejorarAlcance != null)
+            {
+                botonMejorarAlcance.interactable = false;
             }
         }
     }
