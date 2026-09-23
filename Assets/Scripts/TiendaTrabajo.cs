@@ -77,6 +77,27 @@ public class TiendaTrabajo : MonoBehaviour
 
 
     // =====================================================
+    // IMÁN
+    // =====================================================
+
+    [Header("Imán - Mejora Alcance")]
+    public RecolectorMagnetico recolectorMagnetico;
+
+    public Button botonMejorarIman;
+    public TextMeshProUGUI textoBotonIman;
+
+    public int precioImanNivel2 = 5;
+    public int precioImanNivel3 = 10;
+
+    [Header("Imán - Compra")]
+    public int precioIman = 3;
+
+    public Button botonComprarIman;
+    public TextMeshProUGUI textoBotonComprarIman;
+
+    public GameObject panelMejorasIman;
+
+    // =====================================================
     // START
     // =====================================================
 
@@ -98,7 +119,11 @@ public class TiendaTrabajo : MonoBehaviour
             herramientaTorbellino =
                 FindFirstObjectByType<HerramientaTorbellino>();
         }
-
+        if (recolectorMagnetico == null)
+        {
+            recolectorMagnetico =
+                FindFirstObjectByType<RecolectorMagnetico>();
+        }
         ActualizarTienda();
     }
 
@@ -318,11 +343,6 @@ public class TiendaTrabajo : MonoBehaviour
         bool torbellinoComprado =
             gestorEquipamiento.TorbellinoDesbloqueado();
 
-
-        // -------------------------------------------------
-        // BOTÓN DE COMPRA
-        // -------------------------------------------------
-
         if (botonComprarTorbellino != null)
         {
             botonComprarTorbellino.gameObject.SetActive(
@@ -338,11 +358,6 @@ public class TiendaTrabajo : MonoBehaviour
                 " monedas";
         }
 
-
-        // -------------------------------------------------
-        // MOSTRAR/OCULTAR MEJORAS
-        // -------------------------------------------------
-
         if (panelMejorasTorbellino != null)
         {
             panelMejorasTorbellino.SetActive(
@@ -351,157 +366,203 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
 
-        // Si todavía no está comprado,
-        // no necesitamos actualizar las mejoras.
-        if (!torbellinoComprado)
-            return;
+        // =================================================
+        // MEJORAS TORBELLINO
+        // =================================================
 
-        if (herramientaTorbellino == null)
-            return;
+        if (torbellinoComprado &&
+            herramientaTorbellino != null)
+        {
+            // -------------------------
+            // RADIO
+            // -------------------------
+
+            if (herramientaTorbellino.NivelRadio == 1)
+            {
+                if (textoBotonRadio != null)
+                {
+                    textoBotonRadio.text =
+                        "MEJORAR RADIO NIVEL 2 - " +
+                        precioRadioNivel2 +
+                        " monedas";
+                }
+
+                if (botonMejorarRadio != null)
+                {
+                    botonMejorarRadio.interactable = true;
+                }
+            }
+            else if (herramientaTorbellino.NivelRadio == 2)
+            {
+                if (textoBotonRadio != null)
+                {
+                    textoBotonRadio.text =
+                        "MEJORAR RADIO NIVEL 3 - " +
+                        precioRadioNivel3 +
+                        " monedas";
+                }
+
+                if (botonMejorarRadio != null)
+                {
+                    botonMejorarRadio.interactable = true;
+                }
+            }
+            else
+            {
+                if (textoBotonRadio != null)
+                {
+                    textoBotonRadio.text =
+                        "RADIO NIVEL MÁXIMO";
+                }
+
+                if (botonMejorarRadio != null)
+                {
+                    botonMejorarRadio.interactable = false;
+                }
+            }
+
+
+            // -------------------------
+            // ALCANCE
+            // -------------------------
+
+            if (herramientaTorbellino.NivelAlcance == 1)
+            {
+                if (textoBotonAlcance != null)
+                {
+                    textoBotonAlcance.text =
+                        "MEJORAR ALCANCE NIVEL 2 - " +
+                        precioAlcanceNivel2 +
+                        " monedas";
+                }
+
+                if (botonMejorarAlcance != null)
+                {
+                    botonMejorarAlcance.interactable = true;
+                }
+            }
+            else if (herramientaTorbellino.NivelAlcance == 2)
+            {
+                if (textoBotonAlcance != null)
+                {
+                    textoBotonAlcance.text =
+                        "MEJORAR ALCANCE NIVEL 3 - " +
+                        precioAlcanceNivel3 +
+                        " monedas";
+                }
+
+                if (botonMejorarAlcance != null)
+                {
+                    botonMejorarAlcance.interactable = true;
+                }
+            }
+            else
+            {
+                if (textoBotonAlcance != null)
+                {
+                    textoBotonAlcance.text =
+                        "ALCANCE NIVEL MÁXIMO";
+                }
+
+                if (botonMejorarAlcance != null)
+                {
+                    botonMejorarAlcance.interactable = false;
+                }
+            }
+
+
+            // -------------------------
+            // MOVILIDAD
+            // -------------------------
+
+            if (herramientaTorbellino.NivelMovilidad == 1)
+            {
+                if (textoBotonMovilidad != null)
+                {
+                    textoBotonMovilidad.text =
+                        "MEJORAR MOVILIDAD NIVEL 2 - " +
+                        precioMovilidadNivel2 +
+                        " monedas";
+                }
+
+                if (botonMejorarMovilidad != null)
+                {
+                    botonMejorarMovilidad.interactable = true;
+                }
+            }
+            else if (herramientaTorbellino.NivelMovilidad == 2)
+            {
+                if (textoBotonMovilidad != null)
+                {
+                    textoBotonMovilidad.text =
+                        "MEJORAR MOVILIDAD NIVEL 3 - " +
+                        precioMovilidadNivel3 +
+                        " monedas";
+                }
+
+                if (botonMejorarMovilidad != null)
+                {
+                    botonMejorarMovilidad.interactable = true;
+                }
+            }
+            else
+            {
+                if (textoBotonMovilidad != null)
+                {
+                    textoBotonMovilidad.text =
+                        "MOVILIDAD NIVEL MÁXIMO";
+                }
+
+                if (botonMejorarMovilidad != null)
+                {
+                    botonMejorarMovilidad.interactable = false;
+                }
+            }
+        }
 
 
         // =================================================
-        // RADIO
+        // IMÁN
         // =================================================
 
-        if (herramientaTorbellino.NivelRadio == 1)
+        if (recolectorMagnetico != null)
         {
-            if (textoBotonRadio != null)
+            bool imanComprado =
+                recolectorMagnetico.EstaImanDesbloqueado();
+
+            // BOTÓN DE COMPRA
+            if (botonComprarIman != null)
             {
-                textoBotonRadio.text =
-                    "MEJORAR RADIO NIVEL 2 - " +
-                    precioRadioNivel2 +
-                    " monedas";
+                botonComprarIman.gameObject.SetActive(true);
+                botonComprarIman.interactable = !imanComprado;
             }
 
-            if (botonMejorarRadio != null)
+            // TEXTO DEL BOTÓN DE COMPRA
+            if (textoBotonComprarIman != null)
             {
-                botonMejorarRadio.interactable = true;
-            }
-        }
-        else if (herramientaTorbellino.NivelRadio == 2)
-        {
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text =
-                    "MEJORAR RADIO NIVEL 3 - " +
-                    precioRadioNivel3 +
-                    " monedas";
-            }
-
-            if (botonMejorarRadio != null)
-            {
-                botonMejorarRadio.interactable = true;
-            }
-        }
-        else
-        {
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text =
-                    "RADIO NIVEL MÁXIMO";
+                if (imanComprado)
+                {
+                    textoBotonComprarIman.text = "COMPRADO";
+                }
+                else
+                {
+                    textoBotonComprarIman.text =
+                        "COMPRAR IMÁN - " +
+                        precioIman +
+                        " monedas";
+                }
             }
 
-            if (botonMejorarRadio != null)
+            // PANEL DE MEJORAS
+            if (panelMejorasIman != null)
             {
-                botonMejorarRadio.interactable = false;
-            }
-        }
-
-
-        // =================================================
-        // ALCANCE
-        // =================================================
-
-        if (herramientaTorbellino.NivelAlcance == 1)
-        {
-            if (textoBotonAlcance != null)
-            {
-                textoBotonAlcance.text =
-                    "MEJORAR ALCANCE NIVEL 2 - " +
-                    precioAlcanceNivel2 +
-                    " monedas";
+                panelMejorasIman.SetActive(imanComprado);
             }
 
-            if (botonMejorarAlcance != null)
+            // ACTUALIZAR MEJORAS
+            if (imanComprado)
             {
-                botonMejorarAlcance.interactable = true;
-            }
-        }
-        else if (herramientaTorbellino.NivelAlcance == 2)
-        {
-            if (textoBotonAlcance != null)
-            {
-                textoBotonAlcance.text =
-                    "MEJORAR ALCANCE NIVEL 3 - " +
-                    precioAlcanceNivel3 +
-                    " monedas";
-            }
-
-            if (botonMejorarAlcance != null)
-            {
-                botonMejorarAlcance.interactable = true;
-            }
-        }
-        else
-        {
-            if (textoBotonAlcance != null)
-            {
-                textoBotonAlcance.text =
-                    "ALCANCE NIVEL MÁXIMO";
-            }
-
-            if (botonMejorarAlcance != null)
-            {
-                botonMejorarAlcance.interactable = false;
-            }
-        }
-
-        // =================================================
-        // MOVILIDAD
-        // =================================================
-
-        if (herramientaTorbellino.NivelMovilidad == 1)
-        {
-            if (textoBotonMovilidad != null)
-            {
-                textoBotonMovilidad.text =
-                    "MEJORAR MOVILIDAD NIVEL 2 - " +
-                    precioMovilidadNivel2 +
-                    " monedas";
-            }
-
-            if (botonMejorarMovilidad != null)
-            {
-                botonMejorarMovilidad.interactable = true;
-            }
-        }
-        else if (herramientaTorbellino.NivelMovilidad == 2)
-        {
-            if (textoBotonMovilidad != null)
-            {
-                textoBotonMovilidad.text =
-                    "MEJORAR MOVILIDAD NIVEL 3 - " +
-                    precioMovilidadNivel3 +
-                    " monedas";
-            }
-
-            if (botonMejorarMovilidad != null)
-            {
-                botonMejorarMovilidad.interactable = true;
-            }
-        }
-        else
-        {
-            if (textoBotonMovilidad != null)
-            {
-                textoBotonMovilidad.text =
-                    "MOVILIDAD NIVEL MÁXIMO";
-            }
-
-            if (botonMejorarMovilidad != null)
-            {
-                botonMejorarMovilidad.interactable = false;
+                ActualizarMejoraIman();
             }
         }
     }
@@ -559,5 +620,142 @@ public class TiendaTrabajo : MonoBehaviour
         );
 
         ActualizarTienda();
+    }
+
+    public void ComprarMejoraAlcanceIman()
+    {
+        if (cartera == null ||
+            recolectorMagnetico == null)
+        {
+            return;
+        }
+
+        // Tiene que estar comprado ANTES de mejorar
+        if (!recolectorMagnetico.EstaImanDesbloqueado())
+        {
+            Debug.Log("Primero tienes que comprar el Imán.");
+            return;
+        }
+
+        if (recolectorMagnetico.AlcanceAlMaximo())
+        {
+            Debug.Log(
+                "El alcance del Imán ya está al máximo."
+            );
+
+            return;
+        }
+
+        int precio;
+
+        if (recolectorMagnetico.NivelAlcance == 1)
+        {
+            precio = precioImanNivel2;
+        }
+        else if (recolectorMagnetico.NivelAlcance == 2)
+        {
+            precio = precioImanNivel3;
+        }
+        else
+        {
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precio))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para mejorar el Imán."
+            );
+
+            return;
+        }
+
+        recolectorMagnetico.MejorarAlcance();
+
+        Debug.Log(
+            "Imán mejorado a nivel " +
+            recolectorMagnetico.NivelAlcance
+        );
+
+        ActualizarTienda();
+    }
+
+    public void ComprarIman()
+    {
+        if (cartera == null ||
+            recolectorMagnetico == null)
+        {
+            return;
+        }
+
+        if (recolectorMagnetico.EstaImanDesbloqueado())
+        {
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precioIman))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para comprar el Imán."
+            );
+
+            return;
+        }
+
+        recolectorMagnetico.DesbloquearIman();
+
+        Debug.Log("¡Imán comprado!");
+
+        ActualizarTienda();
+    }
+
+    private void ActualizarMejoraIman()
+    {
+        if (recolectorMagnetico == null)
+            return;
+
+        if (recolectorMagnetico.NivelAlcance == 1)
+        {
+            if (textoBotonIman != null)
+            {
+                textoBotonIman.text =
+                    "MEJORAR ALCANCE NIVEL 2 - " +
+                    precioImanNivel2 +
+                    " monedas";
+            }
+
+            if (botonMejorarIman != null)
+            {
+                botonMejorarIman.interactable = true;
+            }
+        }
+        else if (recolectorMagnetico.NivelAlcance == 2)
+        {
+            if (textoBotonIman != null)
+            {
+                textoBotonIman.text =
+                    "MEJORAR ALCANCE NIVEL 3 - " +
+                    precioImanNivel3 +
+                    " monedas";
+            }
+
+            if (botonMejorarIman != null)
+            {
+                botonMejorarIman.interactable = true;
+            }
+        }
+        else
+        {
+            if (textoBotonIman != null)
+            {
+                textoBotonIman.text =
+                    "ALCANCE MÁXIMO";
+            }
+
+            if (botonMejorarIman != null)
+            {
+                botonMejorarIman.interactable = false;
+            }
+        }
     }
 }
