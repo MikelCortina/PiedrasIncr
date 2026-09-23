@@ -60,6 +60,24 @@ public class HerramientaTorbellino : MonoBehaviour
     public float alcanceNivel2 = 30f;
     public float alcanceNivel3 = 45f;
 
+    [Header("Mejora - Movilidad del Torbellino")]
+    [SerializeField, Range(1, 3)]
+    private int nivelMovilidad = 1;
+
+    [Range(0.1f, 1f)]
+    public float movilidadNivel1 = 0.50f;
+
+    [Range(0.1f, 1f)]
+    public float movilidadNivel2 = 0.75f;
+
+    [Range(0.1f, 1f)]
+    public float movilidadNivel3 = 1.00f;
+
+    [SerializeField]
+    private float multiplicadorMovilidadActual = 0.50f;
+
+    public int NivelMovilidad => nivelMovilidad;
+
     public int NivelAlcance => nivelAlcance;
     public int NivelRadio => nivelRadio;
     private Camera camaraPrincipal;
@@ -83,13 +101,17 @@ public class HerramientaTorbellino : MonoBehaviour
     {
         nivelRadio = Mathf.Clamp(nivelRadio, 1, 3);
         nivelAlcance = Mathf.Clamp(nivelAlcance, 1, 3);
+        nivelMovilidad = Mathf.Clamp(nivelMovilidad, 1, 3);
 
         AplicarNivelRadio();
         AplicarNivelAlcance();
+        AplicarNivelMovilidad();
     }
     void Start()
     {
         AplicarNivelRadio();
+        AplicarNivelAlcance();
+        AplicarNivelMovilidad();
         camaraPrincipal = Camera.main;
 
         if (modeloHerramienta != null)
@@ -242,14 +264,20 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void AplicarPenalizacionAlJugador()
     {
-        if (!penalizacionAplicada)
+        if (scriptMovimiento != null)
         {
-            if (scriptMovimiento != null) scriptMovimiento.velocidad = velocidadOriginalMovimiento / 2f;
-            if (scriptCamara != null) scriptCamara.sensibilidadRaton = sensibilidadOriginalCamara / 2f;
-            penalizacionAplicada = true;
+            scriptMovimiento.velocidad =
+                velocidadOriginalMovimiento * multiplicadorMovilidadActual;
         }
-    }
 
+        if (scriptCamara != null)
+        {
+            scriptCamara.sensibilidadRaton =
+                sensibilidadOriginalCamara * multiplicadorMovilidadActual;
+        }
+
+        penalizacionAplicada = true;
+    }
     void RestaurarValoresJugador()
     {
         if (penalizacionAplicada)
@@ -457,6 +485,48 @@ public class HerramientaTorbellino : MonoBehaviour
                 alcanceMaximo = alcanceNivel3;
                 break;
         }
+    }
+
+    public bool MejorarMovilidad()
+    {
+        if (nivelMovilidad >= 3)
+            return false;
+
+        nivelMovilidad++;
+
+        AplicarNivelMovilidad();
+
+        Debug.Log(
+            "Movilidad del Torbellino mejorada a nivel " +
+            nivelMovilidad +
+            " | Multiplicador: " +
+            multiplicadorMovilidadActual
+        );
+
+        return true;
+    }
+
+    private void AplicarNivelMovilidad()
+    {
+        switch (nivelMovilidad)
+        {
+            case 1:
+                multiplicadorMovilidadActual = movilidadNivel1;
+                break;
+
+            case 2:
+                multiplicadorMovilidadActual = movilidadNivel2;
+                break;
+
+            case 3:
+                multiplicadorMovilidadActual = movilidadNivel3;
+                break;
+        }
+    }
+
+    public bool MovilidadAlMaximo()
+    {
+        return nivelMovilidad >= 3;
     }
 
     public bool AlcanceAlMaximo()

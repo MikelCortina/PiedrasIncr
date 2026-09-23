@@ -68,6 +68,13 @@ public class TiendaTrabajo : MonoBehaviour
     public int precioAlcanceNivel2 = 5;
     public int precioAlcanceNivel3 = 10;
 
+    [Header("Torbellino - Mejora Movilidad")]
+    public Button botonMejorarMovilidad;
+    public TextMeshProUGUI textoBotonMovilidad;
+
+    public int precioMovilidadNivel2 = 5;
+    public int precioMovilidadNivel3 = 10;
+
 
     // =====================================================
     // START
@@ -449,5 +456,108 @@ public class TiendaTrabajo : MonoBehaviour
                 botonMejorarAlcance.interactable = false;
             }
         }
+
+        // =================================================
+        // MOVILIDAD
+        // =================================================
+
+        if (herramientaTorbellino.NivelMovilidad == 1)
+        {
+            if (textoBotonMovilidad != null)
+            {
+                textoBotonMovilidad.text =
+                    "MEJORAR MOVILIDAD NIVEL 2 - " +
+                    precioMovilidadNivel2 +
+                    " monedas";
+            }
+
+            if (botonMejorarMovilidad != null)
+            {
+                botonMejorarMovilidad.interactable = true;
+            }
+        }
+        else if (herramientaTorbellino.NivelMovilidad == 2)
+        {
+            if (textoBotonMovilidad != null)
+            {
+                textoBotonMovilidad.text =
+                    "MEJORAR MOVILIDAD NIVEL 3 - " +
+                    precioMovilidadNivel3 +
+                    " monedas";
+            }
+
+            if (botonMejorarMovilidad != null)
+            {
+                botonMejorarMovilidad.interactable = true;
+            }
+        }
+        else
+        {
+            if (textoBotonMovilidad != null)
+            {
+                textoBotonMovilidad.text =
+                    "MOVILIDAD NIVEL MÁXIMO";
+            }
+
+            if (botonMejorarMovilidad != null)
+            {
+                botonMejorarMovilidad.interactable = false;
+            }
+        }
+    }
+
+    public void ComprarMejoraMovilidadTorbellino()
+    {
+        if (cartera == null ||
+            gestorEquipamiento == null ||
+            herramientaTorbellino == null)
+        {
+            return;
+        }
+
+        if (!gestorEquipamiento.TorbellinoDesbloqueado())
+        {
+            Debug.Log("Primero tienes que comprar el Torbellino.");
+            return;
+        }
+
+        if (herramientaTorbellino.MovilidadAlMaximo())
+        {
+            Debug.Log("La movilidad del Torbellino ya está al máximo.");
+            return;
+        }
+
+        int precio;
+
+        if (herramientaTorbellino.NivelMovilidad == 1)
+        {
+            precio = precioMovilidadNivel2;
+        }
+        else if (herramientaTorbellino.NivelMovilidad == 2)
+        {
+            precio = precioMovilidadNivel3;
+        }
+        else
+        {
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precio))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para mejorar la movilidad."
+            );
+
+            return;
+        }
+
+        herramientaTorbellino.MejorarMovilidad();
+
+        Debug.Log(
+            "Movilidad mejorada a nivel " +
+            herramientaTorbellino.NivelMovilidad
+        );
+
+        ActualizarTienda();
     }
 }
