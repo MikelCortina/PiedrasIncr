@@ -31,6 +31,10 @@ public class VariacionAlbedo : MonoBehaviour
     private Renderer render;
     private MaterialPropertyBlock propBlock;
 
+    private bool estadoGuardado = false;
+    private Color[] coloresOriginales;
+    private float[] grosoresOriginales;
+
     void OnEnable()
     {
         AplicarMaterial();
@@ -40,7 +44,46 @@ public class VariacionAlbedo : MonoBehaviour
     {
         AplicarMaterial();
     }
+    public void ForzarContorno(Color nuevoColor, float nuevoGrosor)
+    {
+        if (configuraciones == null || configuraciones.Length == 0) return;
 
+        // Si es la primera vez que lo modificamos, guardamos los valores base
+        if (!estadoGuardado)
+        {
+            coloresOriginales = new Color[configuraciones.Length];
+            grosoresOriginales = new float[configuraciones.Length];
+            for (int i = 0; i < configuraciones.Length; i++)
+            {
+                coloresOriginales[i] = configuraciones[i].colorContorno;
+                grosoresOriginales[i] = configuraciones[i].grosorContorno;
+            }
+            estadoGuardado = true;
+        }
+
+        // Aplicamos el nuevo color a todas las configuraciones
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            configuraciones[i].colorContorno = nuevoColor;
+            configuraciones[i].grosorContorno = nuevoGrosor;
+        }
+
+        AplicarMaterial();
+    }
+
+    public void RestaurarContorno()
+    {
+        if (!estadoGuardado || configuraciones == null) return;
+
+        // Devolvemos los colores a como estaban en el Inspector originalmente
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            configuraciones[i].colorContorno = coloresOriginales[i];
+            configuraciones[i].grosorContorno = grosoresOriginales[i];
+        }
+
+        AplicarMaterial();
+    }
     private void AplicarMaterial()
     {
         if (render == null) render = GetComponent<Renderer>();

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SistemaConstruccion : MonoBehaviour
 {
@@ -23,10 +24,21 @@ public class SistemaConstruccion : MonoBehaviour
     [Header("Capas (Layers)")]
     public LayerMask capaSuelo;
     public LayerMask capaConectores;
+    public LayerMask capaEdificios;
+
+    [Header("Estilo de Contornos (Holograma y Destrucción)")]
+    public Color colorOutlineValido = Color.green;
+    public float grosorOutlineValido = 2f;
+    [Space(5)]
+    public Color colorOutlineInvalido = Color.red;
+    public float grosorOutlineInvalido = 2f;
+    [Space(5)]
+    public Color colorOutlineDestruccion = Color.red;
+    public float grosorOutlineDestruccion = 4f;
 
     [Header("Ajustes de Construcción")]
     public KeyCode teclaConstruccion = KeyCode.B;
-    public KeyCode teclaCambiarTipo = KeyCode.Tab; // NUEVO: Alternar edificio
+    public KeyCode teclaCambiarTipo = KeyCode.Tab;
     public float velocidadRotacion = 10f;
     public float distanciaMaximaConstruccion = 15f;
 
@@ -37,6 +49,15 @@ public class SistemaConstruccion : MonoBehaviour
     private Collider imanApuntado = null;
     private float rotacionManualOffset = 0f;
 
+    private GameObject edificioApuntado = null;
+    private GameObject edificioApuntadoAnterior = null;
+
+    private float cooldownHolograma = 0f;
+
+    private Collider slotBloqueado = null;
+    private Vector3? posicionSueloBloqueada = null;
+    private float timerBloqueoSlot = 0f;
+
     void Update()
     {
         if (Input.GetKeyDown(teclaConstruccion))
@@ -44,21 +65,35 @@ public class SistemaConstruccion : MonoBehaviour
             AlternarModoConstruccion();
         }
 
-        // --- NUEVO: Cambiar de edificio con TAB ---
         if (modoConstruccion && Input.GetKeyDown(teclaCambiarTipo))
         {
             CambiarEdificioActual();
         }
 
+        if (timerBloqueoSlot > 0f)
+        {
+            timerBloqueoSlot -= Time.deltaTime;
+            if (timerBloqueoSlot <= 0f)
+            {
+                slotBloqueado = null;
+                posicionSueloBloqueada = null;
+            }
+        }
+
         if (modoConstruccion && hologramaActual != null)
         {
-            ManejarPosicionamientoYMagnetismo();
-
-            if (hologramaActual.activeSelf)
+            if (cooldownHolograma > 0f)
             {
+                cooldownHolograma -= Time.deltaTime;
+                if (hologramaActual.activeSelf) hologramaActual.SetActive(false);
+            }
+            else
+            {
+                ManejarPosicionamientoYMagnetismo();
+
                 ManejarRotacionLibre();
                 ActualizarColorYValidacion();
-                ManejarColocacion();
+                ManejarColocacionODestruccion();
             }
         }
     }
@@ -66,15 +101,8 @@ public class SistemaConstruccion : MonoBehaviour
     void AlternarModoConstruccion()
     {
         modoConstruccion = !modoConstruccion;
-
-        if (modoConstruccion)
-        {
-            CrearHolograma();
-        }
-        else
-        {
-            DestruirHolograma();
-        }
+        if (modoConstruccion) CrearHolograma();
+        else DestruirHolograma();
     }
 
     void CambiarEdificioActual()
@@ -88,11 +116,25 @@ public class SistemaConstruccion : MonoBehaviour
     {
         rotacionManualOffset = 0f;
         hologramaActual = Instantiate(edificios[indiceEdificioActual].prefabHolograma);
+        cooldownHolograma = 0f;
+
+        slotBloqueado = null;
+        posicionSueloBloqueada = null;
+        timerBloqueoSlot = 0f;
     }
 
     void DestruirHolograma()
     {
         if (hologramaActual != null) Destroy(hologramaActual);
+
+        if (edificioApuntadoAnterior != null)
+        {
+            VariacionAlbedo[] variacionesAnt = edificioApuntadoAnterior.GetComponentsInChildren<VariacionAlbedo>();
+            foreach (VariacionAlbedo va in variacionesAnt) va.RestaurarContorno();
+
+            edificioApuntadoAnterior = null;
+            edificioApuntado = null;
+        }
     }
 
     void ManejarPosicionamientoYMagnetismo()
@@ -104,46 +146,110 @@ public class SistemaConstruccion : MonoBehaviour
         InfoEdificio actual = edificios[indiceEdificioActual];
         HologramaColision detector = hologramaActual.GetComponent<HologramaColision>();
 
-        // 1. SI ES UNA RAMPA: Busca Conectores de Rampa
-        if (actual.tipo == TipoEdificio.Rampa && Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaConectores, QueryTriggerInteraction.Collide)
-            && (hit.collider.CompareTag("ConectorSalida") || hit.collider.CompareTag("ConectorEntrada")))
+        edificioApuntado = null;
+
+        // 1. Detección Inteligente de Conectores
+        bool chocaConector = Physics.Raycast(rayo, out RaycastHit hitConector, distanciaMaximaConstruccion, capaConectores, QueryTriggerInteraction.Collide);
+        bool conectorValido = false;
+
+        // Comprobamos si el conector tocado nos sirve para lo que tenemos en la mano
+        if (chocaConector)
         {
-            estaImantado = true;
-            apuntandoValido = true;
-            imanApuntado = hit.collider;
-            hologramaActual.transform.rotation = hit.transform.rotation;
-
-            if (detector != null) detector.rampaAIgnorar = hit.collider.transform.root.gameObject;
-
-            if (hit.collider.CompareTag("ConectorSalida")) AlinearPiezas("PuntoConexion_Entrada", hit.transform.position);
-            else if (hit.collider.CompareTag("ConectorEntrada")) AlinearPiezas("PuntoConexion_Salida", hit.transform.position);
+            if (actual.tipo == TipoEdificio.Rampa && (hitConector.collider.CompareTag("ConectorSalida") || hitConector.collider.CompareTag("ConectorEntrada")))
+                conectorValido = true;
+            else if (actual.tipo == TipoEdificio.Pared && hitConector.collider.CompareTag("RailRampa"))
+                conectorValido = true;
         }
-        // 2. SI ES UNA PARED: Busca Conectores de Rail
-        else if (actual.tipo == TipoEdificio.Pared && Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaConectores, QueryTriggerInteraction.Collide)
-                 && hit.collider.CompareTag("RailRampa"))
+
+        // Si es válido, actuamos sobre él
+        if (conectorValido)
         {
-            estaImantado = true;
-            apuntandoValido = true;
-            imanApuntado = hit.collider;
+            posicionSueloBloqueada = null;
 
-            // La pared se pega exactamente en la posición y rotación del raíl
-            hologramaActual.transform.position = hit.transform.position;
-            hologramaActual.transform.rotation = hit.transform.rotation;
+            if (hitConector.collider == slotBloqueado)
+            {
+                apuntandoValido = false;
+                estaImantado = false;
+                imanApuntado = null;
+                if (detector != null) detector.rampaAIgnorar = null;
+            }
+            else
+            {
+                slotBloqueado = null;
+                timerBloqueoSlot = 0f;
+                estaImantado = true;
+                apuntandoValido = true;
+                imanApuntado = hitConector.collider;
 
-            if (detector != null) detector.rampaAIgnorar = hit.collider.transform.root.gameObject;
+                if (detector != null) detector.rampaAIgnorar = hitConector.collider.transform.root.gameObject;
+
+                if (actual.tipo == TipoEdificio.Rampa)
+                {
+                    hologramaActual.transform.rotation = hitConector.transform.rotation;
+                    if (hitConector.collider.CompareTag("ConectorSalida")) AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
+                    else if (hitConector.collider.CompareTag("ConectorEntrada")) AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
+                }
+                else if (actual.tipo == TipoEdificio.Pared)
+                {
+                    hologramaActual.transform.position = hitConector.transform.position;
+                    hologramaActual.transform.rotation = hitConector.transform.rotation;
+                }
+            }
         }
-        // 3. SUELO LIBRE (Ambos edificios pueden ir en el suelo)
+        // 2. Si el conector era INVÁLIDO (ej: Rampa tocando RailRampa), lo ignoramos y buscamos edificios
+        else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaEdificios))
+        {
+            slotBloqueado = null;
+            posicionSueloBloqueada = null;
+            timerBloqueoSlot = 0f;
+
+            EdificioConstruido infoEdificio = hit.transform.root.GetComponent<EdificioConstruido>();
+
+            if (infoEdificio != null && infoEdificio.tipo == actual.tipo)
+            {
+                edificioApuntado = hit.transform.root.gameObject;
+                estaImantado = false;
+                apuntandoValido = false;
+                imanApuntado = null;
+                if (detector != null) detector.rampaAIgnorar = null;
+            }
+            else
+            {
+                apuntandoValido = false;
+                imanApuntado = null;
+                if (detector != null) detector.rampaAIgnorar = null;
+            }
+        }
+        // 3. Suelo
         else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaSuelo, QueryTriggerInteraction.Collide))
         {
-            hologramaActual.transform.position = hit.point;
-            estaImantado = false;
-            apuntandoValido = true;
-            imanApuntado = null;
+            slotBloqueado = null;
 
-            if (detector != null) detector.rampaAIgnorar = null;
+            if (posicionSueloBloqueada.HasValue && Vector3.Distance(hit.point, posicionSueloBloqueada.Value) < 2.0f)
+            {
+                apuntandoValido = false;
+                estaImantado = false;
+                imanApuntado = null;
+                if (detector != null) detector.rampaAIgnorar = null;
+            }
+            else
+            {
+                posicionSueloBloqueada = null;
+                timerBloqueoSlot = 0f;
+
+                hologramaActual.transform.position = hit.point;
+                estaImantado = false;
+                apuntandoValido = true;
+                imanApuntado = null;
+                if (detector != null) detector.rampaAIgnorar = null;
+            }
         }
         else
         {
+            slotBloqueado = null;
+            posicionSueloBloqueada = null;
+            timerBloqueoSlot = 0f;
+
             apuntandoValido = false;
             imanApuntado = null;
             if (detector != null) detector.rampaAIgnorar = null;
@@ -170,7 +276,7 @@ public class SistemaConstruccion : MonoBehaviour
 
     void ManejarRotacionLibre()
     {
-        if (!estaImantado)
+        if (!estaImantado && edificioApuntado == null)
         {
             if (Input.GetMouseButton(1)) rotacionManualOffset += Input.GetAxis("Mouse X") * velocidadRotacion;
 
@@ -193,52 +299,145 @@ public class SistemaConstruccion : MonoBehaviour
 
     void ActualizarColorYValidacion()
     {
-        Color colorEstado = PuedeColocarActual() ? new Color(0f, 1f, 0f, 0.5f) : new Color(1f, 0f, 0f, 0.5f);
-        Renderer[] renderizadores = hologramaActual.GetComponentsInChildren<Renderer>();
-
-        foreach (Renderer r in renderizadores)
+        if (edificioApuntadoAnterior != null && edificioApuntadoAnterior != edificioApuntado)
         {
-            // NUEVO: Repasamos TODOS los materiales del objeto por si tiene varias texturas
-            foreach (Material mat in r.materials)
+            VariacionAlbedo[] variacionesAnt = edificioApuntadoAnterior.GetComponentsInChildren<VariacionAlbedo>();
+            foreach (VariacionAlbedo va in variacionesAnt) va.RestaurarContorno();
+        }
+
+        if (edificioApuntado != null)
+        {
+            if (edificioApuntado != edificioApuntadoAnterior)
             {
-                if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", colorEstado);
-                if (mat.HasProperty("_Color")) mat.color = colorEstado;
+                VariacionAlbedo[] variacionesAct = edificioApuntado.GetComponentsInChildren<VariacionAlbedo>();
+                foreach (VariacionAlbedo va in variacionesAct) va.ForzarContorno(colorOutlineDestruccion, grosorOutlineDestruccion);
             }
         }
+        else if (hologramaActual.activeSelf)
+        {
+            Color colorBaseEstado = PuedeColocarActual() ? new Color(0f, 1f, 0f, 0.5f) : new Color(1f, 0f, 0f, 0.5f);
+            Color colorOutlineActual = PuedeColocarActual() ? colorOutlineValido : colorOutlineInvalido;
+            float grosorOutlineActual = PuedeColocarActual() ? grosorOutlineValido : grosorOutlineInvalido;
+
+            Renderer[] renderizadores = hologramaActual.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderizadores)
+            {
+                foreach (Material mat in r.materials)
+                {
+                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", colorBaseEstado);
+                    if (mat.HasProperty("_Color")) mat.color = colorBaseEstado;
+                }
+            }
+
+            VariacionAlbedo[] variaciones = hologramaActual.GetComponentsInChildren<VariacionAlbedo>();
+            foreach (VariacionAlbedo va in variaciones) va.ForzarContorno(colorOutlineActual, grosorOutlineActual);
+        }
+
+        edificioApuntadoAnterior = edificioApuntado;
     }
 
-    void ManejarColocacion()
+    void ManejarColocacionODestruccion()
     {
-        if (PuedeColocarActual() && Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
-            InfoEdificio actual = edificios[indiceEdificioActual];
-            GameObject nuevaEstructura = Instantiate(actual.prefabReal, hologramaActual.transform.position, hologramaActual.transform.rotation);
-
-            // Sistema de quemado de imanes usados
-            if (estaImantado && imanApuntado != null)
+            if (edificioApuntado != null)
             {
-                if (actual.tipo == TipoEdificio.Rampa)
-                {
-                    imanApuntado.enabled = false;
-                    string nombreConectorAQuemar = imanApuntado.CompareTag("ConectorSalida") ? "PuntoConexion_Entrada" : "PuntoConexion_Salida";
+                EdificioConstruido infoEdificio = edificioApuntado.GetComponent<EdificioConstruido>();
 
-                    Transform[] hijosNuevaRampa = nuevaEstructura.GetComponentsInChildren<Transform>();
-                    foreach (Transform hijo in hijosNuevaRampa)
+                if (infoEdificio != null)
+                {
+                    if (infoEdificio.conectorUsado != null)
                     {
-                        if (hijo.name == nombreConectorAQuemar)
+                        infoEdificio.conectorUsado.enabled = true;
+                        slotBloqueado = infoEdificio.conectorUsado;
+                        posicionSueloBloqueada = null;
+                    }
+                    else
+                    {
+                        slotBloqueado = null;
+                        posicionSueloBloqueada = edificioApuntado.transform.position;
+                    }
+
+                    foreach (GameObject dep in infoEdificio.edificiosDependientes)
+                    {
+                        if (dep != null) dep.AddComponent<EfectoBloopDestruccion>();
+                    }
+
+                    foreach (Collider colHijo in infoEdificio.conectoresHijosBloqueados)
+                    {
+                        if (colHijo != null) colHijo.enabled = true;
+                    }
+                }
+
+                edificioApuntado.AddComponent<EfectoBloopDestruccion>();
+
+                edificioApuntadoAnterior = null;
+                edificioApuntado = null;
+
+                cooldownHolograma = 0.15f;
+                timerBloqueoSlot = 1.0f;
+                return;
+            }
+
+            if (PuedeColocarActual() && hologramaActual.activeSelf)
+            {
+                InfoEdificio actual = edificios[indiceEdificioActual];
+                GameObject nuevaEstructura = Instantiate(actual.prefabReal, hologramaActual.transform.position, hologramaActual.transform.rotation);
+
+                nuevaEstructura.AddComponent<EfectoBloop>();
+
+                EdificioConstruido id = nuevaEstructura.AddComponent<EdificioConstruido>();
+                id.tipo = actual.tipo;
+
+                if (estaImantado && imanApuntado != null)
+                {
+                    id.conectorUsado = imanApuntado;
+                    imanApuntado.enabled = false;
+
+                    if (actual.tipo == TipoEdificio.Rampa)
+                    {
+                        string nombreConectorAQuemar = imanApuntado.CompareTag("ConectorSalida") ? "PuntoConexion_Entrada" : "PuntoConexion_Salida";
+
+                        Collider miConectorApagado = null;
+                        Transform[] hijosNuevaRampa = nuevaEstructura.GetComponentsInChildren<Transform>();
+                        foreach (Transform hijo in hijosNuevaRampa)
                         {
-                            Collider col = hijo.GetComponent<Collider>();
-                            if (col != null) col.enabled = false;
-                            break;
+                            if (hijo.name == nombreConectorAQuemar)
+                            {
+                                miConectorApagado = hijo.GetComponent<Collider>();
+                                if (miConectorApagado != null) miConectorApagado.enabled = false;
+                                break;
+                            }
+                        }
+
+                        EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
+                        if (rampaPadre != null && miConectorApagado != null)
+                        {
+                            rampaPadre.conectoresHijosBloqueados.Add(miConectorApagado);
+                        }
+                    }
+                    else if (actual.tipo == TipoEdificio.Pared)
+                    {
+                        EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
+                        if (rampaPadre != null)
+                        {
+                            rampaPadre.edificiosDependientes.Add(nuevaEstructura);
                         }
                     }
                 }
-                else if (actual.tipo == TipoEdificio.Pared)
-                {
-                    // Al poner una pared en un raíl, desactivamos el raíl para que no se pongan 2 paredes encima
-                    imanApuntado.enabled = false;
-                }
+
+                cooldownHolograma = 0.15f;
             }
         }
     }
+}
+
+public class EdificioConstruido : MonoBehaviour
+{
+    public SistemaConstruccion.TipoEdificio tipo;
+    public Collider conectorUsado;
+    public List<GameObject> edificiosDependientes = new List<GameObject>();
+
+    [Tooltip("Conectores de otras rampas acopladas a nosotros, que debemos re-encender si morimos")]
+    public List<Collider> conectoresHijosBloqueados = new List<Collider>();
 }
