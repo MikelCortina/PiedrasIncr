@@ -148,20 +148,17 @@ public class SistemaConstruccion : MonoBehaviour
 
         edificioApuntado = null;
 
-        // 1. Detección Inteligente de Conectores
         bool chocaConector = Physics.Raycast(rayo, out RaycastHit hitConector, distanciaMaximaConstruccion, capaConectores, QueryTriggerInteraction.Collide);
         bool conectorValido = false;
 
-        // Comprobamos si el conector tocado nos sirve para lo que tenemos en la mano
         if (chocaConector)
         {
             if (actual.tipo == TipoEdificio.Rampa && (hitConector.collider.CompareTag("ConectorSalida") || hitConector.collider.CompareTag("ConectorEntrada")))
                 conectorValido = true;
-            else if (actual.tipo == TipoEdificio.Pared && hitConector.collider.CompareTag("RailRampa"))
+            else if (actual.tipo == TipoEdificio.Pared && (hitConector.collider.CompareTag("RailRampa") || hitConector.collider.CompareTag("ConectorParedSalida") || hitConector.collider.CompareTag("ConectorParedEntrada")))
                 conectorValido = true;
         }
 
-        // Si es válido, actuamos sobre él
         if (conectorValido)
         {
             posicionSueloBloqueada = null;
@@ -191,12 +188,26 @@ public class SistemaConstruccion : MonoBehaviour
                 }
                 else if (actual.tipo == TipoEdificio.Pared)
                 {
-                    hologramaActual.transform.position = hitConector.transform.position;
-                    hologramaActual.transform.rotation = hitConector.transform.rotation;
+                    if (hitConector.collider.CompareTag("RailRampa"))
+                    {
+                        hologramaActual.transform.position = hitConector.transform.position;
+
+                        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
+                        // Multiplicamos por la compensación para acostar la valla sobre el raíl
+                        // Si por algún casual sigue quedando boca abajo, cambia -90f por 90f
+                        hologramaActual.transform.rotation = hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
+                    }
+                    else
+                    {
+                        // Copiamos la rotación de la PARED entera (root), ignorando si el conector está torcido
+                        hologramaActual.transform.rotation = hitConector.transform.root.rotation;
+
+                        if (hitConector.collider.CompareTag("ConectorParedSalida")) AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
+                        else if (hitConector.collider.CompareTag("ConectorParedEntrada")) AlinearPiezas("PuntoConexionPared_Salida", hitConector.transform.position);
+                    }
                 }
             }
         }
-        // 2. Si el conector era INVÁLIDO (ej: Rampa tocando RailRampa), lo ignoramos y buscamos edificios
         else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaEdificios))
         {
             slotBloqueado = null;
@@ -220,7 +231,6 @@ public class SistemaConstruccion : MonoBehaviour
                 if (detector != null) detector.rampaAIgnorar = null;
             }
         }
-        // 3. Suelo
         else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaSuelo, QueryTriggerInteraction.Collide))
         {
             slotBloqueado = null;
@@ -286,7 +296,16 @@ public class SistemaConstruccion : MonoBehaviour
             if (direccionCamara.sqrMagnitude > 0.001f)
             {
                 Quaternion rotacionBase = Quaternion.LookRotation(direccionCamara.normalized);
-                hologramaActual.transform.rotation = rotacionBase * Quaternion.Euler(0f, rotacionManualOffset, 0f);
+
+                // CAMBIO: Usamos -90f para que se acueste hacia el lado correcto (boca arriba)
+                if (edificios[indiceEdificioActual].tipo == TipoEdificio.Pared)
+                {
+                    hologramaActual.transform.rotation = rotacionBase * Quaternion.Euler(-90f, rotacionManualOffset, 0f);
+                }
+                else
+                {
+                    hologramaActual.transform.rotation = rotacionBase * Quaternion.Euler(0f, rotacionManualOffset, 0f);
+                }
             }
         }
     }
@@ -418,10 +437,44 @@ public class SistemaConstruccion : MonoBehaviour
                     }
                     else if (actual.tipo == TipoEdificio.Pared)
                     {
-                        EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
-                        if (rampaPadre != null)
+                        if (imanApuntado.CompareTag("RailRampa"))
                         {
-                            rampaPadre.edificiosDependientes.Add(nuevaEstructura);
+                            EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
+                            if (rampaPadre != null) rampaPadre.edificiosDependientes.Add(nuevaEstructura);
+
+                            // --- NUEVO ---
+                            // Si la pared se ha acoplado a un raíl, desactivamos sus conectores de extremo.
+                            // Esto bloquea la posibilidad de encadenar vallas que floten fuera de la rampa.
+                            Collider[] collidersPared = nuevaEstructura.GetComponentsInChildren<Collider>();
+                            foreach (Collider col in collidersPared)
+                            {
+                                if (col.CompareTag("ConectorParedSalida") || col.CompareTag("ConectorParedEntrada"))
+                                {
+                                    col.enabled = false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            string nombreConectorAQuemar = imanApuntado.CompareTag("ConectorParedSalida") ? "PuntoConexionPared_Entrada" : "PuntoConexionPared_Salida";
+
+                            Collider miConectorApagado = null;
+                            Transform[] hijosNuevaPared = nuevaEstructura.GetComponentsInChildren<Transform>();
+                            foreach (Transform hijo in hijosNuevaPared)
+                            {
+                                if (hijo.name == nombreConectorAQuemar)
+                                {
+                                    miConectorApagado = hijo.GetComponent<Collider>();
+                                    if (miConectorApagado != null) miConectorApagado.enabled = false;
+                                    break;
+                                }
+                            }
+
+                            EdificioConstruido paredPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
+                            if (paredPadre != null && miConectorApagado != null)
+                            {
+                                paredPadre.conectoresHijosBloqueados.Add(miConectorApagado);
+                            }
                         }
                     }
                 }
@@ -438,6 +491,6 @@ public class EdificioConstruido : MonoBehaviour
     public Collider conectorUsado;
     public List<GameObject> edificiosDependientes = new List<GameObject>();
 
-    [Tooltip("Conectores de otras rampas acopladas a nosotros, que debemos re-encender si morimos")]
+    [Tooltip("Conectores de otras rampas/paredes acopladas a nosotros, que debemos re-encender si morimos")]
     public List<Collider> conectoresHijosBloqueados = new List<Collider>();
 }
