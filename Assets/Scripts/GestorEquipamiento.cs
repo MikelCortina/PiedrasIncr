@@ -9,6 +9,9 @@ public class GestorEquipamiento : MonoBehaviour
         Torbellino
     }
 
+    [Header("Desbloqueos")]
+    [SerializeField] private bool armaLanzadoraDesbloqueada = false;
+    [SerializeField] private bool torbellinoDesbloqueado = false;
     [Header("Estado")]
     [SerializeField] private TipoEquipamiento equipamientoActual = TipoEquipamiento.ManosVacias;
 
@@ -32,13 +35,28 @@ public class GestorEquipamiento : MonoBehaviour
     {
         if (Input.GetKeyDown(teclaArmaLanzadora))
         {
-            AlternarEquipamiento(TipoEquipamiento.ArmaLanzadora);
+            if (armaLanzadoraDesbloqueada)
+            {
+                AlternarEquipamiento(TipoEquipamiento.ArmaLanzadora);
+            }
+            else
+            {
+                Debug.Log("El Arma de la Luna todavía no está desbloqueada.");
+            }
         }
 
         if (Input.GetKeyDown(teclaTorbellino))
         {
-            AlternarEquipamiento(TipoEquipamiento.Torbellino);
+            if (torbellinoDesbloqueado)
+            {
+                AlternarEquipamiento(TipoEquipamiento.Torbellino);
+            }
+            else
+            {
+                Debug.Log("El Torbellino todavía no está desbloqueado.");
+            }
         }
+
     }
 
     void AlternarEquipamiento(TipoEquipamiento nuevoEquipamiento)
@@ -88,5 +106,29 @@ public class GestorEquipamiento : MonoBehaviour
     public TipoEquipamiento ObtenerEquipamientoActual()
     {
         return equipamientoActual;
+    }
+
+    public void DesbloquearArmaLanzadora()
+    {
+        armaLanzadoraDesbloqueada = true;
+
+        Debug.Log("¡Arma de la Luna desbloqueada!");
+    }
+
+    public bool ArmaLanzadoraDesbloqueada()
+    {
+        return armaLanzadoraDesbloqueada;
+    }
+
+    public void DesbloquearTorbellino()
+    {
+        torbellinoDesbloqueado = true;
+
+        Debug.Log("¡Torbellino desbloqueado!");
+    }
+
+    public bool TorbellinoDesbloqueado()
+    {
+        return torbellinoDesbloqueado;
     }
 }

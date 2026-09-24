@@ -58,6 +58,49 @@ public class HerramientaTorbellino : MonoBehaviour
     public MovimientoPersonaje scriptMovimiento;
     public CamaraPrimeraPersona scriptCamara;
 
+    [Header("Mejora - Radio del Torbellino")]
+    [SerializeField, Range(1, 3)]
+    private int nivelRadio = 1;
+
+    [Header("Radio de Atracción")]
+    public float radioAtraccionNivel1 = 8f;
+    public float radioAtraccionNivel2 = 12f;
+    public float radioAtraccionNivel3 = 18f;
+
+    [Header("Radio del Ojo")]
+    public float radioOjoNivel1 = 1.5f;
+    public float radioOjoNivel2 = 2.25f;
+    public float radioOjoNivel3 = 3.4f;
+
+
+    [Header("Mejora - Alcance del Torbellino")]
+    [SerializeField, Range(1, 3)]
+    private int nivelAlcance = 1;
+
+    public float alcanceNivel1 = 20f;
+    public float alcanceNivel2 = 30f;
+    public float alcanceNivel3 = 45f;
+
+    [Header("Mejora - Movilidad del Torbellino")]
+    [SerializeField, Range(1, 3)]
+    private int nivelMovilidad = 1;
+
+    [Range(0.1f, 1f)]
+    public float movilidadNivel1 = 0.50f;
+
+    [Range(0.1f, 1f)]
+    public float movilidadNivel2 = 0.75f;
+
+    [Range(0.1f, 1f)]
+    public float movilidadNivel3 = 1.00f;
+
+    [SerializeField]
+    private float multiplicadorMovilidadActual = 0.50f;
+
+    public int NivelMovilidad => nivelMovilidad;
+
+    public int NivelAlcance => nivelAlcance;
+    public int NivelRadio => nivelRadio;
     private Camera camaraPrincipal;
 
     private bool torbellinoActivo = false;
@@ -76,8 +119,22 @@ public class HerramientaTorbellino : MonoBehaviour
     private Quaternion rotacionInicialModelo;
     private float temporizadorBobbing = 0f;
 
+
+    private void OnValidate()
+    {
+        nivelRadio = Mathf.Clamp(nivelRadio, 1, 3);
+        nivelAlcance = Mathf.Clamp(nivelAlcance, 1, 3);
+        nivelMovilidad = Mathf.Clamp(nivelMovilidad, 1, 3);
+
+        AplicarNivelRadio();
+        AplicarNivelAlcance();
+        AplicarNivelMovilidad();
+    }
     void Start()
     {
+        AplicarNivelRadio();
+        AplicarNivelAlcance();
+        AplicarNivelMovilidad();
         camaraPrincipal = Camera.main;
 
         if (modeloHerramienta != null)
@@ -328,14 +385,20 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void AplicarPenalizacionAlJugador()
     {
-        if (!penalizacionAplicada)
+        if (scriptMovimiento != null)
         {
-            if (scriptMovimiento != null) scriptMovimiento.velocidad = velocidadOriginalMovimiento / 2f;
-            if (scriptCamara != null) scriptCamara.sensibilidadRaton = sensibilidadOriginalCamara / 2f;
-            penalizacionAplicada = true;
+            scriptMovimiento.velocidad =
+                velocidadOriginalMovimiento * multiplicadorMovilidadActual;
         }
-    }
 
+        if (scriptCamara != null)
+        {
+            scriptCamara.sensibilidadRaton =
+                sensibilidadOriginalCamara * multiplicadorMovilidadActual;
+        }
+
+        penalizacionAplicada = true;
+    }
     void RestaurarValoresJugador()
     {
         if (penalizacionAplicada)
@@ -458,4 +521,144 @@ public class HerramientaTorbellino : MonoBehaviour
             rb.linearVelocity = new Vector3(velocidadDeseada.x, rb.linearVelocity.y - 2f, velocidadDeseada.z);
         }
     }
+
+    public bool MejorarRadio()
+    {
+        if (nivelRadio >= 3)
+        {
+            return false;
+        }
+
+        nivelRadio++;
+
+        AplicarNivelRadio();
+
+        Debug.Log(
+            "Radio del Torbellino mejorado a nivel " +
+            nivelRadio +
+            " | Radio: " +
+            radioAtraccion
+        );
+
+        return true;
+    }
+
+    private void AplicarNivelRadio()
+    {
+        switch (nivelRadio)
+        {
+            case 1:
+                radioAtraccion = radioAtraccionNivel1;
+                radioOjoTornado = radioOjoNivel1;
+                break;
+
+            case 2:
+                radioAtraccion = radioAtraccionNivel2;
+                radioOjoTornado = radioOjoNivel2;
+                break;
+
+            case 3:
+                radioAtraccion = radioAtraccionNivel3;
+                radioOjoTornado = radioOjoNivel3;
+                break;
+        }
+
+        Debug.Log(
+            "Torbellino Nivel " + nivelRadio +
+            " | Radio Atracción: " + radioAtraccion +
+            " | Radio Ojo: " + radioOjoTornado
+        );
+    }
+
+    public bool RadioAlMaximo()
+    {
+        return nivelRadio >= 3;
+    }
+
+    public bool MejorarAlcance()
+    {
+        if (nivelAlcance >= 3)
+        {
+            return false;
+        }
+
+        nivelAlcance++;
+
+        AplicarNivelAlcance();
+
+        Debug.Log(
+            "Alcance del Torbellino mejorado a nivel " +
+            nivelAlcance +
+            " | Alcance: " +
+            alcanceMaximo
+        );
+
+        return true;
+    }
+
+    private void AplicarNivelAlcance()
+    {
+        switch (nivelAlcance)
+        {
+            case 1:
+                alcanceMaximo = alcanceNivel1;
+                break;
+
+            case 2:
+                alcanceMaximo = alcanceNivel2;
+                break;
+
+            case 3:
+                alcanceMaximo = alcanceNivel3;
+                break;
+        }
+    }
+
+    public bool MejorarMovilidad()
+    {
+        if (nivelMovilidad >= 3)
+            return false;
+
+        nivelMovilidad++;
+
+        AplicarNivelMovilidad();
+
+        Debug.Log(
+            "Movilidad del Torbellino mejorada a nivel " +
+            nivelMovilidad +
+            " | Multiplicador: " +
+            multiplicadorMovilidadActual
+        );
+
+        return true;
+    }
+
+    private void AplicarNivelMovilidad()
+    {
+        switch (nivelMovilidad)
+        {
+            case 1:
+                multiplicadorMovilidadActual = movilidadNivel1;
+                break;
+
+            case 2:
+                multiplicadorMovilidadActual = movilidadNivel2;
+                break;
+
+            case 3:
+                multiplicadorMovilidadActual = movilidadNivel3;
+                break;
+        }
+    }
+
+    public bool MovilidadAlMaximo()
+    {
+        return nivelMovilidad >= 3;
+    }
+
+    public bool AlcanceAlMaximo()
+    {
+        return nivelAlcance >= 3;
+    }
 }
+

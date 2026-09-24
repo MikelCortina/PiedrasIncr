@@ -6,7 +6,7 @@ public class LluviaMeteoritos : MonoBehaviour
     [Header("Referencias")]
     public GameObject prefabPiedra;
 
-    [Tooltip("Si asignas el Cinturón de Asteroides, los meteoritos orbitarán en él hasta estar en la zona de caída.")]
+    [Tooltip("Si asignas el Cinturï¿½n de Asteroides, los meteoritos orbitarï¿½n en ï¿½l hasta estar en la zona de caï¿½da.")]
     public CinturonAsteroides cinturonOrigen;
 
     [Header("Inicio de partida")]
@@ -16,7 +16,7 @@ public class LluviaMeteoritos : MonoBehaviour
     public float alturaCielo = 100f;
     public float alturaArco = 30f;
 
-    [Header("Ajustes de Aparición")]
+    [Header("Ajustes de Apariciï¿½n")]
     public string tagSuelo = "Floor";
 
     [Header("Cadencia")]
@@ -24,21 +24,31 @@ public class LluviaMeteoritos : MonoBehaviour
     [Min(1)] public int cantidadPorOleada = 1;
     public float tiempoEntreMeteoritosOleada = 0.15f;
 
-    [Header("Aceleración por Curva")]
+    [Header("Aceleraciï¿½n por Curva")]
     public AnimationCurve curvaAceleracion = AnimationCurve.Linear(0f, 1f, 1f, 3f);
     public float velocidadMaximaImpacto = 50f;
 
-    [Header("Seguridad de Colisión")]
+    [Header("Seguridad de Colisiï¿½n")]
     public LayerMask capaColisionSuelo;
 
     [Header("Estado")]
     [SerializeField] private bool sistemaActivo = true;
 
     private Coroutine rutinaLluvia;
-
     void Start()
     {
-        if (sistemaActivo) IniciarRutinaLluvia();
+        // Siempre lanzamos un ï¿½nico meteorito inicial
+        // para poder arrancar la economï¿½a.
+        if (generarMeteoritoInicial)
+        {
+            SpawnearMeteorito();
+        }
+
+        // La lluvia continua solo empieza si estï¿½ activa.
+        if (sistemaActivo)
+        {
+            IniciarRutinaLluvia();
+        }
     }
 
     private void IniciarRutinaLluvia()
@@ -87,7 +97,7 @@ public class LluviaMeteoritos : MonoBehaviour
 
         if (cinturonOrigen != null)
         {
-            // Pedimos las matemáticas de un asteroide orbital
+            // Pedimos las matemï¿½ticas de un asteroide orbital
             CinturonAsteroides.DatosSpawnMeteorito datosOrbita = cinturonOrigen.ObtenerDatosSpawnMeteorito();
             Vector3 posicionInicial = cinturonOrigen.ObtenerPosicionEnCinturon(datosOrbita.anguloInicial, datosOrbita.distanciaAlCentro, datosOrbita.alturaY);
 
@@ -97,7 +107,7 @@ public class LluviaMeteoritos : MonoBehaviour
             if (rb != null)
             {
                 rb.useGravity = false;
-                // Iniciamos la rutina de espera en órbita
+                // Iniciamos la rutina de espera en ï¿½rbita
                 StartCoroutine(RutinaOrbitaPrevia(rb, datosOrbita, puntoImpacto, meteorito));
             }
         }
@@ -129,12 +139,12 @@ public class LluviaMeteoritos : MonoBehaviour
         return meteorito;
     }
 
-    // --- NUEVO: Rutina para quedarse orbitando hasta entrar en la Zona de Caída ---
+    // --- NUEVO: Rutina para quedarse orbitando hasta entrar en la Zona de Caï¿½da ---
     IEnumerator RutinaOrbitaPrevia(Rigidbody rb, CinturonAsteroides.DatosSpawnMeteorito datos, Vector3 puntoImpacto, GameObject meteorito)
     {
         float anguloActual = datos.anguloInicial;
 
-        // Mientras siga vivo y NO esté dentro de la zona roja del cinturón, seguimos orbitando
+        // Mientras siga vivo y NO estï¿½ dentro de la zona roja del cinturï¿½n, seguimos orbitando
         while (rb != null && !rb.isKinematic && !cinturonOrigen.EstaEnZonaDeCaida(anguloActual))
         {
             anguloActual += datos.velocidadOrbita * Time.fixedDeltaTime;
@@ -148,7 +158,7 @@ public class LluviaMeteoritos : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        // ¡Ha entrado en la zona de caída! Empezamos el arco de picado.
+        // ï¿½Ha entrado en la zona de caï¿½da! Empezamos el arco de picado.
         if (rb != null && !rb.isKinematic)
         {
             Vector3 posicionCaida = rb.position;
@@ -163,7 +173,7 @@ public class LluviaMeteoritos : MonoBehaviour
         Vector3 puntoControl = posInicial + (posFinal - posInicial) / 2f + (Vector3.up * alturaArco);
         float t = 0f;
 
-        // --- SOLUCIÓN 2: Obtenemos el volumen real del meteorito ---
+        // --- SOLUCIï¿½N 2: Obtenemos el volumen real del meteorito ---
         Collider col = rb.GetComponent<Collider>();
         float radioPiedra = col != null ? col.bounds.extents.y : 1f;
 
@@ -189,12 +199,12 @@ public class LluviaMeteoritos : MonoBehaviour
 
             RaycastHit hit;
 
-            // Usamos un SphereCast simulando el volumen del meteorito en vez de un láser delgado
+            // Usamos un SphereCast simulando el volumen del meteorito en vez de un lï¿½ser delgado
             if (Physics.SphereCast(rb.position, radioPiedra, direccionMovimiento, out hit, distanciaAlSiguientePunto + 0.2f))
             {
                 if (hit.collider.CompareTag(tagSuelo))
                 {
-                    // Frenamos el centro exactamente donde la superficie de la piedra tocó el suelo
+                    // Frenamos el centro exactamente donde la superficie de la piedra tocï¿½ el suelo
                     Vector3 puntoFrenado = rb.position + (direccionMovimiento * hit.distance);
                     EjecutarImpactoSuelo(rb, puntoFrenado, posInicial.y, meteorito);
                     yield break;
