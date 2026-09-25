@@ -251,6 +251,15 @@ public class ArmaLanzadora : MonoBehaviour
             puntoDisparo.position,
             rotacionFrisbee
         );
+
+        Moneda moneda = proyectil.GetComponent<Moneda>();
+
+        if (moneda == null)
+        {
+            moneda = proyectil.AddComponent<Moneda>();
+        }
+
+        moneda.valor = costePorDisparo;
         if (proyectil.GetComponent<ProyectilArma>() == null)
         {
             proyectil.AddComponent<ProyectilArma>();

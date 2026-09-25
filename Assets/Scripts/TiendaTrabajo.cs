@@ -97,6 +97,29 @@ public class TiendaTrabajo : MonoBehaviour
 
     public GameObject panelMejorasIman;
 
+
+    // =====================================================
+    // PROCESADORA
+    // =====================================================
+
+    [Header("Procesadora - Compra")]
+    public MaquinaErosion maquinaErosion;
+
+    public int precioProcesadora = 10;
+
+    public Button botonComprarProcesadora;
+    public TextMeshProUGUI textoBotonComprarProcesadora;
+
+    public GameObject panelMejorasProcesadora;
+
+
+    [Header("Procesadora - Velocidad")]
+    public Button botonMejorarProcesadora;
+    public TextMeshProUGUI textoBotonProcesadora;
+
+    public int precioProcesadoraNivel2 = 10;
+    public int precioProcesadoraNivel3 = 20;
+
     // =====================================================
     // START
     // =====================================================
@@ -565,6 +588,95 @@ public class TiendaTrabajo : MonoBehaviour
                 ActualizarMejoraIman();
             }
         }
+
+        // =================================================
+        // PROCESADORA
+        // =================================================
+
+        if (maquinaErosion != null)
+        {
+            bool procesadoraComprada =
+                maquinaErosion.ProcesadoraDesbloqueada;
+
+
+            // BOTÓN DE COMPRA
+            if (botonComprarProcesadora != null)
+            {
+                botonComprarProcesadora.gameObject.SetActive(true);
+
+                botonComprarProcesadora.interactable =
+                    !procesadoraComprada;
+            }
+
+
+            if (textoBotonComprarProcesadora != null)
+            {
+                textoBotonComprarProcesadora.text =
+                    procesadoraComprada
+                    ? "COMPRADO"
+                    : "COMPRAR PROCESADORA - " +
+                      precioProcesadora +
+                      " monedas";
+            }
+
+
+            // PANEL DE MEJORAS
+            if (panelMejorasProcesadora != null)
+            {
+                panelMejorasProcesadora.SetActive(
+                    procesadoraComprada
+                );
+            }
+
+
+            // MEJORAS
+            if (procesadoraComprada)
+            {
+                if (maquinaErosion.NivelProcesado == 1)
+                {
+                    if (textoBotonProcesadora != null)
+                    {
+                        textoBotonProcesadora.text =
+                            "VELOCIDAD NIVEL 2 - " +
+                            precioProcesadoraNivel2 +
+                            " monedas";
+                    }
+
+                    if (botonMejorarProcesadora != null)
+                    {
+                        botonMejorarProcesadora.interactable = true;
+                    }
+                }
+                else if (maquinaErosion.NivelProcesado == 2)
+                {
+                    if (textoBotonProcesadora != null)
+                    {
+                        textoBotonProcesadora.text =
+                            "VELOCIDAD NIVEL 3 - " +
+                            precioProcesadoraNivel3 +
+                            " monedas";
+                    }
+
+                    if (botonMejorarProcesadora != null)
+                    {
+                        botonMejorarProcesadora.interactable = true;
+                    }
+                }
+                else
+                {
+                    if (textoBotonProcesadora != null)
+                    {
+                        textoBotonProcesadora.text =
+                            "VELOCIDAD MÁXIMA";
+                    }
+
+                    if (botonMejorarProcesadora != null)
+                    {
+                        botonMejorarProcesadora.interactable = false;
+                    }
+                }
+            }
+        }
     }
 
     public void ComprarMejoraMovilidadTorbellino()
@@ -757,5 +869,81 @@ public class TiendaTrabajo : MonoBehaviour
                 botonMejorarIman.interactable = false;
             }
         }
+    }
+
+    public void ComprarProcesadora()
+    {
+        if (cartera == null ||
+            maquinaErosion == null)
+        {
+            return;
+        }
+
+        if (maquinaErosion.ProcesadoraDesbloqueada)
+            return;
+
+        if (!cartera.GastarMonedas(precioProcesadora))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para comprar la Procesadora."
+            );
+
+            return;
+        }
+
+        maquinaErosion.DesbloquearProcesadora();
+
+        Debug.Log("¡Procesadora comprada!");
+
+        ActualizarTienda();
+    }
+
+    public void ComprarMejoraProcesadora()
+    {
+        if (cartera == null ||
+            maquinaErosion == null)
+        {
+            return;
+        }
+
+        if (!maquinaErosion.ProcesadoraDesbloqueada)
+        {
+            Debug.Log("Primero tienes que comprar la Procesadora.");
+            return;
+        }
+
+        if (maquinaErosion.ProcesadoAlMaximo())
+        {
+            Debug.Log("La Procesadora ya está al máximo.");
+            return;
+        }
+
+        int precio;
+
+        if (maquinaErosion.NivelProcesado == 1)
+        {
+            precio = precioProcesadoraNivel2;
+        }
+        else if (maquinaErosion.NivelProcesado == 2)
+        {
+            precio = precioProcesadoraNivel3;
+        }
+        else
+        {
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precio))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para mejorar la Procesadora."
+            );
+
+            return;
+        }
+
+        maquinaErosion.MejorarProcesado();
+
+        ActualizarTienda();
     }
 }

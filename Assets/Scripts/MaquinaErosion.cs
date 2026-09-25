@@ -28,6 +28,22 @@ public class MaquinaErosion : MonoBehaviour
     public float tiempoProcesamiento = 3f;
     public float velocidadDePulido = 0.05f;
 
+    [Header("Desbloqueo Procesadora")]
+    [SerializeField] private bool procesadoraDesbloqueada = false;
+
+    public bool ProcesadoraDesbloqueada => procesadoraDesbloqueada;
+
+
+    [Header("Mejora - Velocidad de Procesado")]
+    [SerializeField, Range(1, 3)]
+    private int nivelProcesado = 1;
+
+    public float tiempoProcesadoNivel1 = 3f;
+    public float tiempoProcesadoNivel2 = 2f;
+    public float tiempoProcesadoNivel3 = 1f;
+
+    public int NivelProcesado => nivelProcesado;
+
     [Header("Efectos Visuales (Partículas)")]
     public ParticleSystem[] particulasTrabajando;
     public ParticleSystem[] particulasExpulsion;
@@ -36,8 +52,16 @@ public class MaquinaErosion : MonoBehaviour
     private Dictionary<Rigidbody, float> piedrasEnProceso = new Dictionary<Rigidbody, float>();
     private float[] emisionesOriginales;
 
+    private void OnValidate()
+    {
+        nivelProcesado = Mathf.Clamp(nivelProcesado, 1, 3);
+
+        AplicarNivelProcesado();
+    }
+
     void Start()
     {
+        AplicarNivelProcesado();
         // Guardamos la tasa de emisión original de cada sistema de partículas al empezar
         emisionesOriginales = new float[particulasTrabajando.Length];
         for (int i = 0; i < particulasTrabajando.Length; i++)
@@ -213,6 +237,61 @@ public class MaquinaErosion : MonoBehaviour
         }
     }
 
+
+    public void DesbloquearProcesadora()
+    {
+        procesadoraDesbloqueada = true;
+
+        gameObject.SetActive(true);
+
+        Debug.Log("¡Procesadora desbloqueada!");
+    }
+
+
+    public bool MejorarProcesado()
+    {
+        if (nivelProcesado >= 3)
+            return false;
+
+        nivelProcesado++;
+
+        AplicarNivelProcesado();
+
+        Debug.Log(
+            "Procesadora mejorada a nivel " +
+            nivelProcesado +
+            " | Tiempo: " +
+            tiempoProcesamiento +
+            " segundos"
+        );
+
+        return true;
+    }
+
+
+    private void AplicarNivelProcesado()
+    {
+        switch (nivelProcesado)
+        {
+            case 1:
+                tiempoProcesamiento = tiempoProcesadoNivel1;
+                break;
+
+            case 2:
+                tiempoProcesamiento = tiempoProcesadoNivel2;
+                break;
+
+            case 3:
+                tiempoProcesamiento = tiempoProcesadoNivel3;
+                break;
+        }
+    }
+
+
+    public bool ProcesadoAlMaximo()
+    {
+        return nivelProcesado >= 3;
+    }
     // ==========================================
     // SISTEMA DE GIZMOS VISUALES EN EL EDITOR
     // ==========================================
