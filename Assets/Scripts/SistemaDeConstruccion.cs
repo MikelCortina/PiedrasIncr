@@ -15,6 +15,9 @@ public class SistemaConstruccion : MonoBehaviour
         public GameObject[] prefabsHologramas;
     }
 
+    [Header("Martillo")]
+    public GameObject modeloMartillo;
+
     [Header("Catálogo de Edificios")]
     public InfoEdificio[] edificios;
     private int indiceEdificioActual = 0;
@@ -64,11 +67,6 @@ public class SistemaConstruccion : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(teclaConstruccion))
-        {
-            AlternarModoConstruccion();
-        }
-
         if (modoConstruccion && Input.GetKeyDown(teclaCambiarTipo))
         {
             CambiarEdificioActual();
@@ -77,6 +75,7 @@ public class SistemaConstruccion : MonoBehaviour
         if (timerBloqueoSlot > 0f)
         {
             timerBloqueoSlot -= Time.deltaTime;
+
             if (timerBloqueoSlot <= 0f)
             {
                 slotBloqueado = null;
@@ -89,24 +88,56 @@ public class SistemaConstruccion : MonoBehaviour
             if (cooldownHolograma > 0f)
             {
                 cooldownHolograma -= Time.deltaTime;
-                if (hologramaActual.activeSelf) hologramaActual.SetActive(false);
+
+                if (hologramaActual.activeSelf)
+                {
+                    hologramaActual.SetActive(false);
+                }
             }
             else
             {
                 ManejarPosicionamientoYMagnetismo();
 
                 ManejarRotacionLibre();
+
                 ActualizarColorYValidacion();
+
                 ManejarColocacionODestruccion();
             }
         }
     }
-
-    void AlternarModoConstruccion()
+    public void SetModoConstruccion(bool activar)
     {
-        modoConstruccion = !modoConstruccion;
-        if (modoConstruccion) CrearHolograma();
-        else DestruirHolograma();
+        if (modoConstruccion == activar)
+            return;
+
+        modoConstruccion = activar;
+
+
+        if (modeloMartillo != null)
+        {
+            modeloMartillo.SetActive(
+                modoConstruccion
+            );
+        }
+
+
+        if (modoConstruccion)
+        {
+            CrearHolograma();
+
+            Debug.Log(
+                "Modo construcción ACTIVADO"
+            );
+        }
+        else
+        {
+            DestruirHolograma();
+
+            Debug.Log(
+                "Modo construcción DESACTIVADO"
+            );
+        }
     }
 
     void CambiarEdificioActual()

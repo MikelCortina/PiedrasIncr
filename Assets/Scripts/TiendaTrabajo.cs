@@ -121,6 +121,16 @@ public class TiendaTrabajo : MonoBehaviour
     public int precioProcesadoraNivel3 = 20;
 
     // =====================================================
+    // MARTILLO / CONSTRUCCIÓN
+    // =====================================================
+
+    [Header("Martillo - Compra")]
+    public int precioMartillo = 10;
+
+    public Button botonComprarMartillo;
+    public TextMeshProUGUI textoBotonMartillo;
+
+    // =====================================================
     // START
     // =====================================================
 
@@ -544,6 +554,7 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
 
+
         // =================================================
         // IMÁN
         // =================================================
@@ -677,6 +688,31 @@ public class TiendaTrabajo : MonoBehaviour
                 }
             }
         }
+        // =================================================
+        // MARTILLO
+        // =================================================
+
+        bool martilloComprado =
+            gestorEquipamiento.MartilloDesbloqueado();
+
+
+        if (textoBotonMartillo != null)
+        {
+            textoBotonMartillo.text =
+                martilloComprado
+                ? "COMPRADO"
+                : "COMPRAR MARTILLO - " +
+                  precioMartillo +
+                  " monedas";
+        }
+
+
+        if (botonComprarMartillo != null)
+        {
+            botonComprarMartillo.interactable =
+                !martilloComprado;
+        }
+
     }
 
     public void ComprarMejoraMovilidadTorbellino()
@@ -943,6 +979,45 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
         maquinaErosion.MejorarProcesado();
+
+        ActualizarTienda();
+    }
+
+    public void ComprarMartillo()
+    {
+        if (cartera == null ||
+            gestorEquipamiento == null)
+        {
+            return;
+        }
+
+
+        // Ya comprado
+        if (gestorEquipamiento.MartilloDesbloqueado())
+        {
+            return;
+        }
+
+
+        // Intentamos pagar
+        if (!cartera.GastarMonedas(precioMartillo))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para comprar el Martillo."
+            );
+
+            return;
+        }
+
+
+        // Desbloqueamos
+        gestorEquipamiento.DesbloquearMartillo();
+
+
+        Debug.Log(
+            "¡Martillo comprado!"
+        );
+
 
         ActualizarTienda();
     }
