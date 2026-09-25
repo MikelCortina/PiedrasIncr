@@ -10,13 +10,17 @@ public class SistemaConstruccion : MonoBehaviour
     {
         public string nombre;
         public TipoEdificio tipo;
-        public GameObject prefabReal;
-        public GameObject prefabHolograma;
+        // NUEVO: Ahora son listas para permitir variaciones
+        public GameObject[] prefabsReales;
+        public GameObject[] prefabsHologramas;
     }
 
     [Header("Catálogo de Edificios")]
     public InfoEdificio[] edificios;
     private int indiceEdificioActual = 0;
+
+    // NUEVO: Guarda qué variante aleatoria está usando el holograma actual
+    private int indiceVarianteActual = 0;
 
     [Header("Referencias")]
     public Camera camaraPrincipal;
@@ -115,7 +119,19 @@ public class SistemaConstruccion : MonoBehaviour
     void CrearHolograma()
     {
         rotacionManualOffset = 0f;
-        hologramaActual = Instantiate(edificios[indiceEdificioActual].prefabHolograma);
+
+        // NUEVO: Elegir una variante aleatoria de la lista
+        InfoEdificio edificioActual = edificios[indiceEdificioActual];
+        if (edificioActual.prefabsHologramas.Length > 0)
+        {
+            indiceVarianteActual = Random.Range(0, edificioActual.prefabsHologramas.Length);
+            hologramaActual = Instantiate(edificioActual.prefabsHologramas[indiceVarianteActual]);
+        }
+        else
+        {
+            Debug.LogError("No hay hologramas asignados para el edificio: " + edificioActual.nombre);
+        }
+
         cooldownHolograma = 0f;
 
         slotBloqueado = null;
@@ -192,14 +208,10 @@ public class SistemaConstruccion : MonoBehaviour
                     {
                         hologramaActual.transform.position = hitConector.transform.position;
 
-                        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
-                        // Multiplicamos por la compensación para acostar la valla sobre el raíl
-                        // Si por algún casual sigue quedando boca abajo, cambia -90f por 90f
                         hologramaActual.transform.rotation = hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
                     }
                     else
                     {
-                        // Copiamos la rotación de la PARED entera (root), ignorando si el conector está torcido
                         hologramaActual.transform.rotation = hitConector.transform.root.rotation;
 
                         if (hitConector.collider.CompareTag("ConectorParedSalida")) AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
@@ -297,7 +309,6 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 Quaternion rotacionBase = Quaternion.LookRotation(direccionCamara.normalized);
 
-                // CAMBIO: Usamos -90f para que se acueste hacia el lado correcto (boca arriba)
                 if (edificios[indiceEdificioActual].tipo == TipoEdificio.Pared)
                 {
                     hologramaActual.transform.rotation = rotacionBase * Quaternion.Euler(-90f, rotacionManualOffset, 0f);
@@ -395,13 +406,19 @@ public class SistemaConstruccion : MonoBehaviour
 
                 cooldownHolograma = 0.15f;
                 timerBloqueoSlot = 1.0f;
+
+                // NUEVO: Al destruir, regeneramos el holograma para que cambie de modelo si es necesario
+                DestruirHolograma();
+                CrearHolograma();
                 return;
             }
 
             if (PuedeColocarActual() && hologramaActual.activeSelf)
             {
                 InfoEdificio actual = edificios[indiceEdificioActual];
-                GameObject nuevaEstructura = Instantiate(actual.prefabReal, hologramaActual.transform.position, hologramaActual.transform.rotation);
+
+                // NUEVO: Instanciamos el prefab real basándonos en el índice de la variante que generó el holograma
+                GameObject nuevaEstructura = Instantiate(actual.prefabsReales[indiceVarianteActual], hologramaActual.transform.position, hologramaActual.transform.rotation);
 
                 nuevaEstructura.AddComponent<EfectoBloop>();
 
@@ -442,9 +459,6 @@ public class SistemaConstruccion : MonoBehaviour
                             EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
                             if (rampaPadre != null) rampaPadre.edificiosDependientes.Add(nuevaEstructura);
 
-                            // --- NUEVO ---
-                            // Si la pared se ha acoplado a un raíl, desactivamos sus conectores de extremo.
-                            // Esto bloquea la posibilidad de encadenar vallas que floten fuera de la rampa.
                             Collider[] collidersPared = nuevaEstructura.GetComponentsInChildren<Collider>();
                             foreach (Collider col in collidersPared)
                             {
@@ -480,6 +494,10 @@ public class SistemaConstruccion : MonoBehaviour
                 }
 
                 cooldownHolograma = 0.15f;
+
+                // NUEVO: Regeneramos el holograma para que el próximo que vayas a colocar sea aleatorio también
+                DestruirHolograma();
+                CrearHolograma();
             }
         }
     }

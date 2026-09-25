@@ -3231,12 +3231,28 @@ MonoBehaviour:
   edificios:
   - nombre: Rampa
     tipo: 0
-    prefabReal: {fileID: 7744144470151517965, guid: ab3a0d84ced66424b8027ce0c9f644a5, type: 3}
-    prefabHolograma: {fileID: 7744144470151517965, guid: f75edc71efd138142b33edf8af516c2d, type: 3}
+    prefabsReales:
+    - {fileID: 5205576267664954101, guid: 2c208abc10fbf124f90123fd0f1aee74, type: 3}
+    prefabsHologramas:
+    - {fileID: 5205576267664954101, guid: 88bb0c3f59ee2f84ea2a3fbfcf37c8bd, type: 3}
   - nombre: Pared
     tipo: 1
-    prefabReal: {fileID: 6260708979813557389, guid: 14ee1a7b46275a542b3452cfd8a025fe, type: 3}
-    prefabHolograma: {fileID: 5678345702877697784, guid: 37dd60d6d81441b4ba417475b1ce87ef, type: 3}
+    prefabsReales:
+    - {fileID: 6260708979813557389, guid: 14ee1a7b46275a542b3452cfd8a025fe, type: 3}
+    - {fileID: 6260708979813557389, guid: dc25d412746565b4fa2a501fc10535ee, type: 3}
+    - {fileID: 6260708979813557389, guid: f0be9a2fe7cce264db355d633bd7de2f, type: 3}
+    - {fileID: 6260708979813557389, guid: 3c6aa715885811e49b16205ab7414f1d, type: 3}
+    - {fileID: 6260708979813557389, guid: 5994062320b43c14eaca7787a4e28996, type: 3}
+    - {fileID: 6260708979813557389, guid: 05739889eaf2e9b44b63cb89dc587618, type: 3}
+    - {fileID: 6260708979813557389, guid: f3cce2e7aededce4a854302dbab7f46b, type: 3}
+    prefabsHologramas:
+    - {fileID: 5678345702877697784, guid: 37dd60d6d81441b4ba417475b1ce87ef, type: 3}
+    - {fileID: 5678345702877697784, guid: 7a04e22d55e2b974da9e5c8186926aa8, type: 3}
+    - {fileID: 5678345702877697784, guid: 088098bb5e6950c4fb5f10963b9ae8ac, type: 3}
+    - {fileID: 5678345702877697784, guid: 0fd22d01fb5e5454ea6fb23dacbece3c, type: 3}
+    - {fileID: 5678345702877697784, guid: ea0137b76bedfc8488237ba7499caa15, type: 3}
+    - {fileID: 5678345702877697784, guid: 5af50a59550fb6d458525b9e3f747678, type: 3}
+    - {fileID: 5678345702877697784, guid: e4e31b6c07087d3478356be509c8099c, type: 3}
   camaraPrincipal: {fileID: 2046494805}
   capaSuelo:
     serializedVersion: 2

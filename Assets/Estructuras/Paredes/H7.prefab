@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2050340193966201319}
   - component: {fileID: 4732853837649118038}
   m_Layer: 2
-  m_Name: VallaHologramaPrefab
+  m_Name: H7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -219,6 +219,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Untagged
       objectReference: {fileID: 0}
+    - target: {fileID: 8817996584040936605, guid: 14ee1a7b46275a542b3452cfd8a025fe, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -5495902117074765545, guid: f9ec1072be50d3a4a841b4f316f0035b, type: 3}
     - target: {fileID: 8873167606480217271, guid: 14ee1a7b46275a542b3452cfd8a025fe, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
