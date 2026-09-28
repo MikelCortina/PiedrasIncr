@@ -1,29 +1,34 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GestorPiedras : MonoBehaviour
 {
-    public static GestorPiedras Instancia { get; private set; }
+    public static GestorPiedras Instancia
+    {
+        get;
+        private set;
+    }
 
-    public event System.Action<Rigidbody> OnPiedraRegistrada;
 
-    // Todas las piedras que existen actualmente.
+    // =====================================================
+    // EVENTOS
+    // =====================================================
+
+    public event Action<Rigidbody> OnPiedraRegistrada;
+
+
+    // =====================================================
+    // DATOS
+    // =====================================================
+
     private readonly HashSet<Rigidbody> piedrasRegistradas =
         new HashSet<Rigidbody>();
 
-    // Piedra -> Bot que la tiene reservada.
+
+    // Piedra -> Bot propietario de la reserva.
     private readonly Dictionary<Rigidbody, BotRecolector> reservas =
         new Dictionary<Rigidbody, BotRecolector>();
-
-
-    public int CantidadPiedrasRegistradas
-    {
-        get
-        {
-            LimpiarReferenciasInvalidas();
-            return piedrasRegistradas.Count;
-        }
-    }
 
 
     // =====================================================
@@ -36,34 +41,35 @@ public class GestorPiedras : MonoBehaviour
             Instancia != this)
         {
             Debug.LogWarning(
-                "Hay más de un GestorPiedras en la escena. " +
-                "Se destruirá el duplicado."
+                "Hay más de un GestorPiedras en la escena."
             );
 
-            Destroy(gameObject);
             return;
         }
+
 
         Instancia = this;
     }
 
 
     // =====================================================
-    // REGISTRAR PIEDRA
+    // REGISTRAR
     // =====================================================
 
-    public void RegistrarPiedra(Rigidbody piedra)
+    public void RegistrarPiedra(
+        Rigidbody piedra)
     {
         if (piedra == null)
             return;
 
 
-        bool esNueva =
-            piedrasRegistradas.Add(piedra);
+        bool nueva =
+            piedrasRegistradas.Add(
+                piedra
+            );
 
 
-        // Solo avisamos si realmente acaba de aparecer.
-        if (esNueva)
+        if (nueva)
         {
             OnPiedraRegistrada?.Invoke(
                 piedra
@@ -73,25 +79,80 @@ public class GestorPiedras : MonoBehaviour
 
 
     // =====================================================
-    // DESREGISTRAR PIEDRA
+    // DESREGISTRAR
     // =====================================================
 
-    public void DesregistrarPiedra(Rigidbody piedra)
+    public void DesregistrarPiedra(
+        Rigidbody piedra)
     {
         if (piedra == null)
-        {
-            LimpiarReferenciasInvalidas();
             return;
-        }
 
-        piedrasRegistradas.Remove(piedra);
 
-        reservas.Remove(piedra);
+        piedrasRegistradas.Remove(
+            piedra
+        );
+
+
+        reservas.Remove(
+            piedra
+        );
     }
 
 
     // =====================================================
-    // RESERVAR PIEDRA
+    // OBTENER TODAS LAS DISPONIBLES
+    // =====================================================
+
+    public List<Rigidbody> ObtenerPiedrasDisponibles(
+        BotRecolector botSolicitante)
+    {
+        LimpiarReferenciasInvalidas();
+
+
+        List<Rigidbody> resultado =
+            new List<Rigidbody>();
+
+
+        foreach (Rigidbody piedra in piedrasRegistradas)
+        {
+            if (piedra == null)
+                continue;
+
+
+            if (!piedra.gameObject.activeInHierarchy)
+                continue;
+
+
+            // =============================================
+            // ¿ESTÁ RESERVADA?
+            // =============================================
+
+            if (reservas.TryGetValue(
+                    piedra,
+                    out BotRecolector botReserva))
+            {
+                // Puede verla si la reserva es suya.
+                if (botReserva != null &&
+                    botReserva != botSolicitante)
+                {
+                    continue;
+                }
+            }
+
+
+            resultado.Add(
+                piedra
+            );
+        }
+
+
+        return resultado;
+    }
+
+
+    // =====================================================
+    // RESERVAR
     // =====================================================
 
     public bool IntentarReservarPiedra(
@@ -108,28 +169,47 @@ public class GestorPiedras : MonoBehaviour
         LimpiarReferenciasInvalidas();
 
 
-        // Si por algún motivo todavía no estaba
-        // registrada, la añadimos.
-        piedrasRegistradas.Add(piedra);
-
-
-        // Ya la tiene otro Bot.
-        if (reservas.TryGetValue(
-                piedra,
-                out BotRecolector botActual))
+        if (!piedrasRegistradas.Contains(
+                piedra))
         {
-            // Si ya era nuestra, todo correcto.
-            if (botActual == bot)
-                return true;
-
             return false;
         }
 
 
-        reservas.Add(
-            piedra,
-            bot
-        );
+        // =============================================
+        // YA ESTÁ RESERVADA
+        // =============================================
+
+        if (reservas.TryGetValue(
+                piedra,
+                out BotRecolector propietario))
+        {
+            // Ya es nuestra.
+            if (propietario == bot)
+            {
+                return true;
+            }
+
+
+            // Es de otro Bot.
+            if (propietario != null)
+            {
+                return false;
+            }
+
+
+            reservas.Remove(
+                piedra
+            );
+        }
+
+
+        // =============================================
+        // RESERVA
+        // =============================================
+
+        reservas[piedra] =
+            bot;
 
 
         return true;
@@ -137,7 +217,7 @@ public class GestorPiedras : MonoBehaviour
 
 
     // =====================================================
-    // LIBERAR RESERVA
+    // LIBERAR UNA RESERVA
     // =====================================================
 
     public void LiberarReserva(
@@ -145,27 +225,25 @@ public class GestorPiedras : MonoBehaviour
         BotRecolector bot)
     {
         if (piedra == null)
-        {
-            LimpiarReferenciasInvalidas();
             return;
-        }
 
 
         if (!reservas.TryGetValue(
                 piedra,
-                out BotRecolector botActual))
+                out BotRecolector propietario))
         {
             return;
         }
 
 
-        // Solo puede liberar la reserva
-        // el mismo Bot que la creó.
-        if (botActual != bot)
-            return;
-
-
-        reservas.Remove(piedra);
+        // Solo el Bot propietario puede liberarla.
+        if (propietario == bot ||
+            propietario == null)
+        {
+            reservas.Remove(
+                piedra
+            );
+        }
     }
 
 
@@ -199,13 +277,15 @@ public class GestorPiedras : MonoBehaviour
 
         foreach (Rigidbody piedra in eliminar)
         {
-            reservas.Remove(piedra);
+            reservas.Remove(
+                piedra
+            );
         }
     }
 
 
     // =====================================================
-    // ESTÁ RESERVADA
+    // CONSULTAS
     // =====================================================
 
     public bool EstaReservada(
@@ -224,93 +304,94 @@ public class GestorPiedras : MonoBehaviour
     }
 
 
-    // =====================================================
-    // OBTENER PIEDRAS
-    // =====================================================
-
-    public List<Rigidbody> ObtenerPiedrasOrdenadas(
-        Vector3 posicionBot,
-        float radioPreferente)
+    public bool EstaReservadaPorOtro(
+        Rigidbody piedra,
+        BotRecolector bot)
     {
-        LimpiarReferenciasInvalidas();
+        if (piedra == null)
+            return false;
 
 
-        List<Rigidbody> resultado =
-            new List<Rigidbody>(
-                piedrasRegistradas.Count
-            );
-
-
-        foreach (Rigidbody piedra in piedrasRegistradas)
+        if (!reservas.TryGetValue(
+                piedra,
+                out BotRecolector propietario))
         {
-            if (piedra == null)
-                continue;
-
-
-            if (!piedra.gameObject.activeInHierarchy)
-                continue;
-
-
-            // Ya está trabajando otro Bot con ella.
-            if (reservas.ContainsKey(piedra))
-                continue;
-
-
-            resultado.Add(piedra);
+            return false;
         }
 
 
-        float radioCuadrado =
-            radioPreferente *
-            radioPreferente;
+        return propietario != null &&
+               propietario != bot;
+    }
 
 
-        // =================================================
-        // ORDEN:
-        //
-        // 1. Piedras dentro del radio preferente.
-        // 2. Las más cercanas primero.
-        // 3. Después piedras fuera del radio,
-        //    también de cercana a lejana.
-        //
-        // El radio YA NO es un límite.
-        // =================================================
+    public BotRecolector ObtenerBotReservante(
+        Rigidbody piedra)
+    {
+        if (piedra == null)
+            return null;
 
-        resultado.Sort(
+
+        reservas.TryGetValue(
+            piedra,
+            out BotRecolector bot
+        );
+
+
+        return bot;
+    }
+
+
+    public int CantidadPiedrasRegistradas()
+    {
+        LimpiarReferenciasInvalidas();
+
+        return piedrasRegistradas.Count;
+    }
+
+
+    // =====================================================
+    // COMPATIBILIDAD CON CÓDIGO ANTERIOR
+    // =====================================================
+
+    public List<Rigidbody> ObtenerPiedrasOrdenadas(
+        Vector3 posicion,
+        float radioIgnorado)
+    {
+        List<Rigidbody> piedras =
+            ObtenerPiedrasDisponibles(
+                null
+            );
+
+
+        piedras.Sort(
             (a, b) =>
             {
-                float distanciaA =
-                    (a.position -
-                     posicionBot).sqrMagnitude;
+                if (a == null)
+                    return 1;
 
-                float distanciaB =
-                    (b.position -
-                     posicionBot).sqrMagnitude;
-
-
-                bool aCerca =
-                    distanciaA <= radioCuadrado;
-
-                bool bCerca =
-                    distanciaB <= radioCuadrado;
-
-
-                if (aCerca && !bCerca)
+                if (b == null)
                     return -1;
 
 
-                if (!aCerca && bCerca)
-                    return 1;
+                float da =
+                    (a.position -
+                     posicion).sqrMagnitude;
 
 
-                return distanciaA.CompareTo(
-                    distanciaB
+                float db =
+                    (b.position -
+                     posicion).sqrMagnitude;
+
+
+                return da.CompareTo(
+                    db
                 );
             }
         );
 
 
-        return resultado;
+        return piedras;
     }
 
 
@@ -325,7 +406,7 @@ public class GestorPiedras : MonoBehaviour
         );
 
 
-        List<Rigidbody> reservasInvalidas =
+        List<Rigidbody> reservasEliminar =
             new List<Rigidbody>();
 
 
@@ -334,25 +415,25 @@ public class GestorPiedras : MonoBehaviour
             in reservas)
         {
             if (reserva.Key == null ||
-                reserva.Value == null)
+                reserva.Value == null ||
+                !piedrasRegistradas.Contains(
+                    reserva.Key))
             {
-                reservasInvalidas.Add(
+                reservasEliminar.Add(
                     reserva.Key
                 );
             }
         }
 
 
-        foreach (Rigidbody piedra in reservasInvalidas)
+        foreach (Rigidbody piedra in reservasEliminar)
         {
-            reservas.Remove(piedra);
+            reservas.Remove(
+                piedra
+            );
         }
     }
 
-
-    // =====================================================
-    // DESTROY
-    // =====================================================
 
     private void OnDestroy()
     {

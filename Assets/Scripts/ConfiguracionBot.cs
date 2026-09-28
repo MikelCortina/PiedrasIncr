@@ -3,12 +3,21 @@ using UnityEngine.AI;
 
 public class ConfiguracionBot : MonoBehaviour
 {
+    // =====================================================
+    // MODOS
+    // =====================================================
+
     public enum ModoBot
     {
         Trabajar,
         Pausa,
         Parking
     }
+
+
+    // =====================================================
+    // PRIORIDAD
+    // =====================================================
 
     public enum PrioridadRecogida
     {
@@ -18,38 +27,85 @@ public class ConfiguracionBot : MonoBehaviour
         Aleatoria
     }
 
+
+    // =====================================================
+    // IDENTIDAD
+    // =====================================================
+
     [Header("Identidad")]
     public string nombreBot = "BOT-01";
 
 
-    [Header("Modo")]
-    public ModoBot modoActual = ModoBot.Trabajar;
+    // =====================================================
+    // MODO
+    // =====================================================
 
+    [Header("Modo")]
+    public ModoBot modoActual = ModoBot.Pausa;
+
+
+    // =====================================================
+    // MOVIMIENTO
+    // =====================================================
 
     [Header("Movimiento")]
+
     [Range(1f, 5f)]
     public float velocidadMovimiento = 2.3f;
 
 
-    [Header("Búsqueda")]
-    [Range(5f, 60f)]
-    public float radioPrioridad = 20f;
+    // =====================================================
+    // PRIORIDAD
+    // =====================================================
 
     [Header("Prioridad de recogida")]
+
     public PrioridadRecogida prioridadRecogida =
-    PrioridadRecogida.MasCercana;
+        PrioridadRecogida.MasCercana;
+
+
+    // =====================================================
+    // FILTRO DE PUREZA
+    // =====================================================
+
+    [Header("Filtro de Pureza")]
+
+    [Range(0f, 100f)]
+    public float purezaMinima = 0f;
+
+
+    [Range(0f, 100f)]
+    public float purezaMaxima = 100f;
+
+
+    // =====================================================
+    // PIEDRAS EN MOVIMIENTO
+    // =====================================================
 
     [Header("Piedras en movimiento")]
+
     public bool ignorarPiedrasEnMovimiento = true;
 
-    [Tooltip("Si la piedra supera esta velocidad, el Bot la considera todavía en movimiento.")]
+
+    [Tooltip(
+        "Si supera esta velocidad el Bot considera " +
+        "que la piedra todavía está moviéndose."
+    )]
     public float velocidadMaximaPiedra = 1f;
 
+
+    // =====================================================
+    // INTERNAS
+    // =====================================================
 
     private BotRecolector bot;
 
     private NavMeshAgent agente;
 
+
+    // =====================================================
+    // AWAKE
+    // =====================================================
 
     private void Awake()
     {
@@ -61,6 +117,10 @@ public class ConfiguracionBot : MonoBehaviour
             GetComponent<NavMeshAgent>();
     }
 
+
+    // =====================================================
+    // START
+    // =====================================================
 
     private void Start()
     {
@@ -81,10 +141,26 @@ public class ConfiguracionBot : MonoBehaviour
         }
 
 
-        if (bot != null)
+        purezaMinima =
+            Mathf.Clamp(
+                purezaMinima,
+                0f,
+                100f
+            );
+
+
+        purezaMaxima =
+            Mathf.Clamp(
+                purezaMaxima,
+                0f,
+                100f
+            );
+
+
+        if (purezaMinima > purezaMaxima)
         {
-            bot.radioBusqueda =
-                radioPrioridad;
+            purezaMaxima =
+                purezaMinima;
         }
     }
 
@@ -93,7 +169,8 @@ public class ConfiguracionBot : MonoBehaviour
     // VELOCIDAD
     // =====================================================
 
-    public void SetVelocidad(float nuevaVelocidad)
+    public void SetVelocidad(
+        float nuevaVelocidad)
     {
         velocidadMovimiento =
             nuevaVelocidad;
@@ -108,25 +185,81 @@ public class ConfiguracionBot : MonoBehaviour
 
 
     // =====================================================
-    // RADIO
+    // PRIORIDAD
     // =====================================================
 
-    public void SetRadioPrioridad(float nuevoRadio)
+    public void SetPrioridadRecogida(
+        PrioridadRecogida nuevaPrioridad)
     {
-        radioPrioridad =
-            nuevoRadio;
+        prioridadRecogida =
+            nuevaPrioridad;
+    }
 
 
-        if (bot != null)
+    // =====================================================
+    // PUREZA MÍNIMA
+    // =====================================================
+
+    public void SetPurezaMinima(
+        float nuevaPureza)
+    {
+        purezaMinima =
+            Mathf.Clamp(
+                nuevaPureza,
+                0f,
+                100f
+            );
+
+
+        // Si cruzamos el máximo,
+        // hacemos que el máximo acompañe al mínimo.
+        if (purezaMinima > purezaMaxima)
         {
-            bot.radioBusqueda =
-                radioPrioridad;
+            purezaMaxima =
+                purezaMinima;
         }
     }
 
 
     // =====================================================
-    // PIEDRAS EN MOVIMIENTO
+    // PUREZA MÁXIMA
+    // =====================================================
+
+    public void SetPurezaMaxima(
+        float nuevaPureza)
+    {
+        purezaMaxima =
+            Mathf.Clamp(
+                nuevaPureza,
+                0f,
+                100f
+            );
+
+
+        // Si cruzamos el mínimo,
+        // hacemos que el mínimo acompañe al máximo.
+        if (purezaMaxima < purezaMinima)
+        {
+            purezaMinima =
+                purezaMaxima;
+        }
+    }
+
+
+    // =====================================================
+    // COMPROBAR PUREZA
+    // =====================================================
+
+    public bool PurezaPermitida(
+        float pureza)
+    {
+        return pureza >= purezaMinima &&
+               pureza <= purezaMaxima;
+    }
+
+
+    // =====================================================
+    // MOVIMIENTO DE PIEDRAS
     // =====================================================
 
     public void SetIgnorarPiedrasEnMovimiento(
@@ -193,12 +326,5 @@ public class ConfiguracionBot : MonoBehaviour
         {
             bot.ConfigurarModoParking();
         }
-    }
-
-    public void SetPrioridadRecogida(
-    PrioridadRecogida nuevaPrioridad)
-    {
-        prioridadRecogida =
-            nuevaPrioridad;
     }
 }
