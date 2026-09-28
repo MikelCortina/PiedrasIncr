@@ -11,35 +11,10 @@ public class BotRecolector : MonoBehaviour
         Buscando,
         YendoAPiedra,
         LlevandoPiedra,
-        EntregandoPiedra
+        EntregandoPiedra,
+        Esperando
     }
 
-    // =====================================================
-    // ANTI-ATASCO
-    // =====================================================
-
-    [Header("Anti-Atasco")]
-
-    [Tooltip("Cada cuánto comprobamos si el Bot realmente se está moviendo.")]
-    public float intervaloComprobacionAtasco = 0.75f;
-
-    [Tooltip("Distancia mínima que debe avanzar entre comprobaciones.")]
-    public float distanciaMinimaAvance = 0.15f;
-
-    [Tooltip("Tiempo que puede permanecer prácticamente quieto antes de intervenir.")]
-    public float tiempoMaximoAtascado = 2f;
-
-    [Tooltip("Número de veces que intentará recalcular la ruta antes de tomar una medida mayor.")]
-    public int maxReintentosRuta = 2;
-
-
-    private Vector3 ultimaPosicionAntiAtasco;
-
-    private float temporizadorAntiAtasco;
-
-    private float tiempoAtascado;
-
-    private int reintentosRuta;
 
     // =====================================================
     // ESTADO
@@ -47,7 +22,14 @@ public class BotRecolector : MonoBehaviour
 
     [Header("Estado")]
     [SerializeField]
-    private EstadoBot estadoActual = EstadoBot.Buscando;
+    private EstadoBot estadoActual =
+        EstadoBot.Buscando;
+
+    private ConfiguracionBot configuracionBot;
+
+    private bool pausaForzada = false;
+
+    private bool parkingForzado = false;
 
 
     // =====================================================
@@ -55,35 +37,81 @@ public class BotRecolector : MonoBehaviour
     // =====================================================
 
     [Header("Referencias")]
+
     public Transform puntoAgarre;
 
 
     // =====================================================
-    // ENTREGA AL AGUJERO
+    // GESTOR GLOBAL DE PIEDRAS
     // =====================================================
 
-    [Header("Entrega al Agujero")]
+    [Header("Gestor Global de Piedras")]
 
-    [Tooltip("Punto sobre el NavMesh donde se coloca el Bot para realizar la entrega.")]
-    public Transform puntoLlegadaBot;
+    public GestorPiedras gestorPiedras;
 
-    [Tooltip("Centro exacto de la boca del agujero. La piedra termina aquí.")]
+
+    // =====================================================
+    // INTERACCIÓN CON JUGADOR
+    // =====================================================
+
+    [Header("Interacción con Jugador")]
+
+    [Tooltip("Velocidad a la que el Bot gira para mirar al jugador.")]
+    public float velocidadGiroInteraccion = 6f;
+
+    private bool enInteraccion = false;
+
+    private Transform jugadorInteraccion;
+
+    public bool EnInteraccion => enInteraccion;
+
+    // =====================================================
+    // ENTREGA
+    // =====================================================
+
+    [Header("Sistema de Entrega")]
+
+    public GestorPuntosEntregaBots gestorPuntosEntrega;
+
     public Transform puntoEntradaAgujero;
 
-    [Tooltip("Agujero que procesa la piedra y genera las monedas.")]
     public AgujeroSimple agujeroDestino;
 
-    [Tooltip("Distancia a PuntoLlegadaBot necesaria para comenzar el lanzamiento.")]
     public float distanciaEntrega = 1.5f;
 
-    [Tooltip("Duración visual del lanzamiento.")]
     public float duracionLanzamiento = 0.5f;
 
-    [Tooltip("Altura máxima del arco que hace la piedra.")]
     public float alturaArcoLanzamiento = 2f;
 
-    [Tooltip("Velocidad de giro visual de la piedra durante el lanzamiento.")]
     public float velocidadGiroLanzamiento = 360f;
+
+
+    // =====================================================
+    // PARKING / ESPERA
+    // =====================================================
+
+    [Header("Parking de Bots")]
+
+    [Tooltip(
+        "Gestor que contiene las plazas donde " +
+        "los Bots esperan cuando no hay trabajo."
+    )]
+    public GestorPuntosEsperaBots gestorPuntosEspera;
+
+    [Tooltip(
+        "Distancia a la plaza para considerar " +
+        "que el Bot ya está aparcado."
+    )]
+    public float distanciaLlegadaParking = 0.6f;
+
+    [Tooltip(
+        "Cada cuánto comprueba si ha aparecido " +
+        "trabajo mientras está aparcado."
+    )]
+    public float intervaloBusquedaEnEspera = 1f;
+
+    [Tooltip("Si está activo, el Bot aparece directamente en una plaza libre del parking al comenzar.")]
+    public bool aparecerEnParkingAlIniciar = true;
 
 
     // =====================================================
@@ -92,13 +120,27 @@ public class BotRecolector : MonoBehaviour
 
     [Header("Búsqueda de Piedras")]
 
-    public float radioBusqueda = 30f;
-
-    public LayerMask capaPiedras;
+    [Tooltip(
+        "Radio de prioridad. NO limita la búsqueda global."
+    )]
+    public float radioBusqueda = 20f;
 
     public string tagPiedra = "Piedra";
 
     public float tiempoEntreBusquedas = 0.5f;
+
+
+    // =====================================================
+    // PIEDRAS INACCESIBLES
+    // =====================================================
+
+    [Header("Piedras Inaccesibles")]
+
+    public float tiempoIgnorarPiedraInaccesible = 3f;
+
+    public float distanciaMaximaPiedraANavMesh = 1.5f;
+
+    public float intervaloRevalidacionObjetivo = 0.4f;
 
 
     // =====================================================
@@ -111,6 +153,21 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // ANTI-ATASCO
+    // =====================================================
+
+    [Header("Anti-Atasco")]
+
+    public float intervaloComprobacionAtasco = 0.75f;
+
+    public float distanciaMinimaAvance = 0.15f;
+
+    public float tiempoMaximoAtascado = 2f;
+
+    public int maxReintentosRuta = 2;
+
+
+    // =====================================================
     // VARIABLES INTERNAS
     // =====================================================
 
@@ -118,13 +175,30 @@ public class BotRecolector : MonoBehaviour
 
     private Rigidbody piedraObjetivo;
 
-    private float temporizadorBusqueda = 0f;
+    private Transform puntoLlegadaReservado;
 
-    private AgarreLanzamiento agarreJugador;
+    private Transform puntoEsperaReservado;
 
-    // Evita que dos Bots intenten coger la misma piedra.
-    private static readonly HashSet<Rigidbody> piedrasReservadas =
-        new HashSet<Rigidbody>();
+    private float temporizadorBusqueda;
+
+    private float temporizadorBusquedaEnEspera;
+
+    private float temporizadorRevalidacionObjetivo;
+
+
+    private readonly Dictionary<Rigidbody, float>
+        piedrasIgnoradasHasta =
+        new Dictionary<Rigidbody, float>();
+
+
+    // Anti-atasco
+    private Vector3 ultimaPosicionAntiAtasco;
+
+    private float temporizadorAntiAtasco;
+
+    private float tiempoAtascado;
+
+    private int reintentosRuta;
 
 
     // =====================================================
@@ -133,13 +207,69 @@ public class BotRecolector : MonoBehaviour
 
     private void Start()
     {
-        agente = GetComponent<NavMeshAgent>();
+        agente =
+            GetComponent<NavMeshAgent>();
+        configuracionBot =
+    GetComponent<ConfiguracionBot>();
 
-        estadoActual = EstadoBot.Buscando;
+        if (gestorPiedras == null)
+        {
+            gestorPiedras =
+                GestorPiedras.Instancia;
+        }
+
+
+        if (gestorPuntosEntrega == null)
+        {
+            gestorPuntosEntrega =
+                FindFirstObjectByType<GestorPuntosEntregaBots>();
+        }
+
+
+        if (gestorPuntosEspera == null)
+        {
+            gestorPuntosEspera =
+                FindFirstObjectByType<GestorPuntosEsperaBots>();
+        }
+
+
+        if (agujeroDestino == null)
+        {
+            agujeroDestino =
+                FindFirstObjectByType<AgujeroSimple>();
+        }
+
+
+        if (gestorPiedras == null)
+        {
+            Debug.LogError(
+                "BotRecolector: no existe GestorPiedras."
+            );
+        }
+
 
         ResetearAntiAtasco();
+
+
+        // =================================================
+        // APARECER DIRECTAMENTE EN EL PARKING
+        // =================================================
+
+        if (aparecerEnParkingAlIniciar)
+        {
+            if (ColocarEnParkingInicial())
+            {
+                return;
+            }
+        }
+
+
+        // Si no se pudo colocar en el parking,
+        // empezamos de manera normal.
+        estadoActual =
+            EstadoBot.Buscando;
     }
-    
+
 
     // =====================================================
     // UPDATE
@@ -147,171 +277,537 @@ public class BotRecolector : MonoBehaviour
 
     private void Update()
     {
+        // =================================================
+        // HABLANDO / CONFIGURANDO
+        // =================================================
+
+        if (enInteraccion)
+        {
+            MantenerBotDuranteInteraccion();
+            return;
+        }
+
+
         switch (estadoActual)
         {
             case EstadoBot.Buscando:
-
                 ComportamientoBuscar();
-
                 break;
-
 
             case EstadoBot.YendoAPiedra:
-
                 ComportamientoIrAPiedra();
-
                 break;
-
 
             case EstadoBot.LlevandoPiedra:
-
                 ComportamientoLlevarPiedra();
-
                 break;
-
 
             case EstadoBot.EntregandoPiedra:
+                break;
 
-                // Durante el lanzamiento controla todo la Coroutine.
+            case EstadoBot.Esperando:
+                ComportamientoEsperar();
                 break;
         }
+
 
         ComprobarAntiAtasco();
     }
 
 
     // =====================================================
-    // BUSCAR PIEDRA
+    // BUSCAR
     // =====================================================
 
     private void ComportamientoBuscar()
     {
-        temporizadorBusqueda -= Time.deltaTime;
+        temporizadorBusqueda -=
+            Time.deltaTime;
+
 
         if (temporizadorBusqueda > 0f)
             return;
 
-        temporizadorBusqueda = tiempoEntreBusquedas;
+
+        temporizadorBusqueda =
+            tiempoEntreBusquedas;
+
+
+        bool encontroPiedra =
+            BuscarPiedra();
+
+
+        if (!encontroPiedra)
+        {
+            EntrarEnEspera();
+        }
+    }
+
+
+    // =====================================================
+    // BÚSQUEDA GLOBAL
+    // =====================================================
+
+    private bool BuscarPiedra()
+    {
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return false;
+        }
+
+
+        if (gestorPiedras == null)
+        {
+            gestorPiedras =
+                GestorPiedras.Instancia;
+
+
+            if (gestorPiedras == null)
+                return false;
+        }
+
+
+        LimpiarPiedrasIgnoradas();
+
+
+        List<Rigidbody> candidatas =
+            gestorPiedras.ObtenerPiedrasOrdenadas(
+                transform.position,
+                radioBusqueda
+            );
+
+
+        foreach (Rigidbody piedra in candidatas)
+        {
+            if (piedra == null)
+                continue;
+            if (configuracionBot != null &&
+    configuracionBot.PiedraEstaDemasiadoMovida(
+        piedra))
+            {
+                continue;
+            }
+
+            if (!piedra.CompareTag(tagPiedra))
+                continue;
+
+
+            if (piedra.transform.parent != null)
+                continue;
+
+
+            if (EstaPiedraTemporalmenteIgnorada(
+                    piedra))
+            {
+                continue;
+            }
+
+
+            if (!IntentarCalcularRutaPiedra(
+                    piedra,
+                    out NavMeshHit puntoNavMesh,
+                    out NavMeshPath camino))
+            {
+                MarcarPiedraInaccesible(
+                    piedra
+                );
+
+                continue;
+            }
+
+
+            if (!gestorPiedras.IntentarReservarPiedra(
+                    piedra,
+                    this))
+            {
+                continue;
+            }
+
+
+            // Si estábamos en el parking,
+            // dejamos libre nuestra plaza.
+            LiberarPuntoEspera();
+
+
+            piedraObjetivo =
+                piedra;
+
+
+            estadoActual =
+                EstadoBot.YendoAPiedra;
+
+
+            temporizadorRevalidacionObjetivo =
+                intervaloRevalidacionObjetivo;
+
+
+            ResetearAntiAtasco();
+
+
+            agente.SetDestination(
+                puntoNavMesh.position
+            );
+
+
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+    // =====================================================
+    // PARKING
+    // =====================================================
+
+    private void EntrarEnEspera()
+    {
+        estadoActual =
+            EstadoBot.Esperando;
+
+
+        temporizadorBusquedaEnEspera =
+            intervaloBusquedaEnEspera;
+
+
+        ResetearAntiAtasco();
+
+
+        IntentarReservarPuntoEspera();
+    }
+
+
+    private bool IntentarReservarPuntoEspera()
+    {
+        if (puntoEsperaReservado != null)
+            return true;
+
+
+        if (gestorPuntosEspera == null)
+        {
+            return false;
+        }
+
+
+        puntoEsperaReservado =
+            gestorPuntosEspera.ReservarPunto(
+                this
+            );
+
+
+        return puntoEsperaReservado != null;
+    }
+
+
+    private void ComportamientoEsperar()
+    {
+        if (IntentarReservarPuntoEspera())
+        {
+            IrHaciaPuntoEspera();
+        }
+        else
+        {
+            DetenerAgente();
+        }
+
+
+        // =================================================
+        // PARKING ORDENADO MANUALMENTE
+        // =================================================
+
+        if (parkingForzado)
+        {
+            return;
+        }
+
+
+        temporizadorBusquedaEnEspera -=
+            Time.deltaTime;
+
+
+        if (temporizadorBusquedaEnEspera > 0f)
+            return;
+
+
+        temporizadorBusquedaEnEspera =
+            intervaloBusquedaEnEspera;
+
 
         BuscarPiedra();
     }
 
 
-    private void BuscarPiedra()
+    private void IrHaciaPuntoEspera()
     {
-        Collider[] encontrados =
-            Physics.OverlapSphere(
+        if (puntoEsperaReservado == null)
+            return;
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return;
+        }
+
+
+        if (!NavMesh.SamplePosition(
+                puntoEsperaReservado.position,
+                out NavMeshHit hit,
+                1f,
+                NavMesh.AllAreas))
+        {
+            // La plaza dejó de ser válida.
+            LiberarPuntoEspera();
+
+            return;
+        }
+
+
+        float distancia =
+            Vector3.Distance(
                 transform.position,
-                radioBusqueda,
-                capaPiedras
+                hit.position
             );
 
 
-        Rigidbody mejorPiedra = null;
-
-        float mejorDistancia =
-            Mathf.Infinity;
-
-
-        foreach (Collider col in encontrados)
+        if (distancia <=
+            distanciaLlegadaParking)
         {
-            Rigidbody rb =
-                col.attachedRigidbody;
+            // Ya está aparcado.
+            DetenerAgente();
+
+            return;
+        }
 
 
-            if (rb == null)
-                continue;
+        NavMeshPath camino =
+            new NavMeshPath();
 
 
-            if (!rb.CompareTag(tagPiedra))
-                continue;
-            // Si el jugador está sujetando esta piedra,
-            // el Bot ni siquiera la considera candidata.
-            if (agarreJugador != null &&
-                agarreJugador.EstaSosteniendoPiedra(rb))
-            {
-                continue;
-            }
+        bool rutaValida =
+            agente.CalculatePath(
+                hit.position,
+                camino
+            );
 
 
-            // Ya está reservada por otro Bot.
-            if (piedrasReservadas.Contains(rb))
-                continue;
+        if (!rutaValida ||
+            camino.status !=
+            NavMeshPathStatus.PathComplete)
+        {
+            // No podemos llegar a esta plaza.
+            LiberarPuntoEspera();
+
+            return;
+        }
 
 
-            // Está siendo transportada o agarrada.
-            if (rb.transform.parent != null)
-                continue;
+        agente.SetDestination(
+            hit.position
+        );
+    }
 
 
-            float distancia =
-                Vector3.Distance(
-                    transform.position,
-                    rb.position
-                );
+    private void LiberarPuntoEspera()
+    {
+        if (gestorPuntosEspera != null)
+        {
+            gestorPuntosEspera.LiberarPunto(
+                this
+            );
+        }
 
 
-            if (distancia >= mejorDistancia)
-                continue;
+        puntoEsperaReservado =
+            null;
+    }
 
 
-            // Buscamos un punto válido del NavMesh
-            // cerca de la piedra.
-            if (!NavMesh.SamplePosition(
-                    rb.position,
-                    out NavMeshHit puntoNavMesh,
-                    3f,
-                    NavMesh.AllAreas))
-            {
-                continue;
-            }
+    // =====================================================
+    // ACCESIBILIDAD DE PIEDRAS
+    // =====================================================
+
+    private bool IntentarCalcularRutaPiedra(
+        Rigidbody piedra,
+        out NavMeshHit puntoNavMesh,
+        out NavMeshPath camino)
+    {
+        puntoNavMesh =
+            new NavMeshHit();
 
 
-            // Comprobamos que exista un camino completo.
-            NavMeshPath camino =
-                new NavMeshPath();
+        camino =
+            new NavMeshPath();
 
 
+        if (piedra == null)
+            return false;
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return false;
+        }
+
+
+        if (!NavMesh.SamplePosition(
+                piedra.position,
+                out puntoNavMesh,
+                distanciaMaximaPiedraANavMesh,
+                NavMesh.AllAreas))
+        {
+            return false;
+        }
+
+
+        bool pudoCalcular =
             agente.CalculatePath(
                 puntoNavMesh.position,
                 camino
             );
 
 
-            if (camino.status !=
-                NavMeshPathStatus.PathComplete)
-            {
-                continue;
-            }
+        if (!pudoCalcular)
+            return false;
 
 
-            mejorDistancia =
-                distancia;
-
-            mejorPiedra =
-                rb;
+        if (camino.status !=
+            NavMeshPathStatus.PathComplete)
+        {
+            return false;
         }
 
 
-        if (mejorPiedra == null)
+        return true;
+    }
+
+
+    // =====================================================
+    // PIEDRAS INACCESIBLES
+    // =====================================================
+
+    private bool EstaPiedraTemporalmenteIgnorada(
+        Rigidbody piedra)
+    {
+        if (piedra == null)
+            return false;
+
+
+        if (!piedrasIgnoradasHasta.TryGetValue(
+                piedra,
+                out float tiempoFin))
+        {
+            return false;
+        }
+
+
+        if (Time.time >= tiempoFin)
+        {
+            piedrasIgnoradasHasta.Remove(
+                piedra
+            );
+
+            return false;
+        }
+
+
+        return true;
+    }
+
+
+    private void MarcarPiedraInaccesible(
+        Rigidbody piedra)
+    {
+        if (piedra == null)
             return;
 
 
+        piedrasIgnoradasHasta[piedra] =
+            Time.time +
+            tiempoIgnorarPiedraInaccesible;
+
+
+        if (gestorPiedras != null)
+        {
+            gestorPiedras.LiberarReserva(
+                piedra,
+                this
+            );
+        }
+    }
+
+
+    private void LimpiarPiedrasIgnoradas()
+    {
+        if (piedrasIgnoradasHasta.Count == 0)
+            return;
+
+
+        List<Rigidbody> eliminar =
+            new List<Rigidbody>();
+
+
+        foreach (
+            KeyValuePair<Rigidbody, float> dato
+            in piedrasIgnoradasHasta)
+        {
+            if (dato.Key == null ||
+                Time.time >= dato.Value)
+            {
+                eliminar.Add(
+                    dato.Key
+                );
+            }
+        }
+
+
+        foreach (Rigidbody piedra in eliminar)
+        {
+            piedrasIgnoradasHasta.Remove(
+                piedra
+            );
+        }
+    }
+
+
+    private void AbandonarPiedraInaccesible()
+    {
+        Rigidbody piedraProblematica =
+            piedraObjetivo;
+
+
+        if (piedraProblematica != null)
+        {
+            MarcarPiedraInaccesible(
+                piedraProblematica
+            );
+        }
+
+
         piedraObjetivo =
-            mejorPiedra;
+            null;
 
 
-        piedrasReservadas.Add(
-            piedraObjetivo
-        );
+        DetenerAgente();
 
 
         estadoActual =
-            EstadoBot.YendoAPiedra;
+            EstadoBot.Buscando;
+
+
+        // Inmediatamente intenta buscar otra.
+        temporizadorBusqueda =
+            0f;
+
+
+        temporizadorRevalidacionObjetivo =
+            0f;
+
+
         ResetearAntiAtasco();
-
-
-        IrHaciaPiedra();
     }
 
 
@@ -324,25 +820,36 @@ public class BotRecolector : MonoBehaviour
         if (piedraObjetivo == null)
         {
             CancelarObjetivo();
+
             return;
         }
 
-        // =================================================
-        // EL JUGADOR NOS HA QUITADO LA PIEDRA
-        // =================================================
 
-        if (agarreJugador != null &&
-            agarreJugador.EstaSosteniendoPiedra(
-                piedraObjetivo))
+        temporizadorRevalidacionObjetivo -=
+            Time.deltaTime;
+
+
+        if (temporizadorRevalidacionObjetivo <= 0f)
         {
-            // Liberamos esa piedra.
-            // El Bot deja de seguirla inmediatamente.
-            CancelarObjetivo();
-            return;
+            temporizadorRevalidacionObjetivo =
+                intervaloRevalidacionObjetivo;
+
+
+            if (!IntentarCalcularRutaPiedra(
+                    piedraObjetivo,
+                    out NavMeshHit puntoNavMesh,
+                    out NavMeshPath camino))
+            {
+                AbandonarPiedraInaccesible();
+
+                return;
+            }
+
+
+            agente.SetDestination(
+                puntoNavMesh.position
+            );
         }
-
-
-        IrHaciaPiedra();
 
 
         float distancia =
@@ -352,34 +859,16 @@ public class BotRecolector : MonoBehaviour
             );
 
 
-        if (distancia <= distanciaRecogida)
+        if (distancia <=
+            distanciaRecogida)
         {
             RecogerPiedra();
         }
     }
 
 
-    private void IrHaciaPiedra()
-    {
-        if (piedraObjetivo == null)
-            return;
-
-
-        if (NavMesh.SamplePosition(
-                piedraObjetivo.position,
-                out NavMeshHit hit,
-                3f,
-                NavMesh.AllAreas))
-        {
-            agente.SetDestination(
-                hit.position
-            );
-        }
-    }
-
-
     // =====================================================
-    // RECOGER PIEDRA
+    // RECOGER
     // =====================================================
 
     private void RecogerPiedra()
@@ -388,31 +877,35 @@ public class BotRecolector : MonoBehaviour
             puntoAgarre == null)
         {
             CancelarObjetivo();
+
             return;
         }
 
 
-        agente.ResetPath();
+        DetenerAgente();
 
 
-        // IMPORTANTE:
-        // quitamos velocidad antes de hacerla kinematic.
-        piedraObjetivo.linearVelocity =
-            Vector3.zero;
-
-        piedraObjetivo.angularVelocity =
-            Vector3.zero;
+        if (!piedraObjetivo.isKinematic)
+        {
+            piedraObjetivo.linearVelocity =
+                Vector3.zero;
 
 
-        // Mientras el Bot la transporta,
-        // desactivamos la lógica física de la piedra.
+            piedraObjetivo.angularVelocity =
+                Vector3.zero;
+        }
+
+
         DeformacionPiedra deformacion =
-            piedraObjetivo.GetComponent<DeformacionPiedra>();
+            piedraObjetivo.GetComponent<
+                DeformacionPiedra
+            >();
 
 
         if (deformacion != null)
         {
-            deformacion.enabled = false;
+            deformacion.enabled =
+                false;
         }
 
 
@@ -420,19 +913,19 @@ public class BotRecolector : MonoBehaviour
             true;
 
 
-        // Evitamos colisiones con el Bot y el escenario
-        // durante el transporte.
         Collider[] colliders =
-            piedraObjetivo.GetComponentsInChildren<Collider>();
+            piedraObjetivo.GetComponentsInChildren<
+                Collider
+            >();
 
 
         foreach (Collider col in colliders)
         {
-            col.enabled = false;
+            col.enabled =
+                false;
         }
 
 
-        // Pegamos la piedra al punto de agarre.
         piedraObjetivo.transform.SetParent(
             puntoAgarre,
             false
@@ -449,12 +942,14 @@ public class BotRecolector : MonoBehaviour
 
         estadoActual =
             EstadoBot.LlevandoPiedra;
+
+
         ResetearAntiAtasco();
     }
 
 
     // =====================================================
-    // LLEVAR PIEDRA AL AGUJERO
+    // LLEVAR AL AGUJERO
     // =====================================================
 
     private void ComportamientoLlevarPiedra()
@@ -462,6 +957,7 @@ public class BotRecolector : MonoBehaviour
         if (piedraObjetivo == null)
         {
             CancelarObjetivo();
+
             return;
         }
 
@@ -469,58 +965,41 @@ public class BotRecolector : MonoBehaviour
         if (puntoAgarre == null)
         {
             CancelarObjetivo();
-            return;
-        }
-
-
-        if (puntoLlegadaBot == null)
-        {
-            Debug.LogWarning(
-                "BotRecolector: falta PuntoLlegadaBot."
-            );
 
             return;
         }
 
 
-        // Seguridad extra:
-        // mantenemos la piedra exactamente en el agarre.
         piedraObjetivo.transform.position =
             puntoAgarre.position;
+
 
         piedraObjetivo.transform.rotation =
             puntoAgarre.rotation;
 
 
-        // Buscamos el punto navegable cercano
-        // a donde debe colocarse el Bot.
-        if (NavMesh.SamplePosition(
-                puntoLlegadaBot.position,
-                out NavMeshHit hit,
-                3f,
-                NavMesh.AllAreas))
+        if (!IntentarReservarPuntoEntrega())
         {
-            agente.SetDestination(
-                hit.position
-            );
+            DetenerAgente();
+
+            return;
         }
 
 
-        float distancia =
-            Vector3.Distance(
-                transform.position,
-                puntoLlegadaBot.position
-            );
+        if (!IrHaciaPuntoEntrega())
+            return;
 
 
-        if (distancia <= distanciaEntrega)
+        if (HaLlegadoAlPuntoEntrega())
         {
             estadoActual =
                 EstadoBot.EntregandoPiedra;
+
+
+            DetenerAgente();
+
+
             ResetearAntiAtasco();
-
-
-            agente.ResetPath();
 
 
             StartCoroutine(
@@ -531,7 +1010,120 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
-    // LANZAMIENTO GARANTIZADO AL AGUJERO
+    // PUNTOS DE ENTREGA
+    // =====================================================
+
+    private bool IntentarReservarPuntoEntrega()
+    {
+        if (puntoLlegadaReservado != null)
+            return true;
+
+
+        if (gestorPuntosEntrega == null)
+            return false;
+
+
+        puntoLlegadaReservado =
+            gestorPuntosEntrega.ReservarPunto(
+                this
+            );
+
+
+        return puntoLlegadaReservado != null;
+    }
+
+
+    private bool IrHaciaPuntoEntrega()
+    {
+        if (puntoLlegadaReservado == null)
+            return false;
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return false;
+        }
+
+
+        if (!NavMesh.SamplePosition(
+                puntoLlegadaReservado.position,
+                out NavMeshHit hit,
+                3f,
+                NavMesh.AllAreas))
+        {
+            return false;
+        }
+
+
+        agente.SetDestination(
+            hit.position
+        );
+
+
+        return true;
+    }
+
+
+    private bool HaLlegadoAlPuntoEntrega()
+    {
+        if (puntoLlegadaReservado == null)
+            return false;
+
+
+        float distanciaDirecta =
+            Vector3.Distance(
+                transform.position,
+                puntoLlegadaReservado.position
+            );
+
+
+        if (distanciaDirecta <=
+            distanciaEntrega)
+        {
+            return true;
+        }
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh ||
+            agente.pathPending ||
+            !agente.hasPath)
+        {
+            return false;
+        }
+
+
+        float distanciaAceptable =
+            Mathf.Max(
+                distanciaEntrega,
+                agente.stoppingDistance +
+                0.05f
+            );
+
+
+        return agente.remainingDistance <=
+               distanciaAceptable;
+    }
+
+
+    private void LiberarPuntoEntrega()
+    {
+        if (gestorPuntosEntrega != null)
+        {
+            gestorPuntosEntrega.LiberarPunto(
+                this
+            );
+        }
+
+
+        puntoLlegadaReservado =
+            null;
+    }
+
+
+    // =====================================================
+    // LANZAMIENTO GARANTIZADO
     // =====================================================
 
     private IEnumerator LanzarPiedraAlAgujero()
@@ -539,28 +1131,16 @@ public class BotRecolector : MonoBehaviour
         if (piedraObjetivo == null)
         {
             CancelarObjetivo();
+
             yield break;
         }
 
 
-        if (puntoEntradaAgujero == null)
+        if (puntoEntradaAgujero == null ||
+            agujeroDestino == null)
         {
-            Debug.LogWarning(
-                "BotRecolector: falta PuntoEntradaAgujero."
-            );
-
             CancelarObjetivo();
-            yield break;
-        }
 
-
-        if (agujeroDestino == null)
-        {
-            Debug.LogWarning(
-                "BotRecolector: falta AgujeroDestino."
-            );
-
-            CancelarObjetivo();
             yield break;
         }
 
@@ -569,25 +1149,26 @@ public class BotRecolector : MonoBehaviour
             piedraObjetivo;
 
 
-        // El Bot deja de sujetarla.
         piedraEntregada.transform.SetParent(
-            null
+            null,
+            true
         );
 
 
-        // Sigue siendo kinematic.
-        // El vuelo es completamente controlado.
         piedraEntregada.isKinematic =
             true;
 
 
         Collider[] colliders =
-            piedraEntregada.GetComponentsInChildren<Collider>();
+            piedraEntregada.GetComponentsInChildren<
+                Collider
+            >();
 
 
         foreach (Collider col in colliders)
         {
-            col.enabled = false;
+            col.enabled =
+                false;
         }
 
 
@@ -603,14 +1184,26 @@ public class BotRecolector : MonoBehaviour
             0f;
 
 
-        // =============================================
-        // ANIMACIÓN DEL LANZAMIENTO
-        // =============================================
-
-        while (tiempo < duracionLanzamiento)
+        while (tiempo <
+               duracionLanzamiento)
+        
         {
+            // Si abrimos el menú justo durante la entrega,
+            // congelamos también la animación.
+            if (enInteraccion)
+            {
+                yield return null;
+                continue;
+            }
             if (piedraEntregada == null)
             {
+                LiberarPuntoEntrega();
+
+
+                estadoActual =
+                    EstadoBot.Buscando;
+
+
                 yield break;
             }
 
@@ -629,7 +1222,6 @@ public class BotRecolector : MonoBehaviour
                 );
 
 
-            // Movimiento desde el Bot hasta el agujero.
             Vector3 posicion =
                 Vector3.Lerp(
                     posicionInicial,
@@ -638,12 +1230,7 @@ public class BotRecolector : MonoBehaviour
                 );
 
 
-            // Arco:
-            //
-            // 0 al empezar
-            // máximo en mitad
-            // 0 al terminar
-            float alturaArco =
+            float altura =
                 Mathf.Sin(
                     t * Mathf.PI
                 )
@@ -652,14 +1239,13 @@ public class BotRecolector : MonoBehaviour
 
 
             posicion.y +=
-                alturaArco;
+                altura;
 
 
             piedraEntregada.position =
                 posicion;
 
 
-            // Giro únicamente visual.
             piedraEntregada.transform.Rotate(
                 Vector3.one *
                 velocidadGiroLanzamiento *
@@ -674,63 +1260,83 @@ public class BotRecolector : MonoBehaviour
 
         if (piedraEntregada == null)
         {
+            LiberarPuntoEntrega();
+
+
+            estadoActual =
+                EstadoBot.Buscando;
+
+
             yield break;
         }
 
 
-        // Garantizamos la posición final.
         piedraEntregada.position =
             posicionFinal;
 
 
-        // Ya no está reservada.
-        piedrasReservadas.Remove(
-            piedraEntregada
-        );
+        if (gestorPiedras != null)
+        {
+            gestorPiedras.DesregistrarPiedra(
+                piedraEntregada
+            );
+        }
 
 
-        // Quitamos nuestra referencia ANTES
-        // de que AgujeroSimple destruya la piedra.
         piedraObjetivo =
             null;
 
-
-        // =================================================
-        // AQUÍ ESTÁ LA CLAVE:
-        //
-        // NO confiamos en la física.
-        // Llamamos directamente al mismo método que utiliza
-        // el agujero para procesar una piedra.
-        //
-        // Esto calcula pureza, recompensa y genera monedas.
-        // =================================================
 
         agujeroDestino.RecibirPiedra(
             piedraEntregada.gameObject
         );
 
 
-        // Volvemos al trabajo.
+        LiberarPuntoEntrega();
+
+
         estadoActual =
             EstadoBot.Buscando;
 
 
+        // Al terminar una entrega buscamos prácticamente
+        // inmediatamente si queda trabajo.
         temporizadorBusqueda =
-            tiempoEntreBusquedas;
+            0f;
+
+
+        ResetearAntiAtasco();
     }
 
 
     // =====================================================
-    // CANCELAR OBJETIVO
+    // CANCELAR
     // =====================================================
 
     private void CancelarObjetivo()
     {
         if (piedraObjetivo != null)
         {
-            piedrasReservadas.Remove(
-                piedraObjetivo
-            );
+            if (gestorPiedras != null)
+            {
+                gestorPiedras.LiberarReserva(
+                    piedraObjetivo,
+                    this
+                );
+            }
+
+
+            if (estadoActual ==
+                    EstadoBot.LlevandoPiedra ||
+                estadoActual ==
+                    EstadoBot.EntregandoPiedra ||
+                piedraObjetivo.transform.parent ==
+                    puntoAgarre)
+            {
+                RestaurarPiedraFisica(
+                    piedraObjetivo
+                );
+            }
         }
 
 
@@ -738,11 +1344,10 @@ public class BotRecolector : MonoBehaviour
             null;
 
 
-        if (agente != null &&
-            agente.isOnNavMesh)
-        {
-            agente.ResetPath();
-        }
+        LiberarPuntoEntrega();
+
+
+        DetenerAgente();
 
 
         estadoActual =
@@ -750,23 +1355,86 @@ public class BotRecolector : MonoBehaviour
 
 
         temporizadorBusqueda =
-            tiempoEntreBusquedas;
+            0f;
+
+
+        ResetearAntiAtasco();
     }
 
 
     // =====================================================
-    // SEGURIDAD
+    // RESTAURAR PIEDRA
     // =====================================================
 
-    private void OnDestroy()
+    private void RestaurarPiedraFisica(
+        Rigidbody piedra)
     {
-        if (piedraObjetivo != null)
+        if (piedra == null)
+            return;
+
+
+        piedra.transform.SetParent(
+            null,
+            true
+        );
+
+
+        Collider[] colliders =
+            piedra.GetComponentsInChildren<
+                Collider
+            >();
+
+
+        foreach (Collider col in colliders)
         {
-            piedrasReservadas.Remove(
-                piedraObjetivo
-            );
+            col.enabled =
+                true;
+        }
+
+
+        piedra.isKinematic =
+            false;
+
+
+        piedra.linearVelocity =
+            Vector3.zero;
+
+
+        piedra.angularVelocity =
+            Vector3.zero;
+
+
+        DeformacionPiedra deformacion =
+            piedra.GetComponent<
+                DeformacionPiedra
+            >();
+
+
+        if (deformacion != null)
+        {
+            deformacion.enabled =
+                true;
+
+
+            deformacion.Despertar();
         }
     }
+
+
+    // =====================================================
+    // DETENER
+    // =====================================================
+
+    private void DetenerAgente()
+    {
+        if (agente != null &&
+            agente.isOnNavMesh &&
+            agente.hasPath)
+        {
+            agente.ResetPath();
+        }
+    }
+
 
     // =====================================================
     // ANTI-ATASCO
@@ -777,11 +1445,14 @@ public class BotRecolector : MonoBehaviour
         ultimaPosicionAntiAtasco =
             transform.position;
 
+
         temporizadorAntiAtasco =
             0f;
 
+
         tiempoAtascado =
             0f;
+
 
         reintentosRuta =
             0;
@@ -790,14 +1461,26 @@ public class BotRecolector : MonoBehaviour
 
     private void ComprobarAntiAtasco()
     {
-        // Solo nos importa mientras el Bot debería
-        // estar desplazándose.
-        if (estadoActual != EstadoBot.YendoAPiedra &&
-            estadoActual != EstadoBot.LlevandoPiedra)
+        // Esperando NO utiliza este antiatasco.
+        //
+        // Mientras está aparcando controlamos su ruta
+        // directamente desde ComportamientoEsperar().
+        if (estadoActual !=
+                EstadoBot.YendoAPiedra &&
+            estadoActual !=
+                EstadoBot.LlevandoPiedra)
         {
-            temporizadorAntiAtasco = 0f;
-            tiempoAtascado = 0f;
-            ultimaPosicionAntiAtasco = transform.position;
+            temporizadorAntiAtasco =
+                0f;
+
+
+            tiempoAtascado =
+                0f;
+
+
+            ultimaPosicionAntiAtasco =
+                transform.position;
+
 
             return;
         }
@@ -810,12 +1493,8 @@ public class BotRecolector : MonoBehaviour
         }
 
 
-        // Si Unity todavía está calculando la ruta,
-        // no consideramos que esté atascado.
         if (agente.pathPending)
-        {
             return;
-        }
 
 
         temporizadorAntiAtasco +=
@@ -836,26 +1515,23 @@ public class BotRecolector : MonoBehaviour
             );
 
 
-        // =================================================
-        // HA AVANZADO CORRECTAMENTE
-        // =================================================
-
-        if (distanciaMovida >= distanciaMinimaAvance)
+        if (distanciaMovida >=
+            distanciaMinimaAvance)
         {
             tiempoAtascado =
                 0f;
+
 
             reintentosRuta =
                 0;
         }
         else
         {
-            // Solo contamos como atasco si todavía
-            // debería tener recorrido por delante.
             bool deberiaMoverse =
                 agente.hasPath &&
                 agente.remainingDistance >
-                agente.stoppingDistance + 0.2f;
+                agente.stoppingDistance +
+                0.2f;
 
 
             if (deberiaMoverse)
@@ -879,12 +1555,10 @@ public class BotRecolector : MonoBehaviour
             0f;
 
 
-        // =================================================
-        // RUTA INVÁLIDA O DESACTUALIZADA
-        // =================================================
-
-        if (agente.isPathStale ||
-            agente.pathStatus != NavMeshPathStatus.PathComplete)
+        if (agente.hasPath &&
+            (agente.isPathStale ||
+             agente.pathStatus !=
+             NavMeshPathStatus.PathComplete))
         {
             ResolverAtasco();
 
@@ -892,11 +1566,8 @@ public class BotRecolector : MonoBehaviour
         }
 
 
-        // =================================================
-        // DEMASIADO TIEMPO SIN MOVERSE
-        // =================================================
-
-        if (tiempoAtascado >= tiempoMaximoAtascado)
+        if (tiempoAtascado >=
+            tiempoMaximoAtascado)
         {
             ResolverAtasco();
         }
@@ -908,58 +1579,37 @@ public class BotRecolector : MonoBehaviour
         tiempoAtascado =
             0f;
 
+
         reintentosRuta++;
 
 
-        // =================================================
-        // PRIMEROS INTENTOS:
-        // simplemente recalculamos el camino.
-        // =================================================
-
-        if (reintentosRuta <= maxReintentosRuta)
+        if (reintentosRuta <=
+            maxReintentosRuta)
         {
-            Debug.Log(
-                "Bot: recalculando ruta. Intento "
-                + reintentosRuta
-            );
-
-
             RecalcularRutaActual();
 
             return;
         }
 
 
-        // =================================================
-        // SIGUE ATASCADO DESPUÉS DE VARIOS INTENTOS
-        // =================================================
-
-        if (estadoActual == EstadoBot.YendoAPiedra)
+        if (estadoActual ==
+            EstadoBot.YendoAPiedra)
         {
-            Debug.Log(
-                "Bot: no puede llegar a la piedra. Busca otra."
-            );
-
-
-            CancelarObjetivo();
-
-            ResetearAntiAtasco();
+            AbandonarPiedraInaccesible();
 
             return;
         }
 
 
-        if (estadoActual == EstadoBot.LlevandoPiedra)
+        if (estadoActual ==
+            EstadoBot.LlevandoPiedra)
         {
-            Debug.Log(
-                "Bot: atascado transportando. Intentando recolocarse."
-            );
-
-
             RecolocarBotEnNavMesh();
+
 
             reintentosRuta =
                 0;
+
 
             tiempoAtascado =
                 0f;
@@ -979,49 +1629,53 @@ public class BotRecolector : MonoBehaviour
         }
 
 
-        agente.ResetPath();
+        DetenerAgente();
 
 
-        // =================================================
-        // VAMOS A POR UNA PIEDRA
-        // =================================================
-
-        if (estadoActual == EstadoBot.YendoAPiedra)
+        if (estadoActual ==
+            EstadoBot.YendoAPiedra)
         {
             if (piedraObjetivo == null)
             {
                 CancelarObjetivo();
+
                 return;
             }
 
 
-            if (NavMesh.SamplePosition(
-                    piedraObjetivo.position,
-                    out NavMeshHit hitPiedra,
-                    3f,
-                    NavMesh.AllAreas))
+            if (!IntentarCalcularRutaPiedra(
+                    piedraObjetivo,
+                    out NavMeshHit puntoNavMesh,
+                    out NavMeshPath camino))
             {
-                agente.SetDestination(
-                    hitPiedra.position
-                );
+                AbandonarPiedraInaccesible();
+
+                return;
             }
+
+
+            agente.SetDestination(
+                puntoNavMesh.position
+            );
+
 
             return;
         }
 
 
-        // =================================================
-        // LLEVAMOS UNA PIEDRA AL AGUJERO
-        // =================================================
-
-        if (estadoActual == EstadoBot.LlevandoPiedra)
+        if (estadoActual ==
+            EstadoBot.LlevandoPiedra)
         {
-            if (puntoLlegadaBot == null)
+            if (!IntentarReservarPuntoEntrega())
+                return;
+
+
+            if (puntoLlegadaReservado == null)
                 return;
 
 
             if (NavMesh.SamplePosition(
-                    puntoLlegadaBot.position,
+                    puntoLlegadaReservado.position,
                     out NavMeshHit hitDestino,
                     3f,
                     NavMesh.AllAreas))
@@ -1040,7 +1694,6 @@ public class BotRecolector : MonoBehaviour
             return;
 
 
-        // Buscamos una posición válida muy cercana al Bot.
         if (NavMesh.SamplePosition(
                 transform.position,
                 out NavMeshHit hit,
@@ -1054,11 +1707,119 @@ public class BotRecolector : MonoBehaviour
     }
 
     // =====================================================
-    // DEBUG
+    // CONFIGURACIÓN DESDE MENÚ
+    // =====================================================
+
+    public void ConfigurarModoTrabajar()
+    {
+        pausaForzada =
+            false;
+
+
+        parkingForzado =
+            false;
+
+
+        LiberarPuntoEspera();
+
+
+        estadoActual =
+            EstadoBot.Buscando;
+
+
+        temporizadorBusqueda =
+            0f;
+
+
+        ResetearAntiAtasco();
+    }
+
+
+    public void ConfigurarModoPausa()
+    {
+        pausaForzada =
+            true;
+
+
+        parkingForzado =
+            false;
+
+
+        DetenerAgente();
+    }
+
+
+    public void ConfigurarModoParking()
+    {
+        pausaForzada =
+            false;
+
+
+        parkingForzado =
+            true;
+
+
+        // Si iba simplemente buscando una piedra,
+        // la dejamos libre.
+        if (estadoActual ==
+            EstadoBot.YendoAPiedra)
+        {
+            CancelarObjetivo();
+        }
+
+
+        estadoActual =
+            EstadoBot.Esperando;
+
+
+        temporizadorBusquedaEnEspera =
+            intervaloBusquedaEnEspera;
+
+
+        IntentarReservarPuntoEspera();
+
+
+        ResetearAntiAtasco();
+    }
+
+
+    // =====================================================
+    // DESTROY
+    // =====================================================
+
+    private void OnDestroy()
+    {
+        if (gestorPiedras != null)
+        {
+            gestorPiedras.LiberarReservasDeBot(
+                this
+            );
+        }
+
+
+        if (piedraObjetivo != null &&
+            piedraObjetivo.transform.parent ==
+            puntoAgarre)
+        {
+            RestaurarPiedraFisica(
+                piedraObjetivo
+            );
+        }
+
+
+        LiberarPuntoEntrega();
+
+        LiberarPuntoEspera();
+    }
+
+
+    // =====================================================
+    // GIZMOS DEL BOT
     // =====================================================
 
     private void OnDrawGizmosSelected()
     {
+        // Radio preferente de piedras.
         Gizmos.color =
             Color.cyan;
 
@@ -1069,29 +1830,302 @@ public class BotRecolector : MonoBehaviour
         );
 
 
-        // Marcamos el punto donde espera el Bot.
-        if (puntoLlegadaBot != null)
+        // Punto de entrega actual.
+        if (puntoLlegadaReservado != null)
         {
             Gizmos.color =
                 Color.green;
 
+
             Gizmos.DrawWireSphere(
-                puntoLlegadaBot.position,
-                0.4f
+                puntoLlegadaReservado.position,
+                0.5f
+            );
+
+
+            Gizmos.DrawLine(
+                transform.position,
+                puntoLlegadaReservado.position
             );
         }
 
 
-        // Marcamos el objetivo exacto del lanzamiento.
+        // Plaza del parking actual.
+        if (puntoEsperaReservado != null)
+        {
+            Gizmos.color =
+                Color.magenta;
+
+
+            Gizmos.DrawWireSphere(
+                puntoEsperaReservado.position,
+                0.55f
+            );
+
+
+            Gizmos.DrawLine(
+                transform.position,
+                puntoEsperaReservado.position
+            );
+        }
+
+
+        // Centro del agujero.
         if (puntoEntradaAgujero != null)
         {
             Gizmos.color =
                 Color.yellow;
 
+
             Gizmos.DrawWireSphere(
                 puntoEntradaAgujero.position,
                 0.35f
             );
+        }
+    }
+
+    private bool ColocarEnParkingInicial()
+    {
+        if (gestorPuntosEspera == null)
+        {
+            Debug.LogWarning(
+                name +
+                ": no existe GestorPuntosEsperaBots."
+            );
+
+            return false;
+        }
+
+
+        // =================================================
+        // PEDIMOS UNA PLAZA EXCLUSIVA
+        // =================================================
+
+        puntoEsperaReservado =
+            gestorPuntosEspera.ReservarPunto(
+                this
+            );
+
+
+        if (puntoEsperaReservado == null)
+        {
+            Debug.LogWarning(
+                name +
+                ": no hay plazas libres en el parking."
+            );
+
+            return false;
+        }
+
+
+        // =================================================
+        // LOCALIZAR NAVMESH
+        // =================================================
+
+        if (!NavMesh.SamplePosition(
+                puntoEsperaReservado.position,
+                out NavMeshHit hit,
+                1f,
+                NavMesh.AllAreas))
+        {
+            Debug.LogWarning(
+                name +
+                ": la plaza " +
+                puntoEsperaReservado.name +
+                " no está correctamente sobre NavMesh."
+            );
+
+
+            LiberarPuntoEspera();
+
+
+            return false;
+        }
+
+
+        // =================================================
+        // TELETRANSPORTAR BOT
+        // =================================================
+
+        if (agente != null &&
+            agente.isOnNavMesh)
+        {
+            agente.ResetPath();
+
+
+            agente.Warp(
+                hit.position
+            );
+        }
+        else
+        {
+            transform.position =
+                hit.position;
+        }
+
+
+        // La orientación de la plaza controla
+        // hacia dónde mira el Bot.
+        transform.rotation =
+            puntoEsperaReservado.rotation;
+
+
+        // =================================================
+        // COMENZAR APARCADO
+        // =================================================
+
+        estadoActual =
+            EstadoBot.Esperando;
+
+
+        temporizadorBusquedaEnEspera =
+            intervaloBusquedaEnEspera;
+
+
+        ResetearAntiAtasco();
+
+
+        Debug.Log(
+            name +
+            " comienza en parking: " +
+            puntoEsperaReservado.name
+        );
+
+
+        return true;
+    }
+
+    // =====================================================
+    // INTERACCIÓN CON JUGADOR
+    // =====================================================
+
+    public void IniciarInteraccion(Transform jugador)
+    {
+        enInteraccion = true;
+
+        jugadorInteraccion = jugador;
+
+
+        // Paramos el NavMeshAgent SIN borrar la ruta.
+        if (agente != null &&
+            agente.isOnNavMesh)
+        {
+            agente.isStopped = true;
+        }
+
+
+        // Si está llevando una piedra,
+        // permanece pegada a sus manos.
+        MantenerPiedraEnAgarre();
+    }
+
+
+    public void FinalizarInteraccion()
+    {
+        enInteraccion = false;
+
+        jugadorInteraccion = null;
+
+
+        if (agente != null &&
+            agente.isOnNavMesh)
+        {
+            agente.isStopped = false;
+        }
+
+
+        // Recuperamos su tarea actual.
+        ReanudarDespuesDeInteraccion();
+    }
+
+
+    private void MantenerBotDuranteInteraccion()
+    {
+        // Si llevaba una piedra, no dejamos que se mueva
+        // ni se caiga mientras hablamos con el Bot.
+        MantenerPiedraEnAgarre();
+
+
+        // Girar hacia el jugador.
+        if (jugadorInteraccion == null)
+            return;
+
+
+        Vector3 direccion =
+            jugadorInteraccion.position -
+            transform.position;
+
+
+        // Solo rotación horizontal.
+        direccion.y = 0f;
+
+
+        if (direccion.sqrMagnitude < 0.001f)
+            return;
+
+
+        Quaternion rotacionObjetivo =
+            Quaternion.LookRotation(
+                direccion.normalized
+            );
+
+
+        transform.rotation =
+            Quaternion.Slerp(
+                transform.rotation,
+                rotacionObjetivo,
+                Time.deltaTime *
+                velocidadGiroInteraccion
+            );
+    }
+
+
+    private void MantenerPiedraEnAgarre()
+    {
+        if (piedraObjetivo == null ||
+            puntoAgarre == null)
+        {
+            return;
+        }
+
+
+        if (estadoActual != EstadoBot.LlevandoPiedra)
+            return;
+
+
+        piedraObjetivo.transform.position =
+            puntoAgarre.position;
+
+
+        piedraObjetivo.transform.rotation =
+            puntoAgarre.rotation;
+    }
+
+
+    private void ReanudarDespuesDeInteraccion()
+    {
+        // Si iba hacia una piedra, recalculamos.
+        if (estadoActual == EstadoBot.YendoAPiedra)
+        {
+            RecalcularRutaActual();
+            return;
+        }
+
+
+        // Si llevaba una piedra, vuelve hacia
+        // su plaza de entrega.
+        if (estadoActual == EstadoBot.LlevandoPiedra)
+        {
+            RecalcularRutaActual();
+            return;
+        }
+
+
+        // Si estaba esperando, seguirá gestionando
+        // normalmente su plaza de parking.
+        if (estadoActual == EstadoBot.Esperando)
+        {
+            return;
         }
     }
 }
