@@ -376,6 +376,9 @@ public class BotRecolector : MonoBehaviour
                 transform.position,
                 radioBusqueda
             );
+        OrdenarPiedrasSegunPrioridad(
+    candidatas
+);
 
 
         foreach (Rigidbody piedra in candidatas)
@@ -2126,6 +2129,283 @@ public class BotRecolector : MonoBehaviour
         if (estadoActual == EstadoBot.Esperando)
         {
             return;
+        }
+    }
+
+    // =====================================================
+    // PRIORIDAD DE RECOGIDA
+    // =====================================================
+
+    private void OrdenarPiedrasSegunPrioridad(
+        List<Rigidbody> piedras)
+    {
+        if (piedras == null ||
+            piedras.Count <= 1)
+        {
+            return;
+        }
+
+
+        if (configuracionBot == null)
+            return;
+
+
+        float radio =
+            configuracionBot.radioPrioridad;
+
+
+        float radioCuadrado =
+            radio * radio;
+
+
+        // =================================================
+        // ALEATORIA
+        // =================================================
+
+        if (configuracionBot.prioridadRecogida ==
+            ConfiguracionBot.PrioridadRecogida.Aleatoria)
+        {
+            OrdenarAleatoriamenteRespetandoRadio(
+                piedras,
+                radioCuadrado
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // CALCULAR PUREZA UNA SOLA VEZ
+        // =================================================
+
+        Dictionary<Rigidbody, float> purezas =
+            null;
+
+
+        if (configuracionBot.prioridadRecogida ==
+                ConfiguracionBot.PrioridadRecogida.MayorPureza ||
+            configuracionBot.prioridadRecogida ==
+                ConfiguracionBot.PrioridadRecogida.MenorPureza)
+        {
+            purezas =
+                new Dictionary<Rigidbody, float>();
+
+
+            foreach (Rigidbody piedra in piedras)
+            {
+                if (piedra == null)
+                    continue;
+
+
+                purezas[piedra] =
+                    ObtenerPurezaPiedra(
+                        piedra
+                    );
+            }
+        }
+
+
+        // =================================================
+        // ORDENAR
+        // =================================================
+
+        piedras.Sort(
+            (a, b) =>
+            {
+                if (a == null && b == null)
+                    return 0;
+
+                if (a == null)
+                    return 1;
+
+                if (b == null)
+                    return -1;
+
+
+                float distanciaA =
+                    (a.position -
+                     transform.position).sqrMagnitude;
+
+
+                float distanciaB =
+                    (b.position -
+                     transform.position).sqrMagnitude;
+
+
+                bool aEnRadio =
+                    distanciaA <= radioCuadrado;
+
+
+                bool bEnRadio =
+                    distanciaB <= radioCuadrado;
+
+
+                // =========================================
+                // PRIMERO LAS PIEDRAS DEL RADIO PREFERENTE
+                // =========================================
+
+                if (aEnRadio != bEnRadio)
+                {
+                    return aEnRadio
+                        ? -1
+                        : 1;
+                }
+
+
+                // =========================================
+                // CRITERIO ELEGIDO
+                // =========================================
+
+                switch (
+                    configuracionBot.prioridadRecogida)
+                {
+                    case ConfiguracionBot
+                        .PrioridadRecogida
+                        .MasCercana:
+
+                        return distanciaA.CompareTo(
+                            distanciaB
+                        );
+
+
+                    case ConfiguracionBot
+                        .PrioridadRecogida
+                        .MayorPureza:
+
+                        return purezas[b].CompareTo(
+                            purezas[a]
+                        );
+
+
+                    case ConfiguracionBot
+                        .PrioridadRecogida
+                        .MenorPureza:
+
+                        return purezas[a].CompareTo(
+                            purezas[b]
+                        );
+                }
+
+
+                return 0;
+            }
+        );
+
+    }
+
+    private float ObtenerPurezaPiedra(
+    Rigidbody piedra)
+    {
+        if (piedra == null)
+            return 0f;
+
+
+        DeformacionPiedra deformacion =
+            piedra.GetComponent<DeformacionPiedra>();
+
+
+        if (deformacion == null)
+        {
+            deformacion =
+                piedra.GetComponentInParent<
+                    DeformacionPiedra
+                >();
+        }
+
+
+        if (deformacion == null)
+            return 0f;
+
+
+        return deformacion
+            .ObtenerPorcentajeDesgasteHaciaEsfera();
+    }
+
+
+    private void OrdenarAleatoriamenteRespetandoRadio(
+    List<Rigidbody> piedras,
+    float radioCuadrado)
+    {
+        List<Rigidbody> cercanas =
+            new List<Rigidbody>();
+
+
+        List<Rigidbody> lejanas =
+            new List<Rigidbody>();
+
+
+        foreach (Rigidbody piedra in piedras)
+        {
+            if (piedra == null)
+                continue;
+
+
+            float distancia =
+                (piedra.position -
+                 transform.position).sqrMagnitude;
+
+
+            if (distancia <= radioCuadrado)
+            {
+                cercanas.Add(
+                    piedra
+                );
+            }
+            else
+            {
+                lejanas.Add(
+                    piedra
+                );
+            }
+        }
+
+
+        MezclarLista(
+            cercanas
+        );
+
+
+        MezclarLista(
+            lejanas
+        );
+
+
+        piedras.Clear();
+
+        piedras.AddRange(
+            cercanas
+        );
+
+        piedras.AddRange(
+            lejanas
+        );
+    }
+
+
+    private void MezclarLista(
+        List<Rigidbody> lista)
+    {
+        for (int i = lista.Count - 1;
+             i > 0;
+             i--)
+        {
+            int j =
+                Random.Range(
+                    0,
+                    i + 1
+                );
+
+
+            Rigidbody temporal =
+                lista[i];
+
+
+            lista[i] =
+                lista[j];
+
+
+            lista[j] =
+                temporal;
         }
     }
 }

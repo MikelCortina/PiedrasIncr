@@ -10,6 +10,13 @@ public class ConfiguracionBot : MonoBehaviour
         Parking
     }
 
+    public enum PrioridadRecogida
+    {
+        MasCercana,
+        MayorPureza,
+        MenorPureza,
+        Aleatoria
+    }
 
     [Header("Identidad")]
     public string nombreBot = "BOT-01";
@@ -28,6 +35,9 @@ public class ConfiguracionBot : MonoBehaviour
     [Range(5f, 60f)]
     public float radioPrioridad = 20f;
 
+    [Header("Prioridad de recogida")]
+    public PrioridadRecogida prioridadRecogida =
+    PrioridadRecogida.MasCercana;
 
     [Header("Piedras en movimiento")]
     public bool ignorarPiedrasEnMovimiento = true;
@@ -183,5 +193,12 @@ public class ConfiguracionBot : MonoBehaviour
         {
             bot.ConfigurarModoParking();
         }
+    }
+
+    public void SetPrioridadRecogida(
+    PrioridadRecogida nuevaPrioridad)
+    {
+        prioridadRecogida =
+            nuevaPrioridad;
     }
 }

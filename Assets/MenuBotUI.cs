@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class MenuBotUI : MonoBehaviour
 {
@@ -49,6 +50,9 @@ public class MenuBotUI : MonoBehaviour
     public Slider sliderRadio;
     public TMP_Text textoRadio;
 
+    [Header("Control del jugador")]
+    [Tooltip("Arrastra aquí el script del jugador que controla la cámara/mirada con el ratón.")]
+    public MonoBehaviour controladorMiradaJugador;
 
     // =====================================================
     // MOVIMIENTO DE PIEDRAS
@@ -60,6 +64,8 @@ public class MenuBotUI : MonoBehaviour
     [Tooltip("Texto que aparece al lado del Toggle.")]
     public TMP_Text textoToggleIgnorar;
 
+    [Header("Prioridad de recogida")]
+    public TMP_Dropdown dropdownPrioridad;
 
     // =====================================================
     // VARIABLES INTERNAS
@@ -186,6 +192,31 @@ public class MenuBotUI : MonoBehaviour
                 false
             );
         }
+
+        // =============================================
+        // PRIORIDAD DE RECOGIDA
+        // =============================================
+
+        if (dropdownPrioridad != null)
+        {
+            dropdownPrioridad.ClearOptions();
+
+
+            dropdownPrioridad.AddOptions(
+                new List<string>
+                {
+            "Más cercana",
+            "Mayor pureza",
+            "Menor pureza",
+            "Aleatoria"
+                }
+            );
+
+
+            dropdownPrioridad.onValueChanged.AddListener(
+                CambiarPrioridad
+            );
+        }
     }
 
 
@@ -215,29 +246,29 @@ public class MenuBotUI : MonoBehaviour
     // ABRIR MENÚ
     // =====================================================
 
-    public void AbrirMenu(
-        ConfiguracionBot bot)
+    public void AbrirMenu(ConfiguracionBot bot)
     {
         if (bot == null)
             return;
 
 
-        botActual =
-            bot;
+        // =====================================================
+        // GUARDAR BOT ACTUAL
+        // =====================================================
 
+        botActual = bot;
 
         recolectorActual =
             bot.GetComponent<BotRecolector>();
 
 
-        // =============================================
+        // =====================================================
         // PARAR BOT Y HACER QUE NOS MIRE
-        // =============================================
+        // =====================================================
 
         if (recolectorActual != null)
         {
-            Transform objetivoMirada =
-                null;
+            Transform objetivoMirada = null;
 
 
             if (Camera.main != null)
@@ -253,17 +284,30 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
+        // =====================================================
         // ABRIR PANEL
-        // =============================================
+        // =====================================================
 
         if (panel != null)
         {
-            panel.SetActive(
-                true
-            );
+            panel.SetActive(true);
         }
 
+
+        // =====================================================
+        // BLOQUEAR CÁMARA DEL JUGADOR
+        // =====================================================
+
+        if (controladorMiradaJugador != null)
+        {
+            controladorMiradaJugador.enabled =
+                false;
+        }
+
+
+        // =====================================================
+        // LIBERAR CURSOR
+        // =====================================================
 
         Cursor.lockState =
             CursorLockMode.None;
@@ -272,9 +316,9 @@ public class MenuBotUI : MonoBehaviour
             true;
 
 
-        // =============================================
+        // =====================================================
         // NOMBRE DEL BOT
-        // =============================================
+        // =====================================================
 
         if (textoNombre != null)
         {
@@ -283,9 +327,9 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
+        // =====================================================
         // VELOCIDAD
-        // =============================================
+        // =====================================================
 
         if (sliderVelocidad != null)
         {
@@ -295,9 +339,9 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
+        // =====================================================
         // RADIO
-        // =============================================
+        // =====================================================
 
         if (sliderRadio != null)
         {
@@ -307,9 +351,9 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
+        // =====================================================
         // TOGGLE
-        // =============================================
+        // =====================================================
 
         if (toggleIgnorarMovimiento != null)
         {
@@ -320,24 +364,33 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =============================================
-        // ACTUALIZAR INFORMACIÓN
+        // PRIORIDAD
         // =============================================
+
+        if (dropdownPrioridad != null)
+        {
+            dropdownPrioridad.SetValueWithoutNotify(
+                (int)botActual.prioridadRecogida
+            );
+
+
+            dropdownPrioridad.RefreshShownValue();
+        }
+
+        // =====================================================
+        // ACTUALIZAR INFORMACIÓN
+        // =====================================================
 
         ActualizarTextos();
 
         ActualizarEstado();
     }
 
-
-    // =====================================================
-    // CERRAR MENÚ
-    // =====================================================
-
     public void CerrarMenu()
     {
-        // =============================================
+        // =====================================================
         // REANUDAR BOT
-        // =============================================
+        // =====================================================
 
         if (recolectorActual != null)
         {
@@ -352,21 +405,30 @@ public class MenuBotUI : MonoBehaviour
             null;
 
 
-        // =============================================
+        // =====================================================
         // CERRAR PANEL
-        // =============================================
+        // =====================================================
 
         if (panel != null)
         {
-            panel.SetActive(
-                false
-            );
+            panel.SetActive(false);
         }
 
 
-        // =============================================
-        // DEVOLVER CONTROL AL JUGADOR
-        // =============================================
+        // =====================================================
+        // DEVOLVER CONTROL DE CÁMARA
+        // =====================================================
+
+        if (controladorMiradaJugador != null)
+        {
+            controladorMiradaJugador.enabled =
+                true;
+        }
+
+
+        // =====================================================
+        // VOLVER A BLOQUEAR CURSOR
+        // =====================================================
 
         Cursor.lockState =
             CursorLockMode.Locked;
@@ -374,7 +436,6 @@ public class MenuBotUI : MonoBehaviour
         Cursor.visible =
             false;
     }
-
 
     // =====================================================
     // CONSULTA
@@ -637,5 +698,21 @@ public class MenuBotUI : MonoBehaviour
             textoBoton.text =
                 texto;
         }
+    }
+
+    private void CambiarPrioridad(
+    int indice)
+    {
+        if (botActual == null)
+            return;
+
+
+        ConfiguracionBot.PrioridadRecogida prioridad =
+            (ConfiguracionBot.PrioridadRecogida)indice;
+
+
+        botActual.SetPrioridadRecogida(
+            prioridad
+        );
     }
 }
