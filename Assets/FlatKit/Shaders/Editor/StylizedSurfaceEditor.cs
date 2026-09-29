@@ -37,7 +37,7 @@ public class StylizedSurfaceEditor : BaseShaderGUI {
     private const string OutlinePassName = "Outline";
     private const string LegacyOutlinePassName = "SRPDEFAULTUNLIT";
     private const string RenderingOptionsName = "Rendering Options";
-    private const string UnityVersion = "NLC6GM";
+    private const string UnityVersion = "NLC6GP";
 
     private void DrawStandard(MaterialProperty property) {
         // Remove everything in square brackets.

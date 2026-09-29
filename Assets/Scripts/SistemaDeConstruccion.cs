@@ -3,16 +3,21 @@ using System.Collections.Generic;
 
 public class SistemaConstruccion : MonoBehaviour
 {
-    public enum TipoEdificio { Rampa, Pared }
+    public enum TipoEdificio { Rampa, Pared, Libre }
 
     [System.Serializable]
     public struct InfoEdificio
     {
         public string nombre;
         public TipoEdificio tipo;
-        // NUEVO: Ahora son listas para permitir variaciones
         public GameObject[] prefabsReales;
         public GameObject[] prefabsHologramas;
+
+        [Header("Ajustes de Offset")]
+        [Tooltip("Desplazamiento extra (Ej: subirlo un poco en Y)")]
+        public Vector3 offsetPosicion;
+        [Tooltip("Rotación extra (Ej: girarlo 90 grados por defecto)")]
+        public Vector3 offsetRotacion;
     }
 
     [Header("Martillo")]
@@ -22,7 +27,6 @@ public class SistemaConstruccion : MonoBehaviour
     public InfoEdificio[] edificios;
     private int indiceEdificioActual = 0;
 
-    // NUEVO: Guarda qué variante aleatoria está usando el holograma actual
     private int indiceVarianteActual = 0;
 
     [Header("Referencias")]
@@ -48,6 +52,10 @@ public class SistemaConstruccion : MonoBehaviour
     public KeyCode teclaCambiarTipo = KeyCode.Tab;
     public float velocidadRotacion = 10f;
     public float distanciaMaximaConstruccion = 15f;
+
+    // AÑADIDO: Tiempo personalizable de espera
+    [Tooltip("Tiempo en segundos que tarda en aparecer el siguiente holograma tras construir")]
+    public float tiempoEsperaConstruccion = 0.5f;
 
     private GameObject hologramaActual;
     public bool modoConstruccion = false;
@@ -83,29 +91,51 @@ public class SistemaConstruccion : MonoBehaviour
             }
         }
 
-        if (modoConstruccion && hologramaActual != null)
+        if (modoConstruccion)
         {
+            // AÑADIDO: Lógica del temporizador
             if (cooldownHolograma > 0f)
             {
                 cooldownHolograma -= Time.deltaTime;
 
-                if (hologramaActual.activeSelf)
+                // Mientras estamos en cooldown, si existe un holograma, lo ocultamos
+                if (hologramaActual != null && hologramaActual.activeSelf)
                 {
                     hologramaActual.SetActive(false);
                 }
+
+                // Si el cooldown acaba de terminar y no tenemos holograma, lo creamos
+                if (cooldownHolograma <= 0f && hologramaActual == null)
+                {
+                    CrearHolograma();
+                }
+
+                // Evitamos que ejecute lógica de construcción mientras espera
+                return;
             }
-            else
+            else if (hologramaActual != null)
             {
+                // 1. Calculamos la posición y rotación base (Imán o Suelo)
                 ManejarPosicionamientoYMagnetismo();
 
+                // 2. Calculamos la rotación manual (Clic derecho)
                 ManejarRotacionLibre();
 
-                ActualizarColorYValidacion();
+                // 3. APLICAMOS EL OFFSET (Posición y Rotación extra desde el Inspector)
+                if (hologramaActual.activeSelf)
+                {
+                    InfoEdificio actual = edificios[indiceEdificioActual];
+                    hologramaActual.transform.Rotate(actual.offsetRotacion, Space.Self);
+                    hologramaActual.transform.Translate(actual.offsetPosicion, Space.Self);
+                }
 
+                // 4. Validamos colores y colocamos
+                ActualizarColorYValidacion();
                 ManejarColocacionODestruccion();
             }
         }
     }
+
     public void SetModoConstruccion(bool activar)
     {
         if (modoConstruccion == activar)
@@ -113,30 +143,24 @@ public class SistemaConstruccion : MonoBehaviour
 
         modoConstruccion = activar;
 
-
         if (modeloMartillo != null)
         {
-            modeloMartillo.SetActive(
-                modoConstruccion
-            );
+            modeloMartillo.SetActive(modoConstruccion);
         }
-
 
         if (modoConstruccion)
         {
-            CrearHolograma();
-
-            Debug.Log(
-                "Modo construcción ACTIVADO"
-            );
+            // Si hay un cooldown activo de antes, no creamos el holograma todavía
+            if (cooldownHolograma <= 0f)
+            {
+                CrearHolograma();
+            }
+            Debug.Log("Modo construcción ACTIVADO");
         }
         else
         {
             DestruirHolograma();
-
-            Debug.Log(
-                "Modo construcción DESACTIVADO"
-            );
+            Debug.Log("Modo construcción DESACTIVADO");
         }
     }
 
@@ -144,6 +168,9 @@ public class SistemaConstruccion : MonoBehaviour
     {
         indiceEdificioActual = (indiceEdificioActual + 1) % edificios.Length;
         DestruirHolograma();
+
+        // Al cambiar de tipo, ignoramos el cooldown para que la respuesta sea inmediata
+        cooldownHolograma = 0f;
         CrearHolograma();
     }
 
@@ -151,7 +178,6 @@ public class SistemaConstruccion : MonoBehaviour
     {
         rotacionManualOffset = 0f;
 
-        // NUEVO: Elegir una variante aleatoria de la lista
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
         if (edificioActual.prefabsHologramas.Length > 0)
         {
@@ -162,8 +188,6 @@ public class SistemaConstruccion : MonoBehaviour
         {
             Debug.LogError("No hay hologramas asignados para el edificio: " + edificioActual.nombre);
         }
-
-        cooldownHolograma = 0f;
 
         slotBloqueado = null;
         posicionSueloBloqueada = null;
@@ -238,7 +262,6 @@ public class SistemaConstruccion : MonoBehaviour
                     if (hitConector.collider.CompareTag("RailRampa"))
                     {
                         hologramaActual.transform.position = hitConector.transform.position;
-
                         hologramaActual.transform.rotation = hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
                     }
                     else
@@ -253,11 +276,11 @@ public class SistemaConstruccion : MonoBehaviour
         }
         else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaEdificios))
         {
+            EdificioConstruido infoEdificio = hit.transform.root.GetComponent<EdificioConstruido>();
+
             slotBloqueado = null;
             posicionSueloBloqueada = null;
             timerBloqueoSlot = 0f;
-
-            EdificioConstruido infoEdificio = hit.transform.root.GetComponent<EdificioConstruido>();
 
             if (infoEdificio != null && infoEdificio.tipo == actual.tipo)
             {
@@ -435,12 +458,11 @@ public class SistemaConstruccion : MonoBehaviour
                 edificioApuntadoAnterior = null;
                 edificioApuntado = null;
 
-                cooldownHolograma = 0.15f;
+                // Aplicar cooldown modificado al destruir
+                cooldownHolograma = tiempoEsperaConstruccion;
                 timerBloqueoSlot = 1.0f;
 
-                // NUEVO: Al destruir, regeneramos el holograma para que cambie de modelo si es necesario
                 DestruirHolograma();
-                CrearHolograma();
                 return;
             }
 
@@ -448,7 +470,6 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 InfoEdificio actual = edificios[indiceEdificioActual];
 
-                // NUEVO: Instanciamos el prefab real basándonos en el índice de la variante que generó el holograma
                 GameObject nuevaEstructura = Instantiate(actual.prefabsReales[indiceVarianteActual], hologramaActual.transform.position, hologramaActual.transform.rotation);
 
                 nuevaEstructura.AddComponent<EfectoBloop>();
@@ -524,11 +545,12 @@ public class SistemaConstruccion : MonoBehaviour
                     }
                 }
 
-                cooldownHolograma = 0.15f;
+                // AÑADIDO: Aplicar el cooldown desde el inspector al construir
+                cooldownHolograma = tiempoEsperaConstruccion;
 
-                // NUEVO: Regeneramos el holograma para que el próximo que vayas a colocar sea aleatorio también
+                // Destruimos el holograma actual. El Update se encargará de crear el nuevo
+                // cuando termine el tiempo de cooldown.
                 DestruirHolograma();
-                CrearHolograma();
             }
         }
     }

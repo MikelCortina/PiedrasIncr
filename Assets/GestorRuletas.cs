@@ -3,10 +3,11 @@ using UnityEngine;
 public class GestorRuletasFPS : MonoBehaviour
 {
     public Camera camaraPrincipal;
-    public LayerMask capaRuletas;
-    public float distanciaInteraccion = 3f;
 
-    [Tooltip("Multiplicador para ajustar la sensibilidad del giro circular")]
+    [Tooltip("Selecciona AQUÍ la capa de Ruletas Y TAMBIÉN las capas de los edificios/suelo (Default, Edificios, etc.)")]
+    public LayerMask capasDetectables;
+
+    public float distanciaInteraccion = 3f;
     public float sensibilidadGiro = 1f;
 
     private RuletaInteractiva ruletaActiva = null;
@@ -14,16 +15,22 @@ public class GestorRuletasFPS : MonoBehaviour
 
     void Update()
     {
-        // El centro absoluto de tu pantalla (La mirilla)
         Vector2 mirilla = new Vector2(Screen.width / 2f, Screen.height / 2f);
         Ray rayo = camaraPrincipal.ScreenPointToRay(mirilla);
 
         if (Input.GetMouseButtonDown(0))
         {
-            if (Physics.Raycast(rayo, out RaycastHit hit, distanciaInteraccion, capaRuletas))
+            // Ahora el rayo choca contra cualquier capa que hayas marcado en el Inspector
+            if (Physics.Raycast(rayo, out RaycastHit hit, distanciaInteraccion, capasDetectables))
             {
+                // Preguntamos: ¿Lo primero que ha tocado tiene el script de la ruleta?
                 ruletaActiva = hit.collider.GetComponent<RuletaInteractiva>();
-                anguloPantallaAnterior = CalcularAnguloCircular(ruletaActiva, mirilla);
+
+                // Si lo tiene, iniciamos el giro. Si es null (es una pared), no hace nada.
+                if (ruletaActiva != null)
+                {
+                    anguloPantallaAnterior = CalcularAnguloCircular(ruletaActiva, mirilla);
+                }
             }
         }
 
@@ -35,26 +42,20 @@ public class GestorRuletasFPS : MonoBehaviour
         if (ruletaActiva != null && Input.GetMouseButton(0))
         {
             float anguloActual = CalcularAnguloCircular(ruletaActiva, mirilla);
-
-            // Calculamos la diferencia de giro (Ej: Pasó de 90 grados a 45 grados = giró -45)
             float deltaAngulo = Mathf.DeltaAngle(anguloPantallaAnterior, anguloActual);
 
-            if (Mathf.Abs(deltaAngulo) > 0.01f) // Filtro para evitar vibraciones minúsculas
+            if (Mathf.Abs(deltaAngulo) > 0.01f)
             {
-                ruletaActiva.ModificarDesdeGiroVisual(-deltaAngulo * sensibilidadGiro);
+                ruletaActiva.ModificarDesdeGiroVisual(deltaAngulo * sensibilidadGiro);
                 anguloPantallaAnterior = anguloActual;
             }
         }
     }
 
-    // Calcula el ángulo de la mirilla respecto al centro del objeto 3D proyectado en tu monitor
     float CalcularAnguloCircular(RuletaInteractiva ruleta, Vector2 mirilla)
     {
         Vector3 centroRuletaEnPantalla = camaraPrincipal.WorldToScreenPoint(ruleta.transform.position);
-
-        // Vector direccional desde el centro de la ruleta hasta donde estás apuntando
         Vector2 direccion = mirilla - new Vector2(centroRuletaEnPantalla.x, centroRuletaEnPantalla.y);
-
         return Mathf.Atan2(direccion.y, direccion.x) * Mathf.Rad2Deg;
     }
 }
