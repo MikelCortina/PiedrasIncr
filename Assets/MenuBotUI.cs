@@ -38,6 +38,7 @@ public class MenuBotUI : MonoBehaviour
     // =====================================================
 
     [Header("Velocidad")]
+
     public Slider sliderVelocidad;
     public TMP_Text textoVelocidad;
 
@@ -88,6 +89,25 @@ public class MenuBotUI : MonoBehaviour
 
     public Slider sliderPurezaMax;
     public TMP_Text textoPurezaMax;
+
+
+    // =====================================================
+    // DESTINO
+    // =====================================================
+
+    [Header("Destino de la piedra")]
+
+    public TMP_Dropdown dropdownDestino;
+
+
+    [Tooltip(
+        "En modo Automático, las piedras con esta pureza " +
+        "o superior irán directamente al agujero."
+    )]
+    public Slider sliderPurezaAgujero;
+
+
+    public TMP_Text textoPurezaAgujero;
 
 
     // =====================================================
@@ -181,6 +201,10 @@ public class MenuBotUI : MonoBehaviour
                 5f;
 
 
+            sliderVelocidad.wholeNumbers =
+                false;
+
+
             sliderVelocidad.onValueChanged.AddListener(
                 CambiarVelocidad
             );
@@ -188,7 +212,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // IGNORAR MOVIMIENTO
+        // IGNORAR PIEDRAS EN MOVIMIENTO
         // =================================================
 
         if (toggleIgnorarMovimiento != null)
@@ -282,6 +306,59 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
+        // DESTINO
+        // =================================================
+
+        if (dropdownDestino != null)
+        {
+            dropdownDestino.ClearOptions();
+
+
+            dropdownDestino.AddOptions(
+                new List<string>
+                {
+                    "Agujero",
+                    "Procesadora",
+                    "Automático"
+                }
+            );
+
+
+            dropdownDestino
+                .onValueChanged
+                .AddListener(
+                    CambiarDestino
+                );
+        }
+
+
+        // =================================================
+        // PUREZA DIRECTA AL AGUJERO
+        // =================================================
+
+        if (sliderPurezaAgujero != null)
+        {
+            sliderPurezaAgujero.minValue =
+                0f;
+
+
+            sliderPurezaAgujero.maxValue =
+                100f;
+
+
+            sliderPurezaAgujero.wholeNumbers =
+                false;
+
+
+            sliderPurezaAgujero
+                .onValueChanged
+                .AddListener(
+                    CambiarPurezaAgujero
+                );
+        }
+
+
+        // =================================================
         // CERRAR PANEL AL INICIAR
         // =================================================
 
@@ -339,7 +416,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // DETENER BOT Y MIRAR AL JUGADOR
+        // PARAR BOT Y HACER QUE MIRE AL JUGADOR
         // =================================================
 
         if (recolectorActual != null)
@@ -414,9 +491,10 @@ public class MenuBotUI : MonoBehaviour
 
         if (sliderVelocidad != null)
         {
-            sliderVelocidad.SetValueWithoutNotify(
-                botActual.velocidadMovimiento
-            );
+            sliderVelocidad
+                .SetValueWithoutNotify(
+                    botActual.velocidadMovimiento
+                );
         }
 
 
@@ -479,12 +557,46 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
+        // DESTINO
+        // =================================================
+
+        if (dropdownDestino != null)
+        {
+            dropdownDestino
+                .SetValueWithoutNotify(
+                    (int)botActual
+                        .destinoTrabajo
+                );
+
+
+            dropdownDestino
+                .RefreshShownValue();
+        }
+
+
+        // =================================================
+        // PUREZA DIRECTA AL AGUJERO
+        // =================================================
+
+        if (sliderPurezaAgujero != null)
+        {
+            sliderPurezaAgujero
+                .SetValueWithoutNotify(
+                    botActual
+                        .purezaDirectaAgujero
+                );
+        }
+
+
+        // =================================================
         // ACTUALIZAR INFORMACIÓN
         // =================================================
 
         ActualizarTextos();
 
         ActualizarEstado();
+
+        ActualizarVisibilidadDestino();
     }
 
 
@@ -561,7 +673,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // TRABAJAR
+    // BOTÓN TRABAJAR
     // =====================================================
 
     public void BotonTrabajar()
@@ -578,7 +690,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // PAUSA
+    // BOTÓN PAUSA
     // =====================================================
 
     public void BotonPausa()
@@ -595,7 +707,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // PARKING
+    // BOTÓN PARKING
     // =====================================================
 
     public void BotonParking()
@@ -687,8 +799,9 @@ public class MenuBotUI : MonoBehaviour
         );
 
 
-        // Si el mínimo ha superado al máximo,
-        // ConfiguracionBot ajusta el máximo.
+        // ConfiguracionBot puede modificar el máximo
+        // si el mínimo lo supera.
+
         if (sliderPurezaMax != null)
         {
             sliderPurezaMax
@@ -727,8 +840,9 @@ public class MenuBotUI : MonoBehaviour
         );
 
 
-        // Si el máximo ha bajado del mínimo,
-        // ConfiguracionBot ajusta el mínimo.
+        // ConfiguracionBot puede modificar el mínimo
+        // si el máximo baja demasiado.
+
         if (sliderPurezaMin != null)
         {
             sliderPurezaMin
@@ -748,6 +862,103 @@ public class MenuBotUI : MonoBehaviour
 
 
         ActualizarTextos();
+    }
+
+
+    // =====================================================
+    // DESTINO
+    // =====================================================
+
+    private void CambiarDestino(
+        int indice)
+    {
+        if (botActual == null)
+            return;
+
+
+        ConfiguracionBot.DestinoTrabajo destino =
+            (ConfiguracionBot.DestinoTrabajo)
+            indice;
+
+
+        botActual.SetDestinoTrabajo(
+            destino
+        );
+
+
+        ActualizarVisibilidadDestino();
+
+        ActualizarTextos();
+    }
+
+
+    // =====================================================
+    // PUREZA DIRECTA AL AGUJERO
+    // =====================================================
+
+    private void CambiarPurezaAgujero(
+        float valor)
+    {
+        if (botActual == null)
+            return;
+
+
+        botActual
+            .SetPurezaDirectaAgujero(
+                valor
+            );
+
+
+        if (sliderPurezaAgujero != null)
+        {
+            sliderPurezaAgujero
+                .SetValueWithoutNotify(
+                    botActual
+                        .purezaDirectaAgujero
+                );
+        }
+
+
+        ActualizarTextos();
+    }
+
+
+    // =====================================================
+    // VISIBILIDAD OPCIONES DE DESTINO
+    // =====================================================
+
+    private void ActualizarVisibilidadDestino()
+    {
+        if (botActual == null)
+            return;
+
+
+        bool automatico =
+            botActual.destinoTrabajo ==
+            ConfiguracionBot
+                .DestinoTrabajo
+                .Automatico;
+
+
+        // El umbral solo tiene sentido
+        // cuando el destino es Automático.
+
+        if (sliderPurezaAgujero != null)
+        {
+            sliderPurezaAgujero.gameObject
+                .SetActive(
+                    automatico
+                );
+        }
+
+
+        if (textoPurezaAgujero != null)
+        {
+            textoPurezaAgujero.gameObject
+                .SetActive(
+                    automatico
+                );
+        }
     }
 
 
@@ -811,6 +1022,21 @@ public class MenuBotUI : MonoBehaviour
                 "Pureza máxima: " +
                 botActual
                     .purezaMaxima
+                    .ToString("0") +
+                "%";
+        }
+
+
+        // =================================================
+        // PUREZA AUTOMÁTICA
+        // =================================================
+
+        if (textoPurezaAgujero != null)
+        {
+            textoPurezaAgujero.text =
+                "Directa al agujero desde: " +
+                botActual
+                    .purezaDirectaAgujero
                     .ToString("0") +
                 "%";
         }
@@ -880,7 +1106,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // TEXTOS BOTONES
+    // TEXTOS DE LOS BOTONES
     // =====================================================
 
     private void ConfigurarTextosBotones()
@@ -909,6 +1135,10 @@ public class MenuBotUI : MonoBehaviour
         );
     }
 
+
+    // =====================================================
+    // PONER TEXTO BOTÓN
+    // =====================================================
 
     private void PonerTextoBoton(
         Button boton,

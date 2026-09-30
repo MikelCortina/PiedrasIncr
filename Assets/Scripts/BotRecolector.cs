@@ -16,6 +16,10 @@ public class BotRecolector : MonoBehaviour
     }
 
 
+    private ConfiguracionBot.DestinoTrabajo
+    destinoPiedraActual =
+        ConfiguracionBot.DestinoTrabajo.Agujero;
+
     // =====================================================
     // ESTADO
     // =====================================================
@@ -49,6 +53,13 @@ public class BotRecolector : MonoBehaviour
 
     public Transform puntoAgarre;
 
+
+    [Header("Procesadora")]
+
+    public MaquinaErosion maquinaErosion;
+
+    public float distanciaEntregaProcesadora =
+        1.5f;
 
     // =====================================================
     // GESTOR GLOBAL
@@ -137,6 +148,8 @@ public class BotRecolector : MonoBehaviour
 
     public float intervaloRevalidacionObjetivo =
         0.4f;
+
+
 
 
     // =====================================================
@@ -258,6 +271,10 @@ public class BotRecolector : MonoBehaviour
 
     private void Start()
     {
+        // =====================================================
+        // COMPONENTES DEL BOT
+        // =====================================================
+
         agente =
             GetComponent<NavMeshAgent>();
 
@@ -266,12 +283,20 @@ public class BotRecolector : MonoBehaviour
             GetComponent<ConfiguracionBot>();
 
 
+        // =====================================================
+        // GESTOR GLOBAL DE PIEDRAS
+        // =====================================================
+
         if (gestorPiedras == null)
         {
             gestorPiedras =
                 GestorPiedras.Instancia;
         }
 
+
+        // =====================================================
+        // PUNTOS DE ENTREGA DEL AGUJERO
+        // =====================================================
 
         if (gestorPuntosEntrega == null)
         {
@@ -282,6 +307,10 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =====================================================
+        // PARKING
+        // =====================================================
+
         if (gestorPuntosEspera == null)
         {
             gestorPuntosEspera =
@@ -290,6 +319,10 @@ public class BotRecolector : MonoBehaviour
                 >();
         }
 
+
+        // =====================================================
+        // AGUJERO
+        // =====================================================
 
         if (agujeroDestino == null)
         {
@@ -300,12 +333,44 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =====================================================
+        // PROCESADORA
+        // IMPORTANTE: BUSCARLA ANTES DEL RETURN DEL PARKING
+        // =====================================================
+
+        if (maquinaErosion == null)
+        {
+            maquinaErosion =
+                FindAnyObjectByType<
+                    MaquinaErosion
+                >(
+                    FindObjectsInactive.Include
+                );
+        }
+
+
+        // =====================================================
+        // DEBUG DE REFERENCIAS
+        // =====================================================
+
+        if (debugBusqueda)
+        {
+            Debug.Log(
+                name +
+                " | GestorPiedras: " +
+                (gestorPiedras != null) +
+                " | Procesadora: " +
+                (maquinaErosion != null)
+            );
+        }
+
+
         ResetearAntiAtasco();
 
 
-        // =================================================
+        // =====================================================
         // APARECER EN PARKING
-        // =================================================
+        // =====================================================
 
         if (aparecerEnParkingAlIniciar)
         {
@@ -315,6 +380,10 @@ public class BotRecolector : MonoBehaviour
             }
         }
 
+
+        // =====================================================
+        // SI NO PUDO IR AL PARKING
+        // =====================================================
 
         estadoActual =
             EstadoBot.Buscando;
@@ -566,6 +635,23 @@ public class BotRecolector : MonoBehaviour
                     piedra
                 );
 
+            // =====================================================
+            // ¿LA PROCESADORA PUEDE ACEPTARLA?
+            // =====================================================
+
+            if (configuracionBot != null &&
+                configuracionBot.destinoTrabajo ==
+                    ConfiguracionBot
+                        .DestinoTrabajo
+                        .Procesadora)
+            {
+                if (maquinaErosion == null ||
+                    !maquinaErosion.PuedeAceptarPiedra(
+                        piedra))
+                {
+                    continue;
+                }
+            }
 
             // =================================================
             // FILTRO MÍNIMO / MÁXIMO
@@ -672,6 +758,11 @@ public class BotRecolector : MonoBehaviour
 
             piedraObjetivo =
                 piedra;
+
+            destinoPiedraActual =
+    CalcularDestinoPiedra(
+        piedraObjetivo
+    );
 
 
             estadoActual =
@@ -1318,6 +1409,15 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        if (puntoAgarre == null)
+        {
+            CancelarObjetivo();
+
+            return;
+        }
+
+
+        // Mantener la piedra en las manos.
         piedraObjetivo.transform.position =
             puntoAgarre.position;
 
@@ -1325,6 +1425,25 @@ public class BotRecolector : MonoBehaviour
         piedraObjetivo.transform.rotation =
             puntoAgarre.rotation;
 
+
+        // =====================================================
+        // DESTINO: PROCESADORA
+        // =====================================================
+
+        if (destinoPiedraActual ==
+            ConfiguracionBot
+                .DestinoTrabajo
+                .Procesadora)
+        {
+            ComportamientoLlevarProcesadora();
+
+            return;
+        }
+
+
+        // =====================================================
+        // DESTINO: AGUJERO
+        // =====================================================
 
         if (!IntentarReservarPuntoEntrega())
         {
@@ -1345,6 +1464,9 @@ public class BotRecolector : MonoBehaviour
 
 
             DetenerAgente();
+
+
+            ResetearAntiAtasco();
 
 
             StartCoroutine(
@@ -2409,6 +2531,41 @@ public class BotRecolector : MonoBehaviour
         if (estadoActual ==
             EstadoBot.LlevandoPiedra)
         {
+            if (destinoPiedraActual ==
+                ConfiguracionBot
+                    .DestinoTrabajo
+                    .Procesadora)
+            {
+                if (maquinaErosion == null ||
+                    maquinaErosion.puntoEntregaBot == null)
+                {
+                    destinoPiedraActual =
+                        ConfiguracionBot
+                            .DestinoTrabajo
+                            .Agujero;
+
+                    return;
+                }
+
+
+                if (NavMesh.SamplePosition(
+                        maquinaErosion
+                            .puntoEntregaBot
+                            .position,
+                        out NavMeshHit hitProcesadora,
+                        2f,
+                        NavMesh.AllAreas))
+                {
+                    agente.SetDestination(
+                        hitProcesadora.position
+                    );
+                }
+
+
+                return;
+            }
+
+
             IntentarReservarPuntoEntrega();
 
             IrHaciaPuntoEntrega();
@@ -2513,6 +2670,471 @@ public class BotRecolector : MonoBehaviour
             Gizmos.DrawWireSphere(
                 puntoEsperaReservado.position,
                 0.5f
+            );
+        }
+    }
+    private ConfiguracionBot.DestinoTrabajo
+    CalcularDestinoPiedra(
+        Rigidbody piedra)
+    {
+        if (configuracionBot == null)
+        {
+            return ConfiguracionBot
+                .DestinoTrabajo
+                .Agujero;
+        }
+
+
+        // =====================================================
+        // FORZADO AL AGUJERO
+        // =====================================================
+
+        if (configuracionBot.destinoTrabajo ==
+            ConfiguracionBot.DestinoTrabajo.Agujero)
+        {
+            return ConfiguracionBot
+                .DestinoTrabajo
+                .Agujero;
+        }
+
+
+        // =====================================================
+        // FORZADO A PROCESADORA
+        // =====================================================
+
+        if (configuracionBot.destinoTrabajo ==
+            ConfiguracionBot.DestinoTrabajo.Procesadora)
+        {
+            return ConfiguracionBot
+                .DestinoTrabajo
+                .Procesadora;
+        }
+
+
+        // =====================================================
+        // AUTOMÁTICO
+        // =====================================================
+
+        float pureza =
+            ObtenerPurezaPiedra(
+                piedra
+            );
+
+
+        // Ya es suficientemente buena.
+        if (pureza >=
+            configuracionBot.purezaDirectaAgujero)
+        {
+            return ConfiguracionBot
+                .DestinoTrabajo
+                .Agujero;
+        }
+
+
+        // Todavía merece procesarse.
+        if (maquinaErosion != null &&
+            maquinaErosion
+                .PuedeAceptarPiedra(
+                    piedra))
+        {
+            return ConfiguracionBot
+                .DestinoTrabajo
+                .Procesadora;
+        }
+
+
+        // Si la procesadora no está disponible
+        // o no acepta esa piedra, usamos el agujero.
+        return ConfiguracionBot
+            .DestinoTrabajo
+            .Agujero;
+    }
+
+    private void ComportamientoLlevarProcesadora()
+    {
+        if (piedraObjetivo == null)
+        {
+            CancelarObjetivo();
+            return;
+        }
+
+
+        // =====================================================
+        // COMPROBAR PROCESADORA
+        // =====================================================
+
+        if (maquinaErosion == null)
+        {
+            DetenerAgente();
+
+            Debug.LogError(
+                name +
+                ": MaquinaErosion no está asignada."
+            );
+
+            return;
+        }
+
+
+        if (!maquinaErosion.ProcesadoraDesbloqueada)
+        {
+            DetenerAgente();
+
+            Debug.LogError(
+                name +
+                ": la procesadora está bloqueada."
+            );
+
+            return;
+        }
+
+
+        if (maquinaErosion.puntoEntregaBot == null)
+        {
+            DetenerAgente();
+
+            Debug.LogError(
+                name +
+                ": PuntoEntregaBot no está asignado."
+            );
+
+            return;
+        }
+
+
+        if (maquinaErosion.puntoEntrada == null)
+        {
+            DetenerAgente();
+
+            Debug.LogError(
+                name +
+                ": PuntoEntrada de la procesadora no está asignado."
+            );
+
+            return;
+        }
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return;
+        }
+
+
+        // =====================================================
+        // PUNTO NAVMESH DE ENTREGA
+        // =====================================================
+
+        if (!NavMesh.SamplePosition(
+                maquinaErosion.puntoEntregaBot.position,
+                out NavMeshHit hit,
+                3f,
+                NavMesh.AllAreas))
+        {
+            DetenerAgente();
+
+            Debug.LogError(
+                name +
+                ": no hay NavMesh cerca del PuntoEntregaBot."
+            );
+
+            return;
+        }
+
+
+        agente.isStopped = false;
+
+        agente.SetDestination(
+            hit.position
+        );
+
+
+        float distancia =
+            Vector3.Distance(
+                transform.position,
+                hit.position
+            );
+
+
+        if (distancia >
+            distanciaEntregaProcesadora)
+        {
+            return;
+        }
+
+
+        // =====================================================
+        // HA LLEGADO A LA PROCESADORA
+        // =====================================================
+
+        DetenerAgente();
+
+
+        estadoActual =
+            EstadoBot.EntregandoPiedra;
+
+
+        ResetearAntiAtasco();
+
+
+        StartCoroutine(
+            LanzarPiedraAProcesadora()
+        );
+    }
+
+
+    private IEnumerator LanzarPiedraAProcesadora()
+    {
+        if (piedraObjetivo == null ||
+            maquinaErosion == null ||
+            maquinaErosion.puntoEntrada == null)
+        {
+            CancelarObjetivo();
+            yield break;
+        }
+
+
+        Rigidbody piedraEntregada =
+            piedraObjetivo;
+
+
+        // =====================================================
+        // SOLTAR DEL BOT
+        // =====================================================
+
+        piedraEntregada.transform.SetParent(
+            null,
+            true
+        );
+
+
+        piedraEntregada.isKinematic =
+            true;
+
+
+        Collider[] colliders =
+            piedraEntregada
+                .GetComponentsInChildren<Collider>();
+
+
+        foreach (Collider col in colliders)
+        {
+            if (col != null)
+            {
+                col.enabled =
+                    false;
+            }
+        }
+
+
+        // =====================================================
+        // INICIO Y DESTINO DEL LANZAMIENTO
+        // =====================================================
+
+        Vector3 inicio =
+            piedraEntregada.position;
+
+
+        Vector3 final =
+            maquinaErosion
+                .puntoEntrada
+                .position;
+
+
+        float tiempo =
+            0f;
+
+
+        // =====================================================
+        // LANZAMIENTO VISUAL
+        // =====================================================
+
+        while (tiempo <
+               duracionLanzamiento)
+        {
+            // Si abrimos el menú o pausamos el Bot,
+            // congelamos también el lanzamiento.
+
+            if (enInteraccion ||
+                pausaForzada)
+            {
+                yield return null;
+
+                continue;
+            }
+
+
+            if (piedraEntregada == null)
+            {
+                yield break;
+            }
+
+
+            tiempo +=
+                Time.deltaTime;
+
+
+            float t =
+                Mathf.Clamp01(
+                    tiempo /
+                    Mathf.Max(
+                        0.01f,
+                        duracionLanzamiento
+                    )
+                );
+
+
+            Vector3 posicion =
+                Vector3.Lerp(
+                    inicio,
+                    final,
+                    t
+                );
+
+
+            // =================================================
+            // ARCO
+            // =================================================
+
+            posicion.y +=
+                Mathf.Sin(
+                    t * Mathf.PI
+                )
+                *
+                alturaArcoLanzamiento;
+
+
+            piedraEntregada.position =
+                posicion;
+
+
+            // =================================================
+            // GIRO
+            // =================================================
+
+            piedraEntregada.transform.Rotate(
+                Vector3.one *
+                velocidadGiroLanzamiento *
+                Time.deltaTime,
+                Space.World
+            );
+
+
+            yield return null;
+        }
+
+
+        // =====================================================
+        // LLEGADA EXACTA A LA ENTRADA
+        // =====================================================
+
+        if (piedraEntregada == null)
+        {
+            yield break;
+        }
+
+
+        piedraEntregada.position =
+            final;
+
+
+        // =====================================================
+        // ENTREGAR A LA PROCESADORA
+        // =====================================================
+
+        bool aceptada =
+            maquinaErosion
+                .RecibirPiedraBot(
+                    piedraEntregada
+                );
+
+
+        // =====================================================
+        // SI LA RECHAZA
+        // =====================================================
+
+        if (!aceptada)
+        {
+            Debug.LogWarning(
+                name +
+                ": la procesadora rechazó la piedra."
+            );
+
+
+            // Volver a cogerla.
+
+            piedraEntregada.transform.SetParent(
+                puntoAgarre,
+                false
+            );
+
+
+            piedraEntregada.transform.localPosition =
+                Vector3.zero;
+
+
+            piedraEntregada.transform.localRotation =
+                Quaternion.identity;
+
+
+            piedraObjetivo =
+                piedraEntregada;
+
+
+            estadoActual =
+                EstadoBot.LlevandoPiedra;
+
+
+            yield break;
+        }
+
+
+        // =====================================================
+        // ENTREGA CORRECTA
+        // =====================================================
+
+        piedraObjetivo =
+            null;
+
+
+        if (gestorPiedras != null)
+        {
+            gestorPiedras.LiberarReserva(
+                piedraEntregada,
+                this
+            );
+        }
+
+
+        // =====================================================
+        // VOLVER A TRABAJAR
+        // =====================================================
+
+        if (parkingForzado)
+        {
+            EntrarEnEspera();
+        }
+        else
+        {
+            estadoActual =
+                EstadoBot.Buscando;
+
+
+            temporizadorBusqueda =
+                0f;
+        }
+
+
+        ResetearAntiAtasco();
+
+
+        if (debugBusqueda)
+        {
+            Debug.Log(
+                name +
+                ": piedra lanzada correctamente " +
+                "a la procesadora."
             );
         }
     }

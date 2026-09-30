@@ -28,6 +28,31 @@ public class ConfiguracionBot : MonoBehaviour
     }
 
 
+    public enum DestinoTrabajo
+    {
+        Agujero,
+        Procesadora,
+        Automatico
+    }
+
+
+    // =====================================================
+    // DESTINO
+    // =====================================================
+
+    [Header("Destino de trabajo")]
+
+    public DestinoTrabajo destinoTrabajo =
+        DestinoTrabajo.Automatico;
+
+
+    [Tooltip(
+        "En modo Automático, una piedra con esta pureza " +
+        "o superior irá directamente al agujero."
+    )]
+    [Range(0f, 100f)]
+    public float purezaDirectaAgujero =
+        90f;
     // =====================================================
     // IDENTIDAD
     // =====================================================
@@ -326,5 +351,28 @@ public class ConfiguracionBot : MonoBehaviour
         {
             bot.ConfigurarModoParking();
         }
+    }
+
+    // =====================================================
+    // DESTINO
+    // =====================================================
+
+    public void SetDestinoTrabajo(
+        DestinoTrabajo nuevoDestino)
+    {
+        destinoTrabajo =
+            nuevoDestino;
+    }
+
+
+    public void SetPurezaDirectaAgujero(
+        float valor)
+    {
+        purezaDirectaAgujero =
+            Mathf.Clamp(
+                valor,
+                0f,
+                100f
+            );
     }
 }
