@@ -43,29 +43,52 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // RADIO
+    // CONTROL DEL JUGADOR
     // =====================================================
 
-    [Header("Radio prioridad")]
-    public Slider sliderRadio;
-    public TMP_Text textoRadio;
-
     [Header("Control del jugador")]
-    [Tooltip("Arrastra aquí el script del jugador que controla la cámara/mirada con el ratón.")]
+
+    [Tooltip(
+        "Arrastra aquí el script del jugador que controla " +
+        "la cámara/mirada con el ratón."
+    )]
     public MonoBehaviour controladorMiradaJugador;
+
 
     // =====================================================
     // MOVIMIENTO DE PIEDRAS
     // =====================================================
 
     [Header("Movimiento de piedras")]
+
     public Toggle toggleIgnorarMovimiento;
+
 
     [Tooltip("Texto que aparece al lado del Toggle.")]
     public TMP_Text textoToggleIgnorar;
 
+
+    // =====================================================
+    // PRIORIDAD
+    // =====================================================
+
     [Header("Prioridad de recogida")]
+
     public TMP_Dropdown dropdownPrioridad;
+
+
+    // =====================================================
+    // PUREZA
+    // =====================================================
+
+    [Header("Filtro de Pureza")]
+
+    public Slider sliderPurezaMin;
+    public TMP_Text textoPurezaMin;
+
+    public Slider sliderPurezaMax;
+    public TMP_Text textoPurezaMax;
+
 
     // =====================================================
     // VARIABLES INTERNAS
@@ -82,9 +105,9 @@ public class MenuBotUI : MonoBehaviour
 
     private void Start()
     {
-        // =============================================
-        // CONFIGURAR TEXTOS FIJOS
-        // =============================================
+        // =================================================
+        // TEXTOS FIJOS
+        // =================================================
 
         ConfigurarTextosBotones();
 
@@ -96,9 +119,9 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
-        // BOTONES
-        // =============================================
+        // =================================================
+        // BOTÓN TRABAJAR
+        // =================================================
 
         if (botonTrabajar != null)
         {
@@ -108,6 +131,10 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
+        // =================================================
+        // BOTÓN PAUSA
+        // =================================================
+
         if (botonPausa != null)
         {
             botonPausa.onClick.AddListener(
@@ -115,6 +142,10 @@ public class MenuBotUI : MonoBehaviour
             );
         }
 
+
+        // =================================================
+        // BOTÓN PARKING
+        // =================================================
 
         if (botonParking != null)
         {
@@ -124,6 +155,10 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
+        // =================================================
+        // BOTÓN CERRAR
+        // =================================================
+
         if (botonCerrar != null)
         {
             botonCerrar.onClick.AddListener(
@@ -132,14 +167,15 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
-        // SLIDER VELOCIDAD
-        // =============================================
+        // =================================================
+        // VELOCIDAD
+        // =================================================
 
         if (sliderVelocidad != null)
         {
             sliderVelocidad.minValue =
                 1f;
+
 
             sliderVelocidad.maxValue =
                 5f;
@@ -151,51 +187,23 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =============================================
-        // SLIDER RADIO
-        // =============================================
-
-        if (sliderRadio != null)
-        {
-            sliderRadio.minValue =
-                5f;
-
-            sliderRadio.maxValue =
-                60f;
-
-
-            sliderRadio.onValueChanged.AddListener(
-                CambiarRadio
-            );
-        }
-
-
-        // =============================================
-        // TOGGLE
-        // =============================================
+        // =================================================
+        // IGNORAR MOVIMIENTO
+        // =================================================
 
         if (toggleIgnorarMovimiento != null)
         {
-            toggleIgnorarMovimiento.onValueChanged.AddListener(
-                CambiarIgnorarMovimiento
-            );
+            toggleIgnorarMovimiento
+                .onValueChanged
+                .AddListener(
+                    CambiarIgnorarMovimiento
+                );
         }
 
 
-        // =============================================
-        // CERRAR AL INICIAR
-        // =============================================
-
-        if (panel != null)
-        {
-            panel.SetActive(
-                false
-            );
-        }
-
-        // =============================================
-        // PRIORIDAD DE RECOGIDA
-        // =============================================
+        // =================================================
+        // PRIORIDAD
+        // =================================================
 
         if (dropdownPrioridad != null)
         {
@@ -205,16 +213,82 @@ public class MenuBotUI : MonoBehaviour
             dropdownPrioridad.AddOptions(
                 new List<string>
                 {
-            "Más cercana",
-            "Mayor pureza",
-            "Menor pureza",
-            "Aleatoria"
+                    "Más cercana",
+                    "Mayor pureza",
+                    "Menor pureza",
+                    "Aleatoria"
                 }
             );
 
 
-            dropdownPrioridad.onValueChanged.AddListener(
-                CambiarPrioridad
+            dropdownPrioridad
+                .onValueChanged
+                .AddListener(
+                    CambiarPrioridad
+                );
+        }
+
+
+        // =================================================
+        // PUREZA MÍNIMA
+        // =================================================
+
+        if (sliderPurezaMin != null)
+        {
+            sliderPurezaMin.minValue =
+                0f;
+
+
+            sliderPurezaMin.maxValue =
+                100f;
+
+
+            sliderPurezaMin.wholeNumbers =
+                false;
+
+
+            sliderPurezaMin
+                .onValueChanged
+                .AddListener(
+                    CambiarPurezaMinima
+                );
+        }
+
+
+        // =================================================
+        // PUREZA MÁXIMA
+        // =================================================
+
+        if (sliderPurezaMax != null)
+        {
+            sliderPurezaMax.minValue =
+                0f;
+
+
+            sliderPurezaMax.maxValue =
+                100f;
+
+
+            sliderPurezaMax.wholeNumbers =
+                false;
+
+
+            sliderPurezaMax
+                .onValueChanged
+                .AddListener(
+                    CambiarPurezaMaxima
+                );
+        }
+
+
+        // =================================================
+        // CERRAR PANEL AL INICIAR
+        // =================================================
+
+        if (panel != null)
+        {
+            panel.SetActive(
+                false
             );
         }
     }
@@ -230,12 +304,11 @@ public class MenuBotUI : MonoBehaviour
             return;
 
 
-        // El modo puede cambiar mientras
-        // tenemos abierto el menú.
         ActualizarEstado();
 
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(
+                KeyCode.Escape))
         {
             CerrarMenu();
         }
@@ -246,29 +319,33 @@ public class MenuBotUI : MonoBehaviour
     // ABRIR MENÚ
     // =====================================================
 
-    public void AbrirMenu(ConfiguracionBot bot)
+    public void AbrirMenu(
+        ConfiguracionBot bot)
     {
         if (bot == null)
             return;
 
 
-        // =====================================================
-        // GUARDAR BOT ACTUAL
-        // =====================================================
+        // =================================================
+        // BOT ACTUAL
+        // =================================================
 
-        botActual = bot;
+        botActual =
+            bot;
+
 
         recolectorActual =
             bot.GetComponent<BotRecolector>();
 
 
-        // =====================================================
-        // PARAR BOT Y HACER QUE NOS MIRE
-        // =====================================================
+        // =================================================
+        // DETENER BOT Y MIRAR AL JUGADOR
+        // =================================================
 
         if (recolectorActual != null)
         {
-            Transform objetivoMirada = null;
+            Transform objetivoMirada =
+                null;
 
 
             if (Camera.main != null)
@@ -278,25 +355,28 @@ public class MenuBotUI : MonoBehaviour
             }
 
 
-            recolectorActual.IniciarInteraccion(
-                objetivoMirada
+            recolectorActual
+                .IniciarInteraccion(
+                    objetivoMirada
+                );
+        }
+
+
+        // =================================================
+        // ABRIR PANEL
+        // =================================================
+
+        if (panel != null)
+        {
+            panel.SetActive(
+                true
             );
         }
 
 
-        // =====================================================
-        // ABRIR PANEL
-        // =====================================================
-
-        if (panel != null)
-        {
-            panel.SetActive(true);
-        }
-
-
-        // =====================================================
-        // BLOQUEAR CÁMARA DEL JUGADOR
-        // =====================================================
+        // =================================================
+        // BLOQUEAR CÁMARA
+        // =================================================
 
         if (controladorMiradaJugador != null)
         {
@@ -305,20 +385,21 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =====================================================
-        // LIBERAR CURSOR
-        // =====================================================
+        // =================================================
+        // CURSOR
+        // =================================================
 
         Cursor.lockState =
             CursorLockMode.None;
+
 
         Cursor.visible =
             true;
 
 
-        // =====================================================
-        // NOMBRE DEL BOT
-        // =====================================================
+        // =================================================
+        // NOMBRE
+        // =================================================
 
         if (textoNombre != null)
         {
@@ -327,9 +408,9 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =====================================================
+        // =================================================
         // VELOCIDAD
-        // =====================================================
+        // =================================================
 
         if (sliderVelocidad != null)
         {
@@ -339,85 +420,114 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =====================================================
-        // RADIO
-        // =====================================================
-
-        if (sliderRadio != null)
-        {
-            sliderRadio.SetValueWithoutNotify(
-                botActual.radioPrioridad
-            );
-        }
-
-
-        // =====================================================
-        // TOGGLE
-        // =====================================================
+        // =================================================
+        // IGNORAR MOVIMIENTO
+        // =================================================
 
         if (toggleIgnorarMovimiento != null)
         {
-            toggleIgnorarMovimiento.SetIsOnWithoutNotify(
-                botActual.ignorarPiedrasEnMovimiento
-            );
+            toggleIgnorarMovimiento
+                .SetIsOnWithoutNotify(
+                    botActual
+                        .ignorarPiedrasEnMovimiento
+                );
         }
 
 
-        // =============================================
+        // =================================================
         // PRIORIDAD
-        // =============================================
+        // =================================================
 
         if (dropdownPrioridad != null)
         {
-            dropdownPrioridad.SetValueWithoutNotify(
-                (int)botActual.prioridadRecogida
-            );
+            dropdownPrioridad
+                .SetValueWithoutNotify(
+                    (int)botActual
+                        .prioridadRecogida
+                );
 
 
-            dropdownPrioridad.RefreshShownValue();
+            dropdownPrioridad
+                .RefreshShownValue();
         }
 
-        // =====================================================
+
+        // =================================================
+        // PUREZA MÍNIMA
+        // =================================================
+
+        if (sliderPurezaMin != null)
+        {
+            sliderPurezaMin
+                .SetValueWithoutNotify(
+                    botActual.purezaMinima
+                );
+        }
+
+
+        // =================================================
+        // PUREZA MÁXIMA
+        // =================================================
+
+        if (sliderPurezaMax != null)
+        {
+            sliderPurezaMax
+                .SetValueWithoutNotify(
+                    botActual.purezaMaxima
+                );
+        }
+
+
+        // =================================================
         // ACTUALIZAR INFORMACIÓN
-        // =====================================================
+        // =================================================
 
         ActualizarTextos();
 
         ActualizarEstado();
     }
 
+
+    // =====================================================
+    // CERRAR MENÚ
+    // =====================================================
+
     public void CerrarMenu()
     {
-        // =====================================================
+        // =================================================
         // REANUDAR BOT
-        // =====================================================
+        // =================================================
 
         if (recolectorActual != null)
         {
-            recolectorActual.FinalizarInteraccion();
+            recolectorActual
+                .FinalizarInteraccion();
         }
 
 
         recolectorActual =
             null;
 
+
         botActual =
             null;
 
 
-        // =====================================================
+        // =================================================
         // CERRAR PANEL
-        // =====================================================
+        // =================================================
 
         if (panel != null)
         {
-            panel.SetActive(false);
+            panel.SetActive(
+                false
+            );
         }
 
 
-        // =====================================================
+        // =================================================
         // DEVOLVER CONTROL DE CÁMARA
-        // =====================================================
+        // =================================================
 
         if (controladorMiradaJugador != null)
         {
@@ -426,16 +536,18 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
-        // =====================================================
-        // VOLVER A BLOQUEAR CURSOR
-        // =====================================================
+        // =================================================
+        // CURSOR
+        // =================================================
 
         Cursor.lockState =
             CursorLockMode.Locked;
 
+
         Cursor.visible =
             false;
     }
+
 
     // =====================================================
     // CONSULTA
@@ -449,7 +561,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // BOTÓN TRABAJAR
+    // TRABAJAR
     // =====================================================
 
     public void BotonTrabajar()
@@ -466,7 +578,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // BOTÓN PAUSA
+    // PAUSA
     // =====================================================
 
     public void BotonPausa()
@@ -483,7 +595,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // BOTÓN PARKING
+    // PARKING
     // =====================================================
 
     public void BotonParking()
@@ -520,26 +632,6 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // RADIO
-    // =====================================================
-
-    private void CambiarRadio(
-        float valor)
-    {
-        if (botActual == null)
-            return;
-
-
-        botActual.SetRadioPrioridad(
-            valor
-        );
-
-
-        ActualizarTextos();
-    }
-
-
-    // =====================================================
     // IGNORAR PIEDRAS EN MOVIMIENTO
     // =====================================================
 
@@ -550,14 +642,117 @@ public class MenuBotUI : MonoBehaviour
             return;
 
 
-        botActual.SetIgnorarPiedrasEnMovimiento(
-            valor
+        botActual
+            .SetIgnorarPiedrasEnMovimiento(
+                valor
+            );
+    }
+
+
+    // =====================================================
+    // PRIORIDAD
+    // =====================================================
+
+    private void CambiarPrioridad(
+        int indice)
+    {
+        if (botActual == null)
+            return;
+
+
+        ConfiguracionBot.PrioridadRecogida prioridad =
+            (ConfiguracionBot.PrioridadRecogida)
+            indice;
+
+
+        botActual.SetPrioridadRecogida(
+            prioridad
         );
     }
 
 
     // =====================================================
-    // ACTUALIZAR TEXTOS VARIABLES
+    // PUREZA MÍNIMA
+    // =====================================================
+
+    private void CambiarPurezaMinima(
+        float valor)
+    {
+        if (botActual == null)
+            return;
+
+
+        botActual.SetPurezaMinima(
+            valor
+        );
+
+
+        // Si el mínimo ha superado al máximo,
+        // ConfiguracionBot ajusta el máximo.
+        if (sliderPurezaMax != null)
+        {
+            sliderPurezaMax
+                .SetValueWithoutNotify(
+                    botActual.purezaMaxima
+                );
+        }
+
+
+        if (sliderPurezaMin != null)
+        {
+            sliderPurezaMin
+                .SetValueWithoutNotify(
+                    botActual.purezaMinima
+                );
+        }
+
+
+        ActualizarTextos();
+    }
+
+
+    // =====================================================
+    // PUREZA MÁXIMA
+    // =====================================================
+
+    private void CambiarPurezaMaxima(
+        float valor)
+    {
+        if (botActual == null)
+            return;
+
+
+        botActual.SetPurezaMaxima(
+            valor
+        );
+
+
+        // Si el máximo ha bajado del mínimo,
+        // ConfiguracionBot ajusta el mínimo.
+        if (sliderPurezaMin != null)
+        {
+            sliderPurezaMin
+                .SetValueWithoutNotify(
+                    botActual.purezaMinima
+                );
+        }
+
+
+        if (sliderPurezaMax != null)
+        {
+            sliderPurezaMax
+                .SetValueWithoutNotify(
+                    botActual.purezaMaxima
+                );
+        }
+
+
+        ActualizarTextos();
+    }
+
+
+    // =====================================================
+    // ACTUALIZAR TEXTOS
     // =====================================================
 
     private void ActualizarTextos()
@@ -566,6 +761,10 @@ public class MenuBotUI : MonoBehaviour
             return;
 
 
+        // =================================================
+        // NOMBRE
+        // =================================================
+
         if (textoNombre != null)
         {
             textoNombre.text =
@@ -573,20 +772,47 @@ public class MenuBotUI : MonoBehaviour
         }
 
 
+        // =================================================
+        // VELOCIDAD
+        // =================================================
+
         if (textoVelocidad != null)
         {
             textoVelocidad.text =
                 "Velocidad: " +
-                botActual.velocidadMovimiento.ToString("0.0");
+                botActual
+                    .velocidadMovimiento
+                    .ToString("0.0");
         }
 
 
-        if (textoRadio != null)
+        // =================================================
+        // PUREZA MÍNIMA
+        // =================================================
+
+        if (textoPurezaMin != null)
         {
-            textoRadio.text =
-                "Radio prioridad: " +
-                botActual.radioPrioridad.ToString("0") +
-                " m";
+            textoPurezaMin.text =
+                "Pureza mínima: " +
+                botActual
+                    .purezaMinima
+                    .ToString("0") +
+                "%";
+        }
+
+
+        // =================================================
+        // PUREZA MÁXIMA
+        // =================================================
+
+        if (textoPurezaMax != null)
+        {
+            textoPurezaMax.text =
+                "Pureza máxima: " +
+                botActual
+                    .purezaMaxima
+                    .ToString("0") +
+                "%";
         }
     }
 
@@ -609,7 +835,8 @@ public class MenuBotUI : MonoBehaviour
 
         switch (botActual.modoActual)
         {
-            case ConfiguracionBot.ModoBot.Trabajar:
+            case ConfiguracionBot
+                .ModoBot.Trabajar:
 
                 modo =
                     "Trabajando";
@@ -617,7 +844,8 @@ public class MenuBotUI : MonoBehaviour
                 break;
 
 
-            case ConfiguracionBot.ModoBot.Pausa:
+            case ConfiguracionBot
+                .ModoBot.Pausa:
 
                 modo =
                     "En pausa";
@@ -625,7 +853,8 @@ public class MenuBotUI : MonoBehaviour
                 break;
 
 
-            case ConfiguracionBot.ModoBot.Parking:
+            case ConfiguracionBot
+                .ModoBot.Parking:
 
                 modo =
                     "En parking";
@@ -636,7 +865,9 @@ public class MenuBotUI : MonoBehaviour
             default:
 
                 modo =
-                    botActual.modoActual.ToString();
+                    botActual
+                        .modoActual
+                        .ToString();
 
                 break;
         }
@@ -649,7 +880,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // TEXTOS DE LOS BOTONES
+    // TEXTOS BOTONES
     // =====================================================
 
     private void ConfigurarTextosBotones()
@@ -698,21 +929,5 @@ public class MenuBotUI : MonoBehaviour
             textoBoton.text =
                 texto;
         }
-    }
-
-    private void CambiarPrioridad(
-    int indice)
-    {
-        if (botActual == null)
-            return;
-
-
-        ConfiguracionBot.PrioridadRecogida prioridad =
-            (ConfiguracionBot.PrioridadRecogida)indice;
-
-
-        botActual.SetPrioridadRecogida(
-            prioridad
-        );
     }
 }
