@@ -6,7 +6,7 @@ public class LluviaMeteoritos : MonoBehaviour
     [Header("Referencias")]
     public GameObject prefabPiedra;
 
-    [Tooltip("Si asignas el Cintur�n de Asteroides, los meteoritos orbitar�n en �l hasta estar en la zona de ca�da.")]
+    [Tooltip("Si asignas el Cinturón de Asteroides, los meteoritos orbitarán en él hasta estar en la zona de caída.")]
     public CinturonAsteroides cinturonOrigen;
 
     [Header("Inicio de partida")]
@@ -16,7 +16,7 @@ public class LluviaMeteoritos : MonoBehaviour
     public float alturaCielo = 100f;
     public float alturaArco = 30f;
 
-    [Header("Ajustes de Aparici�n")]
+    [Header("Ajustes de Aparición")]
     public string tagSuelo = "Floor";
 
     [Header("Cadencia")]
@@ -24,27 +24,25 @@ public class LluviaMeteoritos : MonoBehaviour
     [Min(1)] public int cantidadPorOleada = 1;
     public float tiempoEntreMeteoritosOleada = 0.15f;
 
-    [Header("Aceleraci�n por Curva")]
+    [Header("Aceleración por Curva")]
     public AnimationCurve curvaAceleracion = AnimationCurve.Linear(0f, 1f, 1f, 3f);
     public float velocidadMaximaImpacto = 50f;
 
-    [Header("Seguridad de Colisi�n")]
+    [Header("Seguridad de Colisión")]
     public LayerMask capaColisionSuelo;
 
     [Header("Estado")]
     [SerializeField] private bool sistemaActivo = true;
 
     private Coroutine rutinaLluvia;
+
     void Start()
     {
-        // Siempre lanzamos un �nico meteorito inicial
-        // para poder arrancar la econom�a.
         if (generarMeteoritoInicial)
         {
             SpawnearMeteorito();
         }
 
-        // La lluvia continua solo empieza si est� activa.
         if (sistemaActivo)
         {
             IniciarRutinaLluvia();
@@ -97,7 +95,6 @@ public class LluviaMeteoritos : MonoBehaviour
 
         if (cinturonOrigen != null)
         {
-            // Pedimos las matem�ticas de un asteroide orbital
             CinturonAsteroides.DatosSpawnMeteorito datosOrbita = cinturonOrigen.ObtenerDatosSpawnMeteorito();
             Vector3 posicionInicial = cinturonOrigen.ObtenerPosicionEnCinturon(datosOrbita.anguloInicial, datosOrbita.distanciaAlCentro, datosOrbita.alturaY);
 
@@ -107,7 +104,6 @@ public class LluviaMeteoritos : MonoBehaviour
             if (rb != null)
             {
                 rb.useGravity = false;
-                // Iniciamos la rutina de espera en �rbita
                 StartCoroutine(RutinaOrbitaPrevia(rb, datosOrbita, puntoImpacto, meteorito));
             }
         }
@@ -139,12 +135,10 @@ public class LluviaMeteoritos : MonoBehaviour
         return meteorito;
     }
 
-    // --- NUEVO: Rutina para quedarse orbitando hasta entrar en la Zona de Ca�da ---
     IEnumerator RutinaOrbitaPrevia(Rigidbody rb, CinturonAsteroides.DatosSpawnMeteorito datos, Vector3 puntoImpacto, GameObject meteorito)
     {
         float anguloActual = datos.anguloInicial;
 
-        // Mientras siga vivo y NO est� dentro de la zona roja del cintur�n, seguimos orbitando
         while (rb != null && !rb.isKinematic && !cinturonOrigen.EstaEnZonaDeCaida(anguloActual))
         {
             anguloActual += datos.velocidadOrbita * Time.fixedDeltaTime;
@@ -158,7 +152,6 @@ public class LluviaMeteoritos : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        // �Ha entrado en la zona de ca�da! Empezamos el arco de picado.
         if (rb != null && !rb.isKinematic)
         {
             Vector3 posicionCaida = rb.position;
@@ -173,7 +166,6 @@ public class LluviaMeteoritos : MonoBehaviour
         Vector3 puntoControl = posInicial + (posFinal - posInicial) / 2f + (Vector3.up * alturaArco);
         float t = 0f;
 
-        // --- SOLUCI�N 2: Obtenemos el volumen real del meteorito ---
         Collider col = rb.GetComponent<Collider>();
         float radioPiedra = col != null ? col.bounds.extents.y : 1f;
 
@@ -198,13 +190,10 @@ public class LluviaMeteoritos : MonoBehaviour
             float distanciaAlSiguientePunto = Vector3.Distance(rb.position, siguientePosicion);
 
             RaycastHit hit;
-
-            // Usamos un SphereCast simulando el volumen del meteorito en vez de un l�ser delgado
             if (Physics.SphereCast(rb.position, radioPiedra, direccionMovimiento, out hit, distanciaAlSiguientePunto + 0.2f))
             {
                 if (hit.collider.CompareTag(tagSuelo))
                 {
-                    // Frenamos el centro exactamente donde la superficie de la piedra toc� el suelo
                     Vector3 puntoFrenado = rb.position + (direccionMovimiento * hit.distance);
                     EjecutarImpactoSuelo(rb, puntoFrenado, posInicial.y, meteorito);
                     yield break;
@@ -253,6 +242,43 @@ public class LluviaMeteoritos : MonoBehaviour
                 StopCoroutine(rutinaLluvia);
                 rutinaLluvia = null;
             }
+        }
+    }
+
+    // =======================================================
+    // NUEVO: Nace un meteorito a partir de los restos de un asteroide
+    // =======================================================
+    public void SpawnearMeteoritoDesdeAsteroideRoto(Vector3 posicionRotura)
+    {
+        Debug.Log("[LLUVIA] Generando nuevo meteorito desde los restos del asteroide en: " + posicionRotura);
+
+        if (prefabPiedra == null) return;
+
+        // Buscamos a donde debe caer (suelo)
+        GameObject[] suelos = GameObject.FindGameObjectsWithTag(tagSuelo);
+        if (suelos.Length == 0) return;
+
+        GameObject sueloElegido = suelos[Random.Range(0, suelos.Length)];
+        Collider colSuelo = sueloElegido.GetComponent<Collider>();
+        if (colSuelo == null) return;
+
+        Bounds limites = colSuelo.bounds;
+        float objetivoX = Random.Range(limites.min.x, limites.max.x);
+        float objetivoZ = Random.Range(limites.min.z, limites.max.z);
+        float alturaImpactoReal = colSuelo.bounds.max.y;
+
+        Vector3 puntoImpacto = new Vector3(objetivoX, alturaImpactoReal, objetivoZ);
+
+        // Nace en el punto exacto de la rotura
+        GameObject meteorito = InstanciarYPrepararMeteorito(posicionRotura, posicionRotura.y, alturaImpactoReal);
+        Rigidbody rb = meteorito.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.useGravity = false;
+            // Usamos la misma rutina de arco (picado) que tenías
+            StartCoroutine(RutinaArcoMeteorito(rb, posicionRotura, puntoImpacto, meteorito));
+            rb.AddTorque(Random.insideUnitSphere * 40f, ForceMode.Impulse);
         }
     }
 }

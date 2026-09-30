@@ -87,7 +87,7 @@ MonoBehaviour:
   particulasParaApagarEnImpacto:
   - {fileID: 4967612803599641730}
   particulasImpacto:
-  - {fileID: 6365435327679925616}
+  - {fileID: 6441984710446461527}
   - {fileID: 7227048370320616001}
   objetosADesactivarAlImpactar:
   - {fileID: 3374372324787519955}
@@ -367,6 +367,22 @@ PrefabInstance:
       propertyPath: playOnAwake
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5276085768081737943, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5276085768081737943, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: moveWithTransform
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5276085768081737943, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: 5276085768081737943, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: InitialModule.startSize.minScalar
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 6289505634908629949, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
       propertyPath: m_Layer
       value: 11
@@ -377,6 +393,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8364671907113439425, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
       propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8364671907113439425, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: moveWithTransform
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9000091031685894336, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
@@ -395,6 +415,22 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9067620000640806887, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9067620000640806887, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9067620000640806887, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9067620000640806887, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -405,9 +441,9 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4397686213072690388, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
   m_PrefabInstance: {fileID: 1179638519692868224}
   m_PrefabAsset: {fileID: 0}
---- !u!198 &6365435327679925616 stripped
+--- !u!198 &6441984710446461527 stripped
 ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 5190534152641624048, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+  m_CorrespondingSourceObject: {fileID: 5276085768081737943, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
   m_PrefabInstance: {fileID: 1179638519692868224}
   m_PrefabAsset: {fileID: 0}
 --- !u!198 &7227048370320616001 stripped

@@ -93,15 +93,6 @@ public class MeteoritoVisual : MonoBehaviour
             objetoHijoVisual.localScale = escalaInicialHijo * multiplicadorEscala;
         }
 
-        /* 2. Reducir estelas
-        for (int i = 0; i < estelasMeteorito.Count; i++)
-        {
-            if (estelasMeteorito[i] != null)
-            {
-                estelasMeteorito[i].time = tiemposOriginalesEstelas[i] * progresoCaida;
-            }
-        }*/
-
         // 3. Aumentar emisión de partículas de fricción
         if (particulasFriccion != null)
         {
@@ -161,13 +152,18 @@ public class MeteoritoVisual : MonoBehaviour
         {
             if (ps != null)
             {
+                // Lo soltamos del meteorito para que no herede su destrucción
                 ps.transform.SetParent(null);
+
+                // --- NUEVO: Forzamos su rotación independientemente de cómo cayó el meteorito ---
+                ps.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+
                 ps.Play();
                 Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
             }
         }
 
-        // --- 5. NUEVO: COMPROBACIÓN DE RADIO Y SHAKE DE CÁMARA ---
+        // 5. COMPROBACIÓN DE RADIO Y SHAKE DE CÁMARA
         VerificarShakeJugador();
 
         // 6. Desactivar objetos inmediatos
@@ -176,28 +172,21 @@ public class MeteoritoVisual : MonoBehaviour
             if (obj != null) obj.SetActive(false);
         }
 
-        // 7. Destrucción con retraso de 0.5 segundos
+        // 7. Destrucción con retraso de 0.5 segundos (lo dejé en 1.5 según tu código)
         StartCoroutine(RutinaDestruccionConRetraso());
     }
 
     void VerificarShakeJugador()
     {
-        // Buscamos al objeto del jugador en la escena mediante su Tag
         GameObject jugador = GameObject.FindWithTag(tagJugador);
         if (jugador != null && CameraShake.Instancia != null)
         {
             float distanciaAlImpacto = Vector3.Distance(transform.position, jugador.transform.position);
 
-            // Comprobamos si el jugador está dentro del radio configurable
             if (distanciaAlImpacto <= radioImpactoShake)
             {
-                // Calculamos un factor de cercanía: 1 si está encima, 0 si está en el borde del radio
                 float factorCercania = 1f - (distanciaAlImpacto / radioImpactoShake);
-
-                // Magnitud real aplicada escalada por la distancia
                 float magnitudFinal = magnitudShakeMax * factorCercania;
-
-                // Activamos el temblor en la cámara
                 CameraShake.Instancia.Temblar(duracionShake, magnitudFinal);
             }
         }
