@@ -9,16 +9,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7791753073355930466}
+  - component: {fileID: 3217562067679293003}
   - component: {fileID: 2611920293300441666}
   - component: {fileID: 7889327288948656312}
   - component: {fileID: 230055701423770599}
   - component: {fileID: 3861929538947642520}
   - component: {fileID: 5018282818217630466}
-  - component: {fileID: 5098474625224291455}
   - component: {fileID: 7096758023050926148}
-  - component: {fileID: 2538320947263091022}
   m_Layer: 9
-  m_Name: Piedra
+  m_Name: Meteorito 1
   m_TagString: Piedra
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -40,6 +39,28 @@ Transform:
   - {fileID: 5504552563484024959}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3217562067679293003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6288764415059956693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 0.32941177, g: 0.32941177, b: 0.32941177, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.5
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 0.75
 --- !u!33 &2611920293300441666
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -68,6 +89,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -89,9 +112,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &230055701423770599
 MonoBehaviour:
@@ -117,10 +142,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6288764415059956693}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 5
-  m_Drag: 0.5
-  m_AngularDrag: 2.5
+  m_LinearDamping: 0.5
+  m_AngularDamping: 2.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -180,23 +205,6 @@ MonoBehaviour:
   tiempoMinimoParaSonar: 0.1
   pitchMinimo: 0.7
   pitchMaximo: 1.5
---- !u!114 &5098474625224291455
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288764415059956693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c561ce9afd85e649afbd3c749583ca5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fuerzaDeformacionBase: 1
-  escalaRuidoBase: 1.2
-  usarVariacionAleatoria: 1
-  rangoVariacionFuerza: 0.3
-  rangoVariacionEscala: 0.3
 --- !u!64 &7096758023050926148
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -219,28 +227,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2538320947263091022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288764415059956693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.5
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
 --- !u!1001 &2221087246942737944
 PrefabInstance:
   m_ObjectHideFlags: 0

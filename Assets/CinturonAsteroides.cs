@@ -1,4 +1,5 @@
 using System;
+using System.Collections; // Necesario para las Corrutinas
 using UnityEngine;
 
 public class CinturonAsteroides : MonoBehaviour
@@ -96,11 +97,14 @@ public class CinturonAsteroides : MonoBehaviour
     private ParticleSystem.Particle[] particulasHumoBuffer;
     private AsteroideOrbital[] arrayAsteroides;
 
+    // --- NUEVO: Control de autoreparación ---
+    private float temporizadorReparacion = 0f;
+    private float intervaloReparacion = 1f; // Comprueba si faltan asteroides cada segundo
+
     void Start()
     {
         if (objetivoOrbita == null || prefabsAsteroides == null || prefabsAsteroides.Length == 0) return;
 
-        // Búsqueda inicial del jugador
         if (jugador == null && !string.IsNullOrEmpty(tagJugador))
         {
             GameObject objJugador = GameObject.FindGameObjectWithTag(tagJugador);
@@ -116,6 +120,8 @@ public class CinturonAsteroides : MonoBehaviour
 
         if (arrayAsteroides == null || arrayAsteroides.Length == 0)
         {
+            // Inicializa formaObjetivo para que la autoreparación sepa la cantidad meta
+            formaObjetivo = new FormaAnillo { cantidadAsteroides = cantidadInicialAsteroides, radioInterior = radioInterior, radioExterior = radioExterior, elevacionCinturon = elevacionCinturon, grosorAltura = grosorAltura };
             AjustarCantidadAsteroides(cantidadInicialAsteroides);
         }
     }
@@ -145,37 +151,91 @@ public class CinturonAsteroides : MonoBehaviour
 
             for (int i = cantidadActual; i < nuevaCantidad; i++)
             {
-                GameObject prefabAleatorio = prefabsAsteroides[UnityEngine.Random.Range(0, prefabsAsteroides.Length)];
-                GameObject nuevoAsteroide = Instantiate(prefabAleatorio, transform);
-                Destroy(nuevoAsteroide.GetComponent<Rigidbody>());
+                CrearNuevoAsteroide(i, cantidadActual > 0);
+            }
+        }
+    }
 
-                float escalaRandom = UnityEngine.Random.Range(rangoEscala.x, rangoEscala.y);
-                nuevoAsteroide.transform.localScale = new Vector3(escalaRandom, escalaRandom, escalaRandom);
+    // --- NUEVO: Método extraído para crear un solo asteroide y animarlo ---
+    private void CrearNuevoAsteroide(int indice, bool animarEscala)
+    {
+        GameObject prefabAleatorio = prefabsAsteroides[UnityEngine.Random.Range(0, prefabsAsteroides.Length)];
+        GameObject nuevoAsteroide = Instantiate(prefabAleatorio, transform);
+        Destroy(nuevoAsteroide.GetComponent<Rigidbody>());
 
-                float fRadio = UnityEngine.Random.value;
-                float fAltura = UnityEngine.Random.Range(-1f, 1f);
-                float radioBaseCalculado = Mathf.Lerp(radioInterior, radioExterior, fRadio);
-                float offsetInicial = (cantidadActual > 0) ? -radioBaseCalculado : 0f;
+        float escalaRandom = UnityEngine.Random.Range(rangoEscala.x, rangoEscala.y);
 
-                arrayAsteroides[i] = new AsteroideOrbital
-                {
-                    transformAsteroide = nuevoAsteroide.transform,
-                    anguloActual = UnityEngine.Random.Range(0f, 360f),
-                    factorRadio = fRadio,
-                    factorAltura = fAltura,
-                    velocidadOrbita = UnityEngine.Random.Range(rangoVelocidadOrbita.x, rangoVelocidadOrbita.y),
-                    ejeRotacionLocal = UnityEngine.Random.onUnitSphere,
-                    velocidadRotacionLocal = UnityEngine.Random.Range(rangoVelocidadRotacionLocal.x, rangoVelocidadRotacionLocal.y),
-                    offsetActualExplosion = offsetInicial,
-                    velocidadRadial = 0f
-                };
+        // Si necesitamos animar la escala (es una reparación o un cambio de fase), empieza en 0
+        if (animarEscala)
+        {
+            nuevoAsteroide.transform.localScale = Vector3.zero;
+            StartCoroutine(RutinaAparecerAsteroide(nuevoAsteroide.transform, Vector3.one * escalaRandom, 5f));
+        }
+        else
+        {
+            nuevoAsteroide.transform.localScale = new Vector3(escalaRandom, escalaRandom, escalaRandom);
+        }
 
-                if (UnityEngine.Random.value > 0.5f) arrayAsteroides[i].velocidadOrbita *= -1f;
+        float fRadio = UnityEngine.Random.value;
+        float fAltura = UnityEngine.Random.Range(-1f, 1f);
 
-                float alturaBaseY = grosorAltura * arrayAsteroides[i].factorAltura;
-                float distanciaInicial = radioBaseCalculado + arrayAsteroides[i].offsetActualExplosion;
+        arrayAsteroides[indice] = new AsteroideOrbital
+        {
+            transformAsteroide = nuevoAsteroide.transform,
+            anguloActual = UnityEngine.Random.Range(0f, 360f),
+            factorRadio = fRadio,
+            factorAltura = fAltura,
+            velocidadOrbita = UnityEngine.Random.Range(rangoVelocidadOrbita.x, rangoVelocidadOrbita.y),
+            ejeRotacionLocal = UnityEngine.Random.onUnitSphere,
+            velocidadRotacionLocal = UnityEngine.Random.Range(rangoVelocidadRotacionLocal.x, rangoVelocidadRotacionLocal.y),
+            offsetActualExplosion = 0f,
+            velocidadRadial = 0f
+        };
 
-                nuevoAsteroide.transform.position = ObtenerPosicionEnCinturon(arrayAsteroides[i].anguloActual, distanciaInicial, alturaBaseY);
+        if (UnityEngine.Random.value > 0.5f) arrayAsteroides[indice].velocidadOrbita *= -1f;
+
+        // Lo colocamos en su posición inicial inmediatamente para que no nazca en 0,0,0
+        ObtenerMatrizCinturon(out Vector3 centroGlobal, out Quaternion rotacionGlobal);
+        float radioBaseCalculado = Mathf.Lerp(radioInterior, radioExterior, fRadio);
+        float alturaBaseY = grosorAltura * fAltura;
+        nuevoAsteroide.transform.position = ObtenerPosicionEnCinturonRapida(arrayAsteroides[indice].anguloActual, radioBaseCalculado, alturaBaseY, centroGlobal, rotacionGlobal);
+    }
+
+    // --- NUEVA CORRUTINA: Hace crecer el asteroide suavemente ---
+    private IEnumerator RutinaAparecerAsteroide(Transform asteroide, Vector3 escalaFinal, float duracion)
+    {
+        float tiempo = 0f;
+        while (tiempo < duracion)
+        {
+            if (asteroide == null) yield break; // Si se destruye mientras crece, paramos
+
+            tiempo += Time.deltaTime;
+            float progreso = tiempo / duracion;
+            // Usamos SmoothStep para un crecimiento más orgánico (rápido al principio, lento al final)
+            float valorSuavizado = Mathf.SmoothStep(0f, 1f, progreso);
+
+            asteroide.localScale = Vector3.Lerp(Vector3.zero, escalaFinal, valorSuavizado);
+            yield return null;
+        }
+
+        if (asteroide != null) asteroide.localScale = escalaFinal;
+    }
+
+    // --- NUEVO: Revisa si hay huecos (asteroides null) en el array y los rellena ---
+    private void ComprobarYRepararAsteroides()
+    {
+        if (arrayAsteroides == null || formaObjetivo.cantidadAsteroides == 0) return;
+
+        bool arrayModificado = false;
+
+        // Comprobamos si hay algún asteroide destruido en la lista actual
+        for (int i = 0; i < arrayAsteroides.Length; i++)
+        {
+            if (arrayAsteroides[i].transformAsteroide == null)
+            {
+                // Si falta, lo volvemos a crear en ese mismo hueco de la lista
+                CrearNuevoAsteroide(i, true);
+                arrayModificado = true;
             }
         }
     }
@@ -199,19 +259,31 @@ public class CinturonAsteroides : MonoBehaviour
 
     void Update()
     {
-        radioInterior = Mathf.Lerp(radioInterior, formaObjetivo.radioInterior, Time.deltaTime * velocidadTransicionForma);
-        radioExterior = Mathf.Lerp(radioExterior, formaObjetivo.radioExterior, Time.deltaTime * velocidadTransicionForma);
-        elevacionCinturon = Mathf.Lerp(elevacionCinturon, formaObjetivo.elevacionCinturon, Time.deltaTime * velocidadTransicionForma);
-        grosorAltura = Mathf.Lerp(grosorAltura, formaObjetivo.grosorAltura, Time.deltaTime * velocidadTransicionForma);
-        escalaBaseHumo = Vector3.Lerp(escalaBaseHumo, formaObjetivo.escalaHumo, Time.deltaTime * velocidadTransicionForma);
+        float dt = Time.deltaTime;
+
+        // --- NUEVO: Lógica de autoreparación (no se hace cada frame por rendimiento) ---
+        temporizadorReparacion += dt;
+        if (temporizadorReparacion >= intervaloReparacion)
+        {
+            temporizadorReparacion = 0f;
+            ComprobarYRepararAsteroides();
+        }
+
+        radioInterior = Mathf.Lerp(radioInterior, formaObjetivo.radioInterior, dt * velocidadTransicionForma);
+        radioExterior = Mathf.Lerp(radioExterior, formaObjetivo.radioExterior, dt * velocidadTransicionForma);
+        elevacionCinturon = Mathf.Lerp(elevacionCinturon, formaObjetivo.elevacionCinturon, dt * velocidadTransicionForma);
+        grosorAltura = Mathf.Lerp(grosorAltura, formaObjetivo.grosorAltura, dt * velocidadTransicionForma);
+        escalaBaseHumo = Vector3.Lerp(escalaBaseHumo, formaObjetivo.escalaHumo, dt * velocidadTransicionForma);
+
+        float diferenciaRadios = radioExterior - radioInterior;
 
         if (particulasAnilloHumo != null)
         {
             float desplazamientoHumo = multiplicadorHumoActual - 1f;
             float aceleracionHumo = (-rigidezResorteHumo * desplazamientoHumo) - (amortiguacionHumo * velocidadRadialHumo);
 
-            velocidadRadialHumo += aceleracionHumo * Time.deltaTime;
-            multiplicadorHumoActual += velocidadRadialHumo * Time.deltaTime;
+            velocidadRadialHumo += aceleracionHumo * dt;
+            multiplicadorHumoActual += velocidadRadialHumo * dt;
 
             particulasAnilloHumo.transform.localScale = new Vector3(
                 escalaBaseHumo.x * multiplicadorHumoActual,
@@ -244,43 +316,37 @@ public class CinturonAsteroides : MonoBehaviour
 
         if (velocidadRotacionObjetivo != 0f && !rotacionPausada)
         {
-            objetivoOrbita.Rotate(ejeRotacionObjetivo, velocidadRotacionObjetivo * Time.deltaTime, Space.Self);
+            objetivoOrbita.Rotate(ejeRotacionObjetivo, velocidadRotacionObjetivo * dt, Space.Self);
         }
 
-        // --- OPTIMIZACIÓN CLAVE: Calculamos el centro y la rotación UNA VEZ por fotograma ---
-        ObtenerMatrizCinturon(out Vector3 centroCinturon, out Quaternion rotacionCinturon);
+        ObtenerMatrizCinturon(out Vector3 centroGlobal, out Quaternion rotacionGlobal);
 
         for (int i = 0; i < arrayAsteroides.Length; i++)
         {
             if (arrayAsteroides[i].transformAsteroide == null) continue;
 
-            arrayAsteroides[i].anguloActual += arrayAsteroides[i].velocidadOrbita * Time.deltaTime;
+            arrayAsteroides[i].anguloActual += arrayAsteroides[i].velocidadOrbita * dt;
             if (arrayAsteroides[i].anguloActual > 360f) arrayAsteroides[i].anguloActual -= 360f;
             else if (arrayAsteroides[i].anguloActual < 0f) arrayAsteroides[i].anguloActual += 360f;
 
             float desplazamientoAsteroide = arrayAsteroides[i].offsetActualExplosion;
             float aceleracionAsteroide = (-rigidezResorteAsteroides * desplazamientoAsteroide) - (amortiguacionAsteroides * arrayAsteroides[i].velocidadRadial);
 
-            arrayAsteroides[i].velocidadRadial += aceleracionAsteroide * Time.deltaTime;
-            arrayAsteroides[i].offsetActualExplosion += arrayAsteroides[i].velocidadRadial * Time.deltaTime;
+            arrayAsteroides[i].velocidadRadial += aceleracionAsteroide * dt;
+            arrayAsteroides[i].offsetActualExplosion += arrayAsteroides[i].velocidadRadial * dt;
 
-            float radioBase = Mathf.Lerp(radioInterior, radioExterior, arrayAsteroides[i].factorRadio);
+            float radioBase = radioInterior + (diferenciaRadios * arrayAsteroides[i].factorRadio);
             float alturaBaseY = grosorAltura * arrayAsteroides[i].factorAltura;
             float distanciaTotal = radioBase + arrayAsteroides[i].offsetActualExplosion;
 
-            // En lugar de llamar a la función lenta, usamos la versión rápida pre-calculada
-            Vector3 posicionFinal = ObtenerPosicionEnCinturonRapida(
-                arrayAsteroides[i].anguloActual,
-                distanciaTotal,
-                alturaBaseY,
-                centroCinturon,
-                rotacionCinturon
-            );
+            float radianes = arrayAsteroides[i].anguloActual * Mathf.Deg2Rad;
+            Vector3 posicionLocal = new Vector3(Mathf.Cos(radianes) * distanciaTotal, alturaBaseY, Mathf.Sin(radianes) * distanciaTotal);
 
-            arrayAsteroides[i].transformAsteroide.position = posicionFinal;
+            arrayAsteroides[i].transformAsteroide.position = centroGlobal + (rotacionGlobal * posicionLocal);
+
             arrayAsteroides[i].transformAsteroide.Rotate(
                 arrayAsteroides[i].ejeRotacionLocal,
-                arrayAsteroides[i].velocidadRotacionLocal * Time.deltaTime,
+                arrayAsteroides[i].velocidadRotacionLocal * dt,
                 Space.Self
             );
         }
@@ -319,11 +385,10 @@ public class CinturonAsteroides : MonoBehaviour
         centro = objetivoOrbita != null ? objetivoOrbita.position + new Vector3(0f, elevacionCinturon, 0f) : Vector3.zero;
         rotacion = Quaternion.identity;
 
-        // --- OPTIMIZACIÓN: Si la variable está vacía, buscamos y GUARDAMOS el resultado ---
         if (jugador == null && !string.IsNullOrEmpty(tagJugador))
         {
             GameObject j = GameObject.FindGameObjectWithTag(tagJugador);
-            if (j != null) jugador = j.transform; // ¡Lo guardamos para no tener que buscarlo de nuevo!
+            if (j != null) jugador = j.transform;
         }
 
         if (jugador != null)
@@ -339,12 +404,10 @@ public class CinturonAsteroides : MonoBehaviour
 
     public Vector3 ObtenerPosicionEnCinturon(float anguloGrados, float distancia, float alturaY)
     {
-        // Esta es la original que se usa para instanciar (ya no se usa en el Update masivo)
         ObtenerMatrizCinturon(out Vector3 centro, out Quaternion rotacion);
         return ObtenerPosicionEnCinturonRapida(anguloGrados, distancia, alturaY, centro, rotacion);
     }
 
-    // --- NUEVA FUNCIÓN OPTIMIZADA (Omite el recalcular la matriz) ---
     private Vector3 ObtenerPosicionEnCinturonRapida(float anguloGrados, float distancia, float alturaY, Vector3 centroGlobal, Quaternion rotacionGlobal)
     {
         float radianes = anguloGrados * Mathf.Deg2Rad;

@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 230055701423770599}
   - component: {fileID: 3861929538947642520}
   - component: {fileID: 5018282818217630466}
-  - component: {fileID: 5098474625224291455}
   - component: {fileID: 7096758023050926148}
   m_Layer: 9
   m_Name: Meteorito
@@ -244,23 +243,6 @@ MonoBehaviour:
   tiempoMinimoParaSonar: 0.1
   pitchMinimo: 0.7
   pitchMaximo: 1.5
---- !u!114 &5098474625224291455
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288764415059956693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c561ce9afd85e649afbd3c749583ca5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fuerzaDeformacionBase: 1
-  escalaRuidoBase: 1.2
-  usarVariacionAleatoria: 1
-  rangoVariacionFuerza: 0.3
-  rangoVariacionEscala: 0.3
 --- !u!64 &7096758023050926148
 MeshCollider:
   m_ObjectHideFlags: 0

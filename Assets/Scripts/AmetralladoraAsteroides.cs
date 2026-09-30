@@ -17,39 +17,61 @@ public class AmetralladoraAsteroides : MonoBehaviour
 
     [Header("Configuración de Disparo")]
     public float cadenciaDisparo = 1f;
+    [Tooltip("Rango de detección para BUSCAR nuevos objetivos")]
     public float alcance = 300f;
     public float grosorLaser = 2f;
     public LayerMask capaAsteroides;
 
-    [Header("Efectos Visuales")]
-    [Tooltip("El misil/láser visual que volará hacia el objetivo")]
+    // --- NUEVO: SISTEMA DE ANIMACIÓN POR BLEND SHAPE ---
+    [Header("Animación (Blend Shape)")]
+    [Tooltip("El SkinnedMeshRenderer del cañón o pieza que contiene la animación de retroceso")]
+    public SkinnedMeshRenderer mallaArma;
+    [Tooltip("Índice de la forma de mezcla en el modelo 3D (0 es la primera, 1 la segunda...)")]
+    public int indiceBlendShape = 0;
+    public float pesoMaximoBlendShape = 100f;
+    public float velocidadRecuperacionBlend = 15f;
+
+    [Header("Efectos Visuales y Gráfica de Velocidad")]
     public GameObject prefabProyectil;
-    [Tooltip("Velocidad de vuelo del proyectil visual")]
-    public float velocidadProyectil = 150f;
-    [Tooltip("El sistema de partículas que aparecerá al destruir el asteroide")]
+    [Tooltip("Velocidad máxima base del proyectil")]
+    public float velocidadMaximaProyectil = 150f;
+
+    [Tooltip("Gráfica de velocidad (Eje X: 0 es inicio del vuelo, 1 es el impacto | Eje Y: multiplicador de velocidad)")]
+    public AnimationCurve curvaVelocidadProyectil = new AnimationCurve(
+        new Keyframe(0f, 1f),
+        new Keyframe(0.7f, 0.8f),
+        new Keyframe(1f, 0.15f)
+    );
+
     public GameObject prefabExplosionAsteroide;
 
     private Transform asteroideObjetivo;
     private float timerCooldown = 0f;
+    private float pesoActualBlend = 0f; // Control del valor actual de deformación
 
     private void Update()
     {
+        // 1. Recuperación continua del Blend Shape hacia 0
+        ManejarBlendShape();
+
         if (timerCooldown > 0f)
         {
             timerCooldown -= Time.deltaTime;
         }
 
+        // 2. Comprobación del objetivo fijado
         if (asteroideObjetivo != null)
         {
-            if (Vector3.Distance(transform.position, asteroideObjetivo.position) > alcance)
+            if (!asteroideObjetivo.gameObject.activeInHierarchy)
             {
-                asteroideObjetivo = null;
+                PerderObjetivo();
             }
         }
 
+        // 3. Búsqueda o seguimiento
         if (asteroideObjetivo == null)
         {
-            BuscarObjetivo();
+            BuscarMejorObjetivo();
         }
         else
         {
@@ -62,13 +84,40 @@ public class AmetralladoraAsteroides : MonoBehaviour
         }
     }
 
-    private void BuscarObjetivo()
+    private void ManejarBlendShape()
+    {
+        if (mallaArma != null && (pesoActualBlend > 0.01f || mallaArma.GetBlendShapeWeight(indiceBlendShape) > 0.01f))
+        {
+            pesoActualBlend = Mathf.Lerp(pesoActualBlend, 0f, Time.deltaTime * velocidadRecuperacionBlend);
+            mallaArma.SetBlendShapeWeight(indiceBlendShape, pesoActualBlend);
+        }
+    }
+
+    private void BuscarMejorObjetivo()
     {
         Collider[] asteroidesCercanos = Physics.OverlapSphere(transform.position, alcance, capaAsteroides);
-        if (asteroidesCercanos.Length > 0)
+
+        Transform objetivoMasCercano = null;
+        float menorDistancia = float.MaxValue;
+
+        for (int i = 0; i < asteroidesCercanos.Length; i++)
         {
-            asteroideObjetivo = asteroidesCercanos[Random.Range(0, asteroidesCercanos.Length)].transform;
+            if (asteroidesCercanos[i] == null) continue;
+
+            float d = Vector3.Distance(transform.position, asteroidesCercanos[i].transform.position);
+            if (d < menorDistancia)
+            {
+                menorDistancia = d;
+                objetivoMasCercano = asteroidesCercanos[i].transform;
+            }
         }
+
+        asteroideObjetivo = objetivoMasCercano;
+    }
+
+    private void PerderObjetivo()
+    {
+        asteroideObjetivo = null;
     }
 
     private void ApuntarAlObjetivo()
@@ -107,46 +156,51 @@ public class AmetralladoraAsteroides : MonoBehaviour
         {
             Vector3 direccionDisparo = puntoDisparo.forward;
 
-            // El SphereCast asegura lógicamente el tiro al instante
-            if (Physics.SphereCast(puntoDisparo.position, grosorLaser, direccionDisparo, out RaycastHit hit, alcance, capaAsteroides, QueryTriggerInteraction.Collide))
+            float distanciaAlObjetivo = Vector3.Distance(puntoDisparo.position, asteroideObjetivo.position);
+            float alcanceDisparo = distanciaAlObjetivo + 20f;
+
+            if (Physics.SphereCast(puntoDisparo.position, grosorLaser, direccionDisparo, out RaycastHit hit, alcanceDisparo, capaAsteroides, QueryTriggerInteraction.Collide))
             {
                 if (hit.collider.transform.root == this.transform.root) return;
 
-                // --- NUEVO: Iniciamos el vuelo del proyectil hacia el objetivo asegurado ---
+                // --- DISPARO DEL BLEND SHAPE ---
+                pesoActualBlend = pesoMaximoBlendShape;
+
                 StartCoroutine(RutinaVueloProyectil(hit.collider.gameObject));
 
-                asteroideObjetivo = null; // Soltamos el objetivo para buscar otro inmediatamente
+                PerderObjetivo();
                 timerCooldown = cadenciaDisparo;
             }
         }
     }
 
-    // =================================================================================
-    // NUEVO: Corrutina que mueve el proyectil visual en línea recta hasta el asteroide
-    // =================================================================================
     private IEnumerator RutinaVueloProyectil(GameObject asteroideHit)
     {
         GameObject proyectil = null;
 
-        // 1. Instanciamos el misil/láser visual
         if (prefabProyectil != null && puntoDisparo != null)
         {
             proyectil = Instantiate(prefabProyectil, puntoDisparo.position, puntoDisparo.rotation);
         }
 
         bool impactoConfirmado = false;
+        float distanciaInicial = asteroideHit != null ? Vector3.Distance(puntoDisparo.position, asteroideHit.transform.position) : 1f;
 
-        // 2. Lo movemos frame a frame en línea recta hacia el asteroide
         while (proyectil != null && asteroideHit != null)
         {
             Vector3 direccion = (asteroideHit.transform.position - proyectil.transform.position).normalized;
-            float distanciaAvance = velocidadProyectil * Time.deltaTime;
+            float distanciaRestante = Vector3.Distance(proyectil.transform.position, asteroideHit.transform.position);
+
+            float progresoVuelo = Mathf.Clamp01(1f - (distanciaRestante / distanciaInicial));
+            float multiplicadorVelocidad = curvaVelocidadProyectil.Evaluate(progresoVuelo);
+            float velocidadActual = velocidadMaximaProyectil * multiplicadorVelocidad;
+
+            float distanciaAvance = velocidadActual * Time.deltaTime;
 
             proyectil.transform.position += direccion * distanciaAvance;
             if (direccion != Vector3.zero) proyectil.transform.rotation = Quaternion.LookRotation(direccion);
 
-            // Si está lo suficientemente cerca, consideramos que ha impactado
-            if (Vector3.Distance(proyectil.transform.position, asteroideHit.transform.position) <= distanciaAvance + 1f)
+            if (distanciaRestante <= distanciaAvance + 1.5f)
             {
                 impactoConfirmado = true;
                 break;
@@ -155,10 +209,21 @@ public class AmetralladoraAsteroides : MonoBehaviour
             yield return null;
         }
 
-        // 3. Destruimos el proyectil visual
-        if (proyectil != null) Destroy(proyectil);
+        if (proyectil != null)
+        {
+            MeshRenderer[] mallas = proyectil.GetComponentsInChildren<MeshRenderer>();
+            foreach (MeshRenderer m in mallas) m.enabled = false;
 
-        // 4. Si el asteroide sigue vivo y logramos llegar a él, ejecutamos la destrucción real
+            ParticleSystem[] sistemasParticulas = proyectil.GetComponentsInChildren<ParticleSystem>();
+            foreach (ParticleSystem ps in sistemasParticulas)
+            {
+                var emision = ps.emission;
+                emision.enabled = false;
+            }
+
+            Destroy(proyectil, 2f);
+        }
+
         if (impactoConfirmado && asteroideHit != null)
         {
             Vector3 posicionRotura = asteroideHit.transform.position;
