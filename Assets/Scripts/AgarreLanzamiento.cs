@@ -123,4 +123,9 @@ public class AgarreLanzamiento : MonoBehaviour
     {
         return objetoSostenido != null;
     }
+    public bool EstaSosteniendoPiedra(Rigidbody piedra)
+    {
+        return objetoSostenido != null &&
+               objetoSostenido == piedra;
+    }
 }
