@@ -10,370 +10,122 @@ public class GeneradorPiedra : MonoBehaviour
     public float fuerzaDeformacionBase = 1.0f;
     public float escalaRuidoBase = 1.2f;
 
-
     [Header("Variación Automática (Pool de Variantes)")]
-
-    [Tooltip(
-        "Permite que cada piedra varíe ligeramente su forma " +
-        "al nacer para crear un banco de modelos diversos."
-    )]
+    [Tooltip("Permite que cada piedra varíe ligeramente su forma al nacer para crear un banco de modelos diversos.")]
     public bool usarVariacionAleatoria = true;
+    [Range(0f, 0.5f)] public float rangoVariacionFuerza = 0.3f;
+    [Range(0f, 0.5f)] public float rangoVariacionEscala = 0.3f;
 
+    // Sistema de caché inteligente para GPU Instancing (Reutiliza mallas similares)
+    private static Dictionary<string, Mesh> cacheMallas = new Dictionary<string, Mesh>();
 
-    [Range(0f, 0.5f)]
-    public float rangoVariacionFuerza = 0.3f;
+    [ContextMenu("¡Generar Piedra Irregular!")]
 
-
-    [Range(0f, 0.5f)]
-    public float rangoVariacionEscala = 0.3f;
-
-
-    // =====================================================
-    // CACHE DE MALLAS
-    // =====================================================
-
-    private static readonly Dictionary<string, Mesh>
-        cacheMallas =
-        new Dictionary<string, Mesh>();
-
-
-    // =====================================================
-    // AWAKE
-    // =====================================================
-
-    private void Awake()
+    public void Awake()
     {
         Generar();
     }
-
-
-    // =====================================================
-    // GENERAR
-    // =====================================================
-
-    [ContextMenu("¡Generar Piedra Irregular!")]
     public void Generar()
     {
-        MeshFilter mf =
-            GetComponent<MeshFilter>();
+        MeshFilter mf = GetComponent<MeshFilter>();
+        MeshCollider mc = GetComponent<MeshCollider>();
 
+        if (mf.sharedMesh == null) return;
 
-        MeshCollider mc =
-            GetComponent<MeshCollider>();
-
-
-        if (mf.sharedMesh == null)
-            return;
-
-
-        // =================================================
-        // VALORES BASE
-        // =================================================
-
-        float fuerzaFinal =
-            fuerzaDeformacionBase;
-
-
-        float escalaFinal =
-            escalaRuidoBase;
-
-
-        // =================================================
-        // VARIACIÓN
-        // =================================================
+        // Si el usuario quiere variedad, aplicamos un pequeño offset aleatorio controlado 
+        // para redondear a 2 decimales, asegurando que se agrupen en un pool limitado de variantes.
+        float fuerzaFinal = fuerzaDeformacionBase;
+        float escalaFinal = escalaRuidoBase;
 
         if (usarVariacionAleatoria)
         {
-            // Unity 6:
-            // GetInstanceID() está obsoleto.
-            //
-            // GetEntityId() es el sustituto actual.
-            // Convertimos ese identificador en un int
-            // válido para Random.InitState().
+            // Usamos la posición actual como semilla única para que la variante sea consistente al regenerar
+            Random.InitState(gameObject.GetInstanceID());
+            float varFuerza = Random.Range(-rangoVariacionFuerza, rangoVariacionFuerza);
+            float varEscala = Random.Range(-rangoVariacionEscala, rangoVariacionEscala);
 
-            int semillaObjeto =
-                gameObject
-                    .GetEntityId()
-                    .GetHashCode();
+            fuerzaFinal = Mathf.Max(0.1f, fuerzaDeformacionBase + varFuerza);
+            escalaFinal = Mathf.Max(0.1f, escalaRuidoBase + varEscala);
 
-
-            Random.InitState(
-                semillaObjeto
-            );
-
-
-            float varFuerza =
-                Random.Range(
-                    -rangoVariacionFuerza,
-                    rangoVariacionFuerza
-                );
-
-
-            float varEscala =
-                Random.Range(
-                    -rangoVariacionEscala,
-                    rangoVariacionEscala
-                );
-
-
-            fuerzaFinal =
-                Mathf.Max(
-                    0.1f,
-                    fuerzaDeformacionBase +
-                    varFuerza
-                );
-
-
-            escalaFinal =
-                Mathf.Max(
-                    0.1f,
-                    escalaRuidoBase +
-                    varEscala
-                );
-
-
-            // Redondeamos a 1 decimal para que
-            // distintas piedras puedan compartir
-            // variantes del mismo pool.
-
-            fuerzaFinal =
-                Mathf.Round(
-                    fuerzaFinal * 10f
-                ) / 10f;
-
-
-            escalaFinal =
-                Mathf.Round(
-                    escalaFinal * 10f
-                ) / 10f;
+            // Redondeamos a 1 decimal para forzar que piedras con valores similares compartan la misma malla maestra (Pool)
+            fuerzaFinal = Mathf.Round(fuerzaFinal * 10f) / 10f;
+            escalaFinal = Mathf.Round(escalaFinal * 10f) / 10f;
         }
 
-
-        // =================================================
-        // CLAVE DEL POOL
-        // =================================================
-
-        string claveCache =
-            $"Piedra_{fuerzaFinal}_{escalaFinal}";
-
+        // Creamos una clave de caché basada en estos valores redondeados
+        string claveCache = $"Piedra_{fuerzaFinal}_{escalaFinal}";
 
         Mesh mallaFinal;
 
-
-        // =================================================
-        // MALLA YA EXISTENTE
-        // =================================================
-
-        if (cacheMallas.TryGetValue(
-                claveCache,
-                out Mesh mallaCache))
+        if (cacheMallas.ContainsKey(claveCache))
         {
-            mallaFinal =
-                mallaCache;
+            // Si ya existe una malla maestra con esta variante exacta, la reutilizamos (Ahorro brutal de CPU y memoria)
+            mallaFinal = cacheMallas[claveCache];
         }
-
-        // =================================================
-        // GENERAR NUEVA VARIANTE
-        // =================================================
-
         else
         {
-            Mesh malla =
-                Instantiate(
-                    mf.sharedMesh
-                );
+            // Si no existe, la generamos por primera vez y la guardamos en el pool
+            Mesh malla = Instantiate(mf.sharedMesh);
+            Vector3[] vertices = malla.vertices;
+            Vector3 semilla = new Vector3(Random.value * 100f, Random.value * 100f, Random.value * 100f);
 
-
-            Vector3[] vertices =
-                malla.vertices;
-
-
-            // Offset para el ruido Perlin.
-            Vector3 semillaRuido =
-                new Vector3(
-                    Random.value * 100f,
-                    Random.value * 100f,
-                    Random.value * 100f
-                );
-
-
-            for (int i = 0;
-                 i < vertices.Length;
-                 i++)
+            for (int i = 0; i < vertices.Length; i++)
             {
-                Vector3 p =
-                    vertices[i];
+                Vector3 p = vertices[i];
+                float ruidoX = Mathf.PerlinNoise(p.x * escalaFinal + semilla.x, p.y * escalaFinal + semilla.y);
+                float ruidoY = Mathf.PerlinNoise(p.y * escalaFinal + semilla.y, p.z * escalaFinal + semilla.z);
+                float ruidoZ = Mathf.PerlinNoise(p.z * escalaFinal + semilla.z, p.x * escalaFinal + semilla.x);
 
-
-                float ruidoX =
-                    Mathf.PerlinNoise(
-                        p.x * escalaFinal +
-                        semillaRuido.x,
-
-                        p.y * escalaFinal +
-                        semillaRuido.y
-                    );
-
-
-                float ruidoY =
-                    Mathf.PerlinNoise(
-                        p.y * escalaFinal +
-                        semillaRuido.y,
-
-                        p.z * escalaFinal +
-                        semillaRuido.z
-                    );
-
-
-                float ruidoZ =
-                    Mathf.PerlinNoise(
-                        p.z * escalaFinal +
-                        semillaRuido.z,
-
-                        p.x * escalaFinal +
-                        semillaRuido.x
-                    );
-
-
-                float intensidadRuido =
-                    (
-                        ruidoX +
-                        ruidoY +
-                        ruidoZ
-                    ) / 3f;
-
-
-                vertices[i] +=
-                    p.normalized *
-                    (
-                        intensidadRuido *
-                        fuerzaFinal
-                    );
+                float intensidadRuido = (ruidoX + ruidoY + ruidoZ) / 3f;
+                vertices[i] += p.normalized * (intensidadRuido * fuerzaFinal);
             }
 
+            malla.vertices = vertices;
+            HacerLowPoly(malla);
+            mallaFinal = malla;
 
-            malla.vertices =
-                vertices;
-
-
-            HacerLowPoly(
-                malla
-            );
-
-
-            mallaFinal =
-                malla;
-
-
-            cacheMallas.Add(
-                claveCache,
-                mallaFinal
-            );
+            cacheMallas.Add(claveCache, mallaFinal);
         }
 
-
-        // =================================================
-        // APLICAR MALLA
-        // =================================================
-
-        mf.sharedMesh =
-            mallaFinal;
-
-
-        mc.sharedMesh =
-            mallaFinal;
-
-
-        mc.convex =
-            true;
+        mf.sharedMesh = mallaFinal;
+        mc.sharedMesh = mallaFinal;
+        mc.convex = true;
     }
 
-
-    // =====================================================
-    // LOW POLY
-    // =====================================================
-
-    private void HacerLowPoly(
-        Mesh malla)
+    void HacerLowPoly(Mesh malla)
     {
-        // Primero calculamos normales suaves.
+        // 1. Calculamos las normales suaves ANTES de separar las caras
         malla.RecalculateNormals();
+        Vector3[] normalesSuaves = malla.normals;
 
+        Vector3[] verticesViejos = malla.vertices;
+        int[] triangulosViejos = malla.triangles;
 
-        Vector3[] normalesSuaves =
-            malla.normals;
+        Vector3[] verticesNuevos = new Vector3[triangulosViejos.Length];
+        int[] triangulosNuevos = new int[triangulosViejos.Length];
 
+        // 2. Preparamos una lista para guardar las normales suaves (Flat Kit las leerá de aquí)
+        List<Vector3> normalesParaFlatKit = new List<Vector3>(triangulosViejos.Length);
 
-        Vector3[] verticesViejos =
-            malla.vertices;
-
-
-        int[] triangulosViejos =
-            malla.triangles;
-
-
-        Vector3[] verticesNuevos =
-            new Vector3[
-                triangulosViejos.Length
-            ];
-
-
-        int[] triangulosNuevos =
-            new int[
-                triangulosViejos.Length
-            ];
-
-
-        List<Vector3> normalesParaFlatKit =
-            new List<Vector3>(
-                triangulosViejos.Length
-            );
-
-
-        for (int i = 0;
-             i < triangulosViejos.Length;
-             i++)
+        for (int i = 0; i < triangulosViejos.Length; i++)
         {
-            int indiceOriginal =
-                triangulosViejos[i];
+            int indiceOriginal = triangulosViejos[i];
 
+            verticesNuevos[i] = verticesViejos[indiceOriginal];
+            triangulosNuevos[i] = i;
 
-            verticesNuevos[i] =
-                verticesViejos[
-                    indiceOriginal
-                ];
-
-
-            triangulosNuevos[i] =
-                i;
-
-
-            normalesParaFlatKit.Add(
-                normalesSuaves[
-                    indiceOriginal
-                ]
-            );
+            // Copiamos la normal suave correspondiente a este vértice
+            normalesParaFlatKit.Add(normalesSuaves[indiceOriginal]);
         }
 
+        malla.vertices = verticesNuevos;
+        malla.triangles = triangulosNuevos;
 
-        malla.vertices =
-            verticesNuevos;
+        // 3. Inyectamos las normales suaves en el canal UV3 (índice 2), que es TEXCOORD2 en el shader de Flat Kit
+        malla.SetUVs(2, normalesParaFlatKit);
 
-
-        malla.triangles =
-            triangulosNuevos;
-
-
-        // UV3 / TEXCOORD2 para Flat Kit.
-        malla.SetUVs(
-            2,
-            normalesParaFlatKit
-        );
-
-
-        // Normales reales facetadas.
+        // 4. Recalculamos las normales reales para que la iluminación del objeto se vea Low Poly (facetada)
         malla.RecalculateNormals();
-
         malla.RecalculateBounds();
     }
 }
