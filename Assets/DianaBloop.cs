@@ -78,8 +78,8 @@ public class DianaBloop : MonoBehaviour
     public float retrasoExpulsion = 0.15f;
     public bool bloopEjeAleatorio = true;
     public float duracionBloop = 0.4f;
-    [Range(0.2f, 0.9f)] public float aplastamiento = 0.55f;
-    [Range(1.1f, 1.8f)] public float expansion = 1.35f;
+    [Range(0.0f, 0.9f)] public float aplastamiento = 0.55f;
+    [Range(1.0f, 1.8f)] public float expansion = 1.35f;
 
     [Header("Audio")]
     public AudioSource audioSource;
