@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
+using System.Collections.Generic;
 public class TiendaTrabajo : MonoBehaviour
 {
     // =====================================================
@@ -134,6 +134,60 @@ public class TiendaTrabajo : MonoBehaviour
     // START
     // =====================================================
 
+
+    // =====================================================
+    // BOTS - COMPRA
+    // =====================================================
+
+    [Header("Bots - Compra")]
+
+    [Tooltip("Prefab completo del Bot que se creará al comprar.")]
+    public GameObject prefabBot;
+
+
+    [Tooltip(
+        "Punto aproximado donde aparece el Bot antes " +
+        "de colocarse en un parking libre."
+    )]
+    public Transform puntoSpawnBots;
+
+
+    [Tooltip("Gestor global de Bots.")]
+    public GestorBots gestorBots;
+
+
+    [Header("Bots - UI")]
+
+    public Button botonComprarBot;
+
+    public TextMeshProUGUI textoBotonBot;
+
+
+    [Header("Bots - Configuración")]
+
+    [Min(1)]
+    public int maximoBots = 4;
+
+
+    [Tooltip(
+        "Precio según la cantidad de Bots existentes. " +
+        "0 = primer Bot, 1 = segundo Bot, etc."
+    )]
+    public List<int> preciosBots =
+        new List<int>()
+        {
+        100,
+        150,
+        200,
+        250
+        };
+
+
+    [Tooltip(
+        "Precio utilizado si no existe un precio específico " +
+        "en la lista."
+    )]
+    public int precioBotFallback = 250;
     private void Start()
     {
         if (cartera == null)
@@ -156,6 +210,19 @@ public class TiendaTrabajo : MonoBehaviour
         {
             recolectorMagnetico =
                 FindFirstObjectByType<RecolectorMagnetico>();
+        }
+
+        if (gestorBots == null)
+        {
+            gestorBots =
+                GestorBots.Instancia;
+        }
+
+
+        if (gestorBots == null)
+        {
+            gestorBots =
+                FindFirstObjectByType<GestorBots>();
         }
         ActualizarTienda();
     }
@@ -713,6 +780,12 @@ public class TiendaTrabajo : MonoBehaviour
                 !martilloComprado;
         }
 
+        // =================================================
+        // BOTS
+        // =================================================
+
+        ActualizarCompraBot();
+
     }
 
     public void ComprarMejoraMovilidadTorbellino()
@@ -1021,4 +1094,358 @@ public class TiendaTrabajo : MonoBehaviour
 
         ActualizarTienda();
     }
+
+    // =====================================================
+    // COMPRAR BOT
+    // =====================================================
+
+    public void ComprarBot()
+    {
+        // =================================================
+        // REFERENCIAS
+        // =================================================
+
+        if (cartera == null)
+        {
+            cartera =
+                FindFirstObjectByType<Cartera>();
+        }
+
+
+        if (gestorBots == null)
+        {
+            gestorBots =
+                GestorBots.Instancia;
+        }
+
+
+        if (gestorBots == null)
+        {
+            gestorBots =
+                FindFirstObjectByType<GestorBots>();
+        }
+
+
+        // =================================================
+        // COMPROBACIONES
+        // =================================================
+
+        if (cartera == null)
+        {
+            Debug.LogError(
+                "TiendaTrabajo: no se ha encontrado Cartera."
+            );
+
+            return;
+        }
+
+
+        if (gestorBots == null)
+        {
+            Debug.LogError(
+                "TiendaTrabajo: no se ha encontrado GestorBots."
+            );
+
+            return;
+        }
+
+
+        if (prefabBot == null)
+        {
+            Debug.LogError(
+                "TiendaTrabajo: falta asignar el Prefab Bot."
+            );
+
+            return;
+        }
+
+
+        if (puntoSpawnBots == null)
+        {
+            Debug.LogError(
+                "TiendaTrabajo: falta asignar Punto Spawn Bots."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // CANTIDAD ACTUAL
+        // =================================================
+
+        int cantidadActual =
+            gestorBots.ObtenerCantidadBots();
+
+
+        if (cantidadActual >= maximoBots)
+        {
+            Debug.Log(
+                "Ya has alcanzado el máximo de Bots: " +
+                cantidadActual +
+                "/" +
+                maximoBots
+            );
+
+
+            ActualizarTienda();
+
+            return;
+        }
+
+
+        // =================================================
+        // PRECIO
+        // =================================================
+
+        int precio =
+            ObtenerPrecioSiguienteBot(
+                cantidadActual
+            );
+
+
+        // =================================================
+        // PAGAR
+        // =================================================
+
+        if (!cartera.GastarMonedas(
+                precio))
+        {
+            Debug.Log(
+                "No tienes monedas suficientes para comprar el Bot."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // CREAR BOT
+        // =================================================
+
+        GameObject nuevoBot =
+            Instantiate(
+                prefabBot,
+                puntoSpawnBots.position,
+                puntoSpawnBots.rotation
+            );
+
+
+        if (nuevoBot == null)
+        {
+            Debug.LogError(
+                "TiendaTrabajo: no se pudo crear el Bot."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // CONFIGURAR BOT
+        // =================================================
+
+        BotRecolector recolector =
+            nuevoBot.GetComponent<BotRecolector>();
+
+
+        if (recolector != null)
+        {
+            recolector.aparecerEnParkingAlIniciar =
+                true;
+
+
+            recolector.empezarEnPausa =
+                true;
+        }
+
+
+        ConfiguracionBot configuracion =
+            nuevoBot.GetComponent<ConfiguracionBot>();
+
+
+        if (configuracion != null)
+        {
+            configuracion.modoActual =
+                ConfiguracionBot.ModoBot.Pausa;
+
+
+            // Registramos inmediatamente para que la tienda
+            // conozca la nueva cantidad sin esperar otro frame.
+            gestorBots.RegistrarBot(
+                configuracion
+            );
+        }
+
+
+        // =================================================
+        // DEBUG
+        // =================================================
+
+        string nombreBot =
+            nuevoBot.name;
+
+
+        if (configuracion != null)
+        {
+            nombreBot =
+                configuracion.nombreBot;
+        }
+
+
+        Debug.Log(
+            "¡Bot comprado! " +
+            nombreBot +
+            " | Precio: " +
+            precio +
+            " monedas"
+        );
+
+
+        // =================================================
+        // ACTUALIZAR TIENDA
+        // =================================================
+
+        ActualizarTienda();
+    }
+    // =====================================================
+    // PRECIO DEL SIGUIENTE BOT
+    // =====================================================
+
+    private int ObtenerPrecioSiguienteBot(
+        int cantidadActual)
+    {
+        if (preciosBots != null &&
+            cantidadActual >= 0 &&
+            cantidadActual < preciosBots.Count)
+        {
+            return Mathf.Max(
+                0,
+                preciosBots[cantidadActual]
+            );
+        }
+
+
+        return Mathf.Max(
+            0,
+            precioBotFallback
+        );
+    }
+
+    // =====================================================
+    // ACTUALIZAR COMPRA DE BOTS
+    // =====================================================
+
+    private void ActualizarCompraBot()
+    {
+        // =================================================
+        // BUSCAR GESTOR
+        // =================================================
+
+        if (gestorBots == null)
+        {
+            gestorBots =
+                GestorBots.Instancia;
+        }
+
+
+        if (gestorBots == null)
+        {
+            gestorBots =
+                FindFirstObjectByType<GestorBots>();
+        }
+
+
+        // =================================================
+        // NO HAY GESTOR
+        // =================================================
+
+        if (gestorBots == null)
+        {
+            if (textoBotonBot != null)
+            {
+                textoBotonBot.text =
+                    "BOT NO DISPONIBLE";
+            }
+
+
+            if (botonComprarBot != null)
+            {
+                botonComprarBot.interactable =
+                    false;
+            }
+
+
+            return;
+        }
+
+
+        // =================================================
+        // CANTIDAD
+        // =================================================
+
+        int cantidadActual =
+            gestorBots.ObtenerCantidadBots();
+
+
+        // =================================================
+        // MÁXIMO
+        // =================================================
+
+        if (cantidadActual >= maximoBots)
+        {
+            if (textoBotonBot != null)
+            {
+                textoBotonBot.text =
+                    "BOTS AL MÁXIMO (" +
+                    cantidadActual +
+                    "/" +
+                    maximoBots +
+                    ")";
+            }
+
+
+            if (botonComprarBot != null)
+            {
+                botonComprarBot.interactable =
+                    false;
+            }
+
+
+            return;
+        }
+
+
+        // =================================================
+        // SIGUIENTE BOT
+        // =================================================
+
+        int precio =
+            ObtenerPrecioSiguienteBot(
+                cantidadActual
+            );
+
+
+        int numeroSiguienteBot =
+            cantidadActual + 1;
+
+
+        if (textoBotonBot != null)
+        {
+            textoBotonBot.text =
+                "COMPRAR BOT-" +
+                numeroSiguienteBot.ToString("00") +
+                " - " +
+                precio +
+                " monedas";
+        }
+
+
+        if (botonComprarBot != null)
+        {
+            botonComprarBot.interactable =
+                true;
+        }
+    }
+
 }
