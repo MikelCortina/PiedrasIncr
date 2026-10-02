@@ -13,19 +13,32 @@ public class MenuBotUI : MonoBehaviour
     public GameObject panel;
 
 
-    [Header("Estadísticas")]
-
-    public TMP_Text textoEstadisticas;
-    private EstadisticasBot estadisticasActual;
-
-
     // =====================================================
     // INFORMACIÓN
     // =====================================================
 
     [Header("Información")]
+
     public TMP_Text textoNombre;
+
     public TMP_Text textoEstado;
+
+
+    // =====================================================
+    // ESTADÍSTICAS
+    // =====================================================
+
+    [Header("Estadísticas")]
+
+    public TMP_Text textoPiedrasRecogidas;
+
+    public TMP_Text textoEntregasAgujero;
+
+    public TMP_Text textoPiedrasProcesadas;
+
+    public TMP_Text textoPurezaMedia;
+
+    public TMP_Text textoTiempoTrabajando;
 
 
     // =====================================================
@@ -33,9 +46,13 @@ public class MenuBotUI : MonoBehaviour
     // =====================================================
 
     [Header("Botones")]
+
     public Button botonTrabajar;
+
     public Button botonPausa;
+
     public Button botonParking;
+
     public Button botonCerrar;
 
 
@@ -46,6 +63,7 @@ public class MenuBotUI : MonoBehaviour
     [Header("Velocidad")]
 
     public Slider sliderVelocidad;
+
     public TMP_Text textoVelocidad;
 
 
@@ -91,9 +109,12 @@ public class MenuBotUI : MonoBehaviour
     [Header("Filtro de Pureza")]
 
     public Slider sliderPurezaMin;
+
     public TMP_Text textoPurezaMin;
 
+
     public Slider sliderPurezaMax;
+
     public TMP_Text textoPurezaMax;
 
 
@@ -123,6 +144,8 @@ public class MenuBotUI : MonoBehaviour
     private ConfiguracionBot botActual;
 
     private BotRecolector recolectorActual;
+
+    private EstadisticasBot estadisticasActual;
 
 
     // =====================================================
@@ -218,7 +241,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // IGNORAR PIEDRAS EN MOVIMIENTO
+        // IGNORAR MOVIMIENTO
         // =================================================
 
         if (toggleIgnorarMovimiento != null)
@@ -388,7 +411,9 @@ public class MenuBotUI : MonoBehaviour
 
 
         ActualizarEstado();
+
         ActualizarEstadisticas();
+
 
         if (Input.GetKeyDown(
                 KeyCode.Escape))
@@ -420,11 +445,13 @@ public class MenuBotUI : MonoBehaviour
         recolectorActual =
             bot.GetComponent<BotRecolector>();
 
+
         estadisticasActual =
-    bot.GetComponent<EstadisticasBot>();
+            bot.GetComponent<EstadisticasBot>();
+
 
         // =================================================
-        // PARAR BOT Y HACER QUE MIRE AL JUGADOR
+        // DETENER BOT Y MIRAR AL JUGADOR
         // =================================================
 
         if (recolectorActual != null)
@@ -597,12 +624,14 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // ACTUALIZAR INFORMACIÓN
+        // ACTUALIZAR TODO
         // =================================================
 
         ActualizarTextos();
 
         ActualizarEstado();
+
+        ActualizarEstadisticas();
 
         ActualizarVisibilidadDestino();
     }
@@ -629,11 +658,13 @@ public class MenuBotUI : MonoBehaviour
             null;
 
 
+        estadisticasActual =
+            null;
+
+
         botActual =
             null;
 
-        estadisticasActual =
-    null;
 
         // =================================================
         // CERRAR PANEL
@@ -683,7 +714,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // BOTÓN TRABAJAR
+    // TRABAJAR
     // =====================================================
 
     public void BotonTrabajar()
@@ -700,7 +731,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // BOTÓN PAUSA
+    // PAUSA
     // =====================================================
 
     public void BotonPausa()
@@ -717,7 +748,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // BOTÓN PARKING
+    // PARKING
     // =====================================================
 
     public void BotonParking()
@@ -754,7 +785,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // IGNORAR PIEDRAS EN MOVIMIENTO
+    // IGNORAR MOVIMIENTO
     // =====================================================
 
     private void CambiarIgnorarMovimiento(
@@ -809,9 +840,6 @@ public class MenuBotUI : MonoBehaviour
         );
 
 
-        // ConfiguracionBot puede modificar el máximo
-        // si el mínimo lo supera.
-
         if (sliderPurezaMax != null)
         {
             sliderPurezaMax
@@ -849,9 +877,6 @@ public class MenuBotUI : MonoBehaviour
             valor
         );
 
-
-        // ConfiguracionBot puede modificar el mínimo
-        // si el máximo baja demasiado.
 
         if (sliderPurezaMin != null)
         {
@@ -934,7 +959,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // VISIBILIDAD OPCIONES DE DESTINO
+    // VISIBILIDAD DESTINO AUTOMÁTICO
     // =====================================================
 
     private void ActualizarVisibilidadDestino()
@@ -950,12 +975,10 @@ public class MenuBotUI : MonoBehaviour
                 .Automatico;
 
 
-        // El umbral solo tiene sentido
-        // cuando el destino es Automático.
-
         if (sliderPurezaAgujero != null)
         {
-            sliderPurezaAgujero.gameObject
+            sliderPurezaAgujero
+                .gameObject
                 .SetActive(
                     automatico
                 );
@@ -964,7 +987,8 @@ public class MenuBotUI : MonoBehaviour
 
         if (textoPurezaAgujero != null)
         {
-            textoPurezaAgujero.gameObject
+            textoPurezaAgujero
+                .gameObject
                 .SetActive(
                     automatico
                 );
@@ -1054,6 +1078,125 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
+    // ACTUALIZAR ESTADÍSTICAS
+    // =====================================================
+
+    private void ActualizarEstadisticas()
+    {
+        // =================================================
+        // SIN COMPONENTE
+        // =================================================
+
+        if (estadisticasActual == null)
+        {
+            if (textoPiedrasRecogidas != null)
+            {
+                textoPiedrasRecogidas.text =
+                    "Piedras recogidas: 0";
+            }
+
+
+            if (textoEntregasAgujero != null)
+            {
+                textoEntregasAgujero.text =
+                    "Entregas al agujero: 0";
+            }
+
+
+            if (textoPiedrasProcesadas != null)
+            {
+                textoPiedrasProcesadas.text =
+                    "Piedras procesadas: 0";
+            }
+
+
+            if (textoPurezaMedia != null)
+            {
+                textoPurezaMedia.text =
+                    "Pureza media: 0%";
+            }
+
+
+            if (textoTiempoTrabajando != null)
+            {
+                textoTiempoTrabajando.text =
+                    "Tiempo trabajando: 00:00";
+            }
+
+
+            return;
+        }
+
+
+        // =================================================
+        // PIEDRAS RECOGIDAS
+        // =================================================
+
+        if (textoPiedrasRecogidas != null)
+        {
+            textoPiedrasRecogidas.text =
+                "Piedras recogidas: " +
+                estadisticasActual
+                    .PiedrasRecogidas;
+        }
+
+
+        // =================================================
+        // ENTREGAS AL AGUJERO
+        // =================================================
+
+        if (textoEntregasAgujero != null)
+        {
+            textoEntregasAgujero.text =
+                "Entregas al agujero: " +
+                estadisticasActual
+                    .EntregasAgujero;
+        }
+
+
+        // =================================================
+        // PROCESADAS
+        // =================================================
+
+        if (textoPiedrasProcesadas != null)
+        {
+            textoPiedrasProcesadas.text =
+                "Piedras procesadas: " +
+                estadisticasActual
+                    .PiedrasProcesadas;
+        }
+
+
+        // =================================================
+        // PUREZA MEDIA
+        // =================================================
+
+        if (textoPurezaMedia != null)
+        {
+            textoPurezaMedia.text =
+                "Pureza media: " +
+                estadisticasActual
+                    .PurezaMedia
+                    .ToString("0.0") +
+                "%";
+        }
+
+
+        // =================================================
+        // TIEMPO TRABAJANDO
+        // =================================================
+
+        if (textoTiempoTrabajando != null)
+        {
+            textoTiempoTrabajando.text =
+                "Tiempo trabajando: " +
+                estadisticasActual
+                    .ObtenerTiempoFormateado();
+        }
+    }
+
+
+    // =====================================================
     // ACTUALIZAR ESTADO
     // =====================================================
 
@@ -1116,7 +1259,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // TEXTOS DE LOS BOTONES
+    // TEXTOS BOTONES
     // =====================================================
 
     private void ConfigurarTextosBotones()
@@ -1169,45 +1312,5 @@ public class MenuBotUI : MonoBehaviour
             textoBoton.text =
                 texto;
         }
-    }
-
-    private void ActualizarEstadisticas()
-    {
-        if (textoEstadisticas == null)
-            return;
-
-
-        if (estadisticasActual == null)
-        {
-            textoEstadisticas.text =
-                "Sin estadísticas";
-
-            return;
-        }
-
-
-        textoEstadisticas.text =
-            "Piedras recogidas: " +
-            estadisticasActual.PiedrasRecogidas +
-            "\n" +
-
-            "Al agujero: " +
-            estadisticasActual.EntregasAgujero +
-            "\n" +
-
-            "Procesadas: " +
-            estadisticasActual.PiedrasProcesadas +
-            "\n" +
-
-            "Pureza media: " +
-            estadisticasActual
-                .PurezaMedia
-                .ToString("0.0") +
-            "%" +
-            "\n" +
-
-            "Tiempo trabajando: " +
-            estadisticasActual
-                .ObtenerTiempoFormateado();
     }
 }
