@@ -13,6 +13,12 @@ public class MenuBotUI : MonoBehaviour
     public GameObject panel;
 
 
+    [Header("Estadísticas")]
+
+    public TMP_Text textoEstadisticas;
+    private EstadisticasBot estadisticasActual;
+
+
     // =====================================================
     // INFORMACIÓN
     // =====================================================
@@ -382,7 +388,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         ActualizarEstado();
-
+        ActualizarEstadisticas();
 
         if (Input.GetKeyDown(
                 KeyCode.Escape))
@@ -414,6 +420,8 @@ public class MenuBotUI : MonoBehaviour
         recolectorActual =
             bot.GetComponent<BotRecolector>();
 
+        estadisticasActual =
+    bot.GetComponent<EstadisticasBot>();
 
         // =================================================
         // PARAR BOT Y HACER QUE MIRE AL JUGADOR
@@ -624,6 +632,8 @@ public class MenuBotUI : MonoBehaviour
         botActual =
             null;
 
+        estadisticasActual =
+    null;
 
         // =================================================
         // CERRAR PANEL
@@ -1159,5 +1169,45 @@ public class MenuBotUI : MonoBehaviour
             textoBoton.text =
                 texto;
         }
+    }
+
+    private void ActualizarEstadisticas()
+    {
+        if (textoEstadisticas == null)
+            return;
+
+
+        if (estadisticasActual == null)
+        {
+            textoEstadisticas.text =
+                "Sin estadísticas";
+
+            return;
+        }
+
+
+        textoEstadisticas.text =
+            "Piedras recogidas: " +
+            estadisticasActual.PiedrasRecogidas +
+            "\n" +
+
+            "Al agujero: " +
+            estadisticasActual.EntregasAgujero +
+            "\n" +
+
+            "Procesadas: " +
+            estadisticasActual.PiedrasProcesadas +
+            "\n" +
+
+            "Pureza media: " +
+            estadisticasActual
+                .PurezaMedia
+                .ToString("0.0") +
+            "%" +
+            "\n" +
+
+            "Tiempo trabajando: " +
+            estadisticasActual
+                .ObtenerTiempoFormateado();
     }
 }

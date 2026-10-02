@@ -16,6 +16,9 @@ public class BotRecolector : MonoBehaviour
     }
 
 
+
+    private EstadisticasBot estadisticasBot;
+
     private ConfiguracionBot.DestinoTrabajo
     destinoPiedraActual =
         ConfiguracionBot.DestinoTrabajo.Agujero;
@@ -306,6 +309,8 @@ public class BotRecolector : MonoBehaviour
                 >();
         }
 
+        estadisticasBot =
+    GetComponent<EstadisticasBot>();
 
         // =====================================================
         // PARKING
@@ -1330,8 +1335,26 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =====================================================
+        // GUARDAR PUREZA ANTES DE DESACTIVAR LA PIEDRA
+        // =====================================================
+
+        float purezaRecogida =
+            ObtenerPurezaPiedra(
+                piedraObjetivo
+            );
+
+
+        // =====================================================
+        // DETENER BOT
+        // =====================================================
+
         DetenerAgente();
 
+
+        // =====================================================
+        // PARAR FÍSICAS
+        // =====================================================
 
         if (!piedraObjetivo.isKinematic)
         {
@@ -1344,10 +1367,23 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =====================================================
+        // DESACTIVAR DEFORMACIÓN
+        // =====================================================
+
         DeformacionPiedra deformacion =
             piedraObjetivo.GetComponent<
                 DeformacionPiedra
             >();
+
+
+        if (deformacion == null)
+        {
+            deformacion =
+                piedraObjetivo.GetComponentInParent<
+                    DeformacionPiedra
+                >();
+        }
 
 
         if (deformacion != null)
@@ -1357,9 +1393,17 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =====================================================
+        // HACER KINEMATIC
+        // =====================================================
+
         piedraObjetivo.isKinematic =
             true;
 
+
+        // =====================================================
+        // DESACTIVAR COLLIDERS
+        // =====================================================
 
         Collider[] colliders =
             piedraObjetivo
@@ -1368,10 +1412,17 @@ public class BotRecolector : MonoBehaviour
 
         foreach (Collider col in colliders)
         {
-            col.enabled =
-                false;
+            if (col != null)
+            {
+                col.enabled =
+                    false;
+            }
         }
 
+
+        // =====================================================
+        // COLOCAR EN EL PUNTO DE AGARRE
+        // =====================================================
 
         piedraObjetivo.transform.SetParent(
             puntoAgarre,
@@ -1386,6 +1437,23 @@ public class BotRecolector : MonoBehaviour
         piedraObjetivo.transform.localRotation =
             Quaternion.identity;
 
+
+        // =====================================================
+        // REGISTRAR ESTADÍSTICA
+        // =====================================================
+
+        if (estadisticasBot != null)
+        {
+            estadisticasBot
+                .RegistrarPiedraRecogida(
+                    purezaRecogida
+                );
+        }
+
+
+        // =====================================================
+        // CAMBIAR ESTADO
+        // =====================================================
 
         estadoActual =
             EstadoBot.LlevandoPiedra;
@@ -1727,6 +1795,11 @@ public class BotRecolector : MonoBehaviour
             piedraEntregada.gameObject
         );
 
+        if (estadisticasBot != null)
+        {
+            estadisticasBot
+                .RegistrarEntregaAgujero();
+        }
 
         LiberarPuntoEntrega();
 
@@ -2953,9 +3026,6 @@ public class BotRecolector : MonoBehaviour
         while (tiempo <
                duracionLanzamiento)
         {
-            // Si abrimos el menú o pausamos el Bot,
-            // congelamos también el lanzamiento.
-
             if (enInteraccion ||
                 pausaForzada)
             {
@@ -3063,7 +3133,6 @@ public class BotRecolector : MonoBehaviour
 
 
             // Volver a cogerla.
-
             piedraEntregada.transform.SetParent(
                 puntoAgarre,
                 false
@@ -3087,6 +3156,17 @@ public class BotRecolector : MonoBehaviour
 
 
             yield break;
+        }
+
+
+        // =====================================================
+        // ESTADÍSTICA - PROCESADA CORRECTAMENTE
+        // =====================================================
+
+        if (estadisticasBot != null)
+        {
+            estadisticasBot
+                .RegistrarPiedraProcesada();
         }
 
 
