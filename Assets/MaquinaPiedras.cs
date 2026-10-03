@@ -8,6 +8,12 @@ public class MaquinaPiedras : MonoBehaviour
     public struct TuberiaAbsorcion
     {
         public Transform puntoAbsorcion;
+
+        [Header("Control y Efectos")]
+        [Tooltip("Arrastra aquí el objeto del Botón que controla esta tubería")]
+        public BotonTuberia botonControl;
+
+        [Header("Zonas de Acción")]
         [Tooltip("Hasta dónde llega la 'porción de pizza' (Radio)")]
         public float radioAbsorcion;
         [Tooltip("El grosor/altura del cilindro (hacia arriba del transform)")]
@@ -59,7 +65,9 @@ public class MaquinaPiedras : MonoBehaviour
         {
             if (tuberia.puntoAbsorcion == null) continue;
 
-            // Buscamos a lo bruto en una esfera que englobe todo, y luego filtramos matemáticamente
+            // IGNORAR SI EL BOTÓN ESTÁ APAGADO
+            if (tuberia.botonControl != null && !tuberia.botonControl.encendido) continue;
+
             Collider[] piedrasCercanas = Physics.OverlapSphere(tuberia.puntoAbsorcion.position, Mathf.Max(tuberia.radioAbsorcion, tuberia.alturaAbsorcion), capaPiedras);
 
             foreach (var col in piedrasCercanas)
@@ -68,18 +76,13 @@ public class MaquinaPiedras : MonoBehaviour
                 if (rb == null || !rb.gameObject.activeInHierarchy || piedrasEnSuccion.ContainsKey(rb)) continue;
 
                 Vector3 dirHaciaPiedra = rb.position - tuberia.puntoAbsorcion.position;
-
-                // 1. Filtrar por Altura (Eje Y local del punto de absorción)
                 float alturaLocal = Vector3.Dot(dirHaciaPiedra, tuberia.puntoAbsorcion.up);
 
-                // Si está apoyado sobre su parte plana, medimos desde 0 hasta la altura máxima
                 if (alturaLocal >= 0f && alturaLocal <= tuberia.alturaAbsorcion)
                 {
-                    // 2. Proyectar sobre el plano 2D (quitando la altura)
                     Vector3 direccionPlana = dirHaciaPiedra - (tuberia.puntoAbsorcion.up * alturaLocal);
                     float distanciaPlana = direccionPlana.magnitude;
 
-                    // 3. Filtrar por Radio (largo de la pizza)
                     if (distanciaPlana <= tuberia.radioAbsorcion)
                     {
                         float angulo = 0f;
@@ -88,7 +91,6 @@ public class MaquinaPiedras : MonoBehaviour
                             angulo = Vector3.Angle(tuberia.puntoAbsorcion.forward, direccionPlana.normalized);
                         }
 
-                        // 4. Filtrar por Ángulo (ancho de la pizza)
                         if (angulo <= tuberia.anguloAbsorcion / 2f)
                         {
                             DatosPiedra datos = new DatosPiedra
@@ -96,7 +98,7 @@ public class MaquinaPiedras : MonoBehaviour
                                 rb = rb,
                                 tuberia = tuberia,
                                 escalaOriginal = rb.transform.localScale,
-                                distanciaInicial = dirHaciaPiedra.magnitude // Guardamos la distancia real 3D
+                                distanciaInicial = dirHaciaPiedra.magnitude
                             };
                             piedrasEnSuccion.Add(rb, datos);
                         }
@@ -116,8 +118,16 @@ public class MaquinaPiedras : MonoBehaviour
             Rigidbody rb = kvp.Key;
             DatosPiedra datos = kvp.Value;
 
-            if (rb == null || !rb.gameObject.activeInHierarchy)
+            // Comprobar si apagaron la máquina en mitad del vuelo de esta piedra
+            bool maquinaApagada = datos.tuberia.botonControl != null && !datos.tuberia.botonControl.encendido;
+
+            if (rb == null || !rb.gameObject.activeInHierarchy || maquinaApagada)
             {
+                if (rb != null && maquinaApagada)
+                {
+                    // Si se apaga, le devolvemos su tamaño original para que caiga de forma realista
+                    rb.transform.localScale = datos.escalaOriginal;
+                }
                 piedrasPerdidas.Add(rb);
                 continue;
             }
@@ -217,7 +227,7 @@ public class MaquinaPiedras : MonoBehaviour
     }
 
     // ==========================================
-    // GIZMOS (Dibuja la porción de pizza en 3D)
+    // GIZMOS
     // ==========================================
     void OnDrawGizmosSelected()
     {
@@ -225,7 +235,9 @@ public class MaquinaPiedras : MonoBehaviour
         {
             if (tuberia.puntoAbsorcion != null)
             {
-                Gizmos.color = new Color(0f, 1f, 0f, 0.4f);
+                // Si el botón está apagado, pintamos la zona de rojo en vez de verde
+                bool encendido = (tuberia.botonControl == null) || tuberia.botonControl.encendido;
+                Gizmos.color = encendido ? new Color(0f, 1f, 0f, 0.4f) : new Color(1f, 0f, 0f, 0.4f);
 
                 Vector3 origenAbajo = tuberia.puntoAbsorcion.position;
                 Vector3 origenArriba = origenAbajo + tuberia.puntoAbsorcion.up * tuberia.alturaAbsorcion;
@@ -235,28 +247,23 @@ public class MaquinaPiedras : MonoBehaviour
                 float radio = tuberia.radioAbsorcion;
                 float angulo = tuberia.anguloAbsorcion;
 
-                // Dibujar arcos curvos (Base y Techo)
                 DibujarArcoPizza(origenAbajo, forward, up, radio, angulo);
                 DibujarArcoPizza(origenArriba, forward, up, radio, angulo);
 
-                // Calcular vectores de los bordes izquierdo y derecho
                 Quaternion rotIzquierda = Quaternion.AngleAxis(-angulo / 2f, up);
                 Quaternion rotDerecha = Quaternion.AngleAxis(angulo / 2f, up);
                 Vector3 bordeIzquierdo = rotIzquierda * forward;
                 Vector3 bordeDerecho = rotDerecha * forward;
 
-                // Líneas rectas de la base plana
                 Gizmos.DrawLine(origenAbajo, origenAbajo + bordeIzquierdo * radio);
                 Gizmos.DrawLine(origenAbajo, origenAbajo + bordeDerecho * radio);
 
-                // Líneas rectas del techo
                 Gizmos.DrawLine(origenArriba, origenArriba + bordeIzquierdo * radio);
                 Gizmos.DrawLine(origenArriba, origenArriba + bordeDerecho * radio);
 
-                // Pilares conectores (Líneas verticales)
-                Gizmos.DrawLine(origenAbajo, origenArriba); // Centro
-                Gizmos.DrawLine(origenAbajo + bordeIzquierdo * radio, origenArriba + bordeIzquierdo * radio); // Esquina Izquierda
-                Gizmos.DrawLine(origenAbajo + bordeDerecho * radio, origenArriba + bordeDerecho * radio); // Esquina Derecha
+                Gizmos.DrawLine(origenAbajo, origenArriba);
+                Gizmos.DrawLine(origenAbajo + bordeIzquierdo * radio, origenArriba + bordeIzquierdo * radio);
+                Gizmos.DrawLine(origenAbajo + bordeDerecho * radio, origenArriba + bordeDerecho * radio);
             }
         }
 
@@ -274,7 +281,6 @@ public class MaquinaPiedras : MonoBehaviour
 
     void DibujarArcoPizza(Vector3 centro, Vector3 forward, Vector3 up, float radio, float anguloTotal)
     {
-        // Adaptar la cantidad de segmentos según lo grande que sea el ángulo
         int segmentos = Mathf.Max(10, Mathf.RoundToInt(anguloTotal / 5f));
         float paso = anguloTotal / segmentos;
         float anguloInicial = -anguloTotal / 2f;

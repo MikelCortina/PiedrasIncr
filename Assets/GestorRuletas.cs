@@ -4,7 +4,7 @@ public class GestorRuletasFPS : MonoBehaviour
 {
     public Camera camaraPrincipal;
 
-    [Tooltip("Selecciona AQUÍ la capa de Ruletas Y TAMBIÉN las capas de los edificios/suelo (Default, Edificios, etc.)")]
+    [Tooltip("Selecciona AQUÍ la capa de Ruletas/Botones Y TAMBIÉN las capas de los edificios/suelo (Default, Edificios, etc.)")]
     public LayerMask capasDetectables;
 
     public float distanciaInteraccion = 3f;
@@ -20,16 +20,23 @@ public class GestorRuletasFPS : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            // Ahora el rayo choca contra cualquier capa que hayas marcado en el Inspector
             if (Physics.Raycast(rayo, out RaycastHit hit, distanciaInteraccion, capasDetectables))
             {
-                // Preguntamos: ¿Lo primero que ha tocado tiene el script de la ruleta?
+                // 1. Intentamos coger una ruleta
                 ruletaActiva = hit.collider.GetComponent<RuletaInteractiva>();
 
-                // Si lo tiene, iniciamos el giro. Si es null (es una pared), no hace nada.
                 if (ruletaActiva != null)
                 {
                     anguloPantallaAnterior = CalcularAnguloCircular(ruletaActiva, mirilla);
+                }
+                else
+                {
+                    // 2. Si no era ruleta, miramos a ver si es un Botón de Absorción
+                    BotonTuberia boton = hit.collider.GetComponent<BotonTuberia>();
+                    if (boton != null)
+                    {
+                        boton.Interaccionar(); // Click!
+                    }
                 }
             }
         }

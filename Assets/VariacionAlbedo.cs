@@ -35,6 +35,10 @@ public class VariacionAlbedo : MonoBehaviour
     private Color[] coloresOriginales;
     private float[] grosoresOriginales;
 
+    // --- NUEVAS VARIABLES PARA EL COLOR DE APAGADO ---
+    private bool estadoColorGuardado = false;
+    private Color[] coloresAlbedoOriginales;
+
     void OnEnable()
     {
         AplicarMaterial();
@@ -44,6 +48,45 @@ public class VariacionAlbedo : MonoBehaviour
     {
         AplicarMaterial();
     }
+
+    // ==========================================
+    // NUEVAS FUNCIONES DE COLOR (Albedo)
+    // ==========================================
+    public void ForzarColor(Color nuevoColor)
+    {
+        if (configuraciones == null || configuraciones.Length == 0) return;
+
+        if (!estadoColorGuardado)
+        {
+            coloresAlbedoOriginales = new Color[configuraciones.Length];
+            for (int i = 0; i < configuraciones.Length; i++)
+            {
+                coloresAlbedoOriginales[i] = configuraciones[i].nuevoColor;
+            }
+            estadoColorGuardado = true;
+        }
+
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            configuraciones[i].nuevoColor = nuevoColor;
+        }
+
+        AplicarMaterial();
+    }
+
+    public void RestaurarColor()
+    {
+        if (!estadoColorGuardado || configuraciones == null) return;
+
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            configuraciones[i].nuevoColor = coloresAlbedoOriginales[i];
+        }
+
+        AplicarMaterial();
+    }
+    // ==========================================
+
     public void ForzarContorno(Color nuevoColor, float nuevoGrosor)
     {
         if (configuraciones == null || configuraciones.Length == 0) return;
@@ -84,6 +127,7 @@ public class VariacionAlbedo : MonoBehaviour
 
         AplicarMaterial();
     }
+
     private void AplicarMaterial()
     {
         if (render == null) render = GetComponent<Renderer>();
