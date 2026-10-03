@@ -26,6 +26,7 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - SRPDEFAULTUNLIT
+  - Outline
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -141,6 +142,7 @@ Material:
     - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
     - _UnityShadowColor: {r: 0.85023, g: 0.85034, b: 0.8504499, a: 0.85056}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &363034625437609637
 MonoBehaviour:
   m_ObjectHideFlags: 11

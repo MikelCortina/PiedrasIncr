@@ -27,6 +27,7 @@ Material:
     RenderType: Opaque
   disabledShaderPasses:
   - SRPDEFAULTUNLIT
+  - Outline
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -187,3 +188,4 @@ Material:
     - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
     - _UnityShadowColor: {r: 0.33011916, g: 0.2572535, b: 0.38679248, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
