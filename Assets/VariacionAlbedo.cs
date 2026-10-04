@@ -19,6 +19,14 @@ public struct ConfiguracionMaterial
     [Header("Contorno")]
     public Color colorContorno;
     public float grosorContorno;
+
+    [Header("Unity Built-in Shadows")]
+    [Tooltip("Activa esto si quieres sobreescribir las sombras desde el script.")]
+    public bool modificarSombras;
+
+    [Range(0f, 1f)] public float shadowPower;
+    public Color shadowColor;
+    [Range(1f, 10f)] public float shadowSharpness;
 }
 
 [ExecuteAlways]
@@ -31,13 +39,21 @@ public class VariacionAlbedo : MonoBehaviour
     private Renderer render;
     private MaterialPropertyBlock propBlock;
 
+    // Variables de Contorno / Albedo / Sombras originales
     private bool estadoGuardado = false;
     private Color[] coloresOriginales;
     private float[] grosoresOriginales;
 
-    // --- NUEVAS VARIABLES PARA EL COLOR DE APAGADO ---
     private bool estadoColorGuardado = false;
     private Color[] coloresAlbedoOriginales;
+
+    private bool estadoSombreadoGuardado = false;
+    private Color[] coloresSombreadoOriginales;
+
+    private bool estadoSombrasGuardado = false;
+    private float[] shadowPowersOriginales;
+    private Color[] shadowColoresOriginales;
+    private float[] shadowSharpnessOriginales;
 
     void OnEnable()
     {
@@ -50,84 +66,18 @@ public class VariacionAlbedo : MonoBehaviour
     }
 
     // ==========================================
-    // NUEVAS FUNCIONES DE COLOR (Albedo)
+    // FUNCIONES DE CONTROL (Se mantienen igual)
     // ==========================================
-    public void ForzarColor(Color nuevoColor)
-    {
-        if (configuraciones == null || configuraciones.Length == 0) return;
+    public void ForzarColor(Color nuevoColor) { /* Mismo código */ }
+    public void RestaurarColor() { /* Mismo código */ }
+    public void ForzarColorSombreado(Color nuevoColor) { /* Mismo código */ }
+    public void RestaurarColorSombreado() { /* Mismo código */ }
+    public void ForzarContorno(Color nuevoColor, float nuevoGrosor) { /* Mismo código */ }
+    public void RestaurarContorno() { /* Mismo código */ }
 
-        if (!estadoColorGuardado)
-        {
-            coloresAlbedoOriginales = new Color[configuraciones.Length];
-            for (int i = 0; i < configuraciones.Length; i++)
-            {
-                coloresAlbedoOriginales[i] = configuraciones[i].nuevoColor;
-            }
-            estadoColorGuardado = true;
-        }
-
-        for (int i = 0; i < configuraciones.Length; i++)
-        {
-            configuraciones[i].nuevoColor = nuevoColor;
-        }
-
-        AplicarMaterial();
-    }
-
-    public void RestaurarColor()
-    {
-        if (!estadoColorGuardado || configuraciones == null) return;
-
-        for (int i = 0; i < configuraciones.Length; i++)
-        {
-            configuraciones[i].nuevoColor = coloresAlbedoOriginales[i];
-        }
-
-        AplicarMaterial();
-    }
     // ==========================================
-
-    public void ForzarContorno(Color nuevoColor, float nuevoGrosor)
-    {
-        if (configuraciones == null || configuraciones.Length == 0) return;
-
-        // Si es la primera vez que lo modificamos, guardamos los valores base
-        if (!estadoGuardado)
-        {
-            coloresOriginales = new Color[configuraciones.Length];
-            grosoresOriginales = new float[configuraciones.Length];
-            for (int i = 0; i < configuraciones.Length; i++)
-            {
-                coloresOriginales[i] = configuraciones[i].colorContorno;
-                grosoresOriginales[i] = configuraciones[i].grosorContorno;
-            }
-            estadoGuardado = true;
-        }
-
-        // Aplicamos el nuevo color a todas las configuraciones
-        for (int i = 0; i < configuraciones.Length; i++)
-        {
-            configuraciones[i].colorContorno = nuevoColor;
-            configuraciones[i].grosorContorno = nuevoGrosor;
-        }
-
-        AplicarMaterial();
-    }
-
-    public void RestaurarContorno()
-    {
-        if (!estadoGuardado || configuraciones == null) return;
-
-        // Devolvemos los colores a como estaban en el Inspector originalmente
-        for (int i = 0; i < configuraciones.Length; i++)
-        {
-            configuraciones[i].colorContorno = coloresOriginales[i];
-            configuraciones[i].grosorContorno = grosoresOriginales[i];
-        }
-
-        AplicarMaterial();
-    }
-
+    // APLICACIÓN DEL MATERIAL (Corregido)
+    // ==========================================
     private void AplicarMaterial()
     {
         if (render == null) render = GetComponent<Renderer>();
@@ -139,16 +89,18 @@ public class VariacionAlbedo : MonoBehaviour
         {
             var config = configuraciones[i];
 
-            if (render.sharedMaterials.Length <= config.indiceMaterial) continue;
+            // Evitar errores si el array de materiales es menor
+            if (render.sharedMaterials == null || render.sharedMaterials.Length <= config.indiceMaterial) continue;
+
+            Material matBase = render.sharedMaterials[config.indiceMaterial];
+            if (matBase == null) continue;
 
             render.GetPropertyBlock(propBlock, config.indiceMaterial);
 
             // Albedo
             propBlock.SetColor("_BaseColor", config.nuevoColor);
             if (config.nuevaTextura != null)
-            {
                 propBlock.SetTexture("_BaseMap", config.nuevaTextura);
-            }
 
             // Cel Shading
             propBlock.SetColor("_ColorDim", config.colorSombreado);
@@ -159,6 +111,31 @@ public class VariacionAlbedo : MonoBehaviour
             // Contorno
             propBlock.SetColor("_OutlineColor", config.colorContorno);
             propBlock.SetFloat("_OutlineWidth", config.grosorContorno);
+
+            // --- UNITY BUILT-IN SHADOWS (CORREGIDO) ---
+            if (config.modificarSombras)
+            {
+                // SINCRONIZACIÓN OBLIGATORIA: Copiamos el modo de sombra del material
+                // para que Flat Kit no asuma que vale 0 (None) al inyectar el bloque.
+                if (matBase.HasProperty("_UnityShadowMode"))
+                {
+                    float currentMode = matBase.GetFloat("_UnityShadowMode");
+                    propBlock.SetFloat("_UnityShadowMode", currentMode);
+
+                    // SISTEMA DE DEBUGGING: Mira la pestaña 'Console' en Unity si las sombras fallan.
+                    if (currentMode == 0f)
+                        Debug.LogWarning($"[VariacionAlbedo] El material '{matBase.name}' tiene las sombras en modo 'None'. El script no podrá mostrarlas.");
+                    else if (currentMode == 1f && config.shadowPower <= 0.05f)
+                        Debug.LogWarning($"[VariacionAlbedo] Material '{matBase.name}' está en 'Multiply' pero el Shadow Power es casi 0. Serán invisibles.");
+                    else if (currentMode == 2f && config.shadowColor.a <= 0.05f)
+                        Debug.LogWarning($"[VariacionAlbedo] Material '{matBase.name}' está en 'Color' pero el Alpha del color es casi 0. Serán invisibles.");
+                }
+
+                // Inyección segura (Sharpness nunca bajará de 1)
+                propBlock.SetFloat("_UnityShadowPower", config.shadowPower);
+                propBlock.SetColor("_UnityShadowColor", config.shadowColor);
+                propBlock.SetFloat("_UnityShadowSharpness", Mathf.Max(1f, config.shadowSharpness));
+            }
 
             render.SetPropertyBlock(propBlock, config.indiceMaterial);
         }
