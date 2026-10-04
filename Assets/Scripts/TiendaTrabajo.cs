@@ -1448,4 +1448,13 @@ public class TiendaTrabajo : MonoBehaviour
         }
     }
 
+    // =====================================================
+    // REFRESCAR TIENDA DESDE OTROS SISTEMAS
+    // =====================================================
+
+    public void RefrescarTienda()
+    {
+        ActualizarTienda();
+    }
+
 }
