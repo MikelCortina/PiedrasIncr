@@ -992,20 +992,18 @@ public class MaquinaErosion : MonoBehaviour
 
     public void DesbloquearProcesadora()
     {
+        if (procesadoraDesbloqueada)
+            return;
+
+
         procesadoraDesbloqueada =
             true;
-
-
-        gameObject.SetActive(
-            true
-        );
 
 
         Debug.Log(
             "¡Procesadora desbloqueada!"
         );
     }
-
 
     // =====================================================
     // MEJORAR
