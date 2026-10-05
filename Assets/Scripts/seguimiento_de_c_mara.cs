@@ -2,78 +2,230 @@ using UnityEngine;
 
 public class CamaraPrimeraPersona : MonoBehaviour
 {
-    [Header("Referencias Externas")] // ¡NUEVO!
+    [Header("Referencias Externas")]
     [Tooltip("Arrastra aquí el objeto que tiene el script SistemaConstruccion")]
     public SistemaConstruccion sistemaConstruccion;
+
 
     [Header("Ajustes de Cámara")]
     public float sensibilidadRaton = 2f;
     public Transform cuerpoJugador;
 
-    [Header("Balanceo de Cabeza (Head Bobbing)")]
+
+    [Header("Balanceo de Cabeza")]
     public float velocidadBobbing = 12f;
     public float amplitudBobbing = 0.05f;
     public float velocidadRetorno = 5f;
 
-    [Header("Inclinación Lateral (Tilt)")]
-    [Tooltip("Grados máximos que se inclinará la cámara al caminar de lado")]
+
+    [Header("Inclinación Lateral")]
     public float amplitudInclinacion = 2.5f;
-    [Tooltip("Qué tan rápido se inclina y vuelve a su sitio")]
     public float velocidadInclinacion = 6f;
+
+
+    // =====================================================
+    // BLOQUEO EXTERNO
+    // =====================================================
+
+    [Header("Bloqueo")]
+
+    [SerializeField]
+    private bool camaraBloqueadaPorUI = false;
+
+
+    // =====================================================
+    // INTERNAS
+    // =====================================================
 
     private float rotacionX = 0f;
     private float posicionYOriginal;
     private float temporizadorBobbing = 0f;
     private float inclinacionZActual = 0f;
 
-    void Start()
+
+    // =====================================================
+    // START
+    // =====================================================
+
+    private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        posicionYOriginal = transform.localPosition.y;
+        Cursor.lockState =
+            CursorLockMode.Locked;
+
+        Cursor.visible =
+            false;
+
+        posicionYOriginal =
+            transform.localPosition.y;
     }
 
-    void Update()
+
+    // =====================================================
+    // UPDATE
+    // =====================================================
+
+    private void Update()
     {
-        // --- 1. LECTURA DE CONTROLES DE MOVIMIENTO ---
-        float h = Input.GetAxis("Horizontal"); // -1 (Izquierda) a 1 (Derecha)
-        float v = Input.GetAxis("Vertical");
+        // =================================================
+        // BLOQUEO TOTAL POR UI
+        // =================================================
 
-        // --- ¡NUEVO! 2. LÓGICA DE BLOQUEO DE CÁMARA ---
-        // Comprobamos si el modo construcción está abierto Y estamos pulsando click derecho
-        bool bloquearCamara = (sistemaConstruccion != null && sistemaConstruccion.modoConstruccion && Input.GetMouseButton(1));
-
-        // Solo permitimos girar la cámara si no está bloqueada
-        if (!bloquearCamara)
+        if (camaraBloqueadaPorUI)
         {
-            float mouseX = Input.GetAxis("Mouse X") * sensibilidadRaton;
-            float mouseY = Input.GetAxis("Mouse Y") * sensibilidadRaton;
-
-            rotacionX -= mouseY;
-            rotacionX = Mathf.Clamp(rotacionX, -90f, 90f);
-
-            // Giramos el cuerpo del personaje con el ratón
-            cuerpoJugador.Rotate(Vector3.up * mouseX);
+            return;
         }
 
-        // --- 3. INCLINACIÓN (TILT) ---
-        float inclinacionZObjetivo = -h * amplitudInclinacion;
-        inclinacionZActual = Mathf.Lerp(inclinacionZActual, inclinacionZObjetivo, Time.deltaTime * velocidadInclinacion);
 
-        // Aplicamos la rotación a la cámara (rotacionX se quedará congelada si está bloqueada)
-        transform.localRotation = Quaternion.Euler(rotacionX, 0f, inclinacionZActual);
+        // =================================================
+        // MOVIMIENTO
+        // =================================================
 
-        // --- 4. BALANCEO DE CABEZA ---
-        if (Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f)
+        float h =
+            Input.GetAxis("Horizontal");
+
+        float v =
+            Input.GetAxis("Vertical");
+
+
+        // =================================================
+        // BLOQUEO POR SISTEMA DE CONSTRUCCIÓN
+        // =================================================
+
+        bool bloquearPorConstruccion =
+            sistemaConstruccion != null &&
+            sistemaConstruccion.modoConstruccion &&
+            Input.GetMouseButton(1);
+
+
+        // =================================================
+        // RATÓN
+        // =================================================
+
+        if (!bloquearPorConstruccion)
         {
-            temporizadorBobbing += Time.deltaTime * velocidadBobbing;
-            float nuevaY = posicionYOriginal + (Mathf.Sin(temporizadorBobbing) * amplitudBobbing);
-            transform.localPosition = new Vector3(transform.localPosition.x, nuevaY, transform.localPosition.z);
+            float mouseX =
+                Input.GetAxis("Mouse X") *
+                sensibilidadRaton;
+
+            float mouseY =
+                Input.GetAxis("Mouse Y") *
+                sensibilidadRaton;
+
+
+            rotacionX -=
+                mouseY;
+
+
+            rotacionX =
+                Mathf.Clamp(
+                    rotacionX,
+                    -90f,
+                    90f
+                );
+
+
+            if (cuerpoJugador != null)
+            {
+                cuerpoJugador.Rotate(
+                    Vector3.up *
+                    mouseX
+                );
+            }
+        }
+
+
+        // =================================================
+        // INCLINACIÓN
+        // =================================================
+
+        float inclinacionZObjetivo =
+            -h *
+            amplitudInclinacion;
+
+
+        inclinacionZActual =
+            Mathf.Lerp(
+                inclinacionZActual,
+                inclinacionZObjetivo,
+                Time.deltaTime *
+                velocidadInclinacion
+            );
+
+
+        transform.localRotation =
+            Quaternion.Euler(
+                rotacionX,
+                0f,
+                inclinacionZActual
+            );
+
+
+        // =================================================
+        // HEAD BOBBING
+        // =================================================
+
+        if (Mathf.Abs(h) > 0.1f ||
+            Mathf.Abs(v) > 0.1f)
+        {
+            temporizadorBobbing +=
+                Time.deltaTime *
+                velocidadBobbing;
+
+
+            float nuevaY =
+                posicionYOriginal +
+                Mathf.Sin(
+                    temporizadorBobbing
+                ) *
+                amplitudBobbing;
+
+
+            transform.localPosition =
+                new Vector3(
+                    transform.localPosition.x,
+                    nuevaY,
+                    transform.localPosition.z
+                );
         }
         else
         {
-            temporizadorBobbing = 0f;
-            float nuevaY = Mathf.Lerp(transform.localPosition.y, posicionYOriginal, Time.deltaTime * velocidadRetorno);
-            transform.localPosition = new Vector3(transform.localPosition.x, nuevaY, transform.localPosition.z);
+            temporizadorBobbing =
+                0f;
+
+
+            float nuevaY =
+                Mathf.Lerp(
+                    transform.localPosition.y,
+                    posicionYOriginal,
+                    Time.deltaTime *
+                    velocidadRetorno
+                );
+
+
+            transform.localPosition =
+                new Vector3(
+                    transform.localPosition.x,
+                    nuevaY,
+                    transform.localPosition.z
+                );
         }
+    }
+
+
+    // =====================================================
+    // BLOQUEAR DESDE OTROS SCRIPTS
+    // =====================================================
+
+    public void SetBloqueadaPorUI(
+        bool bloqueada)
+    {
+        camaraBloqueadaPorUI =
+            bloqueada;
+    }
+
+
+    public bool EstaBloqueadaPorUI()
+    {
+        return camaraBloqueadaPorUI;
     }
 }
