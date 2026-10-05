@@ -300,6 +300,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 26185630}
   m_CullTransparentMesh: 1
+--- !u!1 &33539614
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 33539615}
+  m_Layer: 0
+  m_Name: 'PuntoEsperaSalidaBot '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &33539615
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 33539614}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 889.36, y: 409.38, z: 36.95}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &44889264 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 778077037833350220, guid: 14c8211d04557064b81b0813176d49da, type: 3}
@@ -4889,7 +4920,7 @@ MonoBehaviour:
   panelTienda: {fileID: 1616845187}
   textoInteraccion: {fileID: 543666606}
   mensajeInteraccion: Pulsa Q para abrir la tienda
-  controladorCamara: {fileID: 584387207}
+  controladorCamara: {fileID: 2046494808}
   armaLanzadora: {fileID: 2046494809}
 --- !u!65 &426084041
 BoxCollider:
@@ -6575,7 +6606,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b1ed984031737c408a851ea4bf82a3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  monedas: 100
+  monedas: 1000
 --- !u!114 &584387210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37983,6 +38014,7 @@ MonoBehaviour:
   puntoEntrada: {fileID: 1368589850}
   puntoSalida: {fileID: 1812452597}
   puntoEntregaBot: {fileID: 136321735}
+  puntoEsperaSalidaBot: {fileID: 0}
   direccionSalida: {x: 0, y: 0.67, z: -1.34}
   fuerzaMinimaExpulsion: 45
   fuerzaMaximaExpulsion: 55
@@ -38786,6 +38818,7 @@ MonoBehaviour:
   velocidadRetorno: 5
   amplitudInclinacion: 0.5
   velocidadInclinacion: 3
+  camaraBloqueadaPorUI: 0
 --- !u!114 &2046494809
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44990,3 +45023,4 @@ SceneRoots:
   - {fileID: 169782927}
   - {fileID: 1242213635}
   - {fileID: 130895384}
+  - {fileID: 33539615}
