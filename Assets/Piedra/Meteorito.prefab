@@ -65,6 +65,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.75
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 1
 --- !u!114 &2538325182236846078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,6 +82,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objetoHijoVisual: {fileID: 3470706403412640966}
+  rendererSmoke: {fileID: 4999406407456576408}
+  rendererSmokeSecundario: {fileID: 8216015297865946561}
+  propiedadColorShader: _FireColor
+  colorNacimiento: {r: 0.4509804, g: 0.4509804, b: 0.4509804, a: 1}
+  colorImpacto: {r: 1, g: 0.2, b: 0, a: 1}
   estelasMeteorito:
   - {fileID: 4922653902409344843}
   - {fileID: 5138205141923502965}
@@ -448,6 +457,11 @@ ParticleSystem:
 --- !u!198 &7227048370320616001 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 8364671907113439425, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
+  m_PrefabInstance: {fileID: 1179638519692868224}
+  m_PrefabAsset: {fileID: 0}
+--- !u!199 &8216015297865946561 stripped
+ParticleSystemRenderer:
+  m_CorrespondingSourceObject: {fileID: 7087483399384903489, guid: a0a0474e402d36e49a5d11198b990a9e, type: 3}
   m_PrefabInstance: {fileID: 1179638519692868224}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2221087246942737944
@@ -975,6 +989,11 @@ PrefabInstance:
 --- !u!198 &4967612803599641730 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 8055227382719247110, guid: 49f6f25e140263746bda9de6571dbe79, type: 3}
+  m_PrefabInstance: {fileID: 3114638429192183684}
+  m_PrefabAsset: {fileID: 0}
+--- !u!199 &4999406407456576408 stripped
+ParticleSystemRenderer:
+  m_CorrespondingSourceObject: {fileID: 7951138701042846748, guid: 49f6f25e140263746bda9de6571dbe79, type: 3}
   m_PrefabInstance: {fileID: 3114638429192183684}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &5936571939652129009 stripped

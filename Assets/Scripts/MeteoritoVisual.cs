@@ -8,6 +8,22 @@ public class MeteoritoVisual : MonoBehaviour
     [Tooltip("El objeto hijo cuyo tamaño se irá reduciendo hasta la mitad")]
     public Transform objetoHijoVisual;
 
+    [Header("Control de Color (Smoke Material)")]
+    [Tooltip("El Renderer del objeto principal que tiene asignado el SmokeMaterial")]
+    public Renderer rendererSmoke;
+    [Tooltip("Un segundo Renderer opcional al que también se le inyectará el color actual")]
+    public Renderer rendererSmokeSecundario;
+    [Tooltip("Nombre de la propiedad en el Shader Graph (suele ser _FireColor o FireColor)")]
+    public string propiedadColorShader = "_FireColor";
+
+    [ColorUsage(true, true)]
+    [Tooltip("Color HDR al momento de nacer en el cielo")]
+    public Color colorNacimiento = Color.cyan;
+
+    [ColorUsage(true, true)]
+    [Tooltip("Color HDR al llegar al suelo")]
+    public Color colorImpacto = new Color(1f, 0.2f, 0f, 1f);
+
     [Header("Estelas (Trail Renderers)")]
     [Tooltip("Lista de Trail Renderers que lleva el meteorito")]
     public List<TrailRenderer> estelasMeteorito = new List<TrailRenderer>();
@@ -52,11 +68,25 @@ public class MeteoritoVisual : MonoBehaviour
     private List<float> tiemposOriginalesEstelas = new List<float>();
     private bool activo = true;
 
+    private Material materialSmokeInstanciado;
+    private Material materialSmokeSecundarioInstanciado;
+
     void Start()
     {
         if (objetoHijoVisual != null)
         {
             escalaInicialHijo = objetoHijoVisual.localScale;
+        }
+
+        // Creamos instancias únicas de los materiales para no alterar los assets del proyecto
+        if (rendererSmoke != null)
+        {
+            materialSmokeInstanciado = rendererSmoke.material;
+        }
+
+        if (rendererSmokeSecundario != null)
+        {
+            materialSmokeSecundarioInstanciado = rendererSmokeSecundario.material;
         }
 
         foreach (TrailRenderer trail in estelasMeteorito)
@@ -93,6 +123,19 @@ public class MeteoritoVisual : MonoBehaviour
             objetoHijoVisual.localScale = escalaInicialHijo * multiplicadorEscala;
         }
 
+        // 2. Transición del color HDR a los materiales configurados
+        if (materialSmokeInstanciado != null || materialSmokeSecundarioInstanciado != null)
+        {
+            // progresoCaida vale 1 en el cielo y 0 en el suelo
+            Color colorActual = Color.Lerp(colorImpacto, colorNacimiento, progresoCaida);
+
+            if (materialSmokeInstanciado != null)
+                materialSmokeInstanciado.SetColor(propiedadColorShader, colorActual);
+
+            if (materialSmokeSecundarioInstanciado != null)
+                materialSmokeSecundarioInstanciado.SetColor(propiedadColorShader, colorActual);
+        }
+
         // 3. Aumentar emisión de partículas de fricción
         if (particulasFriccion != null)
         {
@@ -122,8 +165,21 @@ public class MeteoritoVisual : MonoBehaviour
         if (!activo) return;
         activo = false; // Evitamos ejecuciones múltiples
 
-        // 1. Fijar escala final a la mitad
-        if (objetoHijoVisual != null) objetoHijoVisual.localScale = escalaInicialHijo * 0.5f;
+        // 1. Fijar escala final a la mitad y forzar el color de impacto
+        if (objetoHijoVisual != null)
+        {
+            objetoHijoVisual.localScale = escalaInicialHijo * 0.5f;
+        }
+
+        if (materialSmokeInstanciado != null)
+        {
+            materialSmokeInstanciado.SetColor(propiedadColorShader, colorImpacto);
+        }
+
+        if (materialSmokeSecundarioInstanciado != null)
+        {
+            materialSmokeSecundarioInstanciado.SetColor(propiedadColorShader, colorImpacto);
+        }
 
         // 2. Apagar estelas
         foreach (TrailRenderer trail in estelasMeteorito)
@@ -155,7 +211,7 @@ public class MeteoritoVisual : MonoBehaviour
                 // Lo soltamos del meteorito para que no herede su destrucción
                 ps.transform.SetParent(null);
 
-                // --- NUEVO: Forzamos su rotación independientemente de cómo cayó el meteorito ---
+                // Forzamos su rotación independientemente de cómo cayó el meteorito
                 ps.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
 
                 ps.Play();
@@ -172,7 +228,7 @@ public class MeteoritoVisual : MonoBehaviour
             if (obj != null) obj.SetActive(false);
         }
 
-        // 7. Destrucción con retraso de 0.5 segundos (lo dejé en 1.5 según tu código)
+        // 7. Destrucción con retraso de 1.5 segundos
         StartCoroutine(RutinaDestruccionConRetraso());
     }
 
