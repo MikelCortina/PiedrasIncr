@@ -245,6 +245,62 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // MOVIMIENTO - GIRO PROGRESIVO
+    // =====================================================
+
+    [Header("Movimiento - Giro progresivo")]
+
+    [Tooltip(
+        "Si está activo, el Bot no hace giros bruscos ni se para para girar. " +
+        "Rota de forma progresiva mientras avanza."
+    )]
+    public bool usarGiroProgresivo =
+        true;
+
+
+    [Tooltip(
+        "Velocidad máxima de rotación del Bot en grados por segundo. " +
+        "Un valor más bajo produce curvas más amplias y suaves."
+    )]
+    public float velocidadGiroMovimiento =
+        110f;
+
+
+    [Tooltip(
+        "A partir de este ángulo el Bot empieza a reducir su velocidad " +
+        "de avance para dar tiempo a las patas a recolocarse."
+    )]
+    [Range(0f, 180f)]
+    public float anguloInicioReducirVelocidad =
+        20f;
+
+
+    [Tooltip(
+        "Ángulo a partir del cual se aplica la velocidad mínima de giro."
+    )]
+    [Range(1f, 180f)]
+    public float anguloVelocidadMinima =
+        110f;
+
+
+    [Tooltip(
+        "Fracción de la velocidad normal que conserva el Bot durante " +
+        "un giro muy grande. 0.20 significa un 20%."
+    )]
+    [Range(0.05f, 1f)]
+    public float factorVelocidadMinimaGiro =
+        0.20f;
+
+
+    [Tooltip(
+        "Rapidez con la que la velocidad se adapta al ángulo. " +
+        "Valores mayores reaccionan más rápido."
+    )]
+    public float suavizadoVelocidadPorGiro =
+        7f;
+
+
+    // =====================================================
     // DEBUG
     // =====================================================
 
@@ -307,6 +363,17 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // GIRO PROGRESIVO
+    // =====================================================
+
+    private float velocidadBaseAgente =
+        0f;
+
+    private float factorVelocidadGiroActual =
+        1f;
+
+
+    // =====================================================
     // PIEDRAS IGNORADAS
     // =====================================================
 
@@ -340,6 +407,29 @@ public class BotRecolector : MonoBehaviour
 
         agente =
             GetComponent<NavMeshAgent>();
+
+
+        // =====================================================
+        // ROTACIÓN CONTROLADA POR EL BOT
+        // =====================================================
+        //
+        // Con giro progresivo dejamos que NavMesh calcule la ruta,
+        // pero controlamos manualmente la orientación. También
+        // guardamos la velocidad base para reducirla únicamente
+        // mientras la curva sea cerrada.
+        // =====================================================
+
+        if (agente != null)
+        {
+            velocidadBaseAgente =
+                agente.speed;
+
+            factorVelocidadGiroActual =
+                1f;
+
+            agente.updateRotation =
+                !usarGiroProgresivo;
+        }
 
 
         configuracionBot =
@@ -562,7 +652,271 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =================================================
+        // ROTACIÓN / AVANCE DEL NAVMESH
+        // =================================================
+
+        GestionarGiroProgresivo();
+
+
         ComprobarAntiAtasco();
+    }
+
+
+    // =====================================================
+    // GIRO PROGRESIVO
+    // =====================================================
+
+    private void GestionarGiroProgresivo()
+    {
+        if (agente == null ||
+            !agente.enabled ||
+            !agente.isOnNavMesh)
+        {
+            return;
+        }
+
+
+        // Si se desactiva desde el Inspector, devolvemos el
+        // comportamiento normal de rotación al NavMeshAgent.
+        if (!usarGiroProgresivo)
+        {
+            agente.updateRotation =
+                true;
+
+            RestaurarVelocidadMovimiento();
+
+            return;
+        }
+
+
+        agente.updateRotation =
+            false;
+
+
+        // Interacción y pausa tienen sus propios controles.
+        if (enInteraccion ||
+            pausaForzada)
+        {
+            RestaurarVelocidadMovimiento();
+
+            return;
+        }
+
+
+        // Sin ruta no hay curva que gestionar.
+        if (!agente.hasPath ||
+            agente.pathPending)
+        {
+            RestaurarVelocidadMovimiento();
+
+            return;
+        }
+
+
+        if (agente.remainingDistance <=
+            agente.stoppingDistance +
+            0.05f)
+        {
+            RestaurarVelocidadMovimiento();
+
+            return;
+        }
+
+
+        // El steeringTarget representa el siguiente tramo real
+        // de la ruta. Es mejor para las curvas que mirar solamente
+        // el destino final.
+        Vector3 direccion =
+            agente.steeringTarget -
+            transform.position;
+
+
+        direccion.y =
+            0f;
+
+
+        if (direccion.sqrMagnitude <
+            0.0001f)
+        {
+            RestaurarVelocidadMovimiento();
+
+            return;
+        }
+
+
+        direccion.Normalize();
+
+
+        float angulo =
+            Vector3.Angle(
+                transform.forward,
+                direccion
+            );
+
+
+        // =================================================
+        // 1. GIRAR SIEMPRE DE FORMA PROGRESIVA
+        // =================================================
+        //
+        // Ya no existe:
+        //
+        //   giro grande -> STOP -> giro en seco -> avanzar
+        //
+        // El cuerpo siempre rota como máximo unos grados por
+        // segundo. Esto convierte un cambio de 90º/180º en una
+        // sucesión de pequeños giros, que es justo donde la
+        // locomoción procedural de las patas funciona mejor.
+        // =================================================
+
+        RotarHaciaDireccionRuta(
+            direccion
+        );
+
+
+        // =================================================
+        // 2. REDUCIR AVANCE SEGÚN EL ÁNGULO
+        // =================================================
+        //
+        // Recto / curva suave -> velocidad completa.
+        // Giro grande         -> avanza más despacio.
+        //
+        // Nunca lo detenemos solamente por el giro.
+        // =================================================
+
+        float anguloInicio =
+            Mathf.Max(
+                0f,
+                anguloInicioReducirVelocidad
+            );
+
+
+        float anguloMinimo =
+            Mathf.Max(
+                anguloInicio + 0.01f,
+                anguloVelocidadMinima
+            );
+
+
+        float progresoGiro =
+            Mathf.InverseLerp(
+                anguloInicio,
+                anguloMinimo,
+                angulo
+            );
+
+
+        float factorObjetivo =
+            Mathf.Lerp(
+                1f,
+                Mathf.Clamp(
+                    factorVelocidadMinimaGiro,
+                    0.05f,
+                    1f
+                ),
+                progresoGiro
+            );
+
+
+        float factorSuavizado =
+            1f -
+            Mathf.Exp(
+                -Mathf.Max(
+                    0.01f,
+                    suavizadoVelocidadPorGiro
+                ) *
+                Time.deltaTime
+            );
+
+
+        factorVelocidadGiroActual =
+            Mathf.Lerp(
+                factorVelocidadGiroActual,
+                factorObjetivo,
+                factorSuavizado
+            );
+
+
+        AplicarVelocidadMovimiento();
+    }
+
+
+    private void RotarHaciaDireccionRuta(
+        Vector3 direccion)
+    {
+        direccion.y =
+            0f;
+
+
+        if (direccion.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        Quaternion rotacionObjetivo =
+            Quaternion.LookRotation(
+                direccion.normalized,
+                Vector3.up
+            );
+
+
+        transform.rotation =
+            Quaternion.RotateTowards(
+                transform.rotation,
+                rotacionObjetivo,
+                Mathf.Max(
+                    0f,
+                    velocidadGiroMovimiento
+                ) *
+                Time.deltaTime
+            );
+    }
+
+
+    private void AplicarVelocidadMovimiento()
+    {
+        if (agente == null)
+            return;
+
+
+        // Seguridad por si el componente empezó con speed = 0.
+        if (velocidadBaseAgente <= 0f)
+        {
+            velocidadBaseAgente =
+                Mathf.Max(
+                    0f,
+                    agente.speed
+                );
+        }
+
+
+        agente.speed =
+            velocidadBaseAgente *
+            Mathf.Clamp(
+                factorVelocidadGiroActual,
+                0.05f,
+                1f
+            );
+    }
+
+
+    private void RestaurarVelocidadMovimiento()
+    {
+        if (agente == null)
+            return;
+
+
+        factorVelocidadGiroActual =
+            1f;
+
+
+        if (velocidadBaseAgente > 0f)
+        {
+            agente.speed =
+                velocidadBaseAgente;
+        }
     }
 
 
@@ -2489,6 +2843,9 @@ public class BotRecolector : MonoBehaviour
 
     private void DetenerAgente()
     {
+        RestaurarVelocidadMovimiento();
+
+
         if (agente != null &&
             agente.isOnNavMesh &&
             agente.hasPath)
