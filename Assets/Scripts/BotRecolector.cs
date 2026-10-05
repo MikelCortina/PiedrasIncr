@@ -12,7 +12,13 @@ public class BotRecolector : MonoBehaviour
         YendoAPiedra,
         LlevandoPiedra,
         EntregandoPiedra,
-        Esperando
+        Esperando,
+
+        // Cadena especial:
+        // Bot -> Procesadora -> espera -> piedra procesada -> Agujero.
+        YendoAEsperaSalidaProcesadora,
+        EsperandoSalidaProcesadora,
+        YendoAPiedraProcesada
     }
 
 
@@ -62,6 +68,47 @@ public class BotRecolector : MonoBehaviour
     public MaquinaErosion maquinaErosion;
 
     public float distanciaEntregaProcesadora =
+        1.5f;
+
+
+    [Header("Espera salida procesadora")]
+
+    [Tooltip(
+        "Distancia a la que el Bot considera que ha llegado " +
+        "al punto de espera de la salida."
+    )]
+    public float distanciaLlegadaEsperaProcesadora =
+        0.8f;
+
+
+    [Tooltip(
+        "Tiempo máximo que el Bot esperará su piedra antes " +
+        "de abandonar esta tarea por seguridad."
+    )]
+    public float tiempoMaximoEsperaProcesadora =
+        15f;
+
+
+    [Tooltip(
+        "Pequeño retardo después de que la piedra salga para " +
+        "dar tiempo a que la física la deje caer."
+    )]
+    public float retardoRecogidaProcesada =
+        0.35f;
+
+
+    [Tooltip(
+        "Radio usado para buscar NavMesh cerca de la piedra " +
+        "recién expulsada."
+    )]
+    public float radioNavMeshPiedraProcesada =
+        3f;
+
+
+    [Tooltip(
+        "Velocidad máxima de la piedra para que el Bot intente recogerla."
+    )]
+    public float velocidadMaximaRecogerProcesada =
         1.5f;
 
     // =====================================================
@@ -227,6 +274,19 @@ public class BotRecolector : MonoBehaviour
     private float temporizadorBusquedaEnEspera;
 
     private float temporizadorRevalidacionObjetivo;
+
+
+    // =====================================================
+    // CADENA PROCESADORA
+    // =====================================================
+
+    // Referencia exacta a la piedra que este Bot ha metido
+    // en la procesadora y está esperando recuperar.
+    private Rigidbody piedraEsperadaProcesadora;
+
+    private float temporizadorEsperaProcesadora;
+
+    private float temporizadorRetardoProcesada;
 
 
     private bool pausaForzada =
@@ -476,6 +536,27 @@ public class BotRecolector : MonoBehaviour
             case EstadoBot.Esperando:
 
                 ComportamientoEsperar();
+
+                break;
+
+
+            case EstadoBot.YendoAEsperaSalidaProcesadora:
+
+                ComportamientoIrAEsperaSalidaProcesadora();
+
+                break;
+
+
+            case EstadoBot.EsperandoSalidaProcesadora:
+
+                ComportamientoEsperarSalidaProcesadora();
+
+                break;
+
+
+            case EstadoBot.YendoAPiedraProcesada:
+
+                ComportamientoIrAPiedraProcesada();
 
                 break;
         }
@@ -2066,6 +2147,16 @@ public class BotRecolector : MonoBehaviour
         LiberarPuntoEspera();
 
 
+        // Si está en mitad de la cadena de la procesadora,
+        // no rompemos esa tarea: debe terminarla primero.
+        if (EstaEnCadenaProcesadora())
+        {
+            ResetearAntiAtasco();
+
+            return;
+        }
+
+
         if (piedraObjetivo == null)
         {
             estadoActual =
@@ -2125,11 +2216,18 @@ public class BotRecolector : MonoBehaviour
         }
 
 
-        // Si lleva una piedra la entrega primero.
+        // Si lleva una piedra o está completando la cadena
+        // de la procesadora, termina esa tarea antes de aparcar.
         if (estadoActual ==
                 EstadoBot.LlevandoPiedra ||
             estadoActual ==
-                EstadoBot.EntregandoPiedra)
+                EstadoBot.EntregandoPiedra ||
+            estadoActual ==
+                EstadoBot.YendoAEsperaSalidaProcesadora ||
+            estadoActual ==
+                EstadoBot.EsperandoSalidaProcesadora ||
+            estadoActual ==
+                EstadoBot.YendoAPiedraProcesada)
         {
             return;
         }
@@ -2294,6 +2392,18 @@ public class BotRecolector : MonoBehaviour
 
         piedraObjetivo =
             null;
+
+
+        piedraEsperadaProcesadora =
+            null;
+
+
+        temporizadorEsperaProcesadora =
+            0f;
+
+
+        temporizadorRetardoProcesada =
+            0f;
 
 
         LiberarPuntoEntrega();
@@ -3116,7 +3226,8 @@ public class BotRecolector : MonoBehaviour
         bool aceptada =
             maquinaErosion
                 .RecibirPiedraBot(
-                    piedraEntregada
+                    piedraEntregada,
+                    this
                 );
 
 
@@ -3174,8 +3285,23 @@ public class BotRecolector : MonoBehaviour
         // ENTREGA CORRECTA
         // =====================================================
 
+        // La piedra ya pertenece temporalmente a la máquina.
+        // El Bot recuerda exactamente cuál es para recuperarla
+        // cuando MaquinaErosion notifique su salida.
         piedraObjetivo =
             null;
+
+
+        piedraEsperadaProcesadora =
+            piedraEntregada;
+
+
+        temporizadorEsperaProcesadora =
+            tiempoMaximoEsperaProcesadora;
+
+
+        temporizadorRetardoProcesada =
+            0f;
 
 
         if (gestorPiedras != null)
@@ -3188,8 +3314,502 @@ public class BotRecolector : MonoBehaviour
 
 
         // =====================================================
-        // VOLVER A TRABAJAR
+        // IR AL PUNTO DE ESPERA DE LA SALIDA
         // =====================================================
+
+        estadoActual =
+            EstadoBot.YendoAEsperaSalidaProcesadora;
+
+
+        ResetearAntiAtasco();
+
+
+        if (debugBusqueda)
+        {
+            Debug.Log(
+                name +
+                ": piedra aceptada por la procesadora. " +
+                "Esperando su salida."
+            );
+        }
+    }
+
+    // =====================================================
+    // CADENA: ESPERAR SALIDA DE PROCESADORA
+    // =====================================================
+
+    private bool EstaEnCadenaProcesadora()
+    {
+        return estadoActual ==
+                   EstadoBot.YendoAEsperaSalidaProcesadora ||
+               estadoActual ==
+                   EstadoBot.EsperandoSalidaProcesadora ||
+               estadoActual ==
+                   EstadoBot.YendoAPiedraProcesada;
+    }
+
+
+    private bool ConsumirTiempoEsperaProcesadora()
+    {
+        temporizadorEsperaProcesadora -=
+            Time.deltaTime;
+
+
+        if (temporizadorEsperaProcesadora > 0f)
+            return true;
+
+
+        AbandonarCadenaProcesadora(
+            "tiempo máximo de espera superado"
+        );
+
+
+        return false;
+    }
+
+
+    private void ComportamientoIrAEsperaSalidaProcesadora()
+    {
+        if (piedraEsperadaProcesadora == null)
+        {
+            AbandonarCadenaProcesadora(
+                "se perdió la referencia de la piedra"
+            );
+
+            return;
+        }
+
+
+        if (!ConsumirTiempoEsperaProcesadora())
+            return;
+
+
+        if (maquinaErosion == null)
+        {
+            AbandonarCadenaProcesadora(
+                "no existe MaquinaErosion"
+            );
+
+            return;
+        }
+
+
+        Transform puntoEspera =
+            maquinaErosion.puntoEsperaSalidaBot != null
+            ? maquinaErosion.puntoEsperaSalidaBot
+            : maquinaErosion.puntoEntregaBot;
+
+
+        if (puntoEspera == null)
+        {
+            // No rompemos el trabajo si falta el punto:
+            // esperamos quietos en la posición actual.
+            DetenerAgente();
+
+            estadoActual =
+                EstadoBot.EsperandoSalidaProcesadora;
+
+            return;
+        }
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return;
+        }
+
+
+        if (!NavMesh.SamplePosition(
+                puntoEspera.position,
+                out NavMeshHit hit,
+                3f,
+                NavMesh.AllAreas))
+        {
+            DetenerAgente();
+
+            return;
+        }
+
+
+        agente.isStopped =
+            false;
+
+
+        agente.SetDestination(
+            hit.position
+        );
+
+
+        float distancia =
+            Vector3.Distance(
+                transform.position,
+                hit.position
+            );
+
+
+        if (distancia <=
+            distanciaLlegadaEsperaProcesadora)
+        {
+            DetenerAgente();
+
+            estadoActual =
+                EstadoBot.EsperandoSalidaProcesadora;
+
+
+            ResetearAntiAtasco();
+        }
+    }
+
+
+    private void ComportamientoEsperarSalidaProcesadora()
+    {
+        DetenerAgente();
+
+
+        if (piedraEsperadaProcesadora == null)
+        {
+            AbandonarCadenaProcesadora(
+                "se perdió la referencia de la piedra"
+            );
+
+            return;
+        }
+
+
+        ConsumirTiempoEsperaProcesadora();
+    }
+
+
+    // MaquinaErosion llama a este método exactamente cuando
+    // la MISMA piedra que entregó este Bot termina de salir.
+    public void NotificarPiedraProcesadaLista(
+        Rigidbody piedra)
+    {
+        if (piedra == null)
+            return;
+
+
+        if (piedraEsperadaProcesadora == null ||
+            piedra != piedraEsperadaProcesadora)
+        {
+            return;
+        }
+
+
+        if (gestorPiedras == null)
+        {
+            gestorPiedras =
+                GestorPiedras.Instancia;
+        }
+
+
+        // La máquina vuelve a registrar la piedra justo antes
+        // de llamar aquí. La reservamos inmediatamente para
+        // que ningún otro Bot pueda robársela.
+        if (gestorPiedras != null)
+        {
+            if (!gestorPiedras.IntentarReservarPiedra(
+                    piedra,
+                    this))
+            {
+                AbandonarCadenaProcesadora(
+                    "no se pudo reservar la piedra procesada"
+                );
+
+                return;
+            }
+        }
+
+
+        piedraObjetivo =
+            piedra;
+
+
+        destinoPiedraActual =
+            ConfiguracionBot
+                .DestinoTrabajo
+                .Agujero;
+
+
+        temporizadorRetardoProcesada =
+            retardoRecogidaProcesada;
+
+
+        // Damos un tiempo nuevo para que pueda caer,
+        // estabilizarse y ser recogida.
+        temporizadorEsperaProcesadora =
+            tiempoMaximoEsperaProcesadora;
+
+
+        estadoActual =
+            EstadoBot.YendoAPiedraProcesada;
+
+
+        ResetearAntiAtasco();
+
+
+        if (debugBusqueda)
+        {
+            Debug.Log(
+                name +
+                ": su piedra ha salido de la procesadora. " +
+                "Va a recogerla y llevarla al agujero."
+            );
+        }
+    }
+
+
+    private void ComportamientoIrAPiedraProcesada()
+    {
+        if (piedraObjetivo == null)
+        {
+            AbandonarCadenaProcesadora(
+                "la piedra procesada dejó de existir"
+            );
+
+            return;
+        }
+
+
+        if (!ConsumirTiempoEsperaProcesadora())
+            return;
+
+
+        // Dejamos un instante para que la expulsión física
+        // empiece a asentarse.
+        if (temporizadorRetardoProcesada > 0f)
+        {
+            temporizadorRetardoProcesada -=
+                Time.deltaTime;
+
+
+            DetenerAgente();
+
+            return;
+        }
+
+
+        if (agente == null ||
+            !agente.isOnNavMesh)
+        {
+            return;
+        }
+
+
+        if (!NavMesh.SamplePosition(
+                piedraObjetivo.position,
+                out NavMeshHit hit,
+                radioNavMeshPiedraProcesada,
+                NavMesh.AllAreas))
+        {
+            // La piedra puede seguir en el aire.
+            // No la damos por inaccesible todavía.
+            DetenerAgente();
+
+            return;
+        }
+
+
+        NavMeshPath camino =
+            new NavMeshPath();
+
+
+        if (!agente.CalculatePath(
+                hit.position,
+                camino) ||
+            camino.status !=
+                NavMeshPathStatus.PathComplete)
+        {
+            DetenerAgente();
+
+            return;
+        }
+
+
+        agente.isStopped =
+            false;
+
+
+        agente.SetDestination(
+            hit.position
+        );
+
+
+        float distancia =
+            Vector3.Distance(
+                transform.position,
+                hit.position
+            );
+
+
+        if (distancia >
+            distanciaRecogida)
+        {
+            return;
+        }
+
+
+        // No intentamos agarrarla si todavía sale disparada
+        // a demasiada velocidad.
+        if (!piedraObjetivo.isKinematic &&
+            piedraObjetivo.linearVelocity.magnitude >
+                velocidadMaximaRecogerProcesada)
+        {
+            return;
+        }
+
+
+        RecogerPiedraProcesada();
+    }
+
+
+    private void RecogerPiedraProcesada()
+    {
+        if (piedraObjetivo == null ||
+            puntoAgarre == null)
+        {
+            AbandonarCadenaProcesadora(
+                "no se puede recoger la piedra procesada"
+            );
+
+            return;
+        }
+
+
+        DetenerAgente();
+
+
+        if (!piedraObjetivo.isKinematic)
+        {
+            piedraObjetivo.linearVelocity =
+                Vector3.zero;
+
+
+            piedraObjetivo.angularVelocity =
+                Vector3.zero;
+        }
+
+
+        DeformacionPiedra deformacion =
+            piedraObjetivo.GetComponent<
+                DeformacionPiedra
+            >();
+
+
+        if (deformacion == null)
+        {
+            deformacion =
+                piedraObjetivo.GetComponentInParent<
+                    DeformacionPiedra
+                >();
+        }
+
+
+        if (deformacion != null)
+        {
+            deformacion.enabled =
+                false;
+        }
+
+
+        piedraObjetivo.isKinematic =
+            true;
+
+
+        Collider[] colliders =
+            piedraObjetivo
+                .GetComponentsInChildren<Collider>();
+
+
+        foreach (Collider col in colliders)
+        {
+            if (col != null)
+            {
+                col.enabled =
+                    false;
+            }
+        }
+
+
+        piedraObjetivo.transform.SetParent(
+            puntoAgarre,
+            false
+        );
+
+
+        piedraObjetivo.transform.localPosition =
+            Vector3.zero;
+
+
+        piedraObjetivo.transform.localRotation =
+            Quaternion.identity;
+
+
+        // Ya la hemos recuperado. A partir de aquí se trata
+        // como una piedra normal transportada, pero el destino
+        // queda FORZADO al agujero para no reprocesarla.
+        piedraEsperadaProcesadora =
+            null;
+
+
+        temporizadorEsperaProcesadora =
+            0f;
+
+
+        temporizadorRetardoProcesada =
+            0f;
+
+
+        destinoPiedraActual =
+            ConfiguracionBot
+                .DestinoTrabajo
+                .Agujero;
+
+
+        estadoActual =
+            EstadoBot.LlevandoPiedra;
+
+
+        ResetearAntiAtasco();
+    }
+
+
+    private void AbandonarCadenaProcesadora(
+        string motivo)
+    {
+        Rigidbody piedraLiberar =
+            piedraObjetivo;
+
+
+        if (piedraLiberar != null &&
+            gestorPiedras != null)
+        {
+            gestorPiedras.LiberarReserva(
+                piedraLiberar,
+                this
+            );
+        }
+
+
+        piedraObjetivo =
+            null;
+
+
+        piedraEsperadaProcesadora =
+            null;
+
+
+        temporizadorEsperaProcesadora =
+            0f;
+
+
+        temporizadorRetardoProcesada =
+            0f;
+
+
+        DetenerAgente();
+
 
         if (parkingForzado)
         {
@@ -3211,11 +3831,12 @@ public class BotRecolector : MonoBehaviour
 
         if (debugBusqueda)
         {
-            Debug.Log(
+            Debug.LogWarning(
                 name +
-                ": piedra lanzada correctamente " +
-                "a la procesadora."
+                ": abandona la espera de procesadora: " +
+                motivo
             );
         }
     }
+
 }
