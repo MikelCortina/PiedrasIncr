@@ -1,5 +1,24 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
+// --- RENOMBRADO PARA FORZAR A UNITY A BORRAR LA CACHÉ ---
+[System.Serializable]
+public class TramoTuberia
+{
+    [Tooltip("El controlador de la tubería por la que pasará la piedra.")]
+    public ControladorDeformacionTuberia tuberia;
+
+    [Tooltip("Velocidad a la que la panza viaja por ESTA tubería en concreto.")]
+    public float velocidadDeformacion = 2f;
+
+    [Tooltip("Desde dónde empieza (Panner) en ESTA tubería.")]
+    public float pannerInicio = -0.5f;
+
+    [Tooltip("Hasta dónde llega (Panner) en ESTA tubería.")]
+    public float pannerFin = 1.5f;
+}
+// -------------------------------------------------
 
 public class AgujeroSimple : MonoBehaviour
 {
@@ -24,6 +43,10 @@ public class AgujeroSimple : MonoBehaviour
     [Tooltip("Multiplicador de fuerza extra para asegurar que las monedas rebotadas salgan del hoyo")]
     public float multiplicadorRebote = 1.2f;
 
+    [Header("Flujo de Tuberías (Deformación)")]
+    [Tooltip("Añade aquí las tuberías en orden. Cada una puede tener su propia velocidad y límites.")]
+    public List<TramoTuberia> recorridoTuberias = new List<TramoTuberia>();
+
     [Header("Efectos Visuales y Sonido")]
     public ParticleSystem particulasTragar;
     public ParticleSystem particulasEscupir;
@@ -39,17 +62,23 @@ public class AgujeroSimple : MonoBehaviour
     private Vector3 escalaOriginal;
     private float impulsoBloopActual = 0f;
 
+    private bool[] tuberiaOcupada;
+
     void Start()
     {
         if (modeloVisual != null) escalaOriginal = modeloVisual.localScale;
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
-        // Aseguramos que el sistema de partículas empiece apagado por seguridad
         if (particulasEscupir != null)
         {
             var emision = particulasEscupir.emission;
             emision.rateOverTime = 0f;
             particulasEscupir.Stop();
+        }
+
+        if (recorridoTuberias != null)
+        {
+            tuberiaOcupada = new bool[recorridoTuberias.Count];
         }
     }
 
@@ -88,9 +117,49 @@ public class AgujeroSimple : MonoBehaviour
 
         HacerBloop();
 
+        if (recorridoTuberias != null && recorridoTuberias.Count > 0)
+        {
+            StartCoroutine(RutinaViajePorTuberias());
+        }
+
         if (cantidadMonedas > 0)
         {
             StartCoroutine(EscupirMonedas(cantidadMonedas, pureza));
+        }
+    }
+
+    // ==========================================
+    // LÓGICA DE VIAJE DE TUBERÍAS (PIPELINE)
+    // ==========================================
+    private IEnumerator RutinaViajePorTuberias()
+    {
+        for (int i = 0; i < recorridoTuberias.Count; i++)
+        {
+            TramoTuberia paso = recorridoTuberias[i];
+            if (paso == null || paso.tuberia == null) continue;
+
+            while (tuberiaOcupada[i])
+            {
+                yield return null;
+            }
+
+            tuberiaOcupada[i] = true;
+
+            float progresoActual = paso.pannerInicio;
+
+            // Mathf.MoveTowards se encarga de ir hacia arriba o hacia abajo automáticamente
+            while (progresoActual != paso.pannerFin)
+            {
+                // Usamos Mathf.Abs para que la velocidad siempre sume (hacia el objetivo), 
+                // así no tienes que preocuparte de poner velocidades negativas en el Inspector.
+                progresoActual = Mathf.MoveTowards(progresoActual, paso.pannerFin, Time.deltaTime * Mathf.Abs(paso.velocidadDeformacion));
+                paso.tuberia.SetPannerGlobal(progresoActual);
+                yield return null;
+            }
+
+            // Al salir, lo dejamos invisible en su punto de inicio original
+            paso.tuberia.SetPannerGlobal(paso.pannerInicio);
+            tuberiaOcupada[i] = false;
         }
     }
 
@@ -104,21 +173,11 @@ public class AgujeroSimple : MonoBehaviour
 
     private IEnumerator EscupirMonedas(int cantidad, float pureza)
     {
-        // 1. Configurar emisión según tramos de pureza
         float emisionExtra = 0f;
 
-        if (pureza >= umbralPerfecto)
-        {
-            emisionExtra = 0f; // Tramo 1: Piedra perfecta
-        }
-        else if (pureza >= umbralBueno)
-        {
-            emisionExtra = 15f; // Tramo 2: Piedra buena/aceptable
-        }
-        else
-        {
-            emisionExtra = 30f; // Tramo 3: Piedra mala/sucia
-        }
+        if (pureza >= umbralPerfecto) emisionExtra = 0f;
+        else if (pureza >= umbralBueno) emisionExtra = 15f;
+        else emisionExtra = 30f;
 
         if (particulasEscupir != null)
         {
@@ -127,7 +186,6 @@ public class AgujeroSimple : MonoBehaviour
             if (!particulasEscupir.isPlaying) particulasEscupir.Play();
         }
 
-        // 2. Bucle de expulsión de monedas
         for (int i = 0; i < cantidad; i++)
         {
             if (prefabDinero != null && puntoDeExpulsion != null)
@@ -142,7 +200,6 @@ public class AgujeroSimple : MonoBehaviour
             yield return new WaitForSeconds(tiempoEntreMonedas);
         }
 
-        // --- 3. PROTECCIÓN AVALANCHAS: APAGADO OBLIGATORIO ---
         if (particulasEscupir != null)
         {
             var emision = particulasEscupir.emission;

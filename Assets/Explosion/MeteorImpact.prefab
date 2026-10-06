@@ -4967,8 +4967,16 @@ PrefabInstance:
       value: Expl1
       objectReference: {fileID: 0}
     - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
       propertyPath: simulationSpeed
       value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
+      propertyPath: EmissionModule.m_BurstCount
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
       propertyPath: InitialModule.startSize.scalar
@@ -4981,6 +4989,14 @@ PrefabInstance:
     - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
       propertyPath: InitialModule.startSize.minScalar
       value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
+      propertyPath: EmissionModule.m_Bursts.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1801934696749934620, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3309871239980814124, guid: 173c0dbb94b3fa74ea05805f3e1bcebb, type: 3}
       propertyPath: m_LocalPosition.x
