@@ -41,6 +41,7 @@ Transform:
   - {fileID: 5504552563484024959}
   - {fileID: 3373821846453269508}
   - {fileID: 3267733938797127252}
+  - {fileID: 2277811850791299785}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3217562067679293003
@@ -86,7 +87,7 @@ MonoBehaviour:
   rendererSmokeSecundario: {fileID: 8216015297865946561}
   propiedadColorShader: _FireColor
   colorNacimiento: {r: 0.4509804, g: 0.4509804, b: 0.4509804, a: 1}
-  colorImpacto: {r: 1, g: 0.2, b: 0, a: 1}
+  colorImpacto: {r: 5.9921575, g: 1.1984315, b: 0, a: 1}
   estelasMeteorito:
   - {fileID: 4922653902409344843}
   - {fileID: 5138205141923502965}
@@ -230,7 +231,7 @@ MonoBehaviour:
   fuerzaMinimaChoque: 1
   multiplicadorErosion: 1
   retrasoEfectosInicial: 0
-  particulasPolvo: {fileID: 4848957872013385739}
+  particulasPolvo: {fileID: 1203171201716349629}
   fuerzaMinimaParticulas: 8
   fuerzaMaximaParticulas: 30
   minParticulasPorGolpe: 2
@@ -287,6 +288,73 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebd8515d42a2b1f4bab6265f96360bc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &1027784445929049532
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7791753073355930466}
+    m_Modifications:
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5013780143572598559, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_Name
+      value: Chispas Variant
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+--- !u!198 &1203171201716349629 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2229819851588609793, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+  m_PrefabInstance: {fileID: 1027784445929049532}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2277811850791299785 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1287753847842989941, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+  m_PrefabInstance: {fileID: 1027784445929049532}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1179638519692868224
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -479,6 +547,10 @@ PrefabInstance:
     - target: {fileID: 503692072836771341, guid: 96c5d1e56b1874e4788cca35bbb33222, type: 3}
       propertyPath: m_Layer
       value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 503692072836771341, guid: 96c5d1e56b1874e4788cca35bbb33222, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5960226520927729255, guid: 96c5d1e56b1874e4788cca35bbb33222, type: 3}
       propertyPath: m_LocalPosition.x
@@ -697,11 +769,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 96c5d1e56b1874e4788cca35bbb33222, type: 3}
---- !u!198 &4848957872013385739 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 6744165091695736339, guid: 96c5d1e56b1874e4788cca35bbb33222, type: 3}
-  m_PrefabInstance: {fileID: 2221087246942737944}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5504552563484024959 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5960226520927729255, guid: 96c5d1e56b1874e4788cca35bbb33222, type: 3}
