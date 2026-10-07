@@ -39,19 +39,38 @@ public class GeneradorPiedra : MonoBehaviour
 
         if (usarVariacionAleatoria)
         {
-            // Usamos la posición actual como semilla única para que la variante sea consistente al regenerar
-            Random.InitState(gameObject.GetInstanceID());
-            float varFuerza = Random.Range(-rangoVariacionFuerza, rangoVariacionFuerza);
-            float varEscala = Random.Range(-rangoVariacionEscala, rangoVariacionEscala);
+            Random.InitState(gameObject.GetEntityId().GetHashCode());
 
-            fuerzaFinal = Mathf.Max(0.1f, fuerzaDeformacionBase + varFuerza);
-            escalaFinal = Mathf.Max(0.1f, escalaRuidoBase + varEscala);
+            float varFuerza =
+                Random.Range(
+                    -rangoVariacionFuerza,
+                    rangoVariacionFuerza
+                );
 
-            // Redondeamos a 1 decimal para forzar que piedras con valores similares compartan la misma malla maestra (Pool)
-            fuerzaFinal = Mathf.Round(fuerzaFinal * 10f) / 10f;
-            escalaFinal = Mathf.Round(escalaFinal * 10f) / 10f;
+            float varEscala =
+                Random.Range(
+                    -rangoVariacionEscala,
+                    rangoVariacionEscala
+                );
+
+            fuerzaFinal =
+                Mathf.Max(
+                    0.1f,
+                    fuerzaDeformacionBase + varFuerza
+                );
+
+            escalaFinal =
+                Mathf.Max(
+                    0.1f,
+                    escalaRuidoBase + varEscala
+                );
+
+            fuerzaFinal =
+                Mathf.Round(fuerzaFinal * 10f) / 10f;
+
+            escalaFinal =
+                Mathf.Round(escalaFinal * 10f) / 10f;
         }
-
         // Creamos una clave de caché basada en estos valores redondeados
         string claveCache = $"Piedra_{fuerzaFinal}_{escalaFinal}";
 

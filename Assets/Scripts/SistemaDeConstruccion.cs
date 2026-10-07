@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class SistemaConstruccion : MonoBehaviour
 {
-    public enum TipoEdificio { Rampa, Pared, Libre }
+    public enum TipoEdificio { Rampa, Pared, Libre, Cinta }
 
     [System.Serializable]
     public struct InfoEdificio
@@ -52,6 +52,14 @@ public class SistemaConstruccion : MonoBehaviour
     public KeyCode teclaCambiarTipo = KeyCode.Tab;
     public float velocidadRotacion = 10f;
     public float distanciaMaximaConstruccion = 15f;
+
+    [Header("Cintas automáticas")]
+    [Tooltip("Zona central para elegir cinta recta. Cuanto mayor sea, más tendrás que colocarte a un lado para elegir una curva.")]
+    [Range(0f, 1f)]
+    public float umbralLateralCinta = 0.35f;
+
+    [Tooltip("Muestra en consola cuándo la cinta automática cambia entre recta, izquierda y derecha.")]
+    public bool debugCintaAutomatica = false;
 
     // AÑADIDO: Tiempo personalizable de espera
     [Tooltip("Tiempo en segundos que tarda en aparecer el siguiente holograma tras construir")]
@@ -181,7 +189,16 @@ public class SistemaConstruccion : MonoBehaviour
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
         if (edificioActual.prefabsHologramas.Length > 0)
         {
-            indiceVarianteActual = Random.Range(0, edificioActual.prefabsHologramas.Length);
+            // Las cintas siempre empiezan como recta.
+            // Orden esperado:
+            // [0] Recta
+            // [1] Curva Izquierda
+            // [2] Curva Derecha
+            if (edificioActual.tipo == TipoEdificio.Cinta)
+                indiceVarianteActual = 0;
+            else
+                indiceVarianteActual = Random.Range(0, edificioActual.prefabsHologramas.Length);
+
             hologramaActual = Instantiate(edificioActual.prefabsHologramas[indiceVarianteActual]);
         }
         else
@@ -226,6 +243,8 @@ public class SistemaConstruccion : MonoBehaviour
         {
             if (actual.tipo == TipoEdificio.Rampa && (hitConector.collider.CompareTag("ConectorSalida") || hitConector.collider.CompareTag("ConectorEntrada")))
                 conectorValido = true;
+            else if (actual.tipo == TipoEdificio.Cinta && (hitConector.collider.CompareTag("ConectorSalida") || hitConector.collider.CompareTag("ConectorEntrada")))
+                conectorValido = true;
             else if (actual.tipo == TipoEdificio.Pared && (hitConector.collider.CompareTag("RailRampa") || hitConector.collider.CompareTag("ConectorParedSalida") || hitConector.collider.CompareTag("ConectorParedEntrada")))
                 conectorValido = true;
         }
@@ -256,6 +275,29 @@ public class SistemaConstruccion : MonoBehaviour
                     hologramaActual.transform.rotation = hitConector.transform.rotation;
                     if (hitConector.collider.CompareTag("ConectorSalida")) AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
                     else if (hitConector.collider.CompareTag("ConectorEntrada")) AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
+                }
+                else if (actual.tipo == TipoEdificio.Cinta)
+                {
+                    bool conectandoDesdeSalida = hitConector.collider.CompareTag("ConectorSalida");
+
+                    int nuevaVariante = DeterminarVarianteCinta(
+                        hitConector.transform,
+                        conectandoDesdeSalida
+                    );
+
+                    if (nuevaVariante != indiceVarianteActual)
+                    {
+                        CambiarVarianteHolograma(nuevaVariante);
+                        detector = hologramaActual.GetComponent<HologramaColision>();
+                    }
+
+                    // Si conectamos al final de otra cinta usamos nuestra entrada.
+                    // Si conectamos por detrás usamos nuestra salida.
+                    string nombreConectorMio = conectandoDesdeSalida
+                        ? "PuntoConexion_Entrada"
+                        : "PuntoConexion_Salida";
+
+                    AlinearConectorCinta(nombreConectorMio, hitConector.transform);
                 }
                 else if (actual.tipo == TipoEdificio.Pared)
                 {
@@ -313,6 +355,13 @@ public class SistemaConstruccion : MonoBehaviour
                 posicionSueloBloqueada = null;
                 timerBloqueoSlot = 0f;
 
+                // Si una cinta no está conectada a otra, vuelve a la variante recta.
+                if (actual.tipo == TipoEdificio.Cinta && indiceVarianteActual != 0)
+                {
+                    CambiarVarianteHolograma(0);
+                    detector = hologramaActual.GetComponent<HologramaColision>();
+                }
+
                 hologramaActual.transform.position = hit.point;
                 estaImantado = false;
                 apuntandoValido = true;
@@ -332,6 +381,160 @@ public class SistemaConstruccion : MonoBehaviour
         }
 
         hologramaActual.SetActive(apuntandoValido);
+    }
+
+    // =========================================================
+    // CINTAS AUTOMÁTICAS
+    // =========================================================
+
+    int DeterminarVarianteCinta(Transform conector, bool conectandoDesdeSalida)
+    {
+        // Orden obligatorio de variantes:
+        // 0 = Recta
+        // 1 = Curva Izquierda
+        // 2 = Curva Derecha
+        InfoEdificio actual = edificios[indiceEdificioActual];
+
+        if (actual.prefabsHologramas == null || actual.prefabsHologramas.Length < 3)
+            return 0;
+
+        if (camaraPrincipal == null)
+            return 0;
+
+        Vector3 haciaJugador = camaraPrincipal.transform.position - conector.position;
+        haciaJugador.y = 0f;
+
+        if (haciaJugador.sqrMagnitude < 0.001f)
+            return 0;
+
+        haciaJugador.Normalize();
+
+        // Si estamos construyendo desde una salida, el eje Right del conector
+        // marca directamente derecha/izquierda.
+        //
+        // Si conectamos contra una entrada estamos construyendo en sentido
+        // contrario, por eso invertimos el eje lateral.
+        Vector3 derechaConstruccion = conectandoDesdeSalida
+            ? conector.right
+            : -conector.right;
+
+        derechaConstruccion.y = 0f;
+
+        if (derechaConstruccion.sqrMagnitude < 0.001f)
+            return 0;
+
+        derechaConstruccion.Normalize();
+
+        float lateral = Vector3.Dot(haciaJugador, derechaConstruccion);
+
+        int varianteDeseada;
+
+        if (Mathf.Abs(lateral) <= umbralLateralCinta)
+        {
+            varianteDeseada = 0;
+        }
+        else if (lateral < 0f)
+        {
+            // Construyendo al revés, la geometría del prefab se recorre al revés,
+            // así que izquierda y derecha se intercambian.
+            varianteDeseada = conectandoDesdeSalida ? 1 : 2;
+        }
+        else
+        {
+            varianteDeseada = conectandoDesdeSalida ? 2 : 1;
+        }
+
+        return varianteDeseada;
+    }
+
+    void CambiarVarianteHolograma(int nuevoIndice)
+    {
+        InfoEdificio actual = edificios[indiceEdificioActual];
+
+        if (actual.prefabsHologramas == null ||
+            nuevoIndice < 0 ||
+            nuevoIndice >= actual.prefabsHologramas.Length)
+        {
+            return;
+        }
+
+        if (nuevoIndice == indiceVarianteActual && hologramaActual != null)
+            return;
+
+        Vector3 posicion = Vector3.zero;
+        Quaternion rotacion = Quaternion.identity;
+        bool estabaActivo = true;
+
+        if (hologramaActual != null)
+        {
+            posicion = hologramaActual.transform.position;
+            rotacion = hologramaActual.transform.rotation;
+            estabaActivo = hologramaActual.activeSelf;
+            Destroy(hologramaActual);
+        }
+
+        indiceVarianteActual = nuevoIndice;
+        hologramaActual = Instantiate(
+            actual.prefabsHologramas[indiceVarianteActual],
+            posicion,
+            rotacion
+        );
+
+        hologramaActual.SetActive(estabaActivo);
+
+        if (debugCintaAutomatica)
+        {
+            string nombreVariante = indiceVarianteActual switch
+            {
+                0 => "RECTA",
+                1 => "IZQUIERDA",
+                2 => "DERECHA",
+                _ => "DESCONOCIDA"
+            };
+
+            Debug.Log("Cinta automática -> " + nombreVariante);
+        }
+    }
+
+    void AlinearConectorCinta(string nombreConectorMio, Transform conectorDestino)
+    {
+        if (hologramaActual == null || conectorDestino == null)
+            return;
+
+        Transform miConector = null;
+        Transform[] todosLosHijos = hologramaActual.GetComponentsInChildren<Transform>(true);
+
+        foreach (Transform hijo in todosLosHijos)
+        {
+            if (hijo.name == nombreConectorMio)
+            {
+                miConector = hijo;
+                break;
+            }
+        }
+
+        if (miConector == null)
+        {
+            Debug.LogWarning(
+                "No se encontró '" + nombreConectorMio +
+                "' dentro del holograma de cinta."
+            );
+            return;
+        }
+
+        // Primero igualamos la orientación del conector propio con el destino.
+        Quaternion diferenciaRotacion =
+            conectorDestino.rotation * Quaternion.Inverse(miConector.rotation);
+
+        hologramaActual.transform.rotation =
+            diferenciaRotacion * hologramaActual.transform.rotation;
+
+        // Después igualamos exactamente las posiciones.
+        Vector3 diferenciaPosicion =
+            miConector.position - hologramaActual.transform.position;
+
+        hologramaActual.transform.position =
+            conectorDestino.position - diferenciaPosicion;
     }
 
     void AlinearPiezas(string nombreConectorMio, Vector3 posicionDestino)
@@ -482,7 +685,7 @@ public class SistemaConstruccion : MonoBehaviour
                     id.conectorUsado = imanApuntado;
                     imanApuntado.enabled = false;
 
-                    if (actual.tipo == TipoEdificio.Rampa)
+                    if (actual.tipo == TipoEdificio.Rampa || actual.tipo == TipoEdificio.Cinta)
                     {
                         string nombreConectorAQuemar = imanApuntado.CompareTag("ConectorSalida") ? "PuntoConexion_Entrada" : "PuntoConexion_Salida";
 

@@ -168,9 +168,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &15934371 stripped
 GameObject:
@@ -777,6 +777,63 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4883396070958072702, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+--- !u!1001 &75630150
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6288764415059956693, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_Name
+      value: Meteorito 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 918.69006
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 396.196
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 198.78487
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
 --- !u!1001 &81338616
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1244,9 +1301,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &116601633
 GameObject:
@@ -1882,9 +1939,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &146310629 stripped
 GameObject:
@@ -1923,9 +1980,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!64 &154346900
 MeshCollider:
@@ -3626,9 +3683,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!64 &330929846
 MeshCollider:
@@ -3817,9 +3874,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &355586126
 GameObject:
@@ -6347,9 +6404,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &539759029
 GameObject:
@@ -7432,11 +7489,15 @@ MonoBehaviour:
   modeloMartillo: {fileID: 0}
   edificios:
   - nombre: Rampa
-    tipo: 0
+    tipo: 3
     prefabsReales:
     - {fileID: 5205576267664954101, guid: 2c208abc10fbf124f90123fd0f1aee74, type: 3}
+    - {fileID: 8553783279391797876, guid: 85894cbadbb9f2748858a3d15d76bba0, type: 3}
+    - {fileID: 8553783279391797876, guid: 61fecc818ae4f6645a0189f6f9ba7411, type: 3}
     prefabsHologramas:
     - {fileID: 5205576267664954101, guid: 88bb0c3f59ee2f84ea2a3fbfcf37c8bd, type: 3}
+    - {fileID: 1829045750089557373, guid: 59ec57a5e23e6e24cb3ef3776df25683, type: 3}
+    - {fileID: 2660513677497851738, guid: 60b74e47f75372440837880117377504, type: 3}
     offsetPosicion: {x: 0, y: 0, z: 0}
     offsetRotacion: {x: 0, y: 0, z: 0}
   - nombre: Pared
@@ -7485,6 +7546,8 @@ MonoBehaviour:
   teclaCambiarTipo: 9
   velocidadRotacion: 10
   distanciaMaximaConstruccion: 15
+  umbralLateralCinta: 0.35
+  debugCintaAutomatica: 0
   tiempoEsperaConstruccion: 0.2
   modoConstruccion: 0
 --- !u!114 &584387207
@@ -11005,9 +11068,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1001 &799865791
 PrefabInstance:
@@ -22251,6 +22314,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -22735,9 +22799,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &956748388
 GameObject:
@@ -22905,9 +22969,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &980504107
 GameObject:
@@ -22987,6 +23051,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -30246,9 +30311,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1191381259 stripped
 GameObject:
@@ -30282,9 +30347,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!64 &1191381262
 MeshCollider:
@@ -30516,9 +30581,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!4 &1199194849 stripped
 Transform:
@@ -30574,9 +30639,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1209038032 stripped
 GameObject:
@@ -31246,9 +31311,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.21176471, g: 0.10980392, b: 0.19607843, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1269967525
 GameObject:
@@ -32164,9 +32229,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1375657921 stripped
 GameObject:
@@ -33244,9 +33309,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!64 &1446717088
 MeshCollider:
@@ -33678,9 +33743,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705882, g: 0.21568628, b: 0.28627452, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1490404310
 GameObject:
@@ -36230,9 +36295,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
+    modificarSombras: 0
     shadowPower: 0
-    shadowColor: {r: 0.24705882, g: 0.21568628, b: 0.28627452, a: 1}
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1679459985
 GameObject:
@@ -39757,9 +39822,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1819109406
 GameObject:
@@ -40486,9 +40551,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!64 &1936731728
 MeshCollider:
@@ -40538,7 +40603,7 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1940057288}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 13
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
@@ -40590,7 +40655,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -40693,9 +40758,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1 &1965598155
 GameObject:
@@ -41369,9 +41434,9 @@ MonoBehaviour:
     localizedShading: 0.72
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1
-    modificarSombras: 1
+    modificarSombras: 0
     shadowPower: 0
-    shadowColor: {r: 0.24705882, g: 0.21568628, b: 0.28627452, a: 1}
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!64 &2023212825
 MeshCollider:
@@ -48411,3 +48476,4 @@ SceneRoots:
   - {fileID: 1602160529}
   - {fileID: 859085548}
   - {fileID: 980504111}
+  - {fileID: 75630150}
