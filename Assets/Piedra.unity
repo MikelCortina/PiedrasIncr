@@ -671,6 +671,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &49418967 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7715626668051313982, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+  m_PrefabInstance: {fileID: 1602160529}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &49418969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 49418967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: a91aecc4c90756e4a863b5e78ea66e1f, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &51242692 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1085485908691104113, guid: 3dad045c4148e924fb9135571d3da8e7, type: 3}
@@ -35100,10 +35131,18 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 4300000, guid: 128d9694f1476234d9f0a4bd52f15ec6, type: 2}
+    - target: {fileID: -678588488315902003, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 919132149155446097, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
       propertyPath: m_Name
       value: Gasolinera
       objectReference: {fileID: 0}
+    - target: {fileID: 3616844112969948802, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 4083501151425157549, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
       propertyPath: m_LocalPosition.x
       value: -53.23
@@ -35156,6 +35195,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2126658499}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7715626668051313982, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 49418969}
     - targetCorrespondingSourceObject: {fileID: 4470441844611919273, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 52079904}
@@ -35165,6 +35207,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4470441844611919273, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 52079909}
+    - targetCorrespondingSourceObject: {fileID: 8416272007918961125, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1934278407}
     - targetCorrespondingSourceObject: {fileID: -7146521406498821007, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1761068627}
@@ -40378,6 +40423,37 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
+--- !u!1 &1934278405 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8416272007918961125, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+  m_PrefabInstance: {fileID: 1602160529}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1934278407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1934278405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 4d9628fd0ba7e13438fa5572b016cff0, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1936731725 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: b1195319650fb4c9e83f1e8dc6e7c6ec, type: 3}
