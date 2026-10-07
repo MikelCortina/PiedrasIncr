@@ -1,6 +1,6 @@
 Shader "Custom/NeonDriveAbandoned"
 {
-   Properties
+    Properties
     {
         [HDR] _MainColor ("Color del Neon", Color) = (0.0, 1.0, 1.0, 1.0)
         _Intensity ("Intensidad General", Range(0, 10)) = 3.0
@@ -16,7 +16,6 @@ Shader "Custom/NeonDriveAbandoned"
     }
     SubShader
     {
-        // Se renderiza como opaco para que el Bloom lo detecte sin problemas de transparencia
         Tags { "RenderType"="Opaque" "Queue"="Geometry" }
         LOD 100
 
@@ -25,27 +24,34 @@ Shader "Custom/NeonDriveAbandoned"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            // Habilita el soporte para instanciamiento en la GPU
+            #pragma multi_compile_instancing 
             #include "UnityCG.cginc"
 
             struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID // Necesario para instanciamiento
             };
 
             struct v2f
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID // Para pasar el ID al fragment shader
             };
 
-            float4 _MainColor;
-            float _Intensity;
-            float _FlickerSpeed;
-            float _FlickerAmount;
-            float _Segments;
-            float _DeadZoneAmount;
-            float _BarDirection;
+            // Declaración de variables preparadas para Material Property Blocks
+            UNITY_INSTANCING_BUFFER_START(Props)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _MainColor)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Intensity)
+                UNITY_DEFINE_INSTANCED_PROP(float, _FlickerSpeed)
+                UNITY_DEFINE_INSTANCED_PROP(float, _FlickerAmount)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Segments)
+                UNITY_DEFINE_INSTANCED_PROP(float, _DeadZoneAmount)
+                UNITY_DEFINE_INSTANCED_PROP(float, _BarDirection)
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             // Función de ruido pseudoaleatorio para generar imperfecciones
             float random(float2 st) 
@@ -56,6 +62,11 @@ Shader "Custom/NeonDriveAbandoned"
             v2f vert (appdata v)
             {
                 v2f o;
+                
+                // Configura y transfiere el ID de la instancia
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 return o;
@@ -63,27 +74,31 @@ Shader "Custom/NeonDriveAbandoned"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                // Configura el ID en el fragment shader
+                UNITY_SETUP_INSTANCE_ID(i);
+
+                // Leemos las propiedades desde el búfer de instanciamiento
+                float4 mainColor = UNITY_ACCESS_INSTANCED_PROP(Props, _MainColor);
+                float intensity = UNITY_ACCESS_INSTANCED_PROP(Props, _Intensity);
+                float flickerSpeed = UNITY_ACCESS_INSTANCED_PROP(Props, _FlickerSpeed);
+                float flickerAmount = UNITY_ACCESS_INSTANCED_PROP(Props, _FlickerAmount);
+                float segments = UNITY_ACCESS_INSTANCED_PROP(Props, _Segments);
+                float deadZoneAmount = UNITY_ACCESS_INSTANCED_PROP(Props, _DeadZoneAmount);
+                float barDirection = UNITY_ACCESS_INSTANCED_PROP(Props, _BarDirection);
+
                 // 1. LÓGICA DE PARPADEO (Tubo de gas inestable)
-                float t = _Time.y * _FlickerSpeed;
+                float t = _Time.y * flickerSpeed;
                 float noiseFlicker = random(float2(floor(t), 0.0));
-                // Interpola entre encendido (1.0) y apagado temporal usando el ruido
-                float flicker = lerp(1.0, step(0.5, noiseFlicker), _FlickerAmount);
+                float flicker = lerp(1.0, step(0.5, noiseFlicker), flickerAmount);
 
                 // 2. LÓGICA DE ZONAS MUERTAS (LEDs fundidos o tubos quemados)
-                // Selecciona si la barra lee las coordenadas X o Y
-                float axis = lerp(i.uv.x, i.uv.y, _BarDirection);
-                
-                // Divide la geometría en segmentos virtuales
-                float currentSegment = floor(axis * _Segments);
-                
-                // Usa la coordenada del segmento para generar un valor fijo y decidir si está "roto"
-                float isDead = step(1.0 - _DeadZoneAmount, random(float2(currentSegment, 1.0)));
-                
-                // Si el segmento está roto, baja su brillo al 5% para que no sea un negro plano y retenga algo del cristal
+                float axis = lerp(i.uv.x, i.uv.y, barDirection);
+                float currentSegment = floor(axis * segments);
+                float isDead = step(1.0 - deadZoneAmount, random(float2(currentSegment, 1.0)));
                 float damageMultiplier = lerp(1.0, 0.05, isDead);
 
                 // 3. COLOR FINAL
-                float4 finalColor = _MainColor * _Intensity * flicker * damageMultiplier;
+                float4 finalColor = mainColor * intensity * flicker * damageMultiplier;
                 
                 return finalColor;
             }
