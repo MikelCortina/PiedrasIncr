@@ -103,38 +103,39 @@ public class AgujeroSimple : MonoBehaviour
         int cantidadMonedas = premioMalo;
         float pureza = 0f;
 
-        // --- NUEVO: Variable para saber si debemos animar las tuberías ---
         bool esPiedraAceptable = false;
+        float incrementoCombustible = 0f; // Guardamos cuánto fuel va a dar, pero aún no lo sumamos
 
         if (scriptPiedra != null)
         {
             pureza = scriptPiedra.ObtenerPorcentajeDesgasteHaciaEsfera();
             cantidadMonedas = CalcularRecompensa(pureza);
 
-            // Verificamos si supera el umbral
             if (pureza >= umbralAceptable)
             {
-                esPiedraAceptable = true; // La piedra es buena, activamos la bandera
-
-                if (contadorFuelo != null)
-                {
-                    float incrementoCombustible = (pureza / 100f) * 0.1f;
-                    contadorFuelo.AgregarFuelo(incrementoCombustible);
-                }
+                esPiedraAceptable = true;
+                incrementoCombustible = (pureza / 100f) * 0.1f; // Calculamos la cantidad
             }
         }
 
         Destroy(piedra);
 
-        // El agujero se come la piedra visual y sonoramente de todas formas
         if (particulasTragar != null) particulasTragar.Play();
         if (audioSource != null && sonidoTragar != null) audioSource.PlayOneShot(sonidoTragar);
         HacerBloop();
 
-        // --- NUEVO: Solo iniciamos el viaje por las tuberías si la piedra fue aceptada ---
-        if (esPiedraAceptable && recorridoTuberias != null && recorridoTuberias.Count > 0)
+        if (esPiedraAceptable)
         {
-            StartCoroutine(RutinaViajePorTuberias());
+            if (recorridoTuberias != null && recorridoTuberias.Count > 0)
+            {
+                // Pasamos la cantidad de fuel a la rutina de las tuberías para que la sume al final
+                StartCoroutine(RutinaViajePorTuberias(incrementoCombustible));
+            }
+            else
+            {
+                // Si por algún motivo no hay tuberías configuradas, sumamos el fuel directamente
+                if (contadorFuelo != null) contadorFuelo.AgregarFuelo(incrementoCombustible);
+            }
         }
 
         if (cantidadMonedas > 0)
@@ -143,7 +144,8 @@ public class AgujeroSimple : MonoBehaviour
         }
     }
 
-    private IEnumerator RutinaViajePorTuberias()
+    // --- NUEVO: La rutina ahora recibe la cantidad de combustible a sumar ---
+    private IEnumerator RutinaViajePorTuberias(float fuelASumar)
     {
         for (int i = 0; i < recorridoTuberias.Count; i++)
         {
@@ -168,6 +170,12 @@ public class AgujeroSimple : MonoBehaviour
 
             paso.tuberia.SetPannerGlobal(paso.pannerInicio);
             tuberiaOcupada[i] = false;
+        }
+
+        // --- NUEVO: Una vez que el bucle 'for' ha terminado (todas las tuberías han hecho su animación), sumamos el fuel ---
+        if (contadorFuelo != null && fuelASumar > 0f)
+        {
+            contadorFuelo.AgregarFuelo(fuelASumar);
         }
     }
 
