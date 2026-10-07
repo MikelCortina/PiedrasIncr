@@ -36,40 +36,30 @@ public class GeneradorPiedra : MonoBehaviour
         // para redondear a 2 decimales, asegurando que se agrupen en un pool limitado de variantes.
         float fuerzaFinal = fuerzaDeformacionBase;
         float escalaFinal = escalaRuidoBase;
-
         if (usarVariacionAleatoria)
         {
-            Random.InitState(gameObject.GetEntityId().GetHashCode());
+            float varFuerza = Random.Range(
+                -rangoVariacionFuerza,
+                rangoVariacionFuerza
+            );
 
-            float varFuerza =
-                Random.Range(
-                    -rangoVariacionFuerza,
-                    rangoVariacionFuerza
-                );
+            float varEscala = Random.Range(
+                -rangoVariacionEscala,
+                rangoVariacionEscala
+            );
 
-            float varEscala =
-                Random.Range(
-                    -rangoVariacionEscala,
-                    rangoVariacionEscala
-                );
+            fuerzaFinal = Mathf.Max(
+                0.1f,
+                fuerzaDeformacionBase + varFuerza
+            );
 
-            fuerzaFinal =
-                Mathf.Max(
-                    0.1f,
-                    fuerzaDeformacionBase + varFuerza
-                );
+            escalaFinal = Mathf.Max(
+                0.1f,
+                escalaRuidoBase + varEscala
+            );
 
-            escalaFinal =
-                Mathf.Max(
-                    0.1f,
-                    escalaRuidoBase + varEscala
-                );
-
-            fuerzaFinal =
-                Mathf.Round(fuerzaFinal * 10f) / 10f;
-
-            escalaFinal =
-                Mathf.Round(escalaFinal * 10f) / 10f;
+            fuerzaFinal = Mathf.Round(fuerzaFinal * 10f) / 10f;
+            escalaFinal = Mathf.Round(escalaFinal * 10f) / 10f;
         }
         // Creamos una clave de caché basada en estos valores redondeados
         string claveCache = $"Piedra_{fuerzaFinal}_{escalaFinal}";

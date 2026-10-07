@@ -63,8 +63,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -86,11 +84,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &3146327216158864197
 MeshCollider:
@@ -136,6 +132,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1071930334888911904
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,8 +215,8 @@ Transform:
   m_GameObject: {fileID: 2088384508191657918}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -4}
-  m_LocalScale: {x: 0.060802, y: 0.1, z: 0.1}
+  m_LocalPosition: {x: -0, y: 0, z: 4.15}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4861139524609099855}
@@ -240,8 +240,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 75, y: 10, z: 114.40054}
-  m_Center: {x: 0, y: 0, z: -52.38133}
+  m_Size: {x: 2, y: 2, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3175933814323023911
 GameObject:
   m_ObjectHideFlags: 0
@@ -321,8 +321,8 @@ Transform:
   m_GameObject: {fileID: 6237173010343076700}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 4}
-  m_LocalScale: {x: 0.060802, y: 0.1, z: 0.1}
+  m_LocalPosition: {x: -0, y: 0, z: -4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4861139524609099855}
@@ -346,8 +346,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 75, y: 10, z: 130.57239}
-  m_Center: {x: 0, y: 0, z: 64.29518}
+  m_Size: {x: 1.2, y: 0.7, z: 0.5}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &7031744010438268498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -532,6 +532,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Construcciones
       objectReference: {fileID: 0}
+    - target: {fileID: 6269614910566615158, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
+      propertyPath: velocidad
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 6373626728984238693, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_Layer
       value: 7
@@ -711,3 +715,7 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0

@@ -53,12 +53,23 @@ public class SistemaConstruccion : MonoBehaviour
     public float velocidadRotacion = 10f;
     public float distanciaMaximaConstruccion = 15f;
 
-    [Header("Cintas automáticas")]
-    [Tooltip("Zona central para elegir cinta recta. Cuanto mayor sea, más tendrás que colocarte a un lado para elegir una curva.")]
-    [Range(0f, 1f)]
-    public float umbralLateralCinta = 0.35f;
+    [Header("Cintas automáticas - Snap")]
+    [Tooltip("Ángulo respecto al frente a partir del cual la cinta pasa de recta a curva.")]
+    [Range(5f, 80f)]
+    public float anguloActivarCurvaCinta = 30f;
 
-    [Tooltip("Muestra en consola cuándo la cinta automática cambia entre recta, izquierda y derecha.")]
+    [Tooltip("Evita que el holograma parpadee entre recta y curva cerca del límite.")]
+    [Range(0f, 20f)]
+    public float histeresisCinta = 8f;
+
+    [Tooltip("Distancia mínima desde el conector que debe tener el punto del ratón para decidir la dirección.")]
+    [Min(0.1f)]
+    public float distanciaMinimaDireccionCinta = 0.75f;
+
+    [Tooltip("Tras colocar una cinta, deja preparado automáticamente el extremo libre para continuar construyendo.")]
+    public bool encadenarCintasAutomaticamente = true;
+
+    [Tooltip("Muestra en consola y Scene la selección automática de recta/izquierda/derecha.")]
     public bool debugCintaAutomatica = false;
 
     // AÑADIDO: Tiempo personalizable de espera
@@ -81,8 +92,17 @@ public class SistemaConstruccion : MonoBehaviour
     private Vector3? posicionSueloBloqueada = null;
     private float timerBloqueoSlot = 0f;
 
+    // Snap persistente de cintas: una vez encontrado un conector no hace falta
+    // seguir apuntándolo mientras elegimos recta / izquierda / derecha.
+    private Collider conectorCintaBloqueado = null;
+    private bool snapCintaDesdeSalida = true;
+    private float tiempoHastaReengancheCinta = 0f;
+    private bool cancelarRotacionCintaEsteFrame = false;
+
     void Update()
     {
+        cancelarRotacionCintaEsteFrame = false;
+
         if (modoConstruccion && Input.GetKeyDown(teclaCambiarTipo))
         {
             CambiarEdificioActual();
@@ -158,15 +178,16 @@ public class SistemaConstruccion : MonoBehaviour
 
         if (modoConstruccion)
         {
-            // Si hay un cooldown activo de antes, no creamos el holograma todavía
             if (cooldownHolograma <= 0f)
             {
                 CrearHolograma();
             }
+
             Debug.Log("Modo construcción ACTIVADO");
         }
         else
         {
+            LiberarSnapCinta(false);
             DestruirHolograma();
             Debug.Log("Modo construcción DESACTIVADO");
         }
@@ -174,6 +195,8 @@ public class SistemaConstruccion : MonoBehaviour
 
     void CambiarEdificioActual()
     {
+        LiberarSnapCinta(false);
+
         indiceEdificioActual = (indiceEdificioActual + 1) % edificios.Length;
         DestruirHolograma();
 
@@ -236,17 +259,67 @@ public class SistemaConstruccion : MonoBehaviour
 
         edificioApuntado = null;
 
-        bool chocaConector = Physics.Raycast(rayo, out RaycastHit hitConector, distanciaMaximaConstruccion, capaConectores, QueryTriggerInteraction.Collide);
+        // ---------------------------------------------------------
+        // CINTA CON SNAP BLOQUEADO
+        // ---------------------------------------------------------
+        // Una vez que hemos encontrado un conector de cinta, lo conservamos.
+        // Así el jugador puede dejar de apuntar al collider y mover el ratón
+        // libremente para escoger recta / izquierda / derecha.
+        if (actual.tipo == TipoEdificio.Cinta && conectorCintaBloqueado != null)
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                cancelarRotacionCintaEsteFrame = true;
+                LiberarSnapCinta(true);
+                hologramaActual.SetActive(false);
+                return;
+            }
+
+            if (!conectorCintaBloqueado.enabled ||
+                !conectorCintaBloqueado.gameObject.activeInHierarchy)
+            {
+                LiberarSnapCinta(false);
+            }
+            else
+            {
+                apuntandoValido = ManejarCintaBloqueada(rayo, ref detector);
+                hologramaActual.SetActive(apuntandoValido);
+                return;
+            }
+        }
+
+        bool chocaConector = Physics.Raycast(
+            rayo,
+            out RaycastHit hitConector,
+            distanciaMaximaConstruccion,
+            capaConectores,
+            QueryTriggerInteraction.Collide
+        );
+
         bool conectorValido = false;
 
         if (chocaConector)
         {
-            if (actual.tipo == TipoEdificio.Rampa && (hitConector.collider.CompareTag("ConectorSalida") || hitConector.collider.CompareTag("ConectorEntrada")))
+            if (actual.tipo == TipoEdificio.Rampa &&
+                (hitConector.collider.CompareTag("ConectorSalida") ||
+                 hitConector.collider.CompareTag("ConectorEntrada")))
+            {
                 conectorValido = true;
-            else if (actual.tipo == TipoEdificio.Cinta && (hitConector.collider.CompareTag("ConectorSalida") || hitConector.collider.CompareTag("ConectorEntrada")))
+            }
+            else if (actual.tipo == TipoEdificio.Cinta &&
+                     Time.time >= tiempoHastaReengancheCinta &&
+                     (hitConector.collider.CompareTag("ConectorSalida") ||
+                      hitConector.collider.CompareTag("ConectorEntrada")))
+            {
                 conectorValido = true;
-            else if (actual.tipo == TipoEdificio.Pared && (hitConector.collider.CompareTag("RailRampa") || hitConector.collider.CompareTag("ConectorParedSalida") || hitConector.collider.CompareTag("ConectorParedEntrada")))
+            }
+            else if (actual.tipo == TipoEdificio.Pared &&
+                     (hitConector.collider.CompareTag("RailRampa") ||
+                      hitConector.collider.CompareTag("ConectorParedSalida") ||
+                      hitConector.collider.CompareTag("ConectorParedEntrada")))
+            {
                 conectorValido = true;
+            }
         }
 
         if (conectorValido)
@@ -264,61 +337,55 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 slotBloqueado = null;
                 timerBloqueoSlot = 0f;
+
+                if (actual.tipo == TipoEdificio.Cinta)
+                {
+                    BloquearSnapCinta(hitConector.collider);
+                    apuntandoValido = ManejarCintaBloqueada(rayo, ref detector);
+                    hologramaActual.SetActive(apuntandoValido);
+                    return;
+                }
+
                 estaImantado = true;
                 apuntandoValido = true;
                 imanApuntado = hitConector.collider;
 
-                if (detector != null) detector.rampaAIgnorar = hitConector.collider.transform.root.gameObject;
+                if (detector != null)
+                    detector.rampaAIgnorar = hitConector.collider.transform.root.gameObject;
 
                 if (actual.tipo == TipoEdificio.Rampa)
                 {
                     hologramaActual.transform.rotation = hitConector.transform.rotation;
-                    if (hitConector.collider.CompareTag("ConectorSalida")) AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
-                    else if (hitConector.collider.CompareTag("ConectorEntrada")) AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
-                }
-                else if (actual.tipo == TipoEdificio.Cinta)
-                {
-                    bool conectandoDesdeSalida = hitConector.collider.CompareTag("ConectorSalida");
 
-                    int nuevaVariante = DeterminarVarianteCinta(
-                        hitConector.transform,
-                        conectandoDesdeSalida
-                    );
-
-                    if (nuevaVariante != indiceVarianteActual)
-                    {
-                        CambiarVarianteHolograma(nuevaVariante);
-                        detector = hologramaActual.GetComponent<HologramaColision>();
-                    }
-
-                    // Si conectamos al final de otra cinta usamos nuestra entrada.
-                    // Si conectamos por detrás usamos nuestra salida.
-                    string nombreConectorMio = conectandoDesdeSalida
-                        ? "PuntoConexion_Entrada"
-                        : "PuntoConexion_Salida";
-
-                    AlinearConectorCinta(nombreConectorMio, hitConector.transform);
+                    if (hitConector.collider.CompareTag("ConectorSalida"))
+                        AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
+                    else if (hitConector.collider.CompareTag("ConectorEntrada"))
+                        AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
                 }
                 else if (actual.tipo == TipoEdificio.Pared)
                 {
                     if (hitConector.collider.CompareTag("RailRampa"))
                     {
                         hologramaActual.transform.position = hitConector.transform.position;
-                        hologramaActual.transform.rotation = hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
+                        hologramaActual.transform.rotation =
+                            hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
                     }
                     else
                     {
                         hologramaActual.transform.rotation = hitConector.transform.root.rotation;
 
-                        if (hitConector.collider.CompareTag("ConectorParedSalida")) AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
-                        else if (hitConector.collider.CompareTag("ConectorParedEntrada")) AlinearPiezas("PuntoConexionPared_Salida", hitConector.transform.position);
+                        if (hitConector.collider.CompareTag("ConectorParedSalida"))
+                            AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
+                        else if (hitConector.collider.CompareTag("ConectorParedEntrada"))
+                            AlinearPiezas("PuntoConexionPared_Salida", hitConector.transform.position);
                     }
                 }
             }
         }
         else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaEdificios))
         {
-            EdificioConstruido infoEdificio = hit.transform.root.GetComponent<EdificioConstruido>();
+            EdificioConstruido infoEdificio =
+                hit.transform.root.GetComponent<EdificioConstruido>();
 
             slotBloqueado = null;
             posicionSueloBloqueada = null;
@@ -330,32 +397,44 @@ public class SistemaConstruccion : MonoBehaviour
                 estaImantado = false;
                 apuntandoValido = false;
                 imanApuntado = null;
-                if (detector != null) detector.rampaAIgnorar = null;
+
+                if (detector != null)
+                    detector.rampaAIgnorar = null;
             }
             else
             {
                 apuntandoValido = false;
                 imanApuntado = null;
-                if (detector != null) detector.rampaAIgnorar = null;
+
+                if (detector != null)
+                    detector.rampaAIgnorar = null;
             }
         }
-        else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaSuelo, QueryTriggerInteraction.Collide))
+        else if (Physics.Raycast(
+                     rayo,
+                     out hit,
+                     distanciaMaximaConstruccion,
+                     capaSuelo,
+                     QueryTriggerInteraction.Collide))
         {
             slotBloqueado = null;
 
-            if (posicionSueloBloqueada.HasValue && Vector3.Distance(hit.point, posicionSueloBloqueada.Value) < 2.0f)
+            if (posicionSueloBloqueada.HasValue &&
+                Vector3.Distance(hit.point, posicionSueloBloqueada.Value) < 2.0f)
             {
                 apuntandoValido = false;
                 estaImantado = false;
                 imanApuntado = null;
-                if (detector != null) detector.rampaAIgnorar = null;
+
+                if (detector != null)
+                    detector.rampaAIgnorar = null;
             }
             else
             {
                 posicionSueloBloqueada = null;
                 timerBloqueoSlot = 0f;
 
-                // Si una cinta no está conectada a otra, vuelve a la variante recta.
+                // Una cinta colocada libremente empieza como recta.
                 if (actual.tipo == TipoEdificio.Cinta && indiceVarianteActual != 0)
                 {
                     CambiarVarianteHolograma(0);
@@ -366,7 +445,9 @@ public class SistemaConstruccion : MonoBehaviour
                 estaImantado = false;
                 apuntandoValido = true;
                 imanApuntado = null;
-                if (detector != null) detector.rampaAIgnorar = null;
+
+                if (detector != null)
+                    detector.rampaAIgnorar = null;
             }
         }
         else
@@ -377,71 +458,206 @@ public class SistemaConstruccion : MonoBehaviour
 
             apuntandoValido = false;
             imanApuntado = null;
-            if (detector != null) detector.rampaAIgnorar = null;
+
+            if (detector != null)
+                detector.rampaAIgnorar = null;
         }
 
         hologramaActual.SetActive(apuntandoValido);
     }
 
     // =========================================================
-    // CINTAS AUTOMÁTICAS
+    // CINTAS AUTOMÁTICAS - SNAP PERSISTENTE + RATÓN
     // =========================================================
 
-    int DeterminarVarianteCinta(Transform conector, bool conectandoDesdeSalida)
+    void BloquearSnapCinta(Collider conector)
     {
-        // Orden obligatorio de variantes:
+        if (conector == null)
+            return;
+
+        conectorCintaBloqueado = conector;
+        snapCintaDesdeSalida = conector.CompareTag("ConectorSalida");
+
+        estaImantado = true;
+        imanApuntado = conector;
+
+        if (debugCintaAutomatica)
+        {
+            Debug.Log(
+                "Snap de cinta bloqueado en: " +
+                conector.name +
+                " | " +
+                (snapCintaDesdeSalida ? "SALIDA" : "ENTRADA")
+            );
+        }
+    }
+
+    void LiberarSnapCinta(bool bloquearReenganche)
+    {
+        conectorCintaBloqueado = null;
+
+        if (imanApuntado != null &&
+            (imanApuntado.CompareTag("ConectorSalida") ||
+             imanApuntado.CompareTag("ConectorEntrada")))
+        {
+            imanApuntado = null;
+        }
+
+        estaImantado = false;
+
+        if (bloquearReenganche)
+            tiempoHastaReengancheCinta = Time.time + 0.35f;
+    }
+
+    bool ManejarCintaBloqueada(Ray rayo, ref HologramaColision detector)
+    {
+        if (conectorCintaBloqueado == null)
+            return false;
+
+        Transform conector = conectorCintaBloqueado.transform;
+
+        estaImantado = true;
+        imanApuntado = conectorCintaBloqueado;
+
+        if (detector != null)
+            detector.rampaAIgnorar = conector.root.gameObject;
+
+        int nuevaVariante = DeterminarVarianteCintaDesdeRaton(
+            rayo,
+            conector,
+            snapCintaDesdeSalida
+        );
+
+        if (nuevaVariante != indiceVarianteActual)
+        {
+            CambiarVarianteHolograma(nuevaVariante);
+            detector = hologramaActual.GetComponent<HologramaColision>();
+
+            if (detector != null)
+                detector.rampaAIgnorar = conector.root.gameObject;
+        }
+
+        string nombreConectorMio = snapCintaDesdeSalida
+            ? "PuntoConexion_Entrada"
+            : "PuntoConexion_Salida";
+
+        AlinearConectorCinta(nombreConectorMio, conector);
+
+        return true;
+    }
+
+    int DeterminarVarianteCintaDesdeRaton(
+        Ray rayo,
+        Transform conector,
+        bool conectandoDesdeSalida)
+    {
+        // Orden obligatorio:
         // 0 = Recta
         // 1 = Curva Izquierda
         // 2 = Curva Derecha
         InfoEdificio actual = edificios[indiceEdificioActual];
 
-        if (actual.prefabsHologramas == null || actual.prefabsHologramas.Length < 3)
-            return 0;
-
-        if (camaraPrincipal == null)
-            return 0;
-
-        Vector3 haciaJugador = camaraPrincipal.transform.position - conector.position;
-        haciaJugador.y = 0f;
-
-        if (haciaJugador.sqrMagnitude < 0.001f)
-            return 0;
-
-        haciaJugador.Normalize();
-
-        // Si estamos construyendo desde una salida, el eje Right del conector
-        // marca directamente derecha/izquierda.
-        //
-        // Si conectamos contra una entrada estamos construyendo en sentido
-        // contrario, por eso invertimos el eje lateral.
-        Vector3 derechaConstruccion = conectandoDesdeSalida
-            ? conector.right
-            : -conector.right;
-
-        derechaConstruccion.y = 0f;
-
-        if (derechaConstruccion.sqrMagnitude < 0.001f)
-            return 0;
-
-        derechaConstruccion.Normalize();
-
-        float lateral = Vector3.Dot(haciaJugador, derechaConstruccion);
-
-        int varianteDeseada;
-
-        if (Mathf.Abs(lateral) <= umbralLateralCinta)
+        if (actual.prefabsHologramas == null ||
+            actual.prefabsHologramas.Length < 3 ||
+            conector == null)
         {
-            varianteDeseada = 0;
+            return 0;
         }
-        else if (lateral < 0f)
+
+        Vector3 puntoRaton;
+
+        // Preferimos un punto real del suelo. Si no lo encontramos,
+        // usamos un plano horizontal a la altura del conector.
+        if (Physics.Raycast(
+                rayo,
+                out RaycastHit hitSuelo,
+                distanciaMaximaConstruccion * 2f,
+                capaSuelo,
+                QueryTriggerInteraction.Ignore))
         {
-            // Construyendo al revés, la geometría del prefab se recorre al revés,
-            // así que izquierda y derecha se intercambian.
-            varianteDeseada = conectandoDesdeSalida ? 1 : 2;
+            puntoRaton = hitSuelo.point;
         }
         else
         {
-            varianteDeseada = conectandoDesdeSalida ? 2 : 1;
+            Plane planoSeleccion = new Plane(Vector3.up, conector.position);
+
+            if (!planoSeleccion.Raycast(rayo, out float distanciaPlano))
+                return indiceVarianteActual;
+
+            puntoRaton = rayo.GetPoint(distanciaPlano);
+        }
+
+        Vector3 direccionDeseada = puntoRaton - conector.position;
+        direccionDeseada.y = 0f;
+
+        if (direccionDeseada.magnitude < distanciaMinimaDireccionCinta)
+            return indiceVarianteActual;
+
+        direccionDeseada.Normalize();
+
+        Vector3 frenteConstruccion = conectandoDesdeSalida
+            ? conector.forward
+            : -conector.forward;
+
+        frenteConstruccion.y = 0f;
+
+        if (frenteConstruccion.sqrMagnitude < 0.001f)
+            return 0;
+
+        frenteConstruccion.Normalize();
+
+        float angulo = Vector3.SignedAngle(
+            frenteConstruccion,
+            direccionDeseada,
+            Vector3.up
+        );
+
+        int indiceIzquierda = conectandoDesdeSalida ? 1 : 2;
+        int indiceDerecha = conectandoDesdeSalida ? 2 : 1;
+
+        float umbralEntrada = anguloActivarCurvaCinta;
+        float umbralSalida = Mathf.Max(
+            0f,
+            anguloActivarCurvaCinta - histeresisCinta
+        );
+
+        int varianteDeseada = indiceVarianteActual;
+
+        // Histéresis:
+        // si ya estamos en una curva, no volvemos a recta hasta entrar
+        // claramente en la zona central.
+        if (indiceVarianteActual == indiceIzquierda)
+        {
+            if (angulo > -umbralSalida)
+                varianteDeseada = 0;
+            else
+                varianteDeseada = indiceIzquierda;
+        }
+        else if (indiceVarianteActual == indiceDerecha)
+        {
+            if (angulo < umbralSalida)
+                varianteDeseada = 0;
+            else
+                varianteDeseada = indiceDerecha;
+        }
+        else
+        {
+            if (angulo <= -umbralEntrada)
+                varianteDeseada = indiceIzquierda;
+            else if (angulo >= umbralEntrada)
+                varianteDeseada = indiceDerecha;
+            else
+                varianteDeseada = 0;
+        }
+
+        if (debugCintaAutomatica)
+        {
+            Debug.DrawLine(conector.position, puntoRaton, Color.yellow);
+            Debug.DrawRay(
+                conector.position,
+                frenteConstruccion * 2f,
+                Color.green
+            );
         }
 
         return varianteDeseada;
@@ -474,6 +690,7 @@ public class SistemaConstruccion : MonoBehaviour
         }
 
         indiceVarianteActual = nuevoIndice;
+
         hologramaActual = Instantiate(
             actual.prefabsHologramas[indiceVarianteActual],
             posicion,
@@ -537,6 +754,22 @@ public class SistemaConstruccion : MonoBehaviour
             conectorDestino.position - diferenciaPosicion;
     }
 
+    Collider BuscarColliderConector(GameObject estructura, string nombreConector)
+    {
+        if (estructura == null)
+            return null;
+
+        Transform[] hijos = estructura.GetComponentsInChildren<Transform>(true);
+
+        foreach (Transform hijo in hijos)
+        {
+            if (hijo.name == nombreConector)
+                return hijo.GetComponent<Collider>();
+        }
+
+        return null;
+    }
+
     void AlinearPiezas(string nombreConectorMio, Vector3 posicionDestino)
     {
         Transform miConector = null;
@@ -555,24 +788,33 @@ public class SistemaConstruccion : MonoBehaviour
 
     void ManejarRotacionLibre()
     {
+        if (cancelarRotacionCintaEsteFrame)
+            return;
+
         if (!estaImantado && edificioApuntado == null)
         {
-            if (Input.GetMouseButton(1)) rotacionManualOffset += Input.GetAxis("Mouse X") * velocidadRotacion;
+            if (Input.GetMouseButton(1))
+                rotacionManualOffset += Input.GetAxis("Mouse X") * velocidadRotacion;
 
             Vector3 direccionCamara = camaraPrincipal.transform.forward;
             direccionCamara.y = 0f;
 
             if (direccionCamara.sqrMagnitude > 0.001f)
             {
-                Quaternion rotacionBase = Quaternion.LookRotation(direccionCamara.normalized);
+                Quaternion rotacionBase =
+                    Quaternion.LookRotation(direccionCamara.normalized);
 
                 if (edificios[indiceEdificioActual].tipo == TipoEdificio.Pared)
                 {
-                    hologramaActual.transform.rotation = rotacionBase * Quaternion.Euler(-90f, rotacionManualOffset, 0f);
+                    hologramaActual.transform.rotation =
+                        rotacionBase *
+                        Quaternion.Euler(-90f, rotacionManualOffset, 0f);
                 }
                 else
                 {
-                    hologramaActual.transform.rotation = rotacionBase * Quaternion.Euler(0f, rotacionManualOffset, 0f);
+                    hologramaActual.transform.rotation =
+                        rotacionBase *
+                        Quaternion.Euler(0f, rotacionManualOffset, 0f);
                 }
             }
         }
@@ -629,7 +871,8 @@ public class SistemaConstruccion : MonoBehaviour
         {
             if (edificioApuntado != null)
             {
-                EdificioConstruido infoEdificio = edificioApuntado.GetComponent<EdificioConstruido>();
+                EdificioConstruido infoEdificio =
+                    edificioApuntado.GetComponent<EdificioConstruido>();
 
                 if (infoEdificio != null)
                 {
@@ -642,18 +885,27 @@ public class SistemaConstruccion : MonoBehaviour
                     else
                     {
                         slotBloqueado = null;
-                        posicionSueloBloqueada = edificioApuntado.transform.position;
+                        posicionSueloBloqueada =
+                            edificioApuntado.transform.position;
                     }
 
                     foreach (GameObject dep in infoEdificio.edificiosDependientes)
                     {
-                        if (dep != null) dep.AddComponent<EfectoBloopDestruccion>();
+                        if (dep != null)
+                            dep.AddComponent<EfectoBloopDestruccion>();
                     }
 
                     foreach (Collider colHijo in infoEdificio.conectoresHijosBloqueados)
                     {
-                        if (colHijo != null) colHijo.enabled = true;
+                        if (colHijo != null)
+                            colHijo.enabled = true;
                     }
+                }
+
+                if (conectorCintaBloqueado != null &&
+                    conectorCintaBloqueado.transform.root.gameObject == edificioApuntado)
+                {
+                    LiberarSnapCinta(false);
                 }
 
                 edificioApuntado.AddComponent<EfectoBloopDestruccion>();
@@ -661,7 +913,6 @@ public class SistemaConstruccion : MonoBehaviour
                 edificioApuntadoAnterior = null;
                 edificioApuntado = null;
 
-                // Aplicar cooldown modificado al destruir
                 cooldownHolograma = tiempoEsperaConstruccion;
                 timerBloqueoSlot = 1.0f;
 
@@ -673,51 +924,80 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 InfoEdificio actual = edificios[indiceEdificioActual];
 
-                GameObject nuevaEstructura = Instantiate(actual.prefabsReales[indiceVarianteActual], hologramaActual.transform.position, hologramaActual.transform.rotation);
+                bool estabaConectada =
+                    estaImantado && imanApuntado != null;
+
+                bool construyendoDesdeSalida =
+                    snapCintaDesdeSalida;
+
+                Collider conectorAnterior =
+                    imanApuntado;
+
+                GameObject nuevaEstructura = Instantiate(
+                    actual.prefabsReales[indiceVarianteActual],
+                    hologramaActual.transform.position,
+                    hologramaActual.transform.rotation
+                );
 
                 nuevaEstructura.AddComponent<EfectoBloop>();
 
-                EdificioConstruido id = nuevaEstructura.AddComponent<EdificioConstruido>();
+                EdificioConstruido id =
+                    nuevaEstructura.AddComponent<EdificioConstruido>();
+
                 id.tipo = actual.tipo;
 
-                if (estaImantado && imanApuntado != null)
+                if (estabaConectada && conectorAnterior != null)
                 {
-                    id.conectorUsado = imanApuntado;
-                    imanApuntado.enabled = false;
+                    id.conectorUsado = conectorAnterior;
+                    conectorAnterior.enabled = false;
 
-                    if (actual.tipo == TipoEdificio.Rampa || actual.tipo == TipoEdificio.Cinta)
+                    if (actual.tipo == TipoEdificio.Rampa ||
+                        actual.tipo == TipoEdificio.Cinta)
                     {
-                        string nombreConectorAQuemar = imanApuntado.CompareTag("ConectorSalida") ? "PuntoConexion_Entrada" : "PuntoConexion_Salida";
+                        string nombreConectorAQuemar =
+                            conectorAnterior.CompareTag("ConectorSalida")
+                                ? "PuntoConexion_Entrada"
+                                : "PuntoConexion_Salida";
 
-                        Collider miConectorApagado = null;
-                        Transform[] hijosNuevaRampa = nuevaEstructura.GetComponentsInChildren<Transform>();
-                        foreach (Transform hijo in hijosNuevaRampa)
-                        {
-                            if (hijo.name == nombreConectorAQuemar)
-                            {
-                                miConectorApagado = hijo.GetComponent<Collider>();
-                                if (miConectorApagado != null) miConectorApagado.enabled = false;
-                                break;
-                            }
-                        }
+                        Collider miConectorApagado =
+                            BuscarColliderConector(
+                                nuevaEstructura,
+                                nombreConectorAQuemar
+                            );
 
-                        EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
-                        if (rampaPadre != null && miConectorApagado != null)
+                        if (miConectorApagado != null)
+                            miConectorApagado.enabled = false;
+
+                        EdificioConstruido estructuraPadre =
+                            conectorAnterior.transform.root
+                                .GetComponent<EdificioConstruido>();
+
+                        if (estructuraPadre != null &&
+                            miConectorApagado != null)
                         {
-                            rampaPadre.conectoresHijosBloqueados.Add(miConectorApagado);
+                            estructuraPadre.conectoresHijosBloqueados
+                                .Add(miConectorApagado);
                         }
                     }
                     else if (actual.tipo == TipoEdificio.Pared)
                     {
-                        if (imanApuntado.CompareTag("RailRampa"))
+                        if (conectorAnterior.CompareTag("RailRampa"))
                         {
-                            EdificioConstruido rampaPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
-                            if (rampaPadre != null) rampaPadre.edificiosDependientes.Add(nuevaEstructura);
+                            EdificioConstruido rampaPadre =
+                                conectorAnterior.transform.root
+                                    .GetComponent<EdificioConstruido>();
 
-                            Collider[] collidersPared = nuevaEstructura.GetComponentsInChildren<Collider>();
+                            if (rampaPadre != null)
+                                rampaPadre.edificiosDependientes
+                                    .Add(nuevaEstructura);
+
+                            Collider[] collidersPared =
+                                nuevaEstructura.GetComponentsInChildren<Collider>();
+
                             foreach (Collider col in collidersPared)
                             {
-                                if (col.CompareTag("ConectorParedSalida") || col.CompareTag("ConectorParedEntrada"))
+                                if (col.CompareTag("ConectorParedSalida") ||
+                                    col.CompareTag("ConectorParedEntrada"))
                                 {
                                     col.enabled = false;
                                 }
@@ -725,34 +1005,83 @@ public class SistemaConstruccion : MonoBehaviour
                         }
                         else
                         {
-                            string nombreConectorAQuemar = imanApuntado.CompareTag("ConectorParedSalida") ? "PuntoConexionPared_Entrada" : "PuntoConexionPared_Salida";
+                            string nombreConectorAQuemar =
+                                conectorAnterior.CompareTag("ConectorParedSalida")
+                                    ? "PuntoConexionPared_Entrada"
+                                    : "PuntoConexionPared_Salida";
 
-                            Collider miConectorApagado = null;
-                            Transform[] hijosNuevaPared = nuevaEstructura.GetComponentsInChildren<Transform>();
-                            foreach (Transform hijo in hijosNuevaPared)
-                            {
-                                if (hijo.name == nombreConectorAQuemar)
-                                {
-                                    miConectorApagado = hijo.GetComponent<Collider>();
-                                    if (miConectorApagado != null) miConectorApagado.enabled = false;
-                                    break;
-                                }
-                            }
+                            Collider miConectorApagado =
+                                BuscarColliderConector(
+                                    nuevaEstructura,
+                                    nombreConectorAQuemar
+                                );
 
-                            EdificioConstruido paredPadre = imanApuntado.transform.root.GetComponent<EdificioConstruido>();
-                            if (paredPadre != null && miConectorApagado != null)
+                            if (miConectorApagado != null)
+                                miConectorApagado.enabled = false;
+
+                            EdificioConstruido paredPadre =
+                                conectorAnterior.transform.root
+                                    .GetComponent<EdificioConstruido>();
+
+                            if (paredPadre != null &&
+                                miConectorApagado != null)
                             {
-                                paredPadre.conectoresHijosBloqueados.Add(miConectorApagado);
+                                paredPadre.conectoresHijosBloqueados
+                                    .Add(miConectorApagado);
                             }
                         }
                     }
                 }
 
-                // AÑADIDO: Aplicar el cooldown desde el inspector al construir
+                // -------------------------------------------------
+                // ENCADENADO AUTOMÁTICO DE CINTAS
+                // -------------------------------------------------
+                // Tras colocar una cinta, dejamos bloqueado su extremo libre.
+                // Así el siguiente holograma aparece listo para continuar.
+                if (actual.tipo == TipoEdificio.Cinta &&
+                    encadenarCintasAutomaticamente)
+                {
+                    string siguienteConector;
+
+                    if (estabaConectada)
+                    {
+                        siguienteConector = construyendoDesdeSalida
+                            ? "PuntoConexion_Salida"
+                            : "PuntoConexion_Entrada";
+                    }
+                    else
+                    {
+                        siguienteConector = "PuntoConexion_Salida";
+                    }
+
+                    Collider conectorSiguiente =
+                        BuscarColliderConector(
+                            nuevaEstructura,
+                            siguienteConector
+                        );
+
+                    if (conectorSiguiente != null &&
+                        conectorSiguiente.enabled)
+                    {
+                        conectorCintaBloqueado = conectorSiguiente;
+                        snapCintaDesdeSalida =
+                            conectorSiguiente.CompareTag("ConectorSalida");
+
+                        estaImantado = true;
+                        imanApuntado = conectorSiguiente;
+                    }
+                    else
+                    {
+                        LiberarSnapCinta(false);
+                    }
+                }
+                else if (actual.tipo == TipoEdificio.Cinta)
+                {
+                    LiberarSnapCinta(false);
+                }
+
                 cooldownHolograma = tiempoEsperaConstruccion;
 
-                // Destruimos el holograma actual. El Update se encargará de crear el nuevo
-                // cuando termine el tiempo de cooldown.
                 DestruirHolograma();
             }
         }

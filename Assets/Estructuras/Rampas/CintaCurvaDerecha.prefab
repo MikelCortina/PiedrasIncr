@@ -63,8 +63,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -86,11 +84,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &1744868972985644388
 BoxCollider:
@@ -125,7 +121,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04573425fc899644a10713f21f8b79a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CintaTransportadora
-  velocidad: 5
+  velocidad: 3
   direccionLocal: {x: 0, y: 0, z: 1}
   animarTextura: 0
   direccionTextura: {x: 0, y: -1}
@@ -265,7 +261,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.8, y: 0.5, z: 0.4}
+  m_Size: {x: 1.5, y: 1, z: 1.2}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2045297334123703139
 GameObject:
@@ -395,8 +391,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -418,11 +412,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3217314861964543057
 BoxCollider:
@@ -457,7 +449,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04573425fc899644a10713f21f8b79a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CintaTransportadora
-  velocidad: 5
+  velocidad: 3
   direccionLocal: {x: 0, y: 0, z: 1}
   animarTextura: 0
   direccionTextura: {x: 0, y: -1}
@@ -556,8 +548,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -579,11 +569,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6088300918968164315
 BoxCollider:
@@ -618,7 +606,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04573425fc899644a10713f21f8b79a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CintaTransportadora
-  velocidad: 5
+  velocidad: 3
   direccionLocal: {x: 0, y: 0, z: 1}
   animarTextura: 0
   direccionTextura: {x: 0, y: -1}
@@ -686,8 +674,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -709,11 +695,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4582275956450690185
 BoxCollider:
@@ -748,7 +732,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04573425fc899644a10713f21f8b79a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CintaTransportadora
-  velocidad: 5
+  velocidad: 3
   direccionLocal: {x: 0, y: 0, z: 1}
   animarTextura: 0
   direccionTextura: {x: 0, y: -1}
@@ -847,8 +831,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -870,11 +852,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &320052569923817126
 BoxCollider:
@@ -909,7 +889,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a04573425fc899644a10713f21f8b79a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CintaTransportadora
-  velocidad: 5
+  velocidad: 3
   direccionLocal: {x: 0, y: 0, z: 1}
   animarTextura: 0
   direccionTextura: {x: 0, y: -1}
@@ -1007,7 +987,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 918.0579, y: 395.8466, z: 202.82425}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8471368392974495489}
