@@ -14,6 +14,10 @@ public class BotRecolector : MonoBehaviour
         EntregandoPiedra,
         Esperando,
 
+        // Escalada:
+        PreparandoEscalada,
+        Escalando,
+
         // Cadena especial:
         // Bot -> Procesadora -> espera -> piedra procesada -> Agujero.
         YendoAEsperaSalidaProcesadora,
@@ -143,6 +147,76 @@ public class BotRecolector : MonoBehaviour
 
     public float velocidadGiroLanzamiento =
         360f;
+
+
+    [Header("Entrega visual al agujero")]
+
+    [Tooltip(
+        "Antes de soltar la piedra, el Bot intenta mirar hacia la boca del agujero."
+    )]
+    public bool orientarAntesDeLanzar =
+        true;
+
+
+    [Tooltip(
+        "Velocidad de orientación final hacia el agujero, en grados por segundo."
+    )]
+    public float velocidadGiroEntrega =
+        180f;
+
+
+    [Tooltip(
+        "Tiempo máximo que dedicamos a orientar el cuerpo antes de lanzar."
+    )]
+    public float tiempoMaximoOrientacionEntrega =
+        0.45f;
+
+
+    [Tooltip(
+        "Límite visual de altura del arco. Evita lanzamientos gigantes aunque " +
+        "Altura Arco Lanzamiento tenga un valor antiguo muy alto."
+    )]
+    public float alturaMaximaArcoEntrega =
+        0.45f;
+
+
+    [Tooltip(
+        "Tiempo de la pequeña caída visual desde la boca hasta el interior."
+    )]
+    public float duracionCaidaDentroAgujero =
+        0.18f;
+
+
+    [Tooltip(
+        "Cuánto baja visualmente la piedra dentro del agujero antes de contar la entrega."
+    )]
+    public float profundidadVisualAgujero =
+        0.35f;
+
+
+    [Header("Debug lanzamiento al agujero")]
+
+    [Tooltip(
+        "Dibuja en la Scene la trayectoria prevista del lanzamiento. " +
+        "Amarillo = arco hasta la boca. Rojo = caída visual dentro del agujero."
+    )]
+    public bool mostrarDebugTrazadaLanzamiento =
+        true;
+
+
+    [Tooltip(
+        "Cantidad de segmentos usados para dibujar la curva de debug."
+    )]
+    [Range(4, 100)]
+    public int segmentosDebugTrazadaLanzamiento =
+        30;
+
+
+    [Tooltip(
+        "Segundos que permanece visible la trazada hecha con Debug.DrawLine."
+    )]
+    public float duracionDebugTrazada =
+        4f;
 
 
     // =====================================================
@@ -301,6 +375,123 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // ESCALADA - PASO 1
+    // =====================================================
+
+    [Header("Escalada - Preparación")]
+
+    [Tooltip(
+        "Detector que avisa al Bot cuando tiene delante una pared escalable. " +
+        "Si se deja vacío, se busca automáticamente en este mismo GameObject."
+    )]
+    public DetectorEscalada detectorEscalada;
+
+
+    [Tooltip(
+        "Gestor de las seis patas. Se usa para cambiar progresivamente " +
+        "la normal de apoyo desde el suelo hacia la pared."
+    )]
+    public GestorPatasArana gestorPatasArana;
+
+
+    [Tooltip(
+        "Tiempo que tardan las patas en cambiar su normal de apoyo " +
+        "desde Vector3.up hasta la normal de la pared."
+    )]
+    [Min(0.05f)]
+    public float duracionTransicionPatasPared =
+        0.75f;
+
+
+    [Header("Escalada - Transición visual del cuerpo")]
+
+    [Tooltip(
+        "Raíz visual de la araña. Debe ser SpiderVisual, NO el Bot raíz. " +
+        "Si queda vacío se intenta obtener automáticamente desde GestorPatasArana."
+    )]
+    public Transform spiderVisual;
+
+
+    [Tooltip(
+        "Cuánto se acerca visualmente SpiderVisual hacia la pared durante " +
+        "la transición. Valores pequeños evitan atravesar la pared."
+    )]
+    [Min(0f)]
+    public float acercamientoVisualPared =
+        0.12f;
+
+
+    [Tooltip(
+        "Cuánto sube visualmente SpiderVisual mientras gira hacia la pared. " +
+        "Ayuda a que el cuerpo no barra el suelo al rotar."
+    )]
+    [Min(0f)]
+    public float elevacionVisualTransicion =
+        0.18f;
+
+
+    [Tooltip(
+        "Si está activo, SpiderVisual rota progresivamente hasta quedar " +
+        "con su eje Up alineado con la normal de la pared y su Forward subiendo."
+    )]
+    public bool rotarVisualHaciaPared =
+        true;
+
+
+    [Header("Escalada - Movimiento por pared")]
+
+    [Tooltip(
+        "Velocidad con la que el Bot sube por la pared durante esta primera prueba. " +
+        "Conviene empezar despacio para que las patas puedan recolocarse."
+    )]
+    [Min(0.05f)]
+    public float velocidadEscalada =
+        0.65f;
+
+
+    [Tooltip(
+        "Distancia máxima que sube en esta fase de prueba. Al alcanzarla se queda " +
+        "quieto en la pared; todavía no hacemos la salida por el borde superior."
+    )]
+    [Min(0.1f)]
+    public float distanciaMaximaPruebaEscalada =
+        2.0f;
+
+
+    [Tooltip(
+        "Si está activo, la escalada se detiene al alcanzar la distancia de prueba."
+    )]
+    public bool limitarDistanciaPruebaEscalada =
+        true;
+
+
+    [Tooltip(
+        "Distancia del raycast que comprueba que sigue existiendo pared escalable " +
+        "delante del cuerpo mientras sube."
+    )]
+    [Min(0.1f)]
+    public float distanciaComprobacionParedEscalada =
+        1.5f;
+
+
+    [Tooltip(
+        "Separa el origen del raycast un poco hacia fuera de la pared para evitar " +
+        "que empiece dentro del collider."
+    )]
+    [Min(0f)]
+    public float separacionOrigenRaycastEscalada =
+        0.35f;
+
+
+    [Tooltip(
+        "Muestra mensajes cuando el Bot conserva una piedra como objetivo " +
+        "y entra en PreparandoEscalada."
+    )]
+    public bool debugEscalada =
+        true;
+
+
+    // =====================================================
     // DEBUG
     // =====================================================
 
@@ -374,6 +565,58 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // ESCALADA INTERNA
+    // =====================================================
+
+    private bool transicionPatasEscaladaSolicitada =
+        false;
+
+    private bool mensajeTransicionPatasTerminada =
+        false;
+
+    private Vector3 normalParedEscalada =
+        Vector3.up;
+
+
+    // =====================================================
+    // TRANSICIÓN VISUAL DEL CUERPO
+    // =====================================================
+
+    private bool transicionVisualEscaladaPreparada =
+        false;
+
+    private Vector3 posicionInicioVisualEscalada;
+
+    private Vector3 posicionObjetivoVisualEscalada;
+
+    private Quaternion rotacionInicioVisualEscalada;
+
+    private Quaternion rotacionObjetivoVisualEscalada;
+
+
+    // =====================================================
+    // MOVIMIENTO POR PARED
+    // =====================================================
+
+    private Vector3 posicionInicioMovimientoEscalada;
+
+    [SerializeField]
+    private float distanciaRecorridaEscalada =
+        0f;
+
+    [SerializeField]
+    private bool paredPresenteDuranteEscalada =
+        false;
+
+    [SerializeField]
+    private bool escaladaDetenidaEnPrueba =
+        false;
+
+    private bool mensajeFinPruebaEscaladaMostrado =
+        false;
+
+
+    // =====================================================
     // PIEDRAS IGNORADAS
     // =====================================================
 
@@ -434,6 +677,45 @@ public class BotRecolector : MonoBehaviour
 
         configuracionBot =
             GetComponent<ConfiguracionBot>();
+
+
+        // =====================================================
+        // DETECTOR DE ESCALADA
+        // =====================================================
+
+        if (detectorEscalada == null)
+        {
+            detectorEscalada =
+                GetComponent<DetectorEscalada>();
+        }
+
+
+        // =====================================================
+        // GESTOR DE PATAS
+        // =====================================================
+
+        if (gestorPatasArana == null)
+        {
+            gestorPatasArana =
+                GetComponentInChildren<GestorPatasArana>(
+                    true
+                );
+        }
+
+
+        // =====================================================
+        // SPIDER VISUAL
+        // =====================================================
+
+        if (spiderVisual == null &&
+            gestorPatasArana != null)
+        {
+            // En nuestra jerarquía GestorPatas vive dentro de SpiderVisual.
+            // Usamos su padre como raíz visual para no inclinar el Bot raíz
+            // ni pelear con el NavMeshAgent.
+            spiderVisual =
+                gestorPatasArana.transform.parent;
+        }
 
 
         // =====================================================
@@ -607,6 +889,20 @@ public class BotRecolector : MonoBehaviour
             case EstadoBot.YendoAPiedra:
 
                 ComportamientoIrAPiedra();
+
+                break;
+
+
+            case EstadoBot.PreparandoEscalada:
+
+                ComportamientoPrepararEscalada();
+
+                break;
+
+
+            case EstadoBot.Escalando:
+
+                ComportamientoEscalando();
 
                 break;
 
@@ -1678,6 +1974,27 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // =====================================================
+        // PARED ESCALABLE DELANTE
+        // =====================================================
+        //
+        // IMPORTANTE:
+        // Si ya tenemos una piedra reservada y el detector ve una pared
+        // escalable delante, NO liberamos la piedra y NO buscamos otra.
+        //
+        // Cuando estamos lo bastante cerca, entramos en el estado
+        // PreparandoEscalada. El movimiento real por la pared se añadirá
+        // en el siguiente paso.
+        // =====================================================
+
+        if (DebePrepararEscalada())
+        {
+            EntrarEnPreparandoEscalada();
+
+            return;
+        }
+
+
         // Si ahora otro objeto ha hecho que se mueva mucho,
         // podemos abandonarla y elegir otra.
         if (configuracionBot != null &&
@@ -1728,6 +2045,19 @@ public class BotRecolector : MonoBehaviour
                     out NavMeshHit puntoNavMesh,
                     out NavMeshPath camino))
             {
+                // Si la ruta de suelo falla pero tenemos una pared
+                // escalable delante, conservamos el objetivo. No marcamos
+                // la piedra como inaccesible porque precisamente vamos a
+                // intentar llegar a ella mediante escalada.
+                if (detectorEscalada != null &&
+                    detectorEscalada.HayParedEscalable)
+                {
+                    EntrarEnPreparandoEscalada();
+
+                    return;
+                }
+
+
                 AbandonarPiedraInaccesible();
 
                 return;
@@ -1752,6 +2082,906 @@ public class BotRecolector : MonoBehaviour
         {
             RecogerPiedra();
         }
+    }
+
+
+    // =====================================================
+    // PREPARAR ESCALADA
+    // =====================================================
+
+    private bool DebePrepararEscalada()
+    {
+        if (detectorEscalada == null)
+        {
+            return false;
+        }
+
+
+        if (!detectorEscalada.HayParedEscalable)
+        {
+            return false;
+        }
+
+
+        return detectorEscalada.EstaFrenteAPared;
+    }
+
+
+    private void EntrarEnPreparandoEscalada()
+    {
+        if (piedraObjetivo == null)
+        {
+            CancelarObjetivo();
+
+            return;
+        }
+
+
+        // No liberamos la reserva de la piedra.
+        // No cambiamos piedraObjetivo.
+        // No la añadimos a piedrasIgnoradasHasta.
+        estadoActual =
+            EstadoBot.PreparandoEscalada;
+
+
+        DetenerAgente();
+
+
+        if (agente != null &&
+            agente.enabled &&
+            agente.isOnNavMesh)
+        {
+            agente.isStopped =
+                true;
+        }
+
+
+        // Guardamos la normal de la pared AHORA. De esta forma, aunque
+        // el detector deje de verla durante la transición, las patas
+        // siguen teniendo un objetivo estable.
+        if (detectorEscalada != null &&
+            detectorEscalada.NormalPared.sqrMagnitude >
+                0.0001f)
+        {
+            normalParedEscalada =
+                detectorEscalada.NormalPared.normalized;
+        }
+
+
+        transicionPatasEscaladaSolicitada =
+            false;
+
+        mensajeTransicionPatasTerminada =
+            false;
+
+        transicionVisualEscaladaPreparada =
+            false;
+
+
+        // Preparamos primero la pose inicial/final del cuerpo y luego
+        // arrancamos la transición de las patas. Ambas usarán exactamente
+        // el mismo progreso del GestorPatasArana.
+        PrepararTransicionVisualEscalada();
+
+        IniciarTransicionPatasHaciaPared();
+
+
+        ResetearAntiAtasco();
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | PREPARANDO ESCALADA | mantiene objetivo: " +
+                piedraObjetivo.name
+            );
+        }
+    }
+
+
+    private void IniciarTransicionPatasHaciaPared()
+    {
+        if (transicionPatasEscaladaSolicitada)
+            return;
+
+
+        if (gestorPatasArana == null)
+        {
+            gestorPatasArana =
+                GetComponentInChildren<GestorPatasArana>(
+                    true
+                );
+        }
+
+
+        if (gestorPatasArana == null)
+        {
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | ESCALADA: no se encontró GestorPatasArana."
+                );
+            }
+
+            return;
+        }
+
+
+        if (normalParedEscalada.sqrMagnitude <
+            0.0001f)
+        {
+            if (detectorEscalada != null &&
+                detectorEscalada.NormalPared.sqrMagnitude >
+                    0.0001f)
+            {
+                normalParedEscalada =
+                    detectorEscalada.NormalPared.normalized;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+
+        // Si al entrar todavía no teníamos una normal válida,
+        // la transición visual puede no estar preparada aún.
+        if (!transicionVisualEscaladaPreparada)
+        {
+            PrepararTransicionVisualEscalada();
+        }
+
+
+        gestorPatasArana.IniciarTransicionSuperficie(
+            normalParedEscalada,
+            duracionTransicionPatasPared
+        );
+
+
+        transicionPatasEscaladaSolicitada =
+            true;
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | ESCALADA: patas cambian normal " +
+                "suelo -> pared en " +
+                duracionTransicionPatasPared.ToString("0.00") +
+                " s."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // PREPARAR TRANSICIÓN VISUAL DEL CUERPO
+    // =====================================================
+
+    private void PrepararTransicionVisualEscalada()
+    {
+        if (transicionVisualEscaladaPreparada)
+            return;
+
+
+        if (spiderVisual == null &&
+            gestorPatasArana != null)
+        {
+            spiderVisual =
+                gestorPatasArana.transform.parent;
+        }
+
+
+        if (spiderVisual == null)
+        {
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | ESCALADA: no se encontró SpiderVisual."
+                );
+            }
+
+            return;
+        }
+
+
+        if (normalParedEscalada.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        // Guardamos la pose REAL desde la que parte SpiderVisual.
+        posicionInicioVisualEscalada =
+            spiderVisual.position;
+
+        rotacionInicioVisualEscalada =
+            spiderVisual.rotation;
+
+
+        // =================================================
+        // POSICIÓN FINAL
+        // =================================================
+        //
+        // -normalPared apunta HACIA la pared.
+        // Vector3.up hace que el cuerpo gane un poco de altura
+        // mientras pivota, evitando barrer el suelo.
+        // =================================================
+
+        posicionObjetivoVisualEscalada =
+            posicionInicioVisualEscalada
+            -
+            normalPared *
+            Mathf.Max(
+                0f,
+                acercamientoVisualPared
+            )
+            +
+            Vector3.up *
+            Mathf.Max(
+                0f,
+                elevacionVisualTransicion
+            );
+
+
+        // =================================================
+        // ROTACIÓN FINAL
+        // =================================================
+        //
+        // En pared queremos:
+        //
+        // SpiderVisual.up      = normal de la pared
+        // SpiderVisual.forward = dirección de subida
+        //
+        // La dirección de subida se obtiene proyectando el Up
+        // mundial sobre el plano de la pared. Para una pared
+        // vertical esto da exactamente Vector3.up.
+        // =================================================
+
+        Vector3 direccionSubida =
+            Vector3.ProjectOnPlane(
+                Vector3.up,
+                normalPared
+            );
+
+
+        if (direccionSubida.sqrMagnitude <
+            0.0001f)
+        {
+            // Seguridad para superficies extremas.
+            direccionSubida =
+                Vector3.ProjectOnPlane(
+                    transform.forward,
+                    normalPared
+                );
+        }
+
+
+        if (direccionSubida.sqrMagnitude <
+            0.0001f)
+        {
+            direccionSubida =
+                Vector3.Cross(
+                    normalPared,
+                    transform.right
+                );
+        }
+
+
+        direccionSubida.Normalize();
+
+
+        rotacionObjetivoVisualEscalada =
+            Quaternion.LookRotation(
+                direccionSubida,
+                normalPared
+            );
+
+
+        transicionVisualEscaladaPreparada =
+            true;
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | ESCALADA: transición visual preparada. " +
+                "SpiderVisual rotará y se acercará a la pared."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // ACTUALIZAR TRANSICIÓN VISUAL DEL CUERPO
+    // =====================================================
+
+    private void ActualizarTransicionVisualEscalada()
+    {
+        if (!transicionVisualEscaladaPreparada ||
+            spiderVisual == null ||
+            gestorPatasArana == null)
+        {
+            return;
+        }
+
+
+        // Usamos EXACTAMENTE el progreso de la transición de las patas.
+        // Así el cambio de normal y la inclinación del cuerpo no pueden
+        // desincronizarse.
+        float t =
+            Mathf.Clamp01(
+                gestorPatasArana
+                    .ProgresoTransicionSuperficie
+            );
+
+
+        // El Gestor también usa SmoothStep para la normal.
+        // Repetimos la misma curva en posición y rotación.
+        float tSuave =
+            t * t *
+            (3f - 2f * t);
+
+
+        spiderVisual.position =
+            Vector3.Lerp(
+                posicionInicioVisualEscalada,
+                posicionObjetivoVisualEscalada,
+                tSuave
+            );
+
+
+        if (rotarVisualHaciaPared)
+        {
+            spiderVisual.rotation =
+                Quaternion.Slerp(
+                    rotacionInicioVisualEscalada,
+                    rotacionObjetivoVisualEscalada,
+                    tSuave
+                );
+        }
+
+
+        // Debug de los ejes actuales del cuerpo visual.
+        if (debugEscalada)
+        {
+            Debug.DrawRay(
+                spiderVisual.position,
+                spiderVisual.up * 0.7f,
+                Color.blue
+            );
+
+            Debug.DrawRay(
+                spiderVisual.position,
+                spiderVisual.forward * 0.7f,
+                Color.green
+            );
+        }
+    }
+
+
+    private void ComportamientoPrepararEscalada()
+    {
+        if (piedraObjetivo == null)
+        {
+            CancelarObjetivo();
+
+            return;
+        }
+
+
+        // Durante toda la preparación el NavMesh permanece quieto.
+        if (agente != null &&
+            agente.enabled &&
+            agente.isOnNavMesh)
+        {
+            agente.isStopped =
+                true;
+
+            if (agente.hasPath)
+            {
+                agente.ResetPath();
+            }
+        }
+
+
+        RestaurarVelocidadMovimiento();
+
+
+        // Si al entrar todavía no teníamos una normal válida, esperamos
+        // hasta que DetectorEscalada la proporcione y arrancamos entonces.
+        if (!transicionPatasEscaladaSolicitada)
+        {
+            if (detectorEscalada != null &&
+                detectorEscalada.NormalPared.sqrMagnitude >
+                    0.0001f)
+            {
+                normalParedEscalada =
+                    detectorEscalada.NormalPared.normalized;
+
+                PrepararTransicionVisualEscalada();
+
+                IniciarTransicionPatasHaciaPared();
+            }
+        }
+
+
+        // =====================================================
+        // CUERPO + PATAS SINCRONIZADOS
+        // =====================================================
+        //
+        // El GestorPatasArana cambia la normal de apoyo y nosotros
+        // usamos exactamente su mismo progreso para rotar y acercar
+        // SpiderVisual hacia la pared. El Bot raíz/NavMesh NO se mueve.
+        // =====================================================
+
+        ActualizarTransicionVisualEscalada();
+
+
+        // =====================================================
+        // TRANSICIÓN TERMINADA -> EMPEZAR A SUBIR
+        // =====================================================
+        //
+        // En cuanto cuerpo y patas han llegado al 100% de la pose de pared,
+        // dejamos el NavMesh temporalmente y pasamos al movimiento manual
+        // sobre la superficie.
+        // =====================================================
+
+        if (transicionPatasEscaladaSolicitada &&
+            gestorPatasArana != null &&
+            !gestorPatasArana.TransicionSuperficieEnCurso &&
+            !mensajeTransicionPatasTerminada)
+        {
+            mensajeTransicionPatasTerminada =
+                true;
+
+
+            if (debugEscalada)
+            {
+                Debug.Log(
+                    name +
+                    " | ESCALADA: transición terminada. " +
+                    "Empieza el movimiento vertical por la pared. " +
+                    "Normal actual = " +
+                    gestorPatasArana.NormalSuperficieActual
+                );
+            }
+
+
+            EntrarEnEscalando();
+
+            return;
+        }
+
+
+        // Debug visual:
+        // cyan    = Bot -> piedra que sigue siendo su objetivo.
+        // magenta = Bot -> punto detectado de la pared.
+        // azul    = normal de pared / Up actual de SpiderVisual.
+        // verde   = Forward actual de SpiderVisual (dirección de subida).
+        if (debugEscalada)
+        {
+            Debug.DrawLine(
+                transform.position,
+                piedraObjetivo.position,
+                Color.cyan
+            );
+
+
+            if (detectorEscalada != null &&
+                detectorEscalada.HayParedEscalable)
+            {
+                Debug.DrawLine(
+                    transform.position,
+                    detectorEscalada.PuntoPared,
+                    Color.magenta
+                );
+
+
+                Debug.DrawRay(
+                    detectorEscalada.PuntoPared,
+                    normalParedEscalada * 0.8f,
+                    Color.blue
+                );
+            }
+        }
+    }
+
+
+    // =====================================================
+    // ENTRAR EN ESCALANDO
+    // =====================================================
+
+    private void EntrarEnEscalando()
+    {
+        if (piedraObjetivo == null)
+        {
+            return;
+        }
+
+
+        // =================================================
+        // NAVMESH FUERA DURANTE LA ESCALADA
+        // =================================================
+        //
+        // El NavMesh del escenario está pensado para el suelo. Mientras
+        // estamos pegados a una pared vertical movemos el Bot raíz de forma
+        // manual. Más adelante, al volver al suelo, reactivaremos el Agent.
+        // =================================================
+
+        if (agente != null &&
+            agente.enabled)
+        {
+            if (agente.isOnNavMesh)
+            {
+                agente.isStopped =
+                    true;
+
+
+                if (agente.hasPath)
+                {
+                    agente.ResetPath();
+                }
+            }
+
+
+            agente.enabled =
+                false;
+        }
+
+
+        estadoActual =
+            EstadoBot.Escalando;
+
+
+        posicionInicioMovimientoEscalada =
+            transform.position;
+
+
+        distanciaRecorridaEscalada =
+            0f;
+
+
+        paredPresenteDuranteEscalada =
+            true;
+
+
+        escaladaDetenidaEnPrueba =
+            false;
+
+
+        mensajeFinPruebaEscaladaMostrado =
+            false;
+
+
+        ResetearAntiAtasco();
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | ESCALANDO | NavMesh desactivado temporalmente. " +
+                "Velocidad: " +
+                velocidadEscalada.ToString("0.00") +
+                " m/s."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // COMPORTAMIENTO ESCALANDO
+    // =====================================================
+
+    private void ComportamientoEscalando()
+    {
+        if (piedraObjetivo == null)
+        {
+            escaladaDetenidaEnPrueba =
+                true;
+
+
+            if (debugEscalada &&
+                !mensajeFinPruebaEscaladaMostrado)
+            {
+                mensajeFinPruebaEscaladaMostrado =
+                    true;
+
+
+                Debug.LogWarning(
+                    name +
+                    " | ESCALADA detenida: se perdió la piedra objetivo."
+                );
+            }
+
+
+            return;
+        }
+
+
+        if (normalParedEscalada.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        Vector3 direccionSubida =
+            ObtenerDireccionSubidaPared(
+                normalPared
+            );
+
+
+        if (direccionSubida.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        // =================================================
+        // COMPROBAR QUE LA PARED SIGUE EXISTIENDO
+        // =================================================
+
+        paredPresenteDuranteEscalada =
+            ComprobarParedDuranteEscalada(
+                normalPared,
+                out RaycastHit hitPared
+            );
+
+
+        if (!paredPresenteDuranteEscalada)
+        {
+            escaladaDetenidaEnPrueba =
+                true;
+
+
+            if (debugEscalada &&
+                !mensajeFinPruebaEscaladaMostrado)
+            {
+                mensajeFinPruebaEscaladaMostrado =
+                    true;
+
+
+                Debug.Log(
+                    name +
+                    " | ESCALADA: ya no detecta pared. " +
+                    "Movimiento detenido. Este punto servirá después " +
+                    "para detectar el borde superior."
+                );
+            }
+
+
+            return;
+        }
+
+
+        // =================================================
+        // LÍMITE TEMPORAL DE ESTA PRUEBA
+        // =================================================
+
+        if (limitarDistanciaPruebaEscalada &&
+            distanciaRecorridaEscalada >=
+                Mathf.Max(
+                    0.1f,
+                    distanciaMaximaPruebaEscalada
+                ))
+        {
+            escaladaDetenidaEnPrueba =
+                true;
+
+
+            if (debugEscalada &&
+                !mensajeFinPruebaEscaladaMostrado)
+            {
+                mensajeFinPruebaEscaladaMostrado =
+                    true;
+
+
+                Debug.Log(
+                    name +
+                    " | ESCALADA: distancia de prueba completada (" +
+                    distanciaRecorridaEscalada.ToString("0.00") +
+                    " m). Se queda quieto en la pared."
+                );
+            }
+
+
+            return;
+        }
+
+
+        if (escaladaDetenidaEnPrueba)
+        {
+            return;
+        }
+
+
+        // =================================================
+        // SUBIR POR LA PARED
+        // =================================================
+        //
+        // Movemos el Bot raíz en una dirección tangente a la pared.
+        // No añadimos componente hacia/desde la pared, por lo que en una
+        // pared plana conserva exactamente la separación que acabamos de
+        // ajustar durante PreparandoEscalada.
+        // =================================================
+
+        float desplazamiento =
+            Mathf.Max(
+                0f,
+                velocidadEscalada
+            ) *
+            Time.deltaTime;
+
+
+        transform.position +=
+            direccionSubida *
+            desplazamiento;
+
+
+        distanciaRecorridaEscalada =
+            Vector3.Distance(
+                posicionInicioMovimientoEscalada,
+                transform.position
+            );
+
+
+        // =================================================
+        // DEBUG
+        // =================================================
+
+        if (debugEscalada)
+        {
+            Vector3 origenDebug =
+                spiderVisual != null
+                ? spiderVisual.position
+                : transform.position;
+
+
+            Debug.DrawRay(
+                origenDebug,
+                direccionSubida * 1.0f,
+                Color.green
+            );
+
+
+            Debug.DrawRay(
+                hitPared.point,
+                normalPared * 0.7f,
+                Color.cyan
+            );
+
+
+            Debug.DrawLine(
+                origenDebug,
+                hitPared.point,
+                Color.yellow
+            );
+        }
+    }
+
+
+    // =====================================================
+    // DIRECCIÓN DE SUBIDA POR LA PARED
+    // =====================================================
+
+    private Vector3 ObtenerDireccionSubidaPared(
+        Vector3 normalPared)
+    {
+        Vector3 direccionSubida =
+            Vector3.ProjectOnPlane(
+                Vector3.up,
+                normalPared
+            );
+
+
+        if (direccionSubida.sqrMagnitude <
+            0.0001f)
+        {
+            if (spiderVisual != null)
+            {
+                direccionSubida =
+                    Vector3.ProjectOnPlane(
+                        spiderVisual.forward,
+                        normalPared
+                    );
+            }
+        }
+
+
+        if (direccionSubida.sqrMagnitude <
+            0.0001f)
+        {
+            return Vector3.zero;
+        }
+
+
+        return direccionSubida.normalized;
+    }
+
+
+    // =====================================================
+    // COMPROBAR CONTACTO CON LA PARED
+    // =====================================================
+
+    private bool ComprobarParedDuranteEscalada(
+        Vector3 normalPared,
+        out RaycastHit hit)
+    {
+        Vector3 centroVisual =
+            spiderVisual != null
+            ? spiderVisual.position
+            : transform.position;
+
+
+        // Sacamos el origen hacia fuera de la superficie y lanzamos
+        // el raycast de vuelta hacia la pared.
+        Vector3 origen =
+            centroVisual +
+            normalPared *
+            Mathf.Max(
+                0f,
+                separacionOrigenRaycastEscalada
+            );
+
+
+        Vector3 direccion =
+            -normalPared;
+
+
+        int mascara =
+            detectorEscalada != null
+            ? detectorEscalada.capaEscalable.value
+            : Physics.DefaultRaycastLayers;
+
+
+        bool encontro =
+            Physics.Raycast(
+                origen,
+                direccion,
+                out hit,
+                Mathf.Max(
+                    0.1f,
+                    distanciaComprobacionParedEscalada
+                ),
+                mascara,
+                QueryTriggerInteraction.Ignore
+            );
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawRay(
+                origen,
+                direccion *
+                Mathf.Max(
+                    0.1f,
+                    distanciaComprobacionParedEscalada
+                ),
+                encontro
+                    ? Color.yellow
+                    : Color.red
+            );
+        }
+
+
+        return encontro;
     }
 
 
@@ -2102,6 +3332,125 @@ public class BotRecolector : MonoBehaviour
             piedraObjetivo;
 
 
+        // =====================================================
+        // 1. ORIENTAR EL BOT HACIA LA BOCA DEL AGUJERO
+        // =====================================================
+        //
+        // La piedra todavía sigue en PuntoAgarre durante esta fase.
+        // De esta forma el lanzamiento nace visualmente desde delante
+        // del Bot y no desde un lateral extraño.
+        // =====================================================
+
+        if (orientarAntesDeLanzar)
+        {
+            float tiempoOrientando =
+                0f;
+
+
+            while (tiempoOrientando <
+                   Mathf.Max(
+                       0f,
+                       tiempoMaximoOrientacionEntrega
+                   ))
+            {
+                if (enInteraccion ||
+                    pausaForzada)
+                {
+                    yield return null;
+
+                    continue;
+                }
+
+
+                if (piedraEntregada == null)
+                {
+                    LiberarPuntoEntrega();
+
+                    yield break;
+                }
+
+
+                Vector3 direccionAgujero =
+                    puntoEntradaAgujero.position -
+                    transform.position;
+
+
+                direccionAgujero.y =
+                    0f;
+
+
+                if (direccionAgujero.sqrMagnitude <
+                    0.0001f)
+                {
+                    break;
+                }
+
+
+                Quaternion rotacionObjetivo =
+                    Quaternion.LookRotation(
+                        direccionAgujero.normalized,
+                        Vector3.up
+                    );
+
+
+                transform.rotation =
+                    Quaternion.RotateTowards(
+                        transform.rotation,
+                        rotacionObjetivo,
+                        Mathf.Max(
+                            0f,
+                            velocidadGiroEntrega
+                        ) *
+                        Time.deltaTime
+                    );
+
+
+                // Mientras el cuerpo gira, mantenemos la piedra
+                // exactamente en el punto de agarre.
+                if (puntoAgarre != null)
+                {
+                    piedraEntregada.transform.position =
+                        puntoAgarre.position;
+
+                    piedraEntregada.transform.rotation =
+                        puntoAgarre.rotation;
+                }
+
+
+                float anguloRestante =
+                    Quaternion.Angle(
+                        transform.rotation,
+                        rotacionObjetivo
+                    );
+
+
+                if (anguloRestante <= 3f)
+                {
+                    break;
+                }
+
+
+                tiempoOrientando +=
+                    Time.deltaTime;
+
+
+                yield return null;
+            }
+        }
+
+
+        if (piedraEntregada == null)
+        {
+            LiberarPuntoEntrega();
+
+            yield break;
+        }
+
+
+        // =====================================================
+        // 2. SOLTAR LA PIEDRA Y PREPARAR EL LANZAMIENTO CONTROLADO
+        // =====================================================
+
         piedraEntregada.transform.SetParent(
             null,
             true
@@ -2119,8 +3468,11 @@ public class BotRecolector : MonoBehaviour
 
         foreach (Collider col in colliders)
         {
-            col.enabled =
-                false;
+            if (col != null)
+            {
+                col.enabled =
+                    false;
+            }
         }
 
 
@@ -2128,9 +3480,54 @@ public class BotRecolector : MonoBehaviour
             piedraEntregada.position;
 
 
-        Vector3 final =
+        // PuntoEntradaAgujero debe estar en el centro real de la boca.
+        Vector3 bocaAgujero =
             puntoEntradaAgujero.position;
 
+
+        // Segundo destino invisible calculado por código.
+        // Está por debajo de la boca para que SIEMPRE veamos
+        // que la piedra entra antes de contar la entrega.
+        Vector3 interiorAgujero =
+            bocaAgujero +
+            Vector3.down *
+            Mathf.Max(
+                0f,
+                profundidadVisualAgujero
+            );
+
+
+        // Aunque AlturaArcoLanzamiento venga de una configuración
+        // antigua con valor 2, limitamos el arco del Bot para que
+        // no lance la piedra absurdamente alto.
+        float alturaArcoReal =
+            Mathf.Min(
+                Mathf.Max(
+                    0f,
+                    alturaArcoLanzamiento
+                ),
+                Mathf.Max(
+                    0f,
+                    alturaMaximaArcoEntrega
+                )
+            );
+
+
+        // =====================================================
+        // DEBUG: DIBUJAR LA TRAZADA QUE VA A HACER LA PIEDRA
+        // =====================================================
+
+        DibujarDebugTrazadaLanzamiento(
+            inicio,
+            bocaAgujero,
+            interiorAgujero,
+            alturaArcoReal
+        );
+
+
+        // =====================================================
+        // 3. ARCO CORTO HASTA EL CENTRO DE LA BOCA
+        // =====================================================
 
         float tiempo =
             0f;
@@ -2170,20 +3567,26 @@ public class BotRecolector : MonoBehaviour
                 );
 
 
+            // SmoothStep evita que la piedra salga y llegue
+            // con una sensación demasiado robótica.
+            float tSuave =
+                t * t *
+                (3f - 2f * t);
+
+
             Vector3 posicion =
                 Vector3.Lerp(
                     inicio,
-                    final,
-                    t
+                    bocaAgujero,
+                    tSuave
                 );
 
 
             posicion.y +=
                 Mathf.Sin(
                     t * Mathf.PI
-                )
-                *
-                alturaArcoLanzamiento;
+                ) *
+                alturaArcoReal;
 
 
             piedraEntregada.position =
@@ -2210,9 +3613,104 @@ public class BotRecolector : MonoBehaviour
         }
 
 
+        // Garantizamos un frame real en el centro de la boca.
         piedraEntregada.position =
-            final;
+            bocaAgujero;
 
+
+        yield return null;
+
+
+        // =====================================================
+        // 4. CAÍDA VISIBLE DENTRO DEL AGUJERO
+        // =====================================================
+        //
+        // Aquí está la corrección principal del problema:
+        // NO contamos la entrega cuando la piedra simplemente
+        // termina el arco. Primero debe verse entrando.
+        // =====================================================
+
+        float tiempoCaida =
+            0f;
+
+
+        float duracionCaida =
+            Mathf.Max(
+                0.01f,
+                duracionCaidaDentroAgujero
+            );
+
+
+        while (tiempoCaida < duracionCaida)
+        {
+            if (enInteraccion ||
+                pausaForzada)
+            {
+                yield return null;
+
+                continue;
+            }
+
+
+            if (piedraEntregada == null)
+            {
+                LiberarPuntoEntrega();
+
+                yield break;
+            }
+
+
+            tiempoCaida +=
+                Time.deltaTime;
+
+
+            float t =
+                Mathf.Clamp01(
+                    tiempoCaida /
+                    duracionCaida
+                );
+
+
+            float tSuave =
+                t * t *
+                (3f - 2f * t);
+
+
+            piedraEntregada.position =
+                Vector3.Lerp(
+                    bocaAgujero,
+                    interiorAgujero,
+                    tSuave
+                );
+
+
+            piedraEntregada.transform.Rotate(
+                Vector3.one *
+                velocidadGiroLanzamiento *
+                Time.deltaTime,
+                Space.World
+            );
+
+
+            yield return null;
+        }
+
+
+        if (piedraEntregada == null)
+        {
+            LiberarPuntoEntrega();
+
+            yield break;
+        }
+
+
+        piedraEntregada.position =
+            interiorAgujero;
+
+
+        // =====================================================
+        // 5. SOLO AHORA CONTAMOS LA ENTREGA
+        // =====================================================
 
         if (gestorPiedras != null)
         {
@@ -2230,11 +3728,13 @@ public class BotRecolector : MonoBehaviour
             piedraEntregada.gameObject
         );
 
+
         if (estadisticasBot != null)
         {
             estadisticasBot
                 .RegistrarEntregaAgujero();
         }
+
 
         LiberarPuntoEntrega();
 
@@ -2256,6 +3756,7 @@ public class BotRecolector : MonoBehaviour
 
         ResetearAntiAtasco();
     }
+
 
 
     // =====================================================
@@ -2539,7 +4040,9 @@ public class BotRecolector : MonoBehaviour
         // Si iba simplemente hacia una piedra,
         // liberamos esa piedra para los demás Bots.
         if (estadoActual ==
-            EstadoBot.YendoAPiedra)
+                EstadoBot.YendoAPiedra ||
+            estadoActual ==
+                EstadoBot.PreparandoEscalada)
         {
             CancelarObjetivo();
         }
@@ -2560,7 +4063,9 @@ public class BotRecolector : MonoBehaviour
 
 
         if (estadoActual ==
-            EstadoBot.YendoAPiedra)
+                EstadoBot.YendoAPiedra ||
+            estadoActual ==
+                EstadoBot.PreparandoEscalada)
         {
             CancelarObjetivo();
 
@@ -2573,6 +4078,8 @@ public class BotRecolector : MonoBehaviour
         // Si lleva una piedra o está completando la cadena
         // de la procesadora, termina esa tarea antes de aparcar.
         if (estadoActual ==
+                EstadoBot.Escalando ||
+            estadoActual ==
                 EstadoBot.LlevandoPiedra ||
             estadoActual ==
                 EstadoBot.EntregandoPiedra ||
@@ -3133,6 +4640,89 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // DEBUG - TRAZADA LANZAMIENTO AL AGUJERO
+    // =====================================================
+
+    private void DibujarDebugTrazadaLanzamiento(
+        Vector3 inicio,
+        Vector3 bocaAgujero,
+        Vector3 interiorAgujero,
+        float alturaArco)
+    {
+        if (!mostrarDebugTrazadaLanzamiento)
+            return;
+
+
+        int segmentos =
+            Mathf.Max(
+                4,
+                segmentosDebugTrazadaLanzamiento
+            );
+
+
+        float duracion =
+            Mathf.Max(
+                0f,
+                duracionDebugTrazada
+            );
+
+
+        Vector3 anterior =
+            inicio;
+
+
+        // Amarillo: arco real hasta la boca.
+        for (int i = 1;
+             i <= segmentos;
+             i++)
+        {
+            float t =
+                i /
+                (float)segmentos;
+
+
+            Vector3 posicion =
+                Vector3.Lerp(
+                    inicio,
+                    bocaAgujero,
+                    t
+                );
+
+
+            posicion.y +=
+                Mathf.Sin(
+                    t * Mathf.PI
+                )
+                *
+                alturaArco;
+
+
+            Debug.DrawLine(
+                anterior,
+                posicion,
+                Color.yellow,
+                duracion,
+                false
+            );
+
+
+            anterior =
+                posicion;
+        }
+
+
+        // Rojo: pequeña caída visual que hacemos dentro del agujero.
+        Debug.DrawLine(
+            bocaAgujero,
+            interiorAgujero,
+            Color.red,
+            duracion,
+            false
+        );
+    }
+
+
+    // =====================================================
     // DESTROY
     // =====================================================
 
@@ -3169,6 +4759,142 @@ public class BotRecolector : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        // =================================================
+        // PREVISUALIZACIÓN PERMANENTE DEL LANZAMIENTO
+        // =================================================
+        //
+        // Amarillo = trayectoria hasta la boca.
+        // Rojo     = caída visual dentro del agujero.
+        // Verde    = inicio.
+        // Blanco   = centro de la boca.
+        // =================================================
+
+        if (mostrarDebugTrazadaLanzamiento &&
+            puntoAgarre != null &&
+            puntoEntradaAgujero != null)
+        {
+            Vector3 inicioDebug =
+                puntoAgarre.position;
+
+
+            Vector3 bocaDebug =
+                puntoEntradaAgujero.position;
+
+
+            Vector3 interiorDebug =
+                bocaDebug +
+                Vector3.down *
+                Mathf.Max(
+                    0f,
+                    profundidadVisualAgujero
+                );
+
+
+            float alturaDebug =
+                Mathf.Min(
+                    Mathf.Max(
+                        0f,
+                        alturaArcoLanzamiento
+                    ),
+                    Mathf.Max(
+                        0f,
+                        alturaMaximaArcoEntrega
+                    )
+                );
+
+
+            int segmentos =
+                Mathf.Max(
+                    4,
+                    segmentosDebugTrazadaLanzamiento
+                );
+
+
+            Vector3 anterior =
+                inicioDebug;
+
+
+            Gizmos.color =
+                Color.yellow;
+
+
+            for (int i = 1;
+                 i <= segmentos;
+                 i++)
+            {
+                float t =
+                    i /
+                    (float)segmentos;
+
+
+                Vector3 posicion =
+                    Vector3.Lerp(
+                        inicioDebug,
+                        bocaDebug,
+                        t
+                    );
+
+
+                posicion.y +=
+                    Mathf.Sin(
+                        t * Mathf.PI
+                    )
+                    *
+                    alturaDebug;
+
+
+                Gizmos.DrawLine(
+                    anterior,
+                    posicion
+                );
+
+
+                anterior =
+                    posicion;
+            }
+
+
+            Gizmos.color =
+                Color.red;
+
+
+            Gizmos.DrawLine(
+                bocaDebug,
+                interiorDebug
+            );
+
+
+            Gizmos.color =
+                Color.green;
+
+
+            Gizmos.DrawWireSphere(
+                inicioDebug,
+                0.08f
+            );
+
+
+            Gizmos.color =
+                Color.white;
+
+
+            Gizmos.DrawWireSphere(
+                bocaDebug,
+                0.10f
+            );
+
+
+            Gizmos.color =
+                Color.red;
+
+
+            Gizmos.DrawWireSphere(
+                interiorDebug,
+                0.08f
+            );
+        }
+
+
         if (piedraObjetivo != null)
         {
             Gizmos.color =

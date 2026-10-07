@@ -72,6 +72,101 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
+    // SUPERFICIE DE APOYO
+    // =====================================================
+
+    [Header("Superficie de apoyo")]
+
+    [Tooltip(
+        "Normal que se envía a las seis patas. " +
+        "Vector3.up mantiene el comportamiento normal de suelo."
+    )]
+    [SerializeField]
+    private Vector3 normalSuperficieActual = Vector3.up;
+
+
+    public Vector3 NormalSuperficieActual
+    {
+        get
+        {
+            if (normalSuperficieActual.sqrMagnitude <
+                0.0001f)
+            {
+                return Vector3.up;
+            }
+
+
+            return normalSuperficieActual.normalized;
+        }
+    }
+
+
+    // =====================================================
+    // TRANSICIÓN DE SUPERFICIE
+    // =====================================================
+
+    [Header("Transición de superficie")]
+
+    [Tooltip(
+        "Indica si las seis patas están cambiando progresivamente " +
+        "de una normal de apoyo a otra."
+    )]
+    [SerializeField]
+    private bool transicionSuperficieEnCurso = false;
+
+
+    [Tooltip(
+        "Normal desde la que comenzó la transición actual."
+    )]
+    [SerializeField]
+    private Vector3 normalInicioTransicion = Vector3.up;
+
+
+    [Tooltip(
+        "Normal final hacia la que se están adaptando las patas."
+    )]
+    [SerializeField]
+    private Vector3 normalObjetivoTransicion = Vector3.up;
+
+
+    [Tooltip(
+        "Progreso de la transición actual. 0 = inicio, 1 = terminada."
+    )]
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float progresoTransicionSuperficie = 1f;
+
+
+    private float duracionTransicionSuperficie = 0.6f;
+
+    private float tiempoTransicionSuperficie = 0f;
+
+
+    public bool TransicionSuperficieEnCurso
+    {
+        get { return transicionSuperficieEnCurso; }
+    }
+
+
+    public float ProgresoTransicionSuperficie
+    {
+        get { return progresoTransicionSuperficie; }
+    }
+
+
+    public Vector3 NormalObjetivoSuperficie
+    {
+        get
+        {
+            if (normalObjetivoTransicion.sqrMagnitude < 0.0001f)
+                return Vector3.up;
+
+            return normalObjetivoTransicion.normalized;
+        }
+    }
+
+
+    // =====================================================
     // DEBUG
     // =====================================================
 
@@ -122,6 +217,15 @@ public class GestorPatasArana : MonoBehaviour
 
         ActivarControlExterno(pataBL);
         ActivarControlExterno(pataBR);
+
+
+        // =================================================
+        // SUPERFICIE INICIAL
+        // =================================================
+
+        EstablecerNormalSuperficie(
+            normalSuperficieActual
+        );
     }
 
 
@@ -141,11 +245,198 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
+    // SUPERFICIE DE APOYO
+    // =====================================================
+
+    public void EstablecerNormalSuperficie(
+        Vector3 nuevaNormal)
+    {
+        if (nuevaNormal.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        normalSuperficieActual =
+            nuevaNormal.normalized;
+
+
+        EnviarNormalSuperficie(pataFL);
+        EnviarNormalSuperficie(pataFR);
+
+        EnviarNormalSuperficie(pataML);
+        EnviarNormalSuperficie(pataMR);
+
+        EnviarNormalSuperficie(pataBL);
+        EnviarNormalSuperficie(pataBR);
+    }
+
+
+    public void RestaurarNormalSuelo()
+    {
+        transicionSuperficieEnCurso = false;
+        progresoTransicionSuperficie = 1f;
+        tiempoTransicionSuperficie = 0f;
+
+        EstablecerNormalSuperficie(
+            Vector3.up
+        );
+    }
+
+
+    public void IniciarTransicionSuperficie(
+        Vector3 nuevaNormal,
+        float duracion)
+    {
+        if (nuevaNormal.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 normalFinal =
+            nuevaNormal.normalized;
+
+
+        // Si prácticamente ya estamos en esa superficie,
+        // fijamos el resultado directamente.
+        if (Vector3.Angle(
+                NormalSuperficieActual,
+                normalFinal) <= 0.1f ||
+            duracion <= 0.001f)
+        {
+            transicionSuperficieEnCurso = false;
+            normalInicioTransicion = normalFinal;
+            normalObjetivoTransicion = normalFinal;
+            progresoTransicionSuperficie = 1f;
+            tiempoTransicionSuperficie = 0f;
+
+            EstablecerNormalSuperficie(
+                normalFinal
+            );
+
+            return;
+        }
+
+
+        normalInicioTransicion =
+            NormalSuperficieActual;
+
+
+        normalObjetivoTransicion =
+            normalFinal;
+
+
+        duracionTransicionSuperficie =
+            Mathf.Max(
+                0.01f,
+                duracion
+            );
+
+
+        tiempoTransicionSuperficie = 0f;
+        progresoTransicionSuperficie = 0f;
+        transicionSuperficieEnCurso = true;
+    }
+
+
+    public void IniciarTransicionASuelo(
+        float duracion)
+    {
+        IniciarTransicionSuperficie(
+            Vector3.up,
+            duracion
+        );
+    }
+
+
+    private void ActualizarTransicionSuperficie()
+    {
+        if (!transicionSuperficieEnCurso)
+            return;
+
+
+        tiempoTransicionSuperficie +=
+            Time.deltaTime;
+
+
+        float t =
+            Mathf.Clamp01(
+                tiempoTransicionSuperficie /
+                Mathf.Max(
+                    0.01f,
+                    duracionTransicionSuperficie
+                )
+            );
+
+
+        // SmoothStep evita que el cambio de normal empiece
+        // o termine de golpe.
+        float tSuave =
+            t * t *
+            (3f - 2f * t);
+
+
+        Vector3 normalInterpolada =
+            Vector3.Slerp(
+                normalInicioTransicion,
+                normalObjetivoTransicion,
+                tSuave
+            );
+
+
+        if (normalInterpolada.sqrMagnitude >
+            0.0001f)
+        {
+            EstablecerNormalSuperficie(
+                normalInterpolada.normalized
+            );
+        }
+
+
+        progresoTransicionSuperficie = t;
+
+
+        if (t >= 1f)
+        {
+            transicionSuperficieEnCurso = false;
+            progresoTransicionSuperficie = 1f;
+
+            EstablecerNormalSuperficie(
+                normalObjetivoTransicion
+            );
+        }
+    }
+
+
+    private void EnviarNormalSuperficie(
+        PataProcedural pata)
+    {
+        if (pata == null)
+            return;
+
+
+        pata.EstablecerNormalSuperficie(
+            normalSuperficieActual
+        );
+    }
+
+
+    // =====================================================
     // UPDATE
     // =====================================================
 
     private void Update()
     {
+        // =================================================
+        // TRANSICIÓN PROGRESIVA DE LA NORMAL DE APOYO
+        // =================================================
+
+        ActualizarTransicionSuperficie();
+
+
         // =================================================
         // PRIMERO CALCULAMOS HACIA DÓNDE QUIERE GIRAR
         // =================================================

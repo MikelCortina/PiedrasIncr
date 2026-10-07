@@ -172,6 +172,30 @@ public class PataProcedural : MonoBehaviour
 
 
     // =====================================================
+    // SUPERFICIE DE APOYO
+    // =====================================================
+
+    [Header("Superficie de apoyo")]
+
+    [Tooltip(
+        "Normal actual de la superficie sobre la que trabaja la pata. " +
+        "Vector3.up equivale al suelo horizontal. Durante la escalada " +
+        "el GestorPatasArana cambiará esta normal hacia la pared."
+    )]
+    [SerializeField]
+    private Vector3 normalSuperficieActual = Vector3.up;
+
+
+    public Vector3 NormalSuperficieActual
+    {
+        get
+        {
+            return ObtenerNormalSuperficieSegura();
+        }
+    }
+
+
+    // =====================================================
     // FORMA
     // =====================================================
 
@@ -511,6 +535,45 @@ public class PataProcedural : MonoBehaviour
 
 
     // =====================================================
+    // SUPERFICIE DE APOYO
+    // =====================================================
+
+    public void EstablecerNormalSuperficie(
+        Vector3 nuevaNormal)
+    {
+        if (nuevaNormal.sqrMagnitude <
+            0.0001f)
+        {
+            return;
+        }
+
+
+        normalSuperficieActual =
+            nuevaNormal.normalized;
+    }
+
+
+    public void RestaurarNormalSuelo()
+    {
+        normalSuperficieActual =
+            Vector3.up;
+    }
+
+
+    private Vector3 ObtenerNormalSuperficieSegura()
+    {
+        if (normalSuperficieActual.sqrMagnitude <
+            0.0001f)
+        {
+            return Vector3.up;
+        }
+
+
+        return normalSuperficieActual.normalized;
+    }
+
+
+    // =====================================================
     // OBTENER POSICIÓN IDEAL
     // =====================================================
 
@@ -684,10 +747,14 @@ public class PataProcedural : MonoBehaviour
         // GIRAR EL OFFSET HACIA LA POSICIÓN FUTURA
         // =================================================
 
+        Vector3 normalSuperficie =
+            ObtenerNormalSuperficieSegura();
+
+
         Quaternion giroFuturo =
             Quaternion.AngleAxis(
                 anguloFuturo,
-                Vector3.up
+                normalSuperficie
             );
 
 
@@ -706,36 +773,41 @@ public class PataProcedural : MonoBehaviour
             posicionNormal;
 
 
-        Vector3 desplazamientoHorizontal =
-            new Vector3(
-                desplazamiento.x,
-                0f,
-                desplazamiento.z
+        Vector3 desplazamientoPlano =
+            Vector3.ProjectOnPlane(
+                desplazamiento,
+                normalSuperficie
             );
 
 
-        if (desplazamientoHorizontal.magnitude >
+        if (desplazamientoPlano.magnitude >
             distanciaMaximaAnticipacion)
         {
-            desplazamientoHorizontal =
-                desplazamientoHorizontal.normalized *
+            desplazamientoPlano =
+                desplazamientoPlano.normalized *
                 distanciaMaximaAnticipacion;
 
 
-            posicionAnticipada.x =
-                posicionNormal.x +
-                desplazamientoHorizontal.x;
-
-
-            posicionAnticipada.z =
-                posicionNormal.z +
-                desplazamientoHorizontal.z;
+            posicionAnticipada =
+                posicionNormal +
+                desplazamientoPlano;
         }
 
 
-        // La altura la resuelve el Raycast.
-        posicionAnticipada.y =
-            posicionNormal.y;
+        // Eliminamos cualquier desplazamiento accidental
+        // perpendicular a la superficie. En suelo horizontal
+        // esto equivale exactamente a conservar la misma Y.
+        float desplazamientoNormal =
+            Vector3.Dot(
+                posicionAnticipada -
+                posicionNormal,
+                normalSuperficie
+            );
+
+
+        posicionAnticipada -=
+            normalSuperficie *
+            desplazamientoNormal;
 
 
         // =================================================
@@ -821,16 +893,16 @@ public class PataProcedural : MonoBehaviour
         // pata puede recolocarse antes de quedar estirada.
         // =================================================
 
-        Vector3 diferenciaHorizontal =
-            objetivoPaso -
-            posicionPieActual;
-
-
-        diferenciaHorizontal.y = 0f;
+        Vector3 diferenciaPlano =
+            Vector3.ProjectOnPlane(
+                objetivoPaso -
+                posicionPieActual,
+                ObtenerNormalSuperficieSegura()
+            );
 
 
         float distanciaHorizontalGiro =
-            diferenciaHorizontal.magnitude;
+            diferenciaPlano.magnitude;
 
 
         bool hayIntencionFuerteDeGiro =
@@ -996,13 +1068,16 @@ public class PataProcedural : MonoBehaviour
         // ARCO
         // =================================================
 
-        posicion.y +=
-            Mathf.Sin(
-                t *
-                Mathf.PI
-            )
-            *
-            alturaPaso;
+        posicion +=
+            ObtenerNormalSuperficieSegura() *
+            (
+                Mathf.Sin(
+                    t *
+                    Mathf.PI
+                )
+                *
+                alturaPaso
+            );
 
 
         posicionPieActual =
@@ -1036,15 +1111,23 @@ public class PataProcedural : MonoBehaviour
     private Vector3 BuscarSuelo(
         Vector3 posicion)
     {
+        Vector3 normalSuperficie =
+            ObtenerNormalSuperficieSegura();
+
+
         Vector3 origen =
             posicion +
-            Vector3.up *
+            normalSuperficie *
             alturaRaycast;
+
+
+        Vector3 direccionRaycast =
+            -normalSuperficie;
 
 
         if (Physics.Raycast(
                 origen,
-                Vector3.down,
+                direccionRaycast,
                 out RaycastHit hit,
                 distanciaRaycast,
                 capaSuelo,
@@ -1184,12 +1267,16 @@ public class PataProcedural : MonoBehaviour
         // DIRECCIÓN DE LA RODILLA
         // =================================================
 
+        Vector3 normalSuperficie =
+            ObtenerNormalSuperficieSegura();
+
+
         Vector3 direccionDoblez =
-            Vector3.up
+            normalSuperficie
             -
             direccion *
             Vector3.Dot(
-                Vector3.up,
+                normalSuperficie,
                 direccion
             );
 
@@ -1197,8 +1284,28 @@ public class PataProcedural : MonoBehaviour
         if (direccionDoblez.sqrMagnitude <
             0.001f)
         {
+            Vector3 referenciaAlternativa =
+                referenciaGiro != null
+                ? referenciaGiro.forward
+                : transform.forward;
+
+
             direccionDoblez =
-                Vector3.forward;
+                Vector3.ProjectOnPlane(
+                    referenciaAlternativa,
+                    direccion
+                );
+        }
+
+
+        if (direccionDoblez.sqrMagnitude <
+            0.001f)
+        {
+            direccionDoblez =
+                Vector3.ProjectOnPlane(
+                    transform.right,
+                    direccion
+                );
         }
 
 
@@ -1381,6 +1488,26 @@ public class PataProcedural : MonoBehaviour
             Gizmos.DrawWireSphere(
                 rodilla.position,
                 0.07f
+            );
+        }
+
+
+        // =================================================
+        // NORMAL DE SUPERFICIE - AZUL
+        // =================================================
+
+        if (Application.isPlaying &&
+            cadera != null)
+        {
+            Gizmos.color =
+                Color.blue;
+
+
+            Gizmos.DrawLine(
+                cadera.position,
+                cadera.position +
+                ObtenerNormalSuperficieSegura() *
+                0.45f
             );
         }
     }
