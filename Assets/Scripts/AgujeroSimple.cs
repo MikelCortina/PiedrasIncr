@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-// --- RENOMBRADO PARA FORZAR A UNITY A BORRAR LA CACHÉ ---
 [System.Serializable]
 public class TramoTuberia
 {
@@ -18,10 +17,12 @@ public class TramoTuberia
     [Tooltip("Hasta dónde llega (Panner) en ESTA tubería.")]
     public float pannerFin = 1.5f;
 }
-// -------------------------------------------------
 
 public class AgujeroSimple : MonoBehaviour
 {
+    [Header("Conexión con la Pantalla")]
+    public ContadorGasolinera contadorFuelo;
+
     [Header("Recompensas (Tramos de Pureza)")]
     public GameObject prefabDinero;
     public Transform puntoDeExpulsion;
@@ -40,11 +41,9 @@ public class AgujeroSimple : MonoBehaviour
     public float fuerzaHaciaArriba = 8f;
     public float dispersionLateral = 1.5f;
     public float rotacionMax = 20f;
-    [Tooltip("Multiplicador de fuerza extra para asegurar que las monedas rebotadas salgan del hoyo")]
     public float multiplicadorRebote = 1.2f;
 
     [Header("Flujo de Tuberías (Deformación)")]
-    [Tooltip("Añade aquí las tuberías en orden. Cada una puede tener su propia velocidad y límites.")]
     public List<TramoTuberia> recorridoTuberias = new List<TramoTuberia>();
 
     [Header("Efectos Visuales y Sonido")]
@@ -104,20 +103,36 @@ public class AgujeroSimple : MonoBehaviour
         int cantidadMonedas = premioMalo;
         float pureza = 0f;
 
+        // --- NUEVO: Variable para saber si debemos animar las tuberías ---
+        bool esPiedraAceptable = false;
+
         if (scriptPiedra != null)
         {
             pureza = scriptPiedra.ObtenerPorcentajeDesgasteHaciaEsfera();
             cantidadMonedas = CalcularRecompensa(pureza);
+
+            // Verificamos si supera el umbral
+            if (pureza >= umbralAceptable)
+            {
+                esPiedraAceptable = true; // La piedra es buena, activamos la bandera
+
+                if (contadorFuelo != null)
+                {
+                    float incrementoCombustible = (pureza / 100f) * 0.1f;
+                    contadorFuelo.AgregarFuelo(incrementoCombustible);
+                }
+            }
         }
 
         Destroy(piedra);
 
+        // El agujero se come la piedra visual y sonoramente de todas formas
         if (particulasTragar != null) particulasTragar.Play();
         if (audioSource != null && sonidoTragar != null) audioSource.PlayOneShot(sonidoTragar);
-
         HacerBloop();
 
-        if (recorridoTuberias != null && recorridoTuberias.Count > 0)
+        // --- NUEVO: Solo iniciamos el viaje por las tuberías si la piedra fue aceptada ---
+        if (esPiedraAceptable && recorridoTuberias != null && recorridoTuberias.Count > 0)
         {
             StartCoroutine(RutinaViajePorTuberias());
         }
@@ -128,9 +143,6 @@ public class AgujeroSimple : MonoBehaviour
         }
     }
 
-    // ==========================================
-    // LÓGICA DE VIAJE DE TUBERÍAS (PIPELINE)
-    // ==========================================
     private IEnumerator RutinaViajePorTuberias()
     {
         for (int i = 0; i < recorridoTuberias.Count; i++)
@@ -147,17 +159,13 @@ public class AgujeroSimple : MonoBehaviour
 
             float progresoActual = paso.pannerInicio;
 
-            // Mathf.MoveTowards se encarga de ir hacia arriba o hacia abajo automáticamente
             while (progresoActual != paso.pannerFin)
             {
-                // Usamos Mathf.Abs para que la velocidad siempre sume (hacia el objetivo), 
-                // así no tienes que preocuparte de poner velocidades negativas en el Inspector.
                 progresoActual = Mathf.MoveTowards(progresoActual, paso.pannerFin, Time.deltaTime * Mathf.Abs(paso.velocidadDeformacion));
                 paso.tuberia.SetPannerGlobal(progresoActual);
                 yield return null;
             }
 
-            // Al salir, lo dejamos invisible en su punto de inicio original
             paso.tuberia.SetPannerGlobal(paso.pannerInicio);
             tuberiaOcupada[i] = false;
         }
