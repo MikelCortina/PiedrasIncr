@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class TriggerMaquinaErosion : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el objeto principal que tiene el script MaquinaErosion")]
+    [Tooltip("Arrastra aquí el objeto principal que tiene el script MiniMaquinaErosion1")]
     public MaquinaErosion maquinaPrincipal;
 
     void OnTriggerEnter(Collider otro)
