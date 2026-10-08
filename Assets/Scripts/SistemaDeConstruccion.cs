@@ -72,6 +72,26 @@ public class SistemaConstruccion : MonoBehaviour
     [Tooltip("Muestra en consola y Scene la selección automática de recta/izquierda/derecha.")]
     public bool debugCintaAutomatica = false;
 
+    [Header("Cintas automáticas - Zona magnética")]
+    [Tooltip("Activa el snap por zona alrededor de la mirilla. No hace falta acertar exactamente al collider del conector.")]
+    public bool usarZonaMagneticaCintas = true;
+
+    [Tooltip("Radio de captura alrededor del centro de pantalla. Es una fracción del lado menor de la pantalla. 0.16 equivale a una zona bastante cómoda.")]
+    [Range(0.05f, 0.45f)]
+    public float radioCapturaMirillaCinta = 0.16f;
+
+    [Tooltip("Radio para mantener un snap ya adquirido. Debe ser mayor que el radio de captura para evitar que el snap parpadee.")]
+    [Range(0.08f, 0.60f)]
+    public float radioLiberarMirillaCinta = 0.30f;
+
+    [Tooltip("Tiempo que el conector debe permanecer fuera de la zona grande de la mirilla antes de liberar el snap.")]
+    [Min(0f)]
+    public float tiempoGraciaSoltarSnapCinta = 0.25f;
+
+    [Tooltip("Pequeño tiempo tras liberar un snap antes de poder capturar otro. Evita reenganches instantáneos accidentales.")]
+    [Min(0f)]
+    public float tiempoBloqueoReengancheCinta = 0.20f;
+
     // AÑADIDO: Tiempo personalizable de espera
     [Tooltip("Tiempo en segundos que tarda en aparecer el siguiente holograma tras construir")]
     public float tiempoEsperaConstruccion = 0.5f;
@@ -97,6 +117,7 @@ public class SistemaConstruccion : MonoBehaviour
     private Collider conectorCintaBloqueado = null;
     private bool snapCintaDesdeSalida = true;
     private float tiempoHastaReengancheCinta = 0f;
+    private float tiempoFueraRangoSnapCinta = 0f;
     private bool cancelarRotacionCintaEsteFrame = false;
 
     void Update()
@@ -255,7 +276,7 @@ public class SistemaConstruccion : MonoBehaviour
         bool apuntandoValido = false;
 
         InfoEdificio actual = edificios[indiceEdificioActual];
-        HologramaColision detector = hologramaActual.GetComponent<HologramaColision>();
+        HologramaColision detector = hologramaActual.GetComponentInChildren<HologramaColision>(true);
 
         edificioApuntado = null;
 
@@ -280,43 +301,79 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 LiberarSnapCinta(false);
             }
+            else if (DebeLiberarSnapCintaPorMirilla())
+            {
+                tiempoFueraRangoSnapCinta += Time.deltaTime;
+
+                if (tiempoFueraRangoSnapCinta >= tiempoGraciaSoltarSnapCinta)
+                {
+                    if (debugCintaAutomatica)
+                        Debug.Log("Cinta automática -> snap liberado al salir de la zona de mirilla.");
+
+                    LiberarSnapCinta(true);
+                    // No hacemos return: en este mismo frame el holograma vuelve
+                    // a comportarse como una construcción libre.
+                }
+                else
+                {
+                    apuntandoValido = ManejarCintaBloqueada(rayo, ref detector);
+                    hologramaActual.SetActive(apuntandoValido);
+                    return;
+                }
+            }
             else
             {
+                tiempoFueraRangoSnapCinta = 0f;
                 apuntandoValido = ManejarCintaBloqueada(rayo, ref detector);
                 hologramaActual.SetActive(apuntandoValido);
                 return;
             }
         }
 
-        bool chocaConector = Physics.Raycast(
-            rayo,
-            out RaycastHit hitConector,
-            distanciaMaximaConstruccion,
-            capaConectores,
-            QueryTriggerInteraction.Collide
-        );
+        RaycastHit hitConector = default;
+        Collider conectorDetectado = null;
+        bool chocaConector = false;
+
+        if (actual.tipo == TipoEdificio.Cinta)
+        {
+            conectorDetectado = BuscarConectorCintaZonaMagnetica();
+            chocaConector = conectorDetectado != null;
+        }
+        else
+        {
+            chocaConector = Physics.Raycast(
+                rayo,
+                out hitConector,
+                distanciaMaximaConstruccion,
+                capaConectores,
+                QueryTriggerInteraction.Collide
+            );
+
+            if (chocaConector)
+                conectorDetectado = hitConector.collider;
+        }
 
         bool conectorValido = false;
 
-        if (chocaConector)
+        if (chocaConector && conectorDetectado != null)
         {
             if (actual.tipo == TipoEdificio.Rampa &&
-                (hitConector.collider.CompareTag("ConectorSalida") ||
-                 hitConector.collider.CompareTag("ConectorEntrada")))
+                (conectorDetectado.CompareTag("ConectorSalida") ||
+                 conectorDetectado.CompareTag("ConectorEntrada")))
             {
                 conectorValido = true;
             }
             else if (actual.tipo == TipoEdificio.Cinta &&
                      Time.time >= tiempoHastaReengancheCinta &&
-                     (hitConector.collider.CompareTag("ConectorSalida") ||
-                      hitConector.collider.CompareTag("ConectorEntrada")))
+                     (conectorDetectado.CompareTag("ConectorSalida") ||
+                      conectorDetectado.CompareTag("ConectorEntrada")))
             {
                 conectorValido = true;
             }
             else if (actual.tipo == TipoEdificio.Pared &&
-                     (hitConector.collider.CompareTag("RailRampa") ||
-                      hitConector.collider.CompareTag("ConectorParedSalida") ||
-                      hitConector.collider.CompareTag("ConectorParedEntrada")))
+                     (conectorDetectado.CompareTag("RailRampa") ||
+                      conectorDetectado.CompareTag("ConectorParedSalida") ||
+                      conectorDetectado.CompareTag("ConectorParedEntrada")))
             {
                 conectorValido = true;
             }
@@ -326,7 +383,7 @@ public class SistemaConstruccion : MonoBehaviour
         {
             posicionSueloBloqueada = null;
 
-            if (hitConector.collider == slotBloqueado)
+            if (conectorDetectado == slotBloqueado)
             {
                 apuntandoValido = false;
                 estaImantado = false;
@@ -340,7 +397,7 @@ public class SistemaConstruccion : MonoBehaviour
 
                 if (actual.tipo == TipoEdificio.Cinta)
                 {
-                    BloquearSnapCinta(hitConector.collider);
+                    BloquearSnapCinta(conectorDetectado);
                     apuntandoValido = ManejarCintaBloqueada(rayo, ref detector);
                     hologramaActual.SetActive(apuntandoValido);
                     return;
@@ -348,36 +405,36 @@ public class SistemaConstruccion : MonoBehaviour
 
                 estaImantado = true;
                 apuntandoValido = true;
-                imanApuntado = hitConector.collider;
+                imanApuntado = conectorDetectado;
 
                 if (detector != null)
-                    detector.rampaAIgnorar = hitConector.collider.transform.root.gameObject;
+                    detector.rampaAIgnorar = conectorDetectado.transform.root.gameObject;
 
                 if (actual.tipo == TipoEdificio.Rampa)
                 {
-                    hologramaActual.transform.rotation = hitConector.transform.rotation;
+                    hologramaActual.transform.rotation = conectorDetectado.transform.rotation;
 
-                    if (hitConector.collider.CompareTag("ConectorSalida"))
-                        AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
-                    else if (hitConector.collider.CompareTag("ConectorEntrada"))
-                        AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
+                    if (conectorDetectado.CompareTag("ConectorSalida"))
+                        AlinearPiezas("PuntoConexion_Entrada", conectorDetectado.transform.position);
+                    else if (conectorDetectado.CompareTag("ConectorEntrada"))
+                        AlinearPiezas("PuntoConexion_Salida", conectorDetectado.transform.position);
                 }
                 else if (actual.tipo == TipoEdificio.Pared)
                 {
-                    if (hitConector.collider.CompareTag("RailRampa"))
+                    if (conectorDetectado.CompareTag("RailRampa"))
                     {
-                        hologramaActual.transform.position = hitConector.transform.position;
+                        hologramaActual.transform.position = conectorDetectado.transform.position;
                         hologramaActual.transform.rotation =
-                            hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
+                            conectorDetectado.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
                     }
                     else
                     {
-                        hologramaActual.transform.rotation = hitConector.transform.root.rotation;
+                        hologramaActual.transform.rotation = conectorDetectado.transform.root.rotation;
 
-                        if (hitConector.collider.CompareTag("ConectorParedSalida"))
-                            AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
-                        else if (hitConector.collider.CompareTag("ConectorParedEntrada"))
-                            AlinearPiezas("PuntoConexionPared_Salida", hitConector.transform.position);
+                        if (conectorDetectado.CompareTag("ConectorParedSalida"))
+                            AlinearPiezas("PuntoConexionPared_Entrada", conectorDetectado.transform.position);
+                        else if (conectorDetectado.CompareTag("ConectorParedEntrada"))
+                            AlinearPiezas("PuntoConexionPared_Salida", conectorDetectado.transform.position);
                     }
                 }
             }
@@ -438,7 +495,7 @@ public class SistemaConstruccion : MonoBehaviour
                 if (actual.tipo == TipoEdificio.Cinta && indiceVarianteActual != 0)
                 {
                     CambiarVarianteHolograma(0);
-                    detector = hologramaActual.GetComponent<HologramaColision>();
+                    detector = hologramaActual.GetComponentInChildren<HologramaColision>(true);
                 }
 
                 hologramaActual.transform.position = hit.point;
@@ -477,6 +534,7 @@ public class SistemaConstruccion : MonoBehaviour
 
         conectorCintaBloqueado = conector;
         snapCintaDesdeSalida = conector.CompareTag("ConectorSalida");
+        tiempoFueraRangoSnapCinta = 0f;
 
         estaImantado = true;
         imanApuntado = conector;
@@ -495,6 +553,7 @@ public class SistemaConstruccion : MonoBehaviour
     void LiberarSnapCinta(bool bloquearReenganche)
     {
         conectorCintaBloqueado = null;
+        tiempoFueraRangoSnapCinta = 0f;
 
         if (imanApuntado != null &&
             (imanApuntado.CompareTag("ConectorSalida") ||
@@ -506,7 +565,178 @@ public class SistemaConstruccion : MonoBehaviour
         estaImantado = false;
 
         if (bloquearReenganche)
-            tiempoHastaReengancheCinta = Time.time + 0.35f;
+            tiempoHastaReengancheCinta = Time.time + tiempoBloqueoReengancheCinta;
+    }
+
+    bool DebeLiberarSnapCintaPorMirilla()
+    {
+        if (!usarZonaMagneticaCintas ||
+            conectorCintaBloqueado == null ||
+            camaraPrincipal == null)
+        {
+            return false;
+        }
+
+        Vector3 pantalla = camaraPrincipal.WorldToScreenPoint(
+            conectorCintaBloqueado.bounds.center
+        );
+
+        // Si el conector ha quedado detrás de la cámara, la intención de
+        // continuar esa cadena ya no es clara: soltamos tras el tiempo de gracia.
+        if (pantalla.z <= 0f)
+            return true;
+
+        Vector2 centroPantalla = new Vector2(
+            Screen.width * 0.5f,
+            Screen.height * 0.5f
+        );
+
+        float radioPixels =
+            Mathf.Min(Screen.width, Screen.height) * radioLiberarMirillaCinta;
+
+        float distanciaPantalla = Vector2.Distance(
+            new Vector2(pantalla.x, pantalla.y),
+            centroPantalla
+        );
+
+        if (debugCintaAutomatica)
+        {
+            Debug.DrawRay(
+                conectorCintaBloqueado.bounds.center,
+                camaraPrincipal.transform.up * 0.35f,
+                distanciaPantalla <= radioPixels ? Color.green : Color.red
+            );
+        }
+
+        return distanciaPantalla > radioPixels;
+    }
+
+    Collider BuscarConectorCintaZonaMagnetica()
+    {
+        if (camaraPrincipal == null || Time.time < tiempoHastaReengancheCinta)
+            return null;
+
+        // Si se desactiva la zona magnética, mantenemos un raycast normal
+        // como comportamiento de respaldo.
+        if (!usarZonaMagneticaCintas)
+        {
+            Ray rayoCentro = camaraPrincipal.ViewportPointToRay(
+                new Vector3(0.5f, 0.5f, 0f)
+            );
+
+            if (Physics.Raycast(
+                    rayoCentro,
+                    out RaycastHit hit,
+                    distanciaMaximaConstruccion,
+                    capaConectores,
+                    QueryTriggerInteraction.Collide) &&
+                EsConectorCintaReenganchable(hit.collider))
+            {
+                return hit.collider;
+            }
+
+            return null;
+        }
+
+        Collider[] candidatos = Physics.OverlapSphere(
+            camaraPrincipal.transform.position,
+            distanciaMaximaConstruccion,
+            capaConectores,
+            QueryTriggerInteraction.Collide
+        );
+
+        Vector2 centroPantalla = new Vector2(
+            Screen.width * 0.5f,
+            Screen.height * 0.5f
+        );
+
+        float radioPixels =
+            Mathf.Min(Screen.width, Screen.height) * radioCapturaMirillaCinta;
+
+        Collider mejor = null;
+        float mejorPuntuacion = float.MaxValue;
+
+        foreach (Collider candidato in candidatos)
+        {
+            if (!EsConectorCintaReenganchable(candidato))
+                continue;
+
+            Vector3 pantalla = camaraPrincipal.WorldToScreenPoint(
+                candidato.bounds.center
+            );
+
+            if (pantalla.z <= 0f)
+                continue;
+
+            Vector2 puntoPantalla = new Vector2(pantalla.x, pantalla.y);
+            float distanciaPantalla = Vector2.Distance(
+                puntoPantalla,
+                centroPantalla
+            );
+
+            if (distanciaPantalla > radioPixels)
+                continue;
+
+            float distanciaMundo = Vector3.Distance(
+                camaraPrincipal.transform.position,
+                candidato.bounds.center
+            );
+
+            // La posición en pantalla manda. La distancia física solo desempata
+            // si hay dos conectores prácticamente en el mismo lugar de la mirilla.
+            float puntuacion =
+                distanciaPantalla +
+                (distanciaMundo / Mathf.Max(0.01f, distanciaMaximaConstruccion)) * 20f;
+
+            if (puntuacion < mejorPuntuacion)
+            {
+                mejorPuntuacion = puntuacion;
+                mejor = candidato;
+            }
+        }
+
+        if (debugCintaAutomatica && mejor != null)
+        {
+            Debug.DrawLine(
+                camaraPrincipal.transform.position,
+                mejor.bounds.center,
+                Color.cyan
+            );
+        }
+
+        return mejor;
+    }
+
+    bool EsConectorCintaReenganchable(Collider conector)
+    {
+        if (conector == null ||
+            !conector.enabled ||
+            !conector.gameObject.activeInHierarchy)
+        {
+            return false;
+        }
+
+        if (!conector.CompareTag("ConectorSalida") &&
+            !conector.CompareTag("ConectorEntrada"))
+        {
+            return false;
+        }
+
+        if (Time.time < tiempoHastaReengancheCinta)
+            return false;
+
+        if (conector == slotBloqueado)
+            return false;
+
+        // Nunca permitimos que la zona magnética capture los conectores
+        // del propio holograma que estamos moviendo.
+        if (hologramaActual != null &&
+            conector.transform.root == hologramaActual.transform.root)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     bool ManejarCintaBloqueada(Ray rayo, ref HologramaColision detector)
@@ -531,7 +761,7 @@ public class SistemaConstruccion : MonoBehaviour
         if (nuevaVariante != indiceVarianteActual)
         {
             CambiarVarianteHolograma(nuevaVariante);
-            detector = hologramaActual.GetComponent<HologramaColision>();
+            detector = hologramaActual.GetComponentInChildren<HologramaColision>(true);
 
             if (detector != null)
                 detector.rampaAIgnorar = conector.root.gameObject;
@@ -822,7 +1052,7 @@ public class SistemaConstruccion : MonoBehaviour
 
     bool PuedeColocarActual()
     {
-        HologramaColision detector = hologramaActual.GetComponent<HologramaColision>();
+        HologramaColision detector = hologramaActual.GetComponentInChildren<HologramaColision>(true);
         return detector == null || !detector.HayColision;
     }
 
@@ -1066,6 +1296,7 @@ public class SistemaConstruccion : MonoBehaviour
                         conectorCintaBloqueado = conectorSiguiente;
                         snapCintaDesdeSalida =
                             conectorSiguiente.CompareTag("ConectorSalida");
+                        tiempoFueraRangoSnapCinta = 0f;
 
                         estaImantado = true;
                         imanApuntado = conectorSiguiente;

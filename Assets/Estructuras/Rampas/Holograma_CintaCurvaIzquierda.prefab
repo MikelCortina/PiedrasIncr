@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7861047767968068883}
   - component: {fileID: 3922364142059046346}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: PuntoConexion_Entrada
   m_TagString: ConectorEntrada
   m_Icon: {fileID: 7148428337604731935, guid: 0000000000000000d000000000000000, type: 0}
@@ -187,6 +187,7 @@ Transform:
   - {fileID: 7861047767968068883}
   - {fileID: 4746225977695825925}
   - {fileID: 6099681816606754035}
+  - {fileID: 2557367005826271296}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2325510110158578947
@@ -506,6 +507,54 @@ MonoBehaviour:
   animarTextura: 0
   direccionTextura: {x: 0, y: -1}
   multiplicadorSincronizacion: 0.2
+--- !u!1 &3871124525211088356
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2557367005826271296}
+  - component: {fileID: 8610697774472247787}
+  m_Layer: 0
+  m_Name: HologramaColision
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2557367005826271296
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3871124525211088356}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.875, y: 0.10000002, z: -0.32421875}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6186625123819821474}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8610697774472247787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3871124525211088356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 246d82f24f5656e4ba0e18a235b04ab2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  capaObstaculos:
+    serializedVersion: 2
+    m_Bits: 0
+  rampaAIgnorar: {fileID: 0}
 --- !u!1 &4394563762302151033
 GameObject:
   m_ObjectHideFlags: 0
@@ -861,7 +910,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4746225977695825925}
   - component: {fileID: 1565348647523057740}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: PuntoConexion_Salida
   m_TagString: ConectorSalida
   m_Icon: {fileID: -5938655980376293919, guid: 0000000000000000d000000000000000, type: 0}

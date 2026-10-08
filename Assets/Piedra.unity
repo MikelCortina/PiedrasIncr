@@ -7513,8 +7513,16 @@ MonoBehaviour:
   teclaCambiarTipo: 9
   velocidadRotacion: 10
   distanciaMaximaConstruccion: 15
-  umbralLateralCinta: 0.2
+  anguloActivarCurvaCinta: 30
+  histeresisCinta: 8
+  distanciaMinimaDireccionCinta: 0.75
+  encadenarCintasAutomaticamente: 1
   debugCintaAutomatica: 1
+  usarZonaMagneticaCintas: 1
+  radioCapturaMirillaCinta: 0.45
+  radioLiberarMirillaCinta: 0.3
+  tiempoGraciaSoltarSnapCinta: 0.45
+  tiempoBloqueoReengancheCinta: 0.2
   tiempoEsperaConstruccion: 0.2
   modoConstruccion: 0
 --- !u!114 &584387207
