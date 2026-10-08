@@ -564,6 +564,17 @@ public class SistemaConstruccion : MonoBehaviour
 
         estaImantado = false;
 
+        // CLEARANCE:
+        // Al abandonar una cadena, dejamos de ignorar la estructura anterior.
+        if (hologramaActual != null)
+        {
+            ValidadorClearanceConstruccion validadorClearance =
+                hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
+
+            if (validadorClearance != null)
+                validadorClearance.estructuraAIgnorar = null;
+        }
+
         if (bloquearReenganche)
             tiempoHastaReengancheCinta = Time.time + tiempoBloqueoReengancheCinta;
     }
@@ -752,6 +763,15 @@ public class SistemaConstruccion : MonoBehaviour
         if (detector != null)
             detector.rampaAIgnorar = conector.root.gameObject;
 
+        // CLEARANCE:
+        // Permitimos únicamente la estructura a la que estamos conectando
+        // para que el contacto correcto entre extremos no invalide el holograma.
+        ValidadorClearanceConstruccion validadorClearance =
+            hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
+
+        if (validadorClearance != null)
+            validadorClearance.estructuraAIgnorar = conector.root.gameObject;
+
         int nuevaVariante = DeterminarVarianteCintaDesdeRaton(
             rayo,
             conector,
@@ -761,10 +781,20 @@ public class SistemaConstruccion : MonoBehaviour
         if (nuevaVariante != indiceVarianteActual)
         {
             CambiarVarianteHolograma(nuevaVariante);
-            detector = hologramaActual.GetComponentInChildren<HologramaColision>(true);
+
+            detector =
+                hologramaActual.GetComponentInChildren<HologramaColision>(true);
 
             if (detector != null)
                 detector.rampaAIgnorar = conector.root.gameObject;
+
+            // Al cambiar entre recta/izquierda/derecha se crea otro holograma,
+            // así que volvemos a asignar la excepción del Clearance.
+            validadorClearance =
+                hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
+
+            if (validadorClearance != null)
+                validadorClearance.estructuraAIgnorar = conector.root.gameObject;
         }
 
         string nombreConectorMio = snapCintaDesdeSalida
@@ -1052,8 +1082,31 @@ public class SistemaConstruccion : MonoBehaviour
 
     bool PuedeColocarActual()
     {
-        HologramaColision detector = hologramaActual.GetComponentInChildren<HologramaColision>(true);
-        return detector == null || !detector.HayColision;
+        if (hologramaActual == null)
+            return false;
+
+        // Sistema de colisión anterior.
+        HologramaColision detector =
+            hologramaActual.GetComponentInChildren<HologramaColision>(true);
+
+        if (detector != null && detector.HayColision)
+            return false;
+
+        // Nuevo sistema de Clearance.
+        ValidadorClearanceConstruccion validadorClearance =
+            hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
+
+        if (validadorClearance != null)
+        {
+            // Forzamos una comprobación con la posición actual del holograma
+            // justo antes de decidir color o permitir el clic.
+            validadorClearance.ComprobarClearance();
+
+            if (validadorClearance.HayBloqueo)
+                return false;
+        }
+
+        return true;
     }
 
     void ActualizarColorYValidacion()
