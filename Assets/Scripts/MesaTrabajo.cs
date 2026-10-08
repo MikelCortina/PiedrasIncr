@@ -3,128 +3,413 @@ using UnityEngine;
 
 public class MesaTrabajo : MonoBehaviour
 {
+    // =====================================================
+    // INTERACCIÓN
+    // =====================================================
+
     [Header("Interacción")]
     public KeyCode teclaInteractuar = KeyCode.E;
+
+
+    // =====================================================
+    // UI
+    // =====================================================
 
     [Header("UI")]
     public GameObject panelTienda;
     public TextMeshProUGUI textoInteraccion;
 
+
+    // =====================================================
+    // TEXTO
+    // =====================================================
+
     [Header("Texto")]
-    public string mensajeInteraccion = "Pulsa E para abrir la tienda";
+    public string mensajeInteraccion =
+        "Pulsa E para abrir la tienda";
+
+
+    // =====================================================
+    // BLOQUEO DE GAMEPLAY
+    // =====================================================
+
+    [Header("Bloqueo de gameplay")]
+
+    [Tooltip(
+        "Arrastra aquí el componente CamaraPrimeraPersona."
+    )]
+    public CamaraPrimeraPersona controladorCamara;
+
+
+    [Tooltip(
+        "Arrastra aquí el componente ArmaLanzadora."
+    )]
+    public ArmaLanzadora armaLanzadora;
+
+
+    // =====================================================
+    // INTERNAS
+    // =====================================================
 
     private bool jugadorCerca = false;
+
     private bool tiendaAbierta = false;
+
+    private bool armaEstabaActiva = false;
+
+
+    // =====================================================
+    // START
+    // =====================================================
 
     private void Start()
     {
-        // La tienda empieza cerrada
+        // =================================================
+        // TIENDA CERRADA AL EMPEZAR
+        // =================================================
+
         if (panelTienda != null)
         {
             panelTienda.SetActive(false);
         }
 
-        // El mensaje empieza oculto
+
+        // =================================================
+        // TEXTO
+        // =================================================
+
         if (textoInteraccion != null)
         {
-            textoInteraccion.text = mensajeInteraccion;
-            textoInteraccion.gameObject.SetActive(false);
+            textoInteraccion.text =
+                mensajeInteraccion;
+
+
+            textoInteraccion
+                .gameObject
+                .SetActive(false);
         }
     }
 
+
+    // =====================================================
+    // UPDATE
+    // =====================================================
+
     private void Update()
     {
-        // Si la tienda está abierta, E o Escape la cierran
+        // =================================================
+        // TIENDA ABIERTA
+        // =================================================
+
         if (tiendaAbierta)
         {
-            if (Input.GetKeyDown(teclaInteractuar) ||
-                Input.GetKeyDown(KeyCode.Escape))
+            if (Input.GetKeyDown(
+                    teclaInteractuar) ||
+                Input.GetKeyDown(
+                    KeyCode.Escape))
             {
                 CerrarTienda();
             }
 
+
             return;
         }
 
-        // Si estamos cerca de la mesa, E abre la tienda
-        if (jugadorCerca && Input.GetKeyDown(teclaInteractuar))
+
+        // =================================================
+        // ABRIR TIENDA
+        // =================================================
+
+        if (jugadorCerca &&
+            Input.GetKeyDown(
+                teclaInteractuar))
         {
             AbrirTienda();
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+
+    // =====================================================
+    // JUGADOR ENTRA EN ZONA
+    // =====================================================
+
+    private void OnTriggerEnter(
+        Collider other)
     {
         if (!other.CompareTag("Player"))
             return;
 
-        jugadorCerca = true;
 
-        if (textoInteraccion != null && !tiendaAbierta)
+        jugadorCerca =
+            true;
+
+
+        if (textoInteraccion != null &&
+            !tiendaAbierta)
         {
-            textoInteraccion.gameObject.SetActive(true);
+            textoInteraccion
+                .gameObject
+                .SetActive(true);
         }
     }
 
-    private void OnTriggerExit(Collider other)
+
+    // =====================================================
+    // JUGADOR SALE DE ZONA
+    // =====================================================
+
+    private void OnTriggerExit(
+        Collider other)
     {
         if (!other.CompareTag("Player"))
             return;
 
-        jugadorCerca = false;
+
+        jugadorCerca =
+            false;
+
 
         if (textoInteraccion != null)
         {
-            textoInteraccion.gameObject.SetActive(false);
+            textoInteraccion
+                .gameObject
+                .SetActive(false);
         }
     }
+
+
+    // =====================================================
+    // ABRIR TIENDA
+    // =====================================================
 
     public void AbrirTienda()
     {
         if (panelTienda == null)
             return;
 
-        tiendaAbierta = true;
 
-        panelTienda.SetActive(true);
+        if (tiendaAbierta)
+            return;
+
+
+        tiendaAbierta =
+            true;
+
+
+        // =================================================
+        // MOSTRAR PANEL
+        // =================================================
+
+        panelTienda.SetActive(
+            true
+        );
+
 
         if (textoInteraccion != null)
         {
-            textoInteraccion.gameObject.SetActive(false);
+            textoInteraccion
+                .gameObject
+                .SetActive(false);
         }
 
-        // Pausamos el gameplay
-        Time.timeScale = 0f;
 
-        // Liberamos el ratón para utilizar los botones de la tienda
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // =================================================
+        // BLOQUEAR CÁMARA
+        // =================================================
+
+        if (controladorCamara != null)
+        {
+            controladorCamara
+                .SetBloqueadaPorUI(
+                    true
+                );
+        }
+
+
+        // =================================================
+        // BLOQUEAR ARMA
+        // =================================================
+
+        if (armaLanzadora != null)
+        {
+            // Guardamos cómo estaba
+            // antes de abrir la tienda.
+
+            armaEstabaActiva =
+                armaLanzadora.enabled;
+
+
+            armaLanzadora.enabled =
+                false;
+        }
+
+
+        // =================================================
+        // PAUSAR JUEGO
+        // =================================================
+
+        Time.timeScale =
+            0f;
+
+
+        // =================================================
+        // LIBERAR RATÓN
+        // =================================================
+
+        Cursor.lockState =
+            CursorLockMode.None;
+
+
+        Cursor.visible =
+            true;
     }
+
+
+    // =====================================================
+    // CERRAR TIENDA
+    // =====================================================
 
     public void CerrarTienda()
     {
-        tiendaAbierta = false;
+        if (!tiendaAbierta)
+            return;
+
+
+        tiendaAbierta =
+            false;
+
+
+        // =================================================
+        // OCULTAR PANEL
+        // =================================================
 
         if (panelTienda != null)
         {
-            panelTienda.SetActive(false);
+            panelTienda.SetActive(
+                false
+            );
         }
 
-        // Reanudamos el juego
-        Time.timeScale = 1f;
 
-        // Volvemos a bloquear el ratón para primera persona
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // =================================================
+        // REANUDAR JUEGO
+        // =================================================
 
-        if (textoInteraccion != null && jugadorCerca)
+        Time.timeScale =
+            1f;
+
+
+        // =================================================
+        // DESBLOQUEAR CÁMARA
+        // =================================================
+
+        if (controladorCamara != null)
         {
-            textoInteraccion.gameObject.SetActive(true);
+            controladorCamara
+                .SetBloqueadaPorUI(
+                    false
+                );
+        }
+
+
+        // =================================================
+        // RESTAURAR ARMA
+        // =================================================
+
+        if (armaLanzadora != null)
+        {
+            armaLanzadora.enabled =
+                armaEstabaActiva;
+        }
+
+
+        // =================================================
+        // BLOQUEAR RATÓN
+        // =================================================
+
+        Cursor.lockState =
+            CursorLockMode.Locked;
+
+
+        Cursor.visible =
+            false;
+
+
+        // =================================================
+        // VOLVER A MOSTRAR INTERACCIÓN
+        // =================================================
+
+        if (textoInteraccion != null &&
+            jugadorCerca)
+        {
+            textoInteraccion
+                .gameObject
+                .SetActive(true);
         }
     }
+
+
+    // =====================================================
+    // CONSULTAR ESTADO
+    // =====================================================
 
     public bool EstaTiendaAbierta()
     {
         return tiendaAbierta;
+    }
+
+
+    // =====================================================
+    // SEGURIDAD
+    // =====================================================
+
+    private void OnDisable()
+    {
+        if (!tiendaAbierta)
+            return;
+
+
+        // =================================================
+        // REANUDAR JUEGO
+        // =================================================
+
+        Time.timeScale =
+            1f;
+
+
+        // =================================================
+        // DESBLOQUEAR CÁMARA
+        // =================================================
+
+        if (controladorCamara != null)
+        {
+            controladorCamara
+                .SetBloqueadaPorUI(
+                    false
+                );
+        }
+
+
+        // =================================================
+        // RESTAURAR ARMA
+        // =================================================
+
+        if (armaLanzadora != null)
+        {
+            armaLanzadora.enabled =
+                armaEstabaActiva;
+        }
+
+
+        // =================================================
+        // CURSOR
+        // =================================================
+
+        Cursor.lockState =
+            CursorLockMode.Locked;
+
+
+        Cursor.visible =
+            false;
     }
 }

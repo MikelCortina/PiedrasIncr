@@ -55,6 +55,13 @@ public class MaquinaErosion : MonoBehaviour
     public Transform puntoEntregaBot;
 
 
+    [Tooltip(
+        "Punto sobre el NavMesh donde el Bot esperará " +
+        "a que salga su piedra procesada."
+    )]
+    public Transform puntoEsperaSalidaBot;
+
+
     public Vector3 direccionSalida =
         new Vector3(0f, 1f, 1f);
 
@@ -130,6 +137,13 @@ public class MaquinaErosion : MonoBehaviour
     private Dictionary<Rigidbody, float>
         piedrasEnProceso =
         new Dictionary<Rigidbody, float>();
+
+
+    // Relaciona cada piedra entregada por un Bot con el Bot
+    // que debe recuperarla cuando termine el procesado.
+    private Dictionary<Rigidbody, BotRecolector>
+        botEsperandoSalida =
+        new Dictionary<Rigidbody, BotRecolector>();
 
 
     private float[] emisionesOriginales;
@@ -255,6 +269,17 @@ public class MaquinaErosion : MonoBehaviour
     public bool RecibirPiedraBot(
         Rigidbody rb)
     {
+        return RecibirPiedraBot(
+            rb,
+            null
+        );
+    }
+
+
+    public bool RecibirPiedraBot(
+        Rigidbody rb,
+        BotRecolector botOrigen)
+    {
         if (!PuedeAceptarPiedra(
                 rb))
         {
@@ -279,7 +304,6 @@ public class MaquinaErosion : MonoBehaviour
 
         // Mientras esté dentro de la máquina
         // ningún Bot debe poder seleccionarla.
-
         if (GestorPiedras.Instancia != null)
         {
             GestorPiedras.Instancia
@@ -293,6 +317,21 @@ public class MaquinaErosion : MonoBehaviour
             null,
             true
         );
+
+
+        // Recordamos qué Bot ha entregado ESTA piedra.
+        // Esto permite devolvérsela al mismo Bot al salir.
+        if (botOrigen != null)
+        {
+            botEsperandoSalida[rb] =
+                botOrigen;
+        }
+        else
+        {
+            botEsperandoSalida.Remove(
+                rb
+            );
+        }
 
 
         // El Bot desactiva este componente
@@ -661,6 +700,13 @@ public class MaquinaErosion : MonoBehaviour
         if (rb == null ||
             deformacion == null)
         {
+            if (rb != null)
+            {
+                botEsperandoSalida.Remove(
+                    rb
+                );
+            }
+
             yield break;
         }
 
@@ -751,6 +797,11 @@ public class MaquinaErosion : MonoBehaviour
                 if (rb != null)
                 {
                     piedrasEnProceso.Remove(
+                        rb
+                    );
+
+
+                    botEsperandoSalida.Remove(
                         rb
                     );
                 }
@@ -964,6 +1015,29 @@ public class MaquinaErosion : MonoBehaviour
                 .RegistrarPiedra(
                     rb
                 );
+        }
+
+
+        // =================================================
+        // AVISAR AL BOT QUE ENTREGÓ ESTA PIEDRA
+        // =================================================
+
+        if (botEsperandoSalida.TryGetValue(
+                rb,
+                out BotRecolector botOrigen))
+        {
+            botEsperandoSalida.Remove(
+                rb
+            );
+
+
+            if (botOrigen != null)
+            {
+                botOrigen
+                    .NotificarPiedraProcesadaLista(
+                        rb
+                    );
+            }
         }
 
 
@@ -1186,6 +1260,28 @@ public class MaquinaErosion : MonoBehaviour
                 puntoEntregaBot.position,
                 0.35f
             );
+        }
+
+
+        if (puntoEsperaSalidaBot != null)
+        {
+            Gizmos.color =
+                Color.yellow;
+
+
+            Gizmos.DrawWireSphere(
+                puntoEsperaSalidaBot.position,
+                0.35f
+            );
+
+
+            if (puntoSalida != null)
+            {
+                Gizmos.DrawLine(
+                    puntoEsperaSalidaBot.position,
+                    puntoSalida.position
+                );
+            }
         }
     }
 
