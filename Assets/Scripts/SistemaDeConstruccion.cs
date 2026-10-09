@@ -142,24 +142,20 @@ public class SistemaConstruccion : MonoBehaviour
 
         if (modoConstruccion)
         {
-            // AÑADIDO: Lógica del temporizador
             if (cooldownHolograma > 0f)
             {
                 cooldownHolograma -= Time.deltaTime;
 
-                // Mientras estamos en cooldown, si existe un holograma, lo ocultamos
                 if (hologramaActual != null && hologramaActual.activeSelf)
                 {
                     hologramaActual.SetActive(false);
                 }
 
-                // Si el cooldown acaba de terminar y no tenemos holograma, lo creamos
                 if (cooldownHolograma <= 0f && hologramaActual == null)
                 {
                     CrearHolograma();
                 }
 
-                // Evitamos que ejecute lógica de construcción mientras espera
                 return;
             }
             else if (hologramaActual != null)
@@ -173,9 +169,13 @@ public class SistemaConstruccion : MonoBehaviour
                 // 3. APLICAMOS EL OFFSET (Posición y Rotación extra desde el Inspector)
                 if (hologramaActual.activeSelf)
                 {
-                    InfoEdificio actual = edificios[indiceEdificioActual];
-                    hologramaActual.transform.Rotate(actual.offsetRotacion, Space.Self);
-                    hologramaActual.transform.Translate(actual.offsetPosicion, Space.Self);
+                    // ¡SOLUCIONADO! Aplicamos el offset solo cuando NO estamos enganchados
+                    if (!estaImantado)
+                    {
+                        InfoEdificio actual = edificios[indiceEdificioActual];
+                        hologramaActual.transform.Rotate(actual.offsetRotacion, Space.Self);
+                        hologramaActual.transform.Translate(actual.offsetPosicion, Space.Self);
+                    }
                 }
 
                 // 4. Validamos colores y colocamos
@@ -221,7 +221,6 @@ public class SistemaConstruccion : MonoBehaviour
         indiceEdificioActual = (indiceEdificioActual + 1) % edificios.Length;
         DestruirHolograma();
 
-        // Al cambiar de tipo, ignoramos el cooldown para que la respuesta sea inmediata
         cooldownHolograma = 0f;
         CrearHolograma();
     }
@@ -233,11 +232,6 @@ public class SistemaConstruccion : MonoBehaviour
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
         if (edificioActual.prefabsHologramas.Length > 0)
         {
-            // Las cintas siempre empiezan como recta.
-            // Orden esperado:
-            // [0] Recta
-            // [1] Curva Izquierda
-            // [2] Curva Derecha
             if (edificioActual.tipo == TipoEdificio.Cinta)
                 indiceVarianteActual = 0;
             else
@@ -280,12 +274,6 @@ public class SistemaConstruccion : MonoBehaviour
 
         edificioApuntado = null;
 
-        // ---------------------------------------------------------
-        // CINTA CON SNAP BLOQUEADO
-        // ---------------------------------------------------------
-        // Una vez que hemos encontrado un conector de cinta, lo conservamos.
-        // Así el jugador puede dejar de apuntar al collider y mover el ratón
-        // libremente para escoger recta / izquierda / derecha.
         if (actual.tipo == TipoEdificio.Cinta && conectorCintaBloqueado != null)
         {
             if (Input.GetMouseButtonDown(1))
@@ -311,8 +299,6 @@ public class SistemaConstruccion : MonoBehaviour
                         Debug.Log("Cinta automática -> snap liberado al salir de la zona de mirilla.");
 
                     LiberarSnapCinta(true);
-                    // No hacemos return: en este mismo frame el holograma vuelve
-                    // a comportarse como una construcción libre.
                 }
                 else
                 {
@@ -412,12 +398,12 @@ public class SistemaConstruccion : MonoBehaviour
 
                 if (actual.tipo == TipoEdificio.Rampa)
                 {
-                    hologramaActual.transform.rotation = conectorDetectado.transform.rotation;
-
+                    // ¡SOLUCIONADO! Llamamos a AlinearPiezas pasando tanto la posición como la rotación 
+                    // para que los encajes de rampa ocurran en un solo paso matemático
                     if (conectorDetectado.CompareTag("ConectorSalida"))
-                        AlinearPiezas("PuntoConexion_Entrada", conectorDetectado.transform.position);
+                        AlinearPiezas("PuntoConexion_Entrada", conectorDetectado.transform.position, conectorDetectado.transform.rotation);
                     else if (conectorDetectado.CompareTag("ConectorEntrada"))
-                        AlinearPiezas("PuntoConexion_Salida", conectorDetectado.transform.position);
+                        AlinearPiezas("PuntoConexion_Salida", conectorDetectado.transform.position, conectorDetectado.transform.rotation);
                 }
                 else if (actual.tipo == TipoEdificio.Pared)
                 {
@@ -429,12 +415,11 @@ public class SistemaConstruccion : MonoBehaviour
                     }
                     else
                     {
-                        hologramaActual.transform.rotation = conectorDetectado.transform.root.rotation;
-
+                        // Mantenemos la lógica de la pared intacta, pasando su propia rotación base
                         if (conectorDetectado.CompareTag("ConectorParedSalida"))
-                            AlinearPiezas("PuntoConexionPared_Entrada", conectorDetectado.transform.position);
+                            AlinearPiezas("PuntoConexionPared_Entrada", conectorDetectado.transform.position, conectorDetectado.transform.root.rotation);
                         else if (conectorDetectado.CompareTag("ConectorParedEntrada"))
-                            AlinearPiezas("PuntoConexionPared_Salida", conectorDetectado.transform.position);
+                            AlinearPiezas("PuntoConexionPared_Salida", conectorDetectado.transform.position, conectorDetectado.transform.root.rotation);
                     }
                 }
             }
@@ -491,7 +476,6 @@ public class SistemaConstruccion : MonoBehaviour
                 posicionSueloBloqueada = null;
                 timerBloqueoSlot = 0f;
 
-                // Una cinta colocada libremente empieza como recta.
                 if (actual.tipo == TipoEdificio.Cinta && indiceVarianteActual != 0)
                 {
                     CambiarVarianteHolograma(0);
@@ -522,10 +506,6 @@ public class SistemaConstruccion : MonoBehaviour
 
         hologramaActual.SetActive(apuntandoValido);
     }
-
-    // =========================================================
-    // CINTAS AUTOMÁTICAS - SNAP PERSISTENTE + RATÓN
-    // =========================================================
 
     void BloquearSnapCinta(Collider conector)
     {
@@ -564,8 +544,6 @@ public class SistemaConstruccion : MonoBehaviour
 
         estaImantado = false;
 
-        // CLEARANCE:
-        // Al abandonar una cadena, dejamos de ignorar la estructura anterior.
         if (hologramaActual != null)
         {
             ValidadorClearanceConstruccion validadorClearance =
@@ -592,8 +570,6 @@ public class SistemaConstruccion : MonoBehaviour
             conectorCintaBloqueado.bounds.center
         );
 
-        // Si el conector ha quedado detrás de la cámara, la intención de
-        // continuar esa cadena ya no es clara: soltamos tras el tiempo de gracia.
         if (pantalla.z <= 0f)
             return true;
 
@@ -627,8 +603,6 @@ public class SistemaConstruccion : MonoBehaviour
         if (camaraPrincipal == null || Time.time < tiempoHastaReengancheCinta)
             return null;
 
-        // Si se desactiva la zona magnética, mantenemos un raycast normal
-        // como comportamiento de respaldo.
         if (!usarZonaMagneticaCintas)
         {
             Ray rayoCentro = camaraPrincipal.ViewportPointToRay(
@@ -693,8 +667,6 @@ public class SistemaConstruccion : MonoBehaviour
                 candidato.bounds.center
             );
 
-            // La posición en pantalla manda. La distancia física solo desempata
-            // si hay dos conectores prácticamente en el mismo lugar de la mirilla.
             float puntuacion =
                 distanciaPantalla +
                 (distanciaMundo / Mathf.Max(0.01f, distanciaMaximaConstruccion)) * 20f;
@@ -739,8 +711,6 @@ public class SistemaConstruccion : MonoBehaviour
         if (conector == slotBloqueado)
             return false;
 
-        // Nunca permitimos que la zona magnética capture los conectores
-        // del propio holograma que estamos moviendo.
         if (hologramaActual != null &&
             conector.transform.root == hologramaActual.transform.root)
         {
@@ -763,9 +733,6 @@ public class SistemaConstruccion : MonoBehaviour
         if (detector != null)
             detector.rampaAIgnorar = conector.root.gameObject;
 
-        // CLEARANCE:
-        // Permitimos únicamente la estructura a la que estamos conectando
-        // para que el contacto correcto entre extremos no invalide el holograma.
         ValidadorClearanceConstruccion validadorClearance =
             hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
 
@@ -788,8 +755,6 @@ public class SistemaConstruccion : MonoBehaviour
             if (detector != null)
                 detector.rampaAIgnorar = conector.root.gameObject;
 
-            // Al cambiar entre recta/izquierda/derecha se crea otro holograma,
-            // así que volvemos a asignar la excepción del Clearance.
             validadorClearance =
                 hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
 
@@ -811,10 +776,6 @@ public class SistemaConstruccion : MonoBehaviour
         Transform conector,
         bool conectandoDesdeSalida)
     {
-        // Orden obligatorio:
-        // 0 = Recta
-        // 1 = Curva Izquierda
-        // 2 = Curva Derecha
         InfoEdificio actual = edificios[indiceEdificioActual];
 
         if (actual.prefabsHologramas == null ||
@@ -826,8 +787,6 @@ public class SistemaConstruccion : MonoBehaviour
 
         Vector3 puntoRaton;
 
-        // Preferimos un punto real del suelo. Si no lo encontramos,
-        // usamos un plano horizontal a la altura del conector.
         if (Physics.Raycast(
                 rayo,
                 out RaycastHit hitSuelo,
@@ -883,9 +842,6 @@ public class SistemaConstruccion : MonoBehaviour
 
         int varianteDeseada = indiceVarianteActual;
 
-        // Histéresis:
-        // si ya estamos en una curva, no volvemos a recta hasta entrar
-        // claramente en la zona central.
         if (indiceVarianteActual == indiceIzquierda)
         {
             if (angulo > -umbralSalida)
@@ -973,6 +929,7 @@ public class SistemaConstruccion : MonoBehaviour
         }
     }
 
+    // ¡SOLUCIONADO! Método optimizado con matrices matemáticas para cintas
     void AlinearConectorCinta(string nombreConectorMio, Transform conectorDestino)
     {
         if (hologramaActual == null || conectorDestino == null)
@@ -992,26 +949,19 @@ public class SistemaConstruccion : MonoBehaviour
 
         if (miConector == null)
         {
-            Debug.LogWarning(
-                "No se encontró '" + nombreConectorMio +
-                "' dentro del holograma de cinta."
-            );
+            Debug.LogWarning("No se encontró '" + nombreConectorMio + "' dentro del holograma de cinta.");
             return;
         }
 
-        // Primero igualamos la orientación del conector propio con el destino.
-        Quaternion diferenciaRotacion =
-            conectorDestino.rotation * Quaternion.Inverse(miConector.rotation);
+        Vector3 posicionLocalConector = hologramaActual.transform.InverseTransformPoint(miConector.position);
 
-        hologramaActual.transform.rotation =
-            diferenciaRotacion * hologramaActual.transform.rotation;
+        Quaternion diferenciaRotacion = conectorDestino.rotation * Quaternion.Inverse(miConector.rotation);
+        hologramaActual.transform.rotation = diferenciaRotacion * hologramaActual.transform.rotation;
 
-        // Después igualamos exactamente las posiciones.
-        Vector3 diferenciaPosicion =
-            miConector.position - hologramaActual.transform.position;
+        Vector3 nuevaPosicionConector = hologramaActual.transform.TransformPoint(posicionLocalConector);
 
-        hologramaActual.transform.position =
-            conectorDestino.position - diferenciaPosicion;
+        Vector3 diferenciaPosicion = nuevaPosicionConector - hologramaActual.transform.position;
+        hologramaActual.transform.position = conectorDestino.position - diferenciaPosicion;
     }
 
     Collider BuscarColliderConector(GameObject estructura, string nombreConector)
@@ -1030,18 +980,32 @@ public class SistemaConstruccion : MonoBehaviour
         return null;
     }
 
-    void AlinearPiezas(string nombreConectorMio, Vector3 posicionDestino)
+    // ¡SOLUCIONADO! Método optimizado con matrices para Rampas y Paredes
+    void AlinearPiezas(string nombreConectorMio, Vector3 posicionDestino, Quaternion rotacionDestino)
     {
         Transform miConector = null;
-        Transform[] todosLosHijos = hologramaActual.GetComponentsInChildren<Transform>();
+        Transform[] todosLosHijos = hologramaActual.GetComponentsInChildren<Transform>(true);
+
         foreach (Transform hijo in todosLosHijos)
         {
-            if (hijo.name == nombreConectorMio) { miConector = hijo; break; }
+            if (hijo.name == nombreConectorMio)
+            {
+                miConector = hijo;
+                break;
+            }
         }
 
         if (miConector != null)
         {
-            Vector3 diferencia = miConector.position - hologramaActual.transform.position;
+            Vector3 posicionLocalConector = hologramaActual.transform.InverseTransformPoint(miConector.position);
+
+            // Establecemos primero la rotación deseada
+            hologramaActual.transform.rotation = rotacionDestino;
+
+            // Calculamos exactamente la nueva ubicación del hijo basándonos en la rotación que acabamos de aplicar
+            Vector3 posicionGlobalActualizada = hologramaActual.transform.TransformPoint(posicionLocalConector);
+
+            Vector3 diferencia = posicionGlobalActualizada - hologramaActual.transform.position;
             hologramaActual.transform.position = posicionDestino - diferencia;
         }
     }
@@ -1085,21 +1049,17 @@ public class SistemaConstruccion : MonoBehaviour
         if (hologramaActual == null)
             return false;
 
-        // Sistema de colisión anterior.
         HologramaColision detector =
             hologramaActual.GetComponentInChildren<HologramaColision>(true);
 
         if (detector != null && detector.HayColision)
             return false;
 
-        // Nuevo sistema de Clearance.
         ValidadorClearanceConstruccion validadorClearance =
             hologramaActual.GetComponentInChildren<ValidadorClearanceConstruccion>(true);
 
         if (validadorClearance != null)
         {
-            // Forzamos una comprobación con la posición actual del holograma
-            // justo antes de decidir color o permitir el clic.
             validadorClearance.ComprobarClearance();
 
             if (validadorClearance.HayBloqueo)
@@ -1316,11 +1276,6 @@ public class SistemaConstruccion : MonoBehaviour
                     }
                 }
 
-                // -------------------------------------------------
-                // ENCADENADO AUTOMÁTICO DE CINTAS
-                // -------------------------------------------------
-                // Tras colocar una cinta, dejamos bloqueado su extremo libre.
-                // Así el siguiente holograma aparece listo para continuar.
                 if (actual.tipo == TipoEdificio.Cinta &&
                     encadenarCintasAutomaticamente)
                 {
