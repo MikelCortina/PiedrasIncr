@@ -19,6 +19,12 @@ public class BotRecolector : MonoBehaviour
         Escalando,
         SaliendoEscalada,
 
+        // Descenso:
+        YendoABordeDescenso,
+        PreparandoDescenso,
+        Descendiendo,
+        SaliendoDescenso,
+
         // Cadena especial:
         // Bot -> Procesadora -> espera -> piedra procesada -> Agujero.
         YendoAEsperaSalidaProcesadora,
@@ -404,6 +410,33 @@ public class BotRecolector : MonoBehaviour
         0.75f;
 
 
+    [Header("Escalada - Entrada natural a pared")]
+
+    [Tooltip(
+        "Si está activo, las patas delanteras buscan la pared antes de que " +
+        "el cuerpo empiece a inclinarse. Evita que las patas atraviesen la pared."
+    )]
+    public bool usarEntradaEscaladaNatural =
+        true;
+
+
+    [Tooltip(
+        "Duración total de la entrada natural suelo -> pared."
+    )]
+    [Min(0.10f)]
+    public float duracionEntradaEscaladaNatural =
+        1.00f;
+
+
+    [Tooltip(
+        "Fracción de la transición que esperamos antes de empezar a mover el cuerpo. " +
+        "Da tiempo a que las patas delanteras apoyen primero."
+    )]
+    [Range(0f, 0.60f)]
+    public float retrasoCuerpoEntradaEscalada =
+        0.28f;
+
+
     [Header("Escalada - Transición visual del cuerpo")]
 
     [Tooltip(
@@ -579,6 +612,118 @@ public class BotRecolector : MonoBehaviour
         true;
 
 
+    [Header("Escalada - Conexiones entre NavMesh")]
+
+    [Tooltip(
+        "Permite considerar piedras situadas en otra isla de NavMesh si existe " +
+        "una ConexionEscalada válida que una ambos niveles."
+    )]
+    public bool usarConexionesEscaladaParaPiedras =
+        true;
+
+
+    [Tooltip(
+        "Distancia a uno de los puntos de entrada de la conexión para comenzar " +
+        "la transición de subida o bajada."
+    )]
+    [Min(0.10f)]
+    public float distanciaLlegadaConexionEscalada =
+        0.55f;
+
+
+    [Tooltip(
+        "Muestra mensajes de selección y uso de rutas mediante conexiones de escalada."
+    )]
+    public bool debugConexionesEscalada =
+        true;
+
+
+    [Header("Escalada - Descenso (Paso 6)")]
+
+    [Tooltip(
+        "Permite que el Bot regrese por la misma pared que utilizó para subir " +
+        "cuando el destino de entrega está en otra isla de NavMesh."
+    )]
+    public bool permitirDescensoAutomatico =
+        true;
+
+
+    [Tooltip(
+        "Distancia a la que consideramos que el Bot ha regresado al punto " +
+        "superior desde el que comenzó a caminar por la plataforma."
+    )]
+    [Min(0.05f)]
+    public float distanciaLlegadaBordeDescenso =
+        0.35f;
+
+
+    [Tooltip(
+        "Tiempo de la transición suelo superior -> pared."
+    )]
+    [Min(0.05f)]
+    public float duracionEntradaDescenso =
+        0.80f;
+
+
+    [Tooltip(
+        "Velocidad de bajada por la pared. " +
+        "Puede ser igual o ligeramente menor que Velocidad Escalada."
+    )]
+    [Min(0.05f)]
+    public float velocidadDescenso =
+        0.60f;
+
+
+    [Tooltip(
+        "Si está activo, la araña gira 180 grados sobre la pared antes de bajar " +
+        "para descender con la cabeza orientada hacia el suelo."
+    )]
+    public bool bajarCabezaPrimero =
+        true;
+
+
+    [Tooltip(
+        "Mantiene forzada la orientación de SpiderVisual durante toda la bajada: " +
+        "Forward hacia el suelo y Up pegado a la normal de la pared. " +
+        "Evita que otro sistema lo vuelva a girar mientras desciende."
+    )]
+    public bool bloquearOrientacionDescenso =
+        true;
+
+
+    [Tooltip(
+        "Distancia al suelo inferior a la que dejamos de bajar en vertical " +
+        "y empezamos la salida natural: patas delanteras al suelo -> cuerpo -> patas traseras."
+    )]
+    [Min(0.10f)]
+    public float distanciaInicioSalidaNaturalDescenso =
+        0.55f;
+
+
+    [Tooltip(
+        "Tiempo de la transición natural pared -> suelo inferior."
+    )]
+    [Min(0.05f)]
+    public float duracionSalidaDescenso =
+        0.90f;
+
+
+    [Tooltip(
+        "Distancia al punto inferior guardado para considerar terminada la bajada."
+    )]
+    [Min(0.02f)]
+    public float toleranciaLlegadaSueloDescenso =
+        0.10f;
+
+
+    [Tooltip(
+        "Radio para recuperar el NavMesh inferior al terminar el descenso."
+    )]
+    [Min(0.1f)]
+    public float radioNavMeshDescenso =
+        1.50f;
+
+
     [Tooltip(
         "Muestra mensajes cuando el Bot conserva una piedra como objetivo " +
         "y entra en PreparandoEscalada."
@@ -674,6 +819,36 @@ public class BotRecolector : MonoBehaviour
         Vector3.up;
 
 
+    // Entrada natural suelo -> pared.
+    private bool entradaEscaladaNaturalEnCurso =
+        false;
+
+    private float tiempoEntradaEscaladaNatural =
+        0f;
+
+
+    // =====================================================
+    // CONEXIÓN DE ESCALADA PARA PIEDRAS EN OTRA ISLA NAVMESH
+    // =====================================================
+
+    private enum SentidoConexionEscaladaObjetivo
+    {
+        Ninguno,
+        Subir,
+        Bajar
+    }
+
+
+    private ConexionEscalada conexionEscaladaObjetivo =
+        null;
+
+    private SentidoConexionEscaladaObjetivo sentidoConexionEscaladaObjetivo =
+        SentidoConexionEscaladaObjetivo.Ninguno;
+
+    private Vector3 puntoEntradaConexionEscaladaObjetivo =
+        Vector3.zero;
+
+
     // =====================================================
     // TRANSICIÓN VISUAL DEL CUERPO
     // =====================================================
@@ -759,6 +934,71 @@ public class BotRecolector : MonoBehaviour
     [SerializeField]
     private Vector3 puntoNavMeshSalida =
         Vector3.zero;
+
+
+    // =====================================================
+    // PASO 6 - DESCENSO POR LA MISMA PARED
+    // =====================================================
+
+    [SerializeField]
+    private bool datosDescensoDisponibles =
+        false;
+
+
+    [SerializeField]
+    private Vector3 puntoNavMeshInferiorEscalada =
+        Vector3.zero;
+
+
+    [SerializeField]
+    private Vector3 puntoRaizParedSuperiorDescenso =
+        Vector3.zero;
+
+
+    [SerializeField]
+    private Vector3 puntoNavMeshSuperiorDescenso =
+        Vector3.zero;
+
+
+    private Quaternion rotacionRaizParedDescenso =
+        Quaternion.identity;
+
+
+    private Vector3 posicionLocalVisualParedDescenso;
+
+    private Quaternion rotacionLocalVisualParedDescenso;
+
+    private Quaternion rotacionLocalVisualParedDescensoCabezaPrimero =
+        Quaternion.identity;
+
+
+    private Vector3 posicionInicioRaizEntradaDescenso;
+
+    private Quaternion rotacionInicioRaizEntradaDescenso;
+
+    private Vector3 posicionInicioLocalVisualEntradaDescenso;
+
+    private Quaternion rotacionInicioLocalVisualEntradaDescenso;
+
+
+    // Paso 6D: salida natural al suelo inferior.
+    private Vector3 posicionInicioRaizSalidaDescenso;
+
+    private Quaternion rotacionInicioRaizSalidaDescenso;
+
+    private Quaternion rotacionObjetivoRaizSalidaDescenso;
+
+    private Quaternion rotacionInicioVisualMundoSalidaDescenso;
+
+    private Quaternion rotacionObjetivoVisualMundoSalidaDescenso;
+
+
+    private float tiempoTransicionDescenso =
+        0f;
+
+
+    private bool descensoPreparado =
+        false;
 
 
     // =====================================================
@@ -1075,6 +1315,34 @@ public class BotRecolector : MonoBehaviour
                 break;
 
 
+            case EstadoBot.YendoABordeDescenso:
+
+                ComportamientoYendoABordeDescenso();
+
+                break;
+
+
+            case EstadoBot.PreparandoDescenso:
+
+                ComportamientoPreparandoDescenso();
+
+                break;
+
+
+            case EstadoBot.Descendiendo:
+
+                ComportamientoDescendiendo();
+
+                break;
+
+
+            case EstadoBot.SaliendoDescenso:
+
+                ComportamientoSaliendoDescenso();
+
+                break;
+
+
             case EstadoBot.LlevandoPiedra:
 
                 ComportamientoLlevarPiedra();
@@ -1124,6 +1392,115 @@ public class BotRecolector : MonoBehaviour
 
 
         ComprobarAntiAtasco();
+    }
+
+
+    // =====================================================
+    // MANTENER PIEDRA FIJA EN EL PUNTO DE AGARRE
+    // =====================================================
+    //
+    // La piedra ya se hace hija de PuntoAgarre al recogerla,
+    // pero durante las transiciones de escalada/descenso varios
+    // sistemas modifican transforms en Update/LateUpdate.
+    //
+    // Por seguridad la fijamos al FINAL del frame siempre que
+    // siga siendo realmente una piedra transportada.
+    // =====================================================
+
+    private void LateUpdate()
+    {
+        MantenerOrientacionCabezaAbajoDuranteDescenso();
+        MantenerPiedraEnPuntoAgarre();
+    }
+
+
+    // =====================================================
+    // BLOQUEAR ORIENTACIÓN DURANTE EL DESCENSO
+    // =====================================================
+    //
+    // En Descendiendo ya no dependemos de la rotación guardada
+    // durante la subida. Calculamos la pose correcta directamente:
+    //
+    // SpiderVisual.forward = hacia ABAJO por la pared
+    // SpiderVisual.up      = normal de la pared
+    //
+    // Al ejecutarse en LateUpdate se aplica después de la mayoría
+    // de sistemas de movimiento y evita que el cuerpo vuelva a
+    // orientarse como en la subida.
+    // =====================================================
+
+    private void MantenerOrientacionCabezaAbajoDuranteDescenso()
+    {
+        if (!bloquearOrientacionDescenso ||
+            !bajarCabezaPrimero ||
+            estadoActual != EstadoBot.Descendiendo ||
+            spiderVisual == null ||
+            normalParedEscalada.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        Vector3 direccionSubida =
+            ObtenerDireccionSubidaPared(
+                normalPared
+            );
+
+
+        if (direccionSubida.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 direccionBajada =
+            -direccionSubida.normalized;
+
+
+        spiderVisual.rotation =
+            Quaternion.LookRotation(
+                direccionBajada,
+                normalPared
+            );
+    }
+
+
+    private void MantenerPiedraEnPuntoAgarre()
+    {
+        if (piedraObjetivo == null ||
+            puntoAgarre == null)
+        {
+            return;
+        }
+
+
+        // Solo intervenimos mientras la piedra siga enganchada
+        // al punto de agarre. Durante el lanzamiento se hace
+        // SetParent(null), así que este bloque deja de actuar.
+        if (piedraObjetivo.transform.parent != puntoAgarre)
+        {
+            return;
+        }
+
+
+        // La piedra transportada debe seguir siendo kinematic.
+        // Si ya ha entrado en otra fase de física, no la tocamos.
+        if (!piedraObjetivo.isKinematic)
+        {
+            return;
+        }
+
+
+        piedraObjetivo.transform.localPosition =
+            Vector3.zero;
+
+
+        piedraObjetivo.transform.localRotation =
+            Quaternion.identity;
     }
 
 
@@ -1616,10 +1993,13 @@ public class BotRecolector : MonoBehaviour
             // ¿PODEMOS LLEGAR?
             // =================================================
 
-            if (!IntentarCalcularRutaPiedra(
+            if (!IntentarCalcularRutaPiedraConConexion(
                     piedra,
                     out NavMeshHit puntoNavMesh,
-                    out NavMeshPath camino))
+                    out NavMeshPath camino,
+                    out ConexionEscalada conexionRuta,
+                    out SentidoConexionEscaladaObjetivo sentidoRuta,
+                    out Vector3 puntoEntradaRuta))
             {
                 MarcarPiedraInaccesible(
                     piedra
@@ -1632,7 +2012,7 @@ public class BotRecolector : MonoBehaviour
                         name +
                         " descarta " +
                         piedra.name +
-                        " porque no tiene ruta."
+                        " porque no tiene ruta directa ni conexión de escalada válida."
                     );
                 }
 
@@ -1677,12 +2057,39 @@ public class BotRecolector : MonoBehaviour
                 intervaloRevalidacionObjetivo;
 
 
+            conexionEscaladaObjetivo =
+                conexionRuta;
+
+            sentidoConexionEscaladaObjetivo =
+                sentidoRuta;
+
+            puntoEntradaConexionEscaladaObjetivo =
+                puntoEntradaRuta;
+
+
             ResetearAntiAtasco();
 
 
             agente.SetDestination(
-                puntoNavMesh.position
+                conexionEscaladaObjetivo != null
+                    ? puntoEntradaConexionEscaladaObjetivo
+                    : puntoNavMesh.position
             );
+
+
+            if (debugConexionesEscalada &&
+                conexionEscaladaObjetivo != null)
+            {
+                Debug.Log(
+                    name +
+                    " | PIEDRA EN OTRA ISLA: " +
+                    piedra.name +
+                    " | Conexion = " +
+                    conexionEscaladaObjetivo.name +
+                    " | Sentido = " +
+                    sentidoConexionEscaladaObjetivo
+                );
+            }
 
 
             if (debugBusqueda)
@@ -1999,6 +2406,299 @@ public class BotRecolector : MonoBehaviour
     }
 
 
+
+    // =====================================================
+    // NAVMESH + CONEXIONES DE ESCALADA
+    // =====================================================
+
+    private bool IntentarCalcularRutaPiedraConConexion(
+        Rigidbody piedra,
+        out NavMeshHit puntoNavMeshPiedra,
+        out NavMeshPath caminoInicial,
+        out ConexionEscalada conexionElegida,
+        out SentidoConexionEscaladaObjetivo sentidoElegido,
+        out Vector3 puntoEntradaElegido)
+    {
+        conexionElegida =
+            null;
+
+        sentidoElegido =
+            SentidoConexionEscaladaObjetivo.Ninguno;
+
+        puntoEntradaElegido =
+            Vector3.zero;
+
+
+        // La ruta directa siempre tiene prioridad.
+        if (IntentarCalcularRutaPiedra(
+                piedra,
+                out puntoNavMeshPiedra,
+                out caminoInicial))
+        {
+            return true;
+        }
+
+
+        puntoNavMeshPiedra =
+            new NavMeshHit();
+
+        caminoInicial =
+            new NavMeshPath();
+
+
+        if (!usarConexionesEscaladaParaPiedras ||
+            piedra == null ||
+            agente == null ||
+            !agente.enabled ||
+            !agente.isOnNavMesh)
+        {
+            return false;
+        }
+
+
+        if (!NavMesh.SamplePosition(
+                piedra.position,
+                out puntoNavMeshPiedra,
+                distanciaMaximaPiedraANavMesh,
+                agente.areaMask))
+        {
+            return false;
+        }
+
+
+        IReadOnlyList<ConexionEscalada> conexiones =
+            ConexionEscalada.ConexionesActivas;
+
+
+        if (conexiones == null ||
+            conexiones.Count == 0)
+        {
+            return false;
+        }
+
+
+        Vector3 origen =
+            agente.nextPosition;
+
+
+        float mejorCoste =
+            float.PositiveInfinity;
+
+
+        NavMeshPath mejorCaminoInicial =
+            null;
+
+
+        foreach (ConexionEscalada conexion in conexiones)
+        {
+            if (conexion == null ||
+                !conexion.isActiveAndEnabled)
+            {
+                continue;
+            }
+
+
+            if (!conexion.IntentarObtenerPuntosNavMesh(
+                    agente.areaMask,
+                    out NavMeshHit puntoInferior,
+                    out NavMeshHit puntoSuperior))
+            {
+                continue;
+            }
+
+
+            // ---------------------------------------------
+            // SUBIR
+            // ---------------------------------------------
+
+            NavMeshPath caminoHastaInferior =
+                new NavMeshPath();
+
+            NavMeshPath caminoSuperiorAPiedra =
+                new NavMeshPath();
+
+
+            bool puedeLlegarAbajo =
+                NavMesh.CalculatePath(
+                    origen,
+                    puntoInferior.position,
+                    agente.areaMask,
+                    caminoHastaInferior
+                ) &&
+                caminoHastaInferior.status ==
+                    NavMeshPathStatus.PathComplete;
+
+
+            bool desdeArribaLlegaAPiedra =
+                NavMesh.CalculatePath(
+                    puntoSuperior.position,
+                    puntoNavMeshPiedra.position,
+                    agente.areaMask,
+                    caminoSuperiorAPiedra
+                ) &&
+                caminoSuperiorAPiedra.status ==
+                    NavMeshPathStatus.PathComplete;
+
+
+            if (puedeLlegarAbajo &&
+                desdeArribaLlegaAPiedra)
+            {
+                float coste =
+                    CalcularLongitudCamino(
+                        caminoHastaInferior
+                    ) +
+                    CalcularLongitudCamino(
+                        caminoSuperiorAPiedra
+                    ) +
+                    Vector3.Distance(
+                        puntoInferior.position,
+                        puntoSuperior.position
+                    );
+
+
+                if (coste < mejorCoste)
+                {
+                    mejorCoste =
+                        coste;
+
+                    conexionElegida =
+                        conexion;
+
+                    sentidoElegido =
+                        SentidoConexionEscaladaObjetivo.Subir;
+
+                    puntoEntradaElegido =
+                        puntoInferior.position;
+
+                    mejorCaminoInicial =
+                        caminoHastaInferior;
+                }
+            }
+
+
+            // ---------------------------------------------
+            // BAJAR
+            // ---------------------------------------------
+
+            if (!conexion.bidireccional ||
+                !conexion.TieneDatosDescenso)
+            {
+                continue;
+            }
+
+
+            NavMeshPath caminoHastaSuperior =
+                new NavMeshPath();
+
+            NavMeshPath caminoInferiorAPiedra =
+                new NavMeshPath();
+
+
+            bool puedeLlegarArriba =
+                NavMesh.CalculatePath(
+                    origen,
+                    puntoSuperior.position,
+                    agente.areaMask,
+                    caminoHastaSuperior
+                ) &&
+                caminoHastaSuperior.status ==
+                    NavMeshPathStatus.PathComplete;
+
+
+            bool desdeAbajoLlegaAPiedra =
+                NavMesh.CalculatePath(
+                    puntoInferior.position,
+                    puntoNavMeshPiedra.position,
+                    agente.areaMask,
+                    caminoInferiorAPiedra
+                ) &&
+                caminoInferiorAPiedra.status ==
+                    NavMeshPathStatus.PathComplete;
+
+
+            if (puedeLlegarArriba &&
+                desdeAbajoLlegaAPiedra)
+            {
+                float coste =
+                    CalcularLongitudCamino(
+                        caminoHastaSuperior
+                    ) +
+                    CalcularLongitudCamino(
+                        caminoInferiorAPiedra
+                    ) +
+                    Vector3.Distance(
+                        puntoInferior.position,
+                        puntoSuperior.position
+                    );
+
+
+                if (coste < mejorCoste)
+                {
+                    mejorCoste =
+                        coste;
+
+                    conexionElegida =
+                        conexion;
+
+                    sentidoElegido =
+                        SentidoConexionEscaladaObjetivo.Bajar;
+
+                    puntoEntradaElegido =
+                        puntoSuperior.position;
+
+                    mejorCaminoInicial =
+                        caminoHastaSuperior;
+                }
+            }
+        }
+
+
+        if (conexionElegida == null ||
+            mejorCaminoInicial == null)
+        {
+            return false;
+        }
+
+
+        caminoInicial =
+            mejorCaminoInicial;
+
+
+        return true;
+    }
+
+
+    private float CalcularLongitudCamino(
+        NavMeshPath camino)
+    {
+        if (camino == null ||
+            camino.corners == null ||
+            camino.corners.Length < 2)
+        {
+            return 0f;
+        }
+
+
+        float longitud =
+            0f;
+
+
+        for (int i = 1;
+             i < camino.corners.Length;
+             i++)
+        {
+            longitud +=
+                Vector3.Distance(
+                    camino.corners[i - 1],
+                    camino.corners[i]
+                );
+        }
+
+
+        return longitud;
+    }
+
+
     // =====================================================
     // PIEDRAS IGNORADAS
     // =====================================================
@@ -2109,6 +2809,9 @@ public class BotRecolector : MonoBehaviour
             null;
 
 
+        LimpiarConexionEscaladaObjetivo();
+
+
         DetenerAgente();
 
 
@@ -2138,6 +2841,14 @@ public class BotRecolector : MonoBehaviour
         {
             CancelarObjetivo();
 
+            return;
+        }
+
+
+        // Si la piedra está en otra isla de NavMesh,
+        // primero resolvemos la conexión especial de escalada.
+        if (GestionarConexionEscaladaHaciaPiedra())
+        {
             return;
         }
 
@@ -2254,6 +2965,356 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // EJECUTAR CONEXIÓN DE ESCALADA HACIA LA PIEDRA
+    // =====================================================
+
+    private bool GestionarConexionEscaladaHaciaPiedra()
+    {
+        if (conexionEscaladaObjetivo == null ||
+            sentidoConexionEscaladaObjetivo ==
+                SentidoConexionEscaladaObjetivo.Ninguno)
+        {
+            return false;
+        }
+
+
+        if (piedraObjetivo == null ||
+            agente == null ||
+            !agente.enabled ||
+            !agente.isOnNavMesh)
+        {
+            return false;
+        }
+
+
+        // Tras cruzar la pared, si ya existe una ruta normal hasta
+        // la piedra, dejamos de usar la conexión.
+        if (IntentarCalcularRutaPiedra(
+                piedraObjetivo,
+                out NavMeshHit puntoDirecto,
+                out NavMeshPath caminoDirecto))
+        {
+            LimpiarConexionEscaladaObjetivo();
+
+
+            agente.isStopped =
+                false;
+
+            agente.SetDestination(
+                puntoDirecto.position
+            );
+
+
+            if (debugConexionesEscalada)
+            {
+                Debug.Log(
+                    name +
+                    " | CONEXION ESCALADA COMPLETADA: ruta directa recuperada hacia " +
+                    piedraObjetivo.name
+                );
+            }
+
+
+            return false;
+        }
+
+
+        if (!conexionEscaladaObjetivo.IntentarObtenerPuntosNavMesh(
+                agente.areaMask,
+                out NavMeshHit puntoInferior,
+                out NavMeshHit puntoSuperior))
+        {
+            AbandonarPiedraInaccesible();
+
+            return true;
+        }
+
+
+        // =================================================
+        // SUBIR
+        // =================================================
+
+        if (sentidoConexionEscaladaObjetivo ==
+            SentidoConexionEscaladaObjetivo.Subir)
+        {
+            puntoEntradaConexionEscaladaObjetivo =
+                puntoInferior.position;
+
+
+            float distancia =
+                Vector3.Distance(
+                    transform.position,
+                    puntoInferior.position
+                );
+
+
+            if (distancia <=
+                Mathf.Max(
+                    0.10f,
+                    distanciaLlegadaConexionEscalada
+                ))
+            {
+                Vector3 normal =
+                    conexionEscaladaObjetivo.NormalPared;
+
+
+                if (normal.sqrMagnitude >
+                    0.0001f)
+                {
+                    normalParedEscalada =
+                        normal.normalized;
+                }
+
+
+                EntrarEnPreparandoEscalada();
+
+                return true;
+            }
+
+
+            agente.isStopped =
+                false;
+
+            agente.SetDestination(
+                puntoInferior.position
+            );
+
+
+            return true;
+        }
+
+
+        // =================================================
+        // BAJAR
+        // =================================================
+
+        if (sentidoConexionEscaladaObjetivo ==
+            SentidoConexionEscaladaObjetivo.Bajar)
+        {
+            puntoEntradaConexionEscaladaObjetivo =
+                puntoSuperior.position;
+
+
+            float distancia =
+                Vector3.Distance(
+                    transform.position,
+                    puntoSuperior.position
+                );
+
+
+            bool llegoPorNavMesh =
+                !agente.pathPending &&
+                agente.hasPath &&
+                agente.remainingDistance <=
+                Mathf.Max(
+                    distanciaLlegadaConexionEscalada,
+                    agente.stoppingDistance +
+                    0.05f
+                );
+
+
+            if (distancia <=
+                    Mathf.Max(
+                        0.10f,
+                        distanciaLlegadaConexionEscalada
+                    ) ||
+                llegoPorNavMesh)
+            {
+                if (!PrepararDatosDescensoDesdeConexion(
+                        conexionEscaladaObjetivo,
+                        puntoInferior.position,
+                        puntoSuperior.position))
+                {
+                    AbandonarPiedraInaccesible();
+
+                    return true;
+                }
+
+
+                EntrarEnPreparandoDescenso();
+
+                return true;
+            }
+
+
+            agente.isStopped =
+                false;
+
+            agente.SetDestination(
+                puntoSuperior.position
+            );
+
+
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+    private bool PrepararDatosDescensoDesdeConexion(
+        ConexionEscalada conexion,
+        Vector3 puntoInferior,
+        Vector3 puntoSuperior)
+    {
+        if (conexion == null ||
+            !conexion.TieneDatosDescenso ||
+            spiderVisual == null)
+        {
+            return false;
+        }
+
+
+        Vector3 normal =
+            conexion.NormalPared;
+
+
+        if (normal.sqrMagnitude <
+            0.0001f)
+        {
+            return false;
+        }
+
+
+        normal.Normalize();
+
+
+        normalParedEscalada =
+            normal;
+
+
+        puntoNavMeshInferiorEscalada =
+            puntoInferior;
+
+        puntoNavMeshSuperiorDescenso =
+            puntoSuperior;
+
+        puntoRaizParedSuperiorDescenso =
+            conexion.puntoParedSuperior.position;
+
+
+        // La raíz mira hacia la pared.
+        Vector3 haciaPared =
+            -normal;
+
+        haciaPared.y =
+            0f;
+
+
+        if (haciaPared.sqrMagnitude <
+            0.0001f)
+        {
+            haciaPared =
+                transform.forward;
+        }
+
+
+        haciaPared.Normalize();
+
+
+        rotacionRaizParedDescenso =
+            Quaternion.LookRotation(
+                haciaPared,
+                Vector3.up
+            );
+
+
+        // Reconstruimos la pose visual de pared a partir de la
+        // misma configuración que utiliza la subida.
+        Vector3 posicionVisualBaseMundo =
+            puntoRaizParedSuperiorDescenso +
+            rotacionRaizParedDescenso *
+            posicionLocalVisualSuelo;
+
+
+        Vector3 posicionVisualParedMundo =
+            posicionVisualBaseMundo -
+            normal *
+            Mathf.Max(
+                0f,
+                acercamientoVisualPared
+            ) +
+            Vector3.up *
+            Mathf.Max(
+                0f,
+                elevacionVisualTransicion
+            );
+
+
+        posicionLocalVisualParedDescenso =
+            Quaternion.Inverse(
+                rotacionRaizParedDescenso
+            ) *
+            (
+                posicionVisualParedMundo -
+                puntoRaizParedSuperiorDescenso
+            );
+
+
+        Vector3 direccionSubida =
+            Vector3.ProjectOnPlane(
+                Vector3.up,
+                normal
+            );
+
+
+        if (direccionSubida.sqrMagnitude <
+            0.0001f)
+        {
+            return false;
+        }
+
+
+        direccionSubida.Normalize();
+
+
+        Quaternion rotacionVisualParedMundo =
+            Quaternion.LookRotation(
+                direccionSubida,
+                normal
+            );
+
+
+        rotacionLocalVisualParedDescenso =
+            Quaternion.Inverse(
+                rotacionRaizParedDescenso
+            ) *
+            rotacionVisualParedMundo;
+
+
+        datosDescensoDisponibles =
+            true;
+
+
+        if (debugConexionesEscalada)
+        {
+            Debug.Log(
+                name +
+                " | CONEXION ESCALADA: descenso preparado desde " +
+                conexion.name
+            );
+        }
+
+
+        return true;
+    }
+
+
+    private void LimpiarConexionEscaladaObjetivo()
+    {
+        conexionEscaladaObjetivo =
+            null;
+
+        sentidoConexionEscaladaObjetivo =
+            SentidoConexionEscaladaObjetivo.Ninguno;
+
+        puntoEntradaConexionEscaladaObjetivo =
+            Vector3.zero;
+    }
+
+
+    // =====================================================
     // PREPARAR ESCALADA
     // =====================================================
 
@@ -2326,12 +3387,27 @@ public class BotRecolector : MonoBehaviour
             false;
 
 
-        // Preparamos primero la pose inicial/final del cuerpo y luego
-        // arrancamos la transición de las patas. Ambas usarán exactamente
-        // el mismo progreso del GestorPatasArana.
+        // Preparamos la pose objetivo del cuerpo.
         PrepararTransicionVisualEscalada();
 
-        IniciarTransicionPatasHaciaPared();
+
+        if (usarEntradaEscaladaNatural)
+        {
+            // No usamos la transición global del GestorPatasArana porque
+            // queremos que las patas delanteras contacten primero.
+            entradaEscaladaNaturalEnCurso =
+                true;
+
+            tiempoEntradaEscaladaNatural =
+                0f;
+
+            transicionPatasEscaladaSolicitada =
+                true;
+        }
+        else
+        {
+            IniciarTransicionPatasHaciaPared();
+        }
 
 
         ResetearAntiAtasco();
@@ -2679,7 +3755,22 @@ public class BotRecolector : MonoBehaviour
 
                 PrepararTransicionVisualEscalada();
 
-                IniciarTransicionPatasHaciaPared();
+
+                if (usarEntradaEscaladaNatural)
+                {
+                    entradaEscaladaNaturalEnCurso =
+                        true;
+
+                    tiempoEntradaEscaladaNatural =
+                        0f;
+
+                    transicionPatasEscaladaSolicitada =
+                        true;
+                }
+                else
+                {
+                    IniciarTransicionPatasHaciaPared();
+                }
             }
         }
 
@@ -2693,22 +3784,72 @@ public class BotRecolector : MonoBehaviour
         // SpiderVisual hacia la pared. El Bot raíz/NavMesh NO se mueve.
         // =====================================================
 
-        ActualizarTransicionVisualEscalada();
+        if (usarEntradaEscaladaNatural &&
+            entradaEscaladaNaturalEnCurso)
+        {
+            ActualizarEntradaEscaladaNatural();
+        }
+        else
+        {
+            ActualizarTransicionVisualEscalada();
+        }
 
 
         // =====================================================
         // TRANSICIÓN TERMINADA -> EMPEZAR A SUBIR
         // =====================================================
-        //
-        // En cuanto cuerpo y patas han llegado al 100% de la pose de pared,
-        // dejamos el NavMesh temporalmente y pasamos al movimiento manual
-        // sobre la superficie.
-        // =====================================================
 
-        if (transicionPatasEscaladaSolicitada &&
-            gestorPatasArana != null &&
-            !gestorPatasArana.TransicionSuperficieEnCurso &&
-            !mensajeTransicionPatasTerminada)
+        if (usarEntradaEscaladaNatural)
+        {
+            bool tiempoCompletado =
+                entradaEscaladaNaturalEnCurso &&
+                tiempoEntradaEscaladaNatural >=
+                    Mathf.Max(
+                        0.10f,
+                        duracionEntradaEscaladaNatural
+                    );
+
+
+            if (tiempoCompletado &&
+                !AlgunaPataMoviendoseEscalada() &&
+                !mensajeTransicionPatasTerminada)
+            {
+                mensajeTransicionPatasTerminada =
+                    true;
+
+                entradaEscaladaNaturalEnCurso =
+                    false;
+
+
+                if (gestorPatasArana != null)
+                {
+                    // Dejamos el estado interno del gestor coherente con las
+                    // normales individuales que hemos aplicado por fases.
+                    gestorPatasArana.EstablecerNormalSuperficie(
+                        normalParedEscalada
+                    );
+                }
+
+
+                if (debugEscalada)
+                {
+                    Debug.Log(
+                        name +
+                        " | ESCALADA: patas delanteras apoyadas, " +
+                        "entrada natural completada. Empieza la subida."
+                    );
+                }
+
+
+                EntrarEnEscalando();
+
+                return;
+            }
+        }
+        else if (transicionPatasEscaladaSolicitada &&
+                 gestorPatasArana != null &&
+                 !gestorPatasArana.TransicionSuperficieEnCurso &&
+                 !mensajeTransicionPatasTerminada)
         {
             mensajeTransicionPatasTerminada =
                 true;
@@ -2767,6 +3908,241 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // ENTRADA NATURAL SUELO -> PARED
+    // =====================================================
+
+    private void ActualizarEntradaEscaladaNatural()
+    {
+        if (!entradaEscaladaNaturalEnCurso ||
+            gestorPatasArana == null ||
+            spiderVisual == null ||
+            normalParedEscalada.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        tiempoEntradaEscaladaNatural +=
+            Time.deltaTime;
+
+
+        float duracion =
+            Mathf.Max(
+                0.10f,
+                duracionEntradaEscaladaNatural
+            );
+
+
+        float t =
+            Mathf.Clamp01(
+                tiempoEntradaEscaladaNatural /
+                duracion
+            );
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        // -------------------------------------------------
+        // PATAS DELANTERAS PRIMERO
+        // -------------------------------------------------
+        //
+        // Delanteras: 0% -> 38%
+        // Medias:     22% -> 68%
+        // Traseras:   48% -> 92%
+        //
+        // Así las delanteras ya están buscando contacto con la
+        // pared antes de que el cuerpo empiece a entrar en ella.
+        // -------------------------------------------------
+
+        float tDelanteras =
+            Suavizar01Escalada(
+                Mathf.InverseLerp(
+                    0.00f,
+                    0.38f,
+                    t
+                )
+            );
+
+
+        float tMedias =
+            Suavizar01Escalada(
+                Mathf.InverseLerp(
+                    0.22f,
+                    0.68f,
+                    t
+                )
+            );
+
+
+        float tTraseras =
+            Suavizar01Escalada(
+                Mathf.InverseLerp(
+                    0.48f,
+                    0.92f,
+                    t
+                )
+            );
+
+
+        Vector3 normalDelante =
+            Vector3.Slerp(
+                Vector3.up,
+                normalPared,
+                tDelanteras
+            ).normalized;
+
+
+        Vector3 normalMedia =
+            Vector3.Slerp(
+                Vector3.up,
+                normalPared,
+                tMedias
+            ).normalized;
+
+
+        Vector3 normalTrasera =
+            Vector3.Slerp(
+                Vector3.up,
+                normalPared,
+                tTraseras
+            ).normalized;
+
+
+        if (gestorPatasArana.pataFL != null)
+            gestorPatasArana.pataFL.EstablecerNormalSuperficie(
+                normalDelante
+            );
+
+        if (gestorPatasArana.pataFR != null)
+            gestorPatasArana.pataFR.EstablecerNormalSuperficie(
+                normalDelante
+            );
+
+
+        if (gestorPatasArana.pataML != null)
+            gestorPatasArana.pataML.EstablecerNormalSuperficie(
+                normalMedia
+            );
+
+        if (gestorPatasArana.pataMR != null)
+            gestorPatasArana.pataMR.EstablecerNormalSuperficie(
+                normalMedia
+            );
+
+
+        if (gestorPatasArana.pataBL != null)
+            gestorPatasArana.pataBL.EstablecerNormalSuperficie(
+                normalTrasera
+            );
+
+        if (gestorPatasArana.pataBR != null)
+            gestorPatasArana.pataBR.EstablecerNormalSuperficie(
+                normalTrasera
+            );
+
+
+        // -------------------------------------------------
+        // CUERPO DESPUÉS DE LAS PATAS DELANTERAS
+        // -------------------------------------------------
+
+        float tCuerpo =
+            Mathf.InverseLerp(
+                Mathf.Clamp01(
+                    retrasoCuerpoEntradaEscalada
+                ),
+                1f,
+                t
+            );
+
+
+        tCuerpo =
+            Suavizar01Escalada(
+                tCuerpo
+            );
+
+
+        spiderVisual.position =
+            Vector3.Lerp(
+                posicionInicioVisualEscalada,
+                posicionObjetivoVisualEscalada,
+                tCuerpo
+            );
+
+
+        if (rotarVisualHaciaPared)
+        {
+            spiderVisual.rotation =
+                Quaternion.Slerp(
+                    rotacionInicioVisualEscalada,
+                    rotacionObjetivoVisualEscalada,
+                    tCuerpo
+                );
+        }
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawRay(
+                spiderVisual.position,
+                spiderVisual.forward * 0.75f,
+                Color.green
+            );
+
+            Debug.DrawRay(
+                spiderVisual.position,
+                spiderVisual.up * 0.65f,
+                Color.blue
+            );
+        }
+    }
+
+
+    private bool AlgunaPataMoviendoseEscalada()
+    {
+        if (gestorPatasArana == null)
+            return false;
+
+
+        return
+            (gestorPatasArana.pataFL != null &&
+             gestorPatasArana.pataFL.EstaDandoPaso) ||
+
+            (gestorPatasArana.pataFR != null &&
+             gestorPatasArana.pataFR.EstaDandoPaso) ||
+
+            (gestorPatasArana.pataML != null &&
+             gestorPatasArana.pataML.EstaDandoPaso) ||
+
+            (gestorPatasArana.pataMR != null &&
+             gestorPatasArana.pataMR.EstaDandoPaso) ||
+
+            (gestorPatasArana.pataBL != null &&
+             gestorPatasArana.pataBL.EstaDandoPaso) ||
+
+            (gestorPatasArana.pataBR != null &&
+             gestorPatasArana.pataBR.EstaDandoPaso);
+    }
+
+
+    private float Suavizar01Escalada(
+        float valor)
+    {
+        valor =
+            Mathf.Clamp01(
+                valor
+            );
+
+
+        return
+            valor *
+            valor *
+            (3f - 2f * valor);
+    }
+
+
+    // =====================================================
     // ENTRAR EN ESCALANDO
     // =====================================================
 
@@ -2776,6 +4152,16 @@ public class BotRecolector : MonoBehaviour
         {
             return;
         }
+
+
+        // Guardamos el punto inferior ANTES de desactivar el NavMesh.
+        // Si después recogemos una piedra arriba, este será el punto
+        // al que regresaremos al terminar el descenso.
+        puntoNavMeshInferiorEscalada =
+            transform.position;
+
+        datosDescensoDisponibles =
+            false;
 
 
         // =================================================
@@ -2810,6 +4196,13 @@ public class BotRecolector : MonoBehaviour
 
         estadoActual =
             EstadoBot.Escalando;
+
+
+        entradaEscaladaNaturalEnCurso =
+            false;
+
+        tiempoEntradaEscaladaNatural =
+            0f;
 
 
         posicionInicioMovimientoEscalada =
@@ -3471,6 +4864,22 @@ public class BotRecolector : MonoBehaviour
             spiderVisual.localRotation;
 
 
+        // Guardamos la pose EXACTA en la que la araña estaba pegada
+        // a la pared justo antes de pasar al suelo superior.
+        // El descenso reutiliza estos datos para invertir la maniobra.
+        puntoRaizParedSuperiorDescenso =
+            posicionInicioRaizSalida;
+
+        rotacionRaizParedDescenso =
+            transform.rotation;
+
+        posicionLocalVisualParedDescenso =
+            posicionInicioLocalVisualSalida;
+
+        rotacionLocalVisualParedDescenso =
+            rotacionInicioLocalVisualSalida;
+
+
         // Seguridad si por cualquier motivo Start no pudo guardar la pose.
         if (!poseLocalVisualSueloGuardada)
         {
@@ -3754,6 +5163,15 @@ public class BotRecolector : MonoBehaviour
             true;
 
 
+        // A partir de este momento tenemos una ruta física segura
+        // para regresar por la MISMA pared.
+        puntoNavMeshSuperiorDescenso =
+            hitNavFinal.position;
+
+        datosDescensoDisponibles =
+            true;
+
+
         if (agente != null)
         {
             if (!agente.enabled)
@@ -3835,6 +5253,1051 @@ public class BotRecolector : MonoBehaviour
                 name +
                 " | ESCALADA PASO 5B COMPLETADO: suelo recuperado, " +
                 "NavMesh reactivado y objetivo conservado."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // PASO 6 - INICIAR DESCENSO AUTOMÁTICO
+    // =====================================================
+
+    private bool IntentarIniciarDescensoAutomatico()
+    {
+        if (!permitirDescensoAutomatico ||
+            !datosDescensoDisponibles ||
+            piedraObjetivo == null ||
+            agente == null ||
+            !agente.enabled ||
+            !agente.isOnNavMesh)
+        {
+            return false;
+        }
+
+
+        // El punto superior guardado pertenece al NavMesh en el que
+        // terminamos la subida. Volvemos primero a ese punto.
+        if (!NavMesh.SamplePosition(
+                puntoNavMeshSuperiorDescenso,
+                out NavMeshHit hitSuperior,
+                Mathf.Max(
+                    0.1f,
+                    radioNavMeshDescenso
+                ),
+                agente.areaMask))
+        {
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | DESCENSO: no se encuentra el NavMesh superior guardado."
+                );
+            }
+
+
+            return false;
+        }
+
+
+        NavMeshPath caminoBorde =
+            new NavMeshPath();
+
+
+        bool puedeVolverAlBorde =
+            agente.CalculatePath(
+                hitSuperior.position,
+                caminoBorde
+            ) &&
+            caminoBorde.status ==
+                NavMeshPathStatus.PathComplete;
+
+
+        if (!puedeVolverAlBorde)
+        {
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | DESCENSO: no hay ruta hasta el borde por el que subió."
+                );
+            }
+
+
+            return false;
+        }
+
+
+        puntoNavMeshSuperiorDescenso =
+            hitSuperior.position;
+
+
+        estadoActual =
+            EstadoBot.YendoABordeDescenso;
+
+
+        agente.isStopped =
+            false;
+
+
+        agente.SetDestination(
+            puntoNavMeshSuperiorDescenso
+        );
+
+
+        ResetearAntiAtasco();
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | DESCENSO PASO 6: destino inferior en otra isla de NavMesh. " +
+                "Regresa al borde de la misma pared."
+            );
+        }
+
+
+        return true;
+    }
+
+
+    // =====================================================
+    // PASO 6A - VOLVER AL BORDE SUPERIOR
+    // =====================================================
+
+    private void ComportamientoYendoABordeDescenso()
+    {
+        MantenerPiedraEnAgarre();
+
+
+        if (!datosDescensoDisponibles ||
+            piedraObjetivo == null ||
+            agente == null ||
+            !agente.enabled ||
+            !agente.isOnNavMesh)
+        {
+            return;
+        }
+
+
+        float distancia =
+            Vector3.Distance(
+                transform.position,
+                puntoNavMeshSuperiorDescenso
+            );
+
+
+        bool llegoPorDistancia =
+            distancia <=
+            Mathf.Max(
+                0.05f,
+                distanciaLlegadaBordeDescenso
+            );
+
+
+        bool llegoPorNavMesh =
+            !agente.pathPending &&
+            agente.hasPath &&
+            agente.remainingDistance <=
+            Mathf.Max(
+                distanciaLlegadaBordeDescenso,
+                agente.stoppingDistance +
+                0.05f
+            );
+
+
+        if (llegoPorDistancia ||
+            llegoPorNavMesh)
+        {
+            EntrarEnPreparandoDescenso();
+
+            return;
+        }
+
+
+        if (!agente.pathPending &&
+            (!agente.hasPath ||
+             agente.pathStatus !=
+                NavMeshPathStatus.PathComplete))
+        {
+            NavMeshPath camino =
+                new NavMeshPath();
+
+
+            if (agente.CalculatePath(
+                    puntoNavMeshSuperiorDescenso,
+                    camino) &&
+                camino.status ==
+                    NavMeshPathStatus.PathComplete)
+            {
+                agente.SetDestination(
+                    puntoNavMeshSuperiorDescenso
+                );
+            }
+        }
+    }
+
+
+    // =====================================================
+    // PASO 6B - SUELO SUPERIOR -> PARED
+    // =====================================================
+
+    private void EntrarEnPreparandoDescenso()
+    {
+        if (!datosDescensoDisponibles ||
+            piedraObjetivo == null ||
+            spiderVisual == null ||
+            gestorPatasArana == null ||
+            normalParedEscalada.sqrMagnitude <
+                0.0001f)
+        {
+            return;
+        }
+
+
+        if (agente != null &&
+            agente.enabled)
+        {
+            if (agente.isOnNavMesh)
+            {
+                agente.isStopped =
+                    true;
+
+
+                if (agente.hasPath)
+                {
+                    agente.ResetPath();
+                }
+            }
+
+
+            agente.enabled =
+                false;
+        }
+
+
+        posicionInicioRaizEntradaDescenso =
+            transform.position;
+
+        rotacionInicioRaizEntradaDescenso =
+            transform.rotation;
+
+
+        posicionInicioLocalVisualEntradaDescenso =
+            spiderVisual.localPosition;
+
+        rotacionInicioLocalVisualEntradaDescenso =
+            spiderVisual.localRotation;
+
+
+        // La pose guardada corresponde a la SUBIDA, con la araña mirando
+        // hacia arriba. Para bajar mantenemos el mismo Up apoyado en la pared,
+        // pero invertimos su Forward 180º alrededor de su eje local Y.
+        rotacionLocalVisualParedDescensoCabezaPrimero =
+            bajarCabezaPrimero
+            ? rotacionLocalVisualParedDescenso *
+              Quaternion.Euler(0f, 180f, 0f)
+            : rotacionLocalVisualParedDescenso;
+
+
+        tiempoTransicionDescenso =
+            0f;
+
+        descensoPreparado =
+            true;
+
+
+        gestorPatasArana.IniciarTransicionSuperficie(
+            normalParedEscalada.normalized,
+            duracionEntradaDescenso
+        );
+
+
+        estadoActual =
+            EstadoBot.PreparandoDescenso;
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | DESCENSO PASO 6B: transición suelo superior -> pared."
+            );
+        }
+    }
+
+
+    private void ComportamientoPreparandoDescenso()
+    {
+        if (!descensoPreparado ||
+            spiderVisual == null)
+        {
+            return;
+        }
+
+
+        MantenerPiedraEnAgarre();
+
+
+        tiempoTransicionDescenso +=
+            Time.deltaTime;
+
+
+        float duracion =
+            Mathf.Max(
+                0.05f,
+                duracionEntradaDescenso
+            );
+
+
+        float tTiempo =
+            Mathf.Clamp01(
+                tiempoTransicionDescenso /
+                duracion
+            );
+
+
+        float tPatas =
+            gestorPatasArana != null
+            ? gestorPatasArana.ProgresoTransicionSuperficie
+            : tTiempo;
+
+
+        float t =
+            Mathf.Clamp01(
+                Mathf.Min(
+                    tTiempo,
+                    tPatas + 0.02f
+                )
+            );
+
+
+        float tSuave =
+            t * t *
+            (3f - 2f * t);
+
+
+        Vector3 posicionRaiz =
+            Vector3.Lerp(
+                posicionInicioRaizEntradaDescenso,
+                puntoRaizParedSuperiorDescenso,
+                tSuave
+            );
+
+
+        // Repetimos el pequeño arco del Paso 5B para salvar
+        // el canto de la plataforma al volver a la pared.
+        posicionRaiz +=
+            Vector3.up *
+            Mathf.Sin(
+                Mathf.PI * tSuave
+            ) *
+            Mathf.Max(
+                0f,
+                alturaArcoSalidaBorde
+            );
+
+
+        transform.position =
+            posicionRaiz;
+
+
+        transform.rotation =
+            Quaternion.Slerp(
+                rotacionInicioRaizEntradaDescenso,
+                rotacionRaizParedDescenso,
+                tSuave
+            );
+
+
+        spiderVisual.localPosition =
+            Vector3.Lerp(
+                posicionInicioLocalVisualEntradaDescenso,
+                posicionLocalVisualParedDescenso,
+                tSuave
+            );
+
+
+        spiderVisual.localRotation =
+            Quaternion.Slerp(
+                rotacionInicioLocalVisualEntradaDescenso,
+                rotacionLocalVisualParedDescensoCabezaPrimero,
+                tSuave
+            );
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawLine(
+                posicionInicioRaizEntradaDescenso,
+                puntoRaizParedSuperiorDescenso,
+                Color.magenta
+            );
+        }
+
+
+        bool patasTerminadas =
+            gestorPatasArana == null ||
+            !gestorPatasArana.TransicionSuperficieEnCurso;
+
+
+        if (tTiempo >= 1f &&
+            patasTerminadas)
+        {
+            transform.position =
+                puntoRaizParedSuperiorDescenso;
+
+            transform.rotation =
+                rotacionRaizParedDescenso;
+
+
+            spiderVisual.localPosition =
+                posicionLocalVisualParedDescenso;
+
+            spiderVisual.localRotation =
+                rotacionLocalVisualParedDescensoCabezaPrimero;
+
+
+            tiempoTransicionDescenso =
+                0f;
+
+
+            estadoActual =
+                EstadoBot.Descendiendo;
+
+
+            if (debugEscalada)
+            {
+                Debug.Log(
+                    name +
+                    " | DESCENSO PASO 6C: empieza la bajada manual por la pared. " +
+                    (bajarCabezaPrimero
+                        ? "Cabeza orientada hacia abajo."
+                        : "Orientación original de subida.")
+                );
+            }
+        }
+    }
+
+
+    // =====================================================
+    // PASO 6C - BAJAR POR LA PARED
+    // =====================================================
+
+    private void ComportamientoDescendiendo()
+    {
+        if (!datosDescensoDisponibles ||
+            piedraObjetivo == null)
+        {
+            return;
+        }
+
+
+        MantenerPiedraEnAgarre();
+
+
+        // Seguridad adicional: en cuanto estamos en 6C, la araña debe
+        // mirar físicamente hacia el suelo, no reutilizar la orientación
+        // de subida ni dejar que otro sistema la corrija.
+        if (bloquearOrientacionDescenso &&
+            bajarCabezaPrimero &&
+            spiderVisual != null &&
+            normalParedEscalada.sqrMagnitude > 0.0001f)
+        {
+            Vector3 normalPared =
+                normalParedEscalada.normalized;
+
+            Vector3 direccionBajada =
+                -ObtenerDireccionSubidaPared(
+                    normalPared
+                );
+
+            if (direccionBajada.sqrMagnitude > 0.0001f)
+            {
+                spiderVisual.rotation =
+                    Quaternion.LookRotation(
+                        direccionBajada.normalized,
+                        normalPared
+                    );
+            }
+        }
+
+
+        float distanciaRestante =
+            Vector3.Distance(
+                transform.position,
+                puntoNavMeshInferiorEscalada
+            );
+
+
+        // No esperamos a que el centro del Bot llegue al suelo.
+        // Empezamos la transición un poco antes para que las patas delanteras
+        // puedan buscar apoyo horizontal mientras el cuerpo sigue mirando abajo.
+        if (distanciaRestante <=
+            Mathf.Max(
+                0.10f,
+                distanciaInicioSalidaNaturalDescenso
+            ))
+        {
+            EntrarEnSaliendoDescenso();
+
+            return;
+        }
+
+
+        float paso =
+            Mathf.Max(
+                0.05f,
+                velocidadDescenso
+            ) *
+            Time.deltaTime;
+
+
+        transform.position =
+            Vector3.MoveTowards(
+                transform.position,
+                puntoNavMeshInferiorEscalada,
+                paso
+            );
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawLine(
+                transform.position,
+                puntoNavMeshInferiorEscalada,
+                Color.yellow
+            );
+
+
+            Debug.DrawRay(
+                transform.position,
+                -ObtenerDireccionSubidaPared(
+                    normalParedEscalada.normalized
+                ) * 0.8f,
+                Color.green
+            );
+        }
+    }
+
+
+    // =====================================================
+    // PASO 6D - PARED -> SUELO INFERIOR
+    // =====================================================
+
+    private void EntrarEnSaliendoDescenso()
+    {
+        if (spiderVisual == null ||
+            normalParedEscalada.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        posicionInicioRaizSalidaDescenso =
+            transform.position;
+
+        rotacionInicioRaizSalidaDescenso =
+            transform.rotation;
+
+
+        posicionInicioLocalVisualEntradaDescenso =
+            spiderVisual.localPosition;
+
+        rotacionInicioLocalVisualEntradaDescenso =
+            spiderVisual.localRotation;
+
+
+        rotacionInicioVisualMundoSalidaDescenso =
+            spiderVisual.rotation;
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        // Objetivo visual NATURAL al llegar al suelo:
+        //
+        // forward = alejándose de la pared, sobre el suelo
+        // up      = Vector3.up
+        //
+        // Así la araña no hace ningún giro lateral extraño:
+        // pasa de mirar hacia ABAJO a mirar hacia DELANTE.
+        rotacionObjetivoVisualMundoSalidaDescenso =
+            Quaternion.LookRotation(
+                normalPared,
+                Vector3.up
+            );
+
+
+        // Calculamos qué rotación debe tener el Bot raíz para que,
+        // al restaurar la pose local normal de SpiderVisual, el resultado
+        // mundial siga siendo exactamente "mirando hacia delante".
+        rotacionObjetivoRaizSalidaDescenso =
+            rotacionObjetivoVisualMundoSalidaDescenso *
+            Quaternion.Inverse(
+                rotacionLocalVisualSuelo
+            );
+
+
+        tiempoTransicionDescenso =
+            0f;
+
+
+        // IMPORTANTE:
+        // Aquí NO usamos IniciarTransicionASuelo(), porque esa función
+        // cambiaría las seis patas a la vez.
+        //
+        // En este paso vamos a hacerlo por grupos:
+        // delanteras -> medias -> traseras.
+        estadoActual =
+            EstadoBot.SaliendoDescenso;
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | DESCENSO PASO 6D: empieza salida natural. " +
+                "Primero apoyan patas delanteras; después baja el cuerpo."
+            );
+        }
+    }
+
+
+    private void ComportamientoSaliendoDescenso()
+    {
+        if (spiderVisual == null ||
+            normalParedEscalada.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        MantenerPiedraEnAgarre();
+
+
+        tiempoTransicionDescenso +=
+            Time.deltaTime;
+
+
+        float duracion =
+            Mathf.Max(
+                0.05f,
+                duracionSalidaDescenso
+            );
+
+
+        float t =
+            Mathf.Clamp01(
+                tiempoTransicionDescenso /
+                duracion
+            );
+
+
+        // =================================================
+        // 1. PATAS: DELANTERAS -> MEDIAS -> TRASERAS
+        // =================================================
+        //
+        // Esto permite que durante unos instantes las patas delanteras
+        // ya estén buscando el suelo mientras las traseras todavía
+        // consideran la pared como superficie de apoyo.
+        // =================================================
+
+        AplicarNormalesSalidaDescensoPorFases(
+            t
+        );
+
+
+        // =================================================
+        // 2. CUERPO
+        // =================================================
+        //
+        // Dejamos una pequeña ventaja a las patas delanteras.
+        // El cuerpo empieza a bajar/girar un poco después.
+        // =================================================
+
+        float tCuerpo =
+            Mathf.InverseLerp(
+                0.12f,
+                1f,
+                t
+            );
+
+
+        tCuerpo =
+            Mathf.Clamp01(
+                tCuerpo
+            );
+
+
+        float tSuave =
+            tCuerpo *
+            tCuerpo *
+            (3f - 2f * tCuerpo);
+
+
+        // El Bot raíz termina exactamente en el punto inferior seguro
+        // que guardamos antes de empezar la subida.
+        transform.position =
+            Vector3.Lerp(
+                posicionInicioRaizSalidaDescenso,
+                puntoNavMeshInferiorEscalada,
+                tSuave
+            );
+
+
+        // La raíz puede reajustar su orientación internamente, pero el
+        // SpiderVisual se controla EN MUNDO para evitar giros raros.
+        transform.rotation =
+            Quaternion.Slerp(
+                rotacionInicioRaizSalidaDescenso,
+                rotacionObjetivoRaizSalidaDescenso,
+                tSuave
+            );
+
+
+        // Recuperamos progresivamente el offset normal de suelo.
+        spiderVisual.localPosition =
+            Vector3.Lerp(
+                posicionInicioLocalVisualEntradaDescenso,
+                posicionLocalVisualSuelo,
+                tSuave
+            );
+
+
+        // MUY IMPORTANTE:
+        // visualmente solo hacemos el movimiento natural:
+        //
+        // cabeza abajo
+        //      ->
+        // cabeza hacia delante sobre el suelo
+        //
+        // Sin volver a mirar hacia arriba ni girar de lado.
+        spiderVisual.rotation =
+            Quaternion.Slerp(
+                rotacionInicioVisualMundoSalidaDescenso,
+                rotacionObjetivoVisualMundoSalidaDescenso,
+                tSuave
+            );
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawRay(
+                spiderVisual.position,
+                spiderVisual.forward * 0.8f,
+                Color.green
+            );
+
+
+            Debug.DrawRay(
+                spiderVisual.position,
+                spiderVisual.up * 0.6f,
+                Color.blue
+            );
+        }
+
+
+        if (t >= 1f)
+        {
+            // Estado final exacto.
+            transform.position =
+                puntoNavMeshInferiorEscalada;
+
+            transform.rotation =
+                rotacionObjetivoRaizSalidaDescenso;
+
+
+            spiderVisual.localPosition =
+                posicionLocalVisualSuelo;
+
+            spiderVisual.localRotation =
+                rotacionLocalVisualSuelo;
+
+
+            if (gestorPatasArana != null)
+            {
+                gestorPatasArana.RestaurarNormalSuelo();
+            }
+
+
+            FinalizarDescenso();
+        }
+    }
+
+
+    // =====================================================
+    // PASO 6D - APOYO DE PATAS POR FASES
+    // =====================================================
+
+    private void AplicarNormalesSalidaDescensoPorFases(
+        float progreso)
+    {
+        if (gestorPatasArana == null ||
+            normalParedEscalada.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        float tDelanteras =
+            Suavizar01(
+                Mathf.InverseLerp(
+                    0.00f,
+                    0.38f,
+                    progreso
+                )
+            );
+
+
+        float tMedias =
+            Suavizar01(
+                Mathf.InverseLerp(
+                    0.25f,
+                    0.72f,
+                    progreso
+                )
+            );
+
+
+        float tTraseras =
+            Suavizar01(
+                Mathf.InverseLerp(
+                    0.55f,
+                    1.00f,
+                    progreso
+                )
+            );
+
+
+        Vector3 normalDelante =
+            Vector3.Slerp(
+                normalPared,
+                Vector3.up,
+                tDelanteras
+            ).normalized;
+
+
+        Vector3 normalMedia =
+            Vector3.Slerp(
+                normalPared,
+                Vector3.up,
+                tMedias
+            ).normalized;
+
+
+        Vector3 normalTrasera =
+            Vector3.Slerp(
+                normalPared,
+                Vector3.up,
+                tTraseras
+            ).normalized;
+
+
+        // Delanteras primero.
+        if (gestorPatasArana.pataFL != null)
+            gestorPatasArana.pataFL.EstablecerNormalSuperficie(
+                normalDelante
+            );
+
+        if (gestorPatasArana.pataFR != null)
+            gestorPatasArana.pataFR.EstablecerNormalSuperficie(
+                normalDelante
+            );
+
+
+        // Medias después.
+        if (gestorPatasArana.pataML != null)
+            gestorPatasArana.pataML.EstablecerNormalSuperficie(
+                normalMedia
+            );
+
+        if (gestorPatasArana.pataMR != null)
+            gestorPatasArana.pataMR.EstablecerNormalSuperficie(
+                normalMedia
+            );
+
+
+        // Traseras al final.
+        if (gestorPatasArana.pataBL != null)
+            gestorPatasArana.pataBL.EstablecerNormalSuperficie(
+                normalTrasera
+            );
+
+        if (gestorPatasArana.pataBR != null)
+            gestorPatasArana.pataBR.EstablecerNormalSuperficie(
+                normalTrasera
+            );
+    }
+
+
+    private float Suavizar01(
+        float t)
+    {
+        t =
+            Mathf.Clamp01(
+                t
+            );
+
+
+        return
+            t *
+            t *
+            (3f - 2f * t);
+    }
+
+
+    // =====================================================
+    // PASO 6E - RECUPERAR NAVMESH INFERIOR
+    // =====================================================
+
+    private void FinalizarDescenso()
+    {
+        int mascaraAreas =
+            agente != null
+            ? agente.areaMask
+            : NavMesh.AllAreas;
+
+
+        bool encontroNavMesh =
+            NavMesh.SamplePosition(
+                puntoNavMeshInferiorEscalada,
+                out NavMeshHit hitInferior,
+                Mathf.Max(
+                    0.1f,
+                    radioNavMeshDescenso
+                ),
+                mascaraAreas
+            );
+
+
+        if (!encontroNavMesh)
+        {
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | DESCENSO: llegó abajo, pero no encontró NavMesh inferior."
+                );
+            }
+
+
+            return;
+        }
+
+
+        transform.position =
+            hitInferior.position;
+
+
+        if (spiderVisual != null &&
+            poseLocalVisualSueloGuardada)
+        {
+            spiderVisual.localPosition =
+                posicionLocalVisualSuelo;
+
+            spiderVisual.localRotation =
+                rotacionLocalVisualSuelo;
+        }
+
+
+        if (gestorPatasArana != null)
+        {
+            gestorPatasArana.RestaurarNormalSuelo();
+        }
+
+
+        if (agente != null)
+        {
+            if (!agente.enabled)
+            {
+                agente.enabled =
+                    true;
+            }
+
+
+            agente.updateRotation =
+                !usarGiroProgresivo;
+
+
+            agente.speed =
+                velocidadBaseAgente;
+
+
+            if (agente.isOnNavMesh)
+            {
+                agente.Warp(
+                    hitInferior.position
+                );
+
+                agente.isStopped =
+                    false;
+            }
+        }
+
+
+        descensoPreparado =
+            false;
+
+        tiempoTransicionDescenso =
+            0f;
+
+        datosDescensoDisponibles =
+            false;
+
+        escaladaDetenidaEnPrueba =
+            false;
+
+        bordeSuperiorDetectado =
+            false;
+
+        paredPresenteDuranteEscalada =
+            false;
+
+
+        ResetearAntiAtasco();
+
+
+        // El descenso puede haberse iniciado llevando una piedra
+        // o simplemente para llegar hasta una piedra reservada abajo.
+        bool llevaPiedra =
+            piedraObjetivo != null &&
+            puntoAgarre != null &&
+            piedraObjetivo.transform.parent ==
+                puntoAgarre;
+
+
+        if (llevaPiedra)
+        {
+            estadoActual =
+                EstadoBot.LlevandoPiedra;
+        }
+        else if (piedraObjetivo != null)
+        {
+            estadoActual =
+                EstadoBot.YendoAPiedra;
+
+            temporizadorRevalidacionObjetivo =
+                0f;
+        }
+        else
+        {
+            estadoActual =
+                EstadoBot.Buscando;
+        }
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | DESCENSO PASO 6 COMPLETADO: NavMesh inferior recuperado. " +
+                "Continúa con la misma piedra hacia su destino."
             );
         }
     }
@@ -4106,6 +6569,35 @@ public class BotRecolector : MonoBehaviour
         {
             return false;
         }
+
+
+        // Antes de enviar el Agent comprobamos que el destino
+        // pertenece a la misma isla de NavMesh.
+        NavMeshPath caminoEntrega =
+            new NavMeshPath();
+
+
+        bool rutaCompleta =
+            agente.CalculatePath(
+                hit.position,
+                caminoEntrega
+            ) &&
+            caminoEntrega.status ==
+                NavMeshPathStatus.PathComplete;
+
+
+        if (!rutaCompleta)
+        {
+            // Si acabamos de subir por una pared y el destino está abajo,
+            // volvemos por esa misma pared en lugar de entrar en antiatasco.
+            IntentarIniciarDescensoAutomatico();
+
+            return false;
+        }
+
+
+        agente.isStopped =
+            false;
 
 
         agente.SetDestination(
@@ -5081,6 +7573,9 @@ public class BotRecolector : MonoBehaviour
 
     private void CancelarObjetivo()
     {
+        LimpiarConexionEscaladaObjetivo();
+
+
         if (piedraObjetivo != null)
         {
             if (gestorPiedras != null)
@@ -5959,6 +8454,27 @@ public class BotRecolector : MonoBehaviour
                 name +
                 ": no hay NavMesh cerca del PuntoEntregaBot."
             );
+
+            return;
+        }
+
+
+        NavMeshPath caminoProcesadora =
+            new NavMeshPath();
+
+
+        bool rutaCompletaProcesadora =
+            agente.CalculatePath(
+                hit.position,
+                caminoProcesadora
+            ) &&
+            caminoProcesadora.status ==
+                NavMeshPathStatus.PathComplete;
+
+
+        if (!rutaCompletaProcesadora)
+        {
+            IntentarIniciarDescensoAutomatico();
 
             return;
         }
