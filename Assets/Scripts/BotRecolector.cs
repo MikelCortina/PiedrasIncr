@@ -17,6 +17,7 @@ public class BotRecolector : MonoBehaviour
         // Escalada:
         PreparandoEscalada,
         Escalando,
+        SaliendoEscalada,
 
         // Cadena especial:
         // Bot -> Procesadora -> espera -> piedra procesada -> Agujero.
@@ -525,6 +526,59 @@ public class BotRecolector : MonoBehaviour
         1.50f;
 
 
+    [Header("Escalada - Salida al suelo (Paso 5B)")]
+
+    [Tooltip(
+        "Cuando se detecta correctamente el borde superior, inicia automáticamente " +
+        "la transición pared -> suelo."
+    )]
+    public bool salirAutomaticamenteAlDetectarBorde =
+        true;
+
+
+    [Tooltip(
+        "Duración de la transición completa desde la pose vertical de pared " +
+        "hasta la pose normal sobre el suelo superior."
+    )]
+    [Min(0.05f)]
+    public float duracionTransicionSalidaSuelo =
+        0.90f;
+
+
+    [Tooltip(
+        "Distancia adicional que el Bot avanza hacia el interior de la plataforma " +
+        "después del punto de suelo detectado."
+    )]
+    [Min(0f)]
+    public float distanciaEntradaSueloSuperior =
+        0.20f;
+
+
+    [Tooltip(
+        "Pequeño arco vertical durante el paso por encima del borde. " +
+        "Ayuda a que el cuerpo no roce el canto."
+    )]
+    [Min(0f)]
+    public float alturaArcoSalidaBorde =
+        0.18f;
+
+
+    [Tooltip(
+        "Radio usado para localizar NavMesh alrededor del punto de salida superior."
+    )]
+    [Min(0.1f)]
+    public float radioBuscarNavMeshSalida =
+        1.50f;
+
+
+    [Tooltip(
+        "Si está activo, la araña no comienza la salida si no existe NavMesh " +
+        "válido en la plataforma superior."
+    )]
+    public bool exigirNavMeshEnSalida =
+        true;
+
+
     [Tooltip(
         "Muestra mensajes cuando el Bot conserva una piedra como objetivo " +
         "y entra en PreparandoEscalada."
@@ -674,6 +728,40 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // PASO 5B - SALIDA DE LA PARED AL SUELO
+    // =====================================================
+
+    private bool salidaEscaladaPreparada =
+        false;
+
+    private float tiempoSalidaEscalada =
+        0f;
+
+    private Vector3 posicionInicioRaizSalida;
+
+    private Vector3 posicionObjetivoRaizSalida;
+
+    private Vector3 posicionInicioLocalVisualSalida;
+
+    private Quaternion rotacionInicioLocalVisualSalida;
+
+    private Vector3 posicionLocalVisualSuelo;
+
+    private Quaternion rotacionLocalVisualSuelo;
+
+    private bool poseLocalVisualSueloGuardada =
+        false;
+
+    [SerializeField]
+    private bool navMeshSalidaEncontrado =
+        false;
+
+    [SerializeField]
+    private Vector3 puntoNavMeshSalida =
+        Vector3.zero;
+
+
+    // =====================================================
     // PIEDRAS IGNORADAS
     // =====================================================
 
@@ -772,6 +860,22 @@ public class BotRecolector : MonoBehaviour
             // ni pelear con el NavMeshAgent.
             spiderVisual =
                 gestorPatasArana.transform.parent;
+        }
+
+
+        // Guardamos una sola vez la pose local NORMAL de suelo.
+        // Al salir de la pared volveremos exactamente a esta pose,
+        // aunque el Bot raíz se haya desplazado varios metros escalando.
+        if (spiderVisual != null)
+        {
+            posicionLocalVisualSuelo =
+                spiderVisual.localPosition;
+
+            rotacionLocalVisualSuelo =
+                spiderVisual.localRotation;
+
+            poseLocalVisualSueloGuardada =
+                true;
         }
 
 
@@ -960,6 +1064,13 @@ public class BotRecolector : MonoBehaviour
             case EstadoBot.Escalando:
 
                 ComportamientoEscalando();
+
+                break;
+
+
+            case EstadoBot.SaliendoEscalada:
+
+                ComportamientoSalidaEscalada();
 
                 break;
 
@@ -2731,6 +2842,19 @@ public class BotRecolector : MonoBehaviour
             Vector3.up;
 
 
+        salidaEscaladaPreparada =
+            false;
+
+        tiempoSalidaEscalada =
+            0f;
+
+        navMeshSalidaEncontrado =
+            false;
+
+        puntoNavMeshSalida =
+            Vector3.zero;
+
+
         ResetearAntiAtasco();
 
 
@@ -2861,6 +2985,12 @@ public class BotRecolector : MonoBehaviour
                         " | Normal = " +
                         normalSueloSuperior
                     );
+                }
+
+
+                if (salirAutomaticamenteAlDetectarBorde)
+                {
+                    EntrarEnSalidaEscalada();
                 }
 
 
@@ -3230,6 +3360,483 @@ public class BotRecolector : MonoBehaviour
 
 
         return encontro;
+    }
+
+
+    // =====================================================
+    // PASO 5B - ENTRAR EN SALIDA DE ESCALADA
+    // =====================================================
+
+    private void EntrarEnSalidaEscalada()
+    {
+        if (piedraObjetivo == null ||
+            spiderVisual == null ||
+            gestorPatasArana == null ||
+            normalParedEscalada.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+
+        Vector3 normalPared =
+            normalParedEscalada.normalized;
+
+
+        Vector3 haciaInterior =
+            -normalPared;
+
+
+        // Punto aproximado sobre la plataforma.
+        Vector3 puntoDeseado =
+            puntoSueloSuperior +
+            haciaInterior *
+            Mathf.Max(
+                0f,
+                distanciaEntradaSueloSuperior
+            );
+
+
+        // Buscamos NavMesh ANTES de empezar a mover el Bot.
+        // Así nunca terminamos la animación en un sitio desde el que
+        // luego no podamos reactivar el agente.
+        int mascaraAreas =
+            agente != null
+            ? agente.areaMask
+            : NavMesh.AllAreas;
+
+
+        navMeshSalidaEncontrado =
+            NavMesh.SamplePosition(
+                puntoDeseado,
+                out NavMeshHit hitNavMesh,
+                Mathf.Max(
+                    0.1f,
+                    radioBuscarNavMeshSalida
+                ),
+                mascaraAreas
+            );
+
+
+        if (navMeshSalidaEncontrado)
+        {
+            puntoNavMeshSalida =
+                hitNavMesh.position;
+
+            posicionObjetivoRaizSalida =
+                hitNavMesh.position;
+        }
+        else
+        {
+            puntoNavMeshSalida =
+                puntoDeseado;
+
+            posicionObjetivoRaizSalida =
+                puntoDeseado;
+
+            // El raycast de borde nos da la altura física del suelo.
+            posicionObjetivoRaizSalida.y =
+                puntoSueloSuperior.y;
+
+
+            if (exigirNavMeshEnSalida)
+            {
+                escaladaDetenidaEnPrueba =
+                    true;
+
+
+                if (debugEscalada)
+                {
+                    Debug.LogWarning(
+                        name +
+                        " | PASO 5B detenido: hay suelo superior, " +
+                        "pero NO se encontró NavMesh cerca del punto de salida. " +
+                        "Amplía Radio Buscar NavMesh Salida o revisa el bake del NavMesh."
+                    );
+                }
+
+
+                return;
+            }
+        }
+
+
+        posicionInicioRaizSalida =
+            transform.position;
+
+
+        posicionInicioLocalVisualSalida =
+            spiderVisual.localPosition;
+
+        rotacionInicioLocalVisualSalida =
+            spiderVisual.localRotation;
+
+
+        // Seguridad si por cualquier motivo Start no pudo guardar la pose.
+        if (!poseLocalVisualSueloGuardada)
+        {
+            posicionLocalVisualSuelo =
+                Vector3.zero;
+
+            rotacionLocalVisualSuelo =
+                Quaternion.identity;
+
+            poseLocalVisualSueloGuardada =
+                true;
+        }
+
+
+        tiempoSalidaEscalada =
+            0f;
+
+        salidaEscaladaPreparada =
+            true;
+
+        escaladaDetenidaEnPrueba =
+            false;
+
+
+        // Las seis patas cambian progresivamente:
+        // normal de pared -> Vector3.up.
+        gestorPatasArana.IniciarTransicionASuelo(
+            duracionTransicionSalidaSuelo
+        );
+
+
+        estadoActual =
+            EstadoBot.SaliendoEscalada;
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | ESCALADA PASO 5B: empieza salida pared -> suelo. " +
+                "NavMesh superior encontrado = " +
+                navMeshSalidaEncontrado +
+                " | Destino = " +
+                posicionObjetivoRaizSalida
+            );
+        }
+    }
+
+
+    // =====================================================
+    // PASO 5B - TRANSICIÓN PARED -> SUELO
+    // =====================================================
+
+    private void ComportamientoSalidaEscalada()
+    {
+        if (!salidaEscaladaPreparada ||
+            spiderVisual == null)
+        {
+            return;
+        }
+
+
+        if (piedraObjetivo == null)
+        {
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | PASO 5B cancelado: se perdió la piedra objetivo."
+                );
+            }
+
+            return;
+        }
+
+
+        tiempoSalidaEscalada +=
+            Time.deltaTime;
+
+
+        float duracion =
+            Mathf.Max(
+                0.05f,
+                duracionTransicionSalidaSuelo
+            );
+
+
+        float tTiempo =
+            Mathf.Clamp01(
+                tiempoSalidaEscalada /
+                duracion
+            );
+
+
+        // Si el Gestor existe, usamos también su progreso para que
+        // cuerpo y patas terminen prácticamente al mismo tiempo.
+        float tPatas =
+            gestorPatasArana != null
+            ? gestorPatasArana.ProgresoTransicionSuperficie
+            : tTiempo;
+
+
+        float t =
+            Mathf.Clamp01(
+                Mathf.Min(
+                    tTiempo,
+                    tPatas + 0.02f
+                )
+            );
+
+
+        float tSuave =
+            t * t *
+            (3f - 2f * t);
+
+
+        // =================================================
+        // MOVER BOT RAÍZ POR ENCIMA DEL BORDE
+        // =================================================
+
+        Vector3 posicionRaiz =
+            Vector3.Lerp(
+                posicionInicioRaizSalida,
+                posicionObjetivoRaizSalida,
+                tSuave
+            );
+
+
+        // Pequeño arco para no rozar el canto superior.
+        posicionRaiz +=
+            Vector3.up *
+            Mathf.Sin(
+                Mathf.PI * tSuave
+            ) *
+            Mathf.Max(
+                0f,
+                alturaArcoSalidaBorde
+            );
+
+
+        transform.position =
+            posicionRaiz;
+
+
+        // =================================================
+        // DEVOLVER SPIDERVISUAL A SU POSE NORMAL DE SUELO
+        // =================================================
+        //
+        // Usamos LOCAL position/rotation porque el Bot raíz también
+        // se está moviendo durante la salida.
+        // =================================================
+
+        spiderVisual.localPosition =
+            Vector3.Lerp(
+                posicionInicioLocalVisualSalida,
+                posicionLocalVisualSuelo,
+                tSuave
+            );
+
+
+        spiderVisual.localRotation =
+            Quaternion.Slerp(
+                rotacionInicioLocalVisualSalida,
+                rotacionLocalVisualSuelo,
+                tSuave
+            );
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawLine(
+                posicionInicioRaizSalida,
+                posicionObjetivoRaizSalida,
+                Color.green
+            );
+
+
+            Debug.DrawRay(
+                transform.position,
+                Vector3.up * 0.7f,
+                Color.blue
+            );
+
+
+            Debug.DrawRay(
+                transform.position,
+                -normalParedEscalada.normalized * 0.7f,
+                Color.magenta
+            );
+        }
+
+
+        bool patasTerminadas =
+            gestorPatasArana == null ||
+            !gestorPatasArana.TransicionSuperficieEnCurso;
+
+
+        if (tTiempo >= 1f &&
+            patasTerminadas)
+        {
+            FinalizarSalidaEscalada();
+        }
+    }
+
+
+    // =====================================================
+    // PASO 5B - FINALIZAR Y VOLVER A NAVMESH
+    // =====================================================
+
+    private void FinalizarSalidaEscalada()
+    {
+        // Posición exacta final.
+        transform.position =
+            posicionObjetivoRaizSalida;
+
+
+        if (spiderVisual != null &&
+            poseLocalVisualSueloGuardada)
+        {
+            spiderVisual.localPosition =
+                posicionLocalVisualSuelo;
+
+            spiderVisual.localRotation =
+                rotacionLocalVisualSuelo;
+        }
+
+
+        if (gestorPatasArana != null)
+        {
+            gestorPatasArana.RestaurarNormalSuelo();
+        }
+
+
+        // Volvemos a comprobar NavMesh por seguridad porque durante
+        // la transición hemos movido manualmente el Transform.
+        int mascaraAreas =
+            agente != null
+            ? agente.areaMask
+            : NavMesh.AllAreas;
+
+
+        bool encontroNavMeshFinal =
+            NavMesh.SamplePosition(
+                posicionObjetivoRaizSalida,
+                out NavMeshHit hitNavFinal,
+                Mathf.Max(
+                    0.1f,
+                    radioBuscarNavMeshSalida
+                ),
+                mascaraAreas
+            );
+
+
+        if (!encontroNavMeshFinal)
+        {
+            escaladaDetenidaEnPrueba =
+                true;
+
+
+            if (debugEscalada)
+            {
+                Debug.LogWarning(
+                    name +
+                    " | PASO 5B: transición visual completada, " +
+                    "pero no se pudo reactivar NavMesh porque no hay superficie navegable cerca."
+                );
+            }
+
+
+            return;
+        }
+
+
+        transform.position =
+            hitNavFinal.position;
+
+        puntoNavMeshSalida =
+            hitNavFinal.position;
+
+        navMeshSalidaEncontrado =
+            true;
+
+
+        if (agente != null)
+        {
+            if (!agente.enabled)
+            {
+                agente.enabled =
+                    true;
+            }
+
+
+            agente.updateRotation =
+                !usarGiroProgresivo;
+
+
+            agente.speed =
+                velocidadBaseAgente;
+
+
+            if (agente.isOnNavMesh)
+            {
+                agente.Warp(
+                    hitNavFinal.position
+                );
+
+                agente.isStopped =
+                    false;
+            }
+        }
+
+
+        // Limpiar estado temporal de escalada.
+        salidaEscaladaPreparada =
+            false;
+
+        tiempoSalidaEscalada =
+            0f;
+
+        transicionPatasEscaladaSolicitada =
+            false;
+
+        mensajeTransicionPatasTerminada =
+            false;
+
+        transicionVisualEscaladaPreparada =
+            false;
+
+        escaladaDetenidaEnPrueba =
+            false;
+
+        bordeSuperiorDetectado =
+            false;
+
+        paredPresenteDuranteEscalada =
+            false;
+
+
+        ResetearAntiAtasco();
+
+
+        // Conservamos EXACTAMENTE la piedra reservada.
+        // El siguiente frame vuelve a utilizar la lógica normal de suelo.
+        if (piedraObjetivo != null)
+        {
+            estadoActual =
+                EstadoBot.YendoAPiedra;
+
+            temporizadorRevalidacionObjetivo =
+                0f;
+        }
+        else
+        {
+            estadoActual =
+                EstadoBot.Buscando;
+        }
+
+
+        if (debugEscalada)
+        {
+            Debug.Log(
+                name +
+                " | ESCALADA PASO 5B COMPLETADO: suelo recuperado, " +
+                "NavMesh reactivado y objetivo conservado."
+            );
+        }
     }
 
 
