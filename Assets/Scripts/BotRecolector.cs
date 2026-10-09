@@ -483,6 +483,48 @@ public class BotRecolector : MonoBehaviour
         0.35f;
 
 
+    [Header("Escalada - Detección del borde superior")]
+
+    [Tooltip(
+        "Activa la detección del suelo superior cuando deja de verse la pared."
+    )]
+    public bool detectarBordeSuperior =
+        true;
+
+
+    [Tooltip(
+        "Layers válidas para el suelo superior. " +
+        "Normalmente Floor y, si la parte superior pertenece al mismo collider, Escalable."
+    )]
+    public LayerMask capaSueloSalidaEscalada;
+
+
+    [Tooltip(
+        "Cuánto avanzamos el punto de sondeo hacia el interior de la plataforma " +
+        "desde la cara de la pared."
+    )]
+    [Min(0f)]
+    public float avanceSondeoBorde =
+        0.45f;
+
+
+    [Tooltip(
+        "Cuánto elevamos el origen del raycast por encima del cuerpo visual " +
+        "para buscar la superficie superior."
+    )]
+    [Min(0f)]
+    public float alturaSondeoBorde =
+        0.80f;
+
+
+    [Tooltip(
+        "Distancia máxima del raycast vertical hacia abajo que busca el suelo superior."
+    )]
+    [Min(0.1f)]
+    public float distanciaRaycastSueloSuperior =
+        1.50f;
+
+
     [Tooltip(
         "Muestra mensajes cuando el Bot conserva una piedra como objetivo " +
         "y entra en PreparandoEscalada."
@@ -614,6 +656,21 @@ public class BotRecolector : MonoBehaviour
 
     private bool mensajeFinPruebaEscaladaMostrado =
         false;
+
+
+    [SerializeField]
+    private bool bordeSuperiorDetectado =
+        false;
+
+
+    [SerializeField]
+    private Vector3 puntoSueloSuperior =
+        Vector3.zero;
+
+
+    [SerializeField]
+    private Vector3 normalSueloSuperior =
+        Vector3.up;
 
 
     // =====================================================
@@ -2664,6 +2721,16 @@ public class BotRecolector : MonoBehaviour
             false;
 
 
+        bordeSuperiorDetectado =
+            false;
+
+        puntoSueloSuperior =
+            Vector3.zero;
+
+        normalSueloSuperior =
+            Vector3.up;
+
+
         ResetearAntiAtasco();
 
 
@@ -2747,6 +2814,60 @@ public class BotRecolector : MonoBehaviour
 
         if (!paredPresenteDuranteEscalada)
         {
+            // =================================================
+            // PASO 5A: ¿HEMOS LLEGADO AL BORDE SUPERIOR?
+            // =================================================
+            //
+            // De momento NO hacemos todavía la salida completa.
+            // Solo comprobamos que:
+            // 1) la pared se ha terminado,
+            // 2) existe una superficie válida por encima y hacia
+            //    el interior de la pared.
+            //
+            // Si la encontramos, paramos la araña y dejamos el
+            // punto guardado para el siguiente subpaso.
+            // =================================================
+
+            if (detectarBordeSuperior &&
+                ComprobarSueloSuperiorEscalada(
+                    normalPared,
+                    direccionSubida,
+                    out RaycastHit hitSueloSuperior))
+            {
+                bordeSuperiorDetectado =
+                    true;
+
+                puntoSueloSuperior =
+                    hitSueloSuperior.point;
+
+                normalSueloSuperior =
+                    hitSueloSuperior.normal.normalized;
+
+                escaladaDetenidaEnPrueba =
+                    true;
+
+
+                if (debugEscalada &&
+                    !mensajeFinPruebaEscaladaMostrado)
+                {
+                    mensajeFinPruebaEscaladaMostrado =
+                        true;
+
+                    Debug.Log(
+                        name +
+                        " | ESCALADA PASO 5A: BORDE SUPERIOR DETECTADO. " +
+                        "Punto = " +
+                        puntoSueloSuperior +
+                        " | Normal = " +
+                        normalSueloSuperior
+                    );
+                }
+
+
+                return;
+            }
+
+
             escaladaDetenidaEnPrueba =
                 true;
 
@@ -2758,11 +2879,11 @@ public class BotRecolector : MonoBehaviour
                     true;
 
 
-                Debug.Log(
+                Debug.LogWarning(
                     name +
-                    " | ESCALADA: ya no detecta pared. " +
-                    "Movimiento detenido. Este punto servirá después " +
-                    "para detectar el borde superior."
+                    " | ESCALADA: se terminó la pared, pero NO se encontró " +
+                    "una superficie superior válida. Revisa Capa Suelo Salida Escalada " +
+                    "y los valores de sondeo."
                 );
             }
 
@@ -2978,6 +3099,133 @@ public class BotRecolector : MonoBehaviour
                     ? Color.yellow
                     : Color.red
             );
+        }
+
+
+        return encontro;
+    }
+
+
+    // =====================================================
+    // PASO 5A - BUSCAR SUELO EN EL BORDE SUPERIOR
+    // =====================================================
+
+    private bool ComprobarSueloSuperiorEscalada(
+        Vector3 normalPared,
+        Vector3 direccionSubida,
+        out RaycastHit hitSuelo)
+    {
+        hitSuelo =
+            default;
+
+
+        if (normalPared.sqrMagnitude <
+            0.0001f)
+        {
+            return false;
+        }
+
+
+        Vector3 centroVisual =
+            spiderVisual != null
+            ? spiderVisual.position
+            : transform.position;
+
+
+        Vector3 haciaInterior =
+            -normalPared.normalized;
+
+
+        // Nos colocamos virtualmente un poco por encima del cuerpo y
+        // un poco hacia el interior de la plataforma. Desde ahí
+        // lanzamos un rayo vertical hacia abajo.
+        Vector3 origen =
+            centroVisual +
+            Vector3.up *
+            Mathf.Max(
+                0f,
+                alturaSondeoBorde
+            ) +
+            haciaInterior *
+            Mathf.Max(
+                0f,
+                avanceSondeoBorde
+            );
+
+
+        int mascara =
+            capaSueloSalidaEscalada.value != 0
+            ? capaSueloSalidaEscalada.value
+            : Physics.DefaultRaycastLayers;
+
+
+        bool encontro =
+            Physics.Raycast(
+                origen,
+                Vector3.down,
+                out hitSuelo,
+                Mathf.Max(
+                    0.1f,
+                    distanciaRaycastSueloSuperior
+                ),
+                mascara,
+                QueryTriggerInteraction.Ignore
+            );
+
+
+        // Para esta primera versión solo aceptamos una superficie
+        // razonablemente orientada hacia arriba. Así no confundimos
+        // otra pared vertical con el suelo de salida.
+        if (encontro)
+        {
+            float verticalidad =
+                Vector3.Dot(
+                    hitSuelo.normal.normalized,
+                    Vector3.up
+                );
+
+
+            if (verticalidad <
+                0.45f)
+            {
+                encontro =
+                    false;
+            }
+        }
+
+
+        if (debugEscalada)
+        {
+            Debug.DrawRay(
+                origen,
+                Vector3.down *
+                Mathf.Max(
+                    0.1f,
+                    distanciaRaycastSueloSuperior
+                ),
+                encontro
+                    ? Color.green
+                    : Color.red
+            );
+
+
+            Debug.DrawRay(
+                origen,
+                haciaInterior *
+                0.35f,
+                Color.magenta
+            );
+
+
+            if (encontro)
+            {
+                Debug.DrawRay(
+                    hitSuelo.point,
+                    hitSuelo.normal *
+                    0.6f,
+                    Color.blue
+                );
+            }
         }
 
 
