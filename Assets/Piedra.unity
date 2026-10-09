@@ -7368,6 +7368,9 @@ MonoBehaviour:
   velocidadRotacion: 10
   distanciaMaximaConstruccion: 15
   tiempoEsperaConstruccion: 0.2
+  teclaCurvar: 32
+  velocidadCurvatura: 3
+  curvaturaMaxima: 3
   modoConstruccion: 0
 --- !u!114 &584387207
 MonoBehaviour:
@@ -7412,7 +7415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   armaLanzadoraDesbloqueada: 0
   torbellinoDesbloqueado: 0
-  martilloDesbloqueado: 0
+  martilloDesbloqueado: 1
   equipamientoActual: 0
   agarreLanzamiento: {fileID: 584387204}
   armaLanzadora: {fileID: 2046494809}

@@ -26,7 +26,6 @@ public class SistemaConstruccion : MonoBehaviour
     [Header("Catálogo de Edificios")]
     public InfoEdificio[] edificios;
     private int indiceEdificioActual = 0;
-
     private int indiceVarianteActual = 0;
 
     [Header("Referencias")]
@@ -52,23 +51,39 @@ public class SistemaConstruccion : MonoBehaviour
     public KeyCode teclaCambiarTipo = KeyCode.Tab;
     public float velocidadRotacion = 10f;
     public float distanciaMaximaConstruccion = 15f;
-
-    // AÑADIDO: Tiempo personalizable de espera
-    [Tooltip("Tiempo en segundos que tarda en aparecer el siguiente holograma tras construir")]
     public float tiempoEsperaConstruccion = 0.5f;
 
+    [Header("Ajustes de Curvatura Dinámica (Eje X)")]
+    [Tooltip("Mantén esta tecla para acceder a la geometría y curvar la rampa lateralmente (Puedes usar rueda del ratón)")]
+    public KeyCode teclaCurvar = KeyCode.Space;
+    public float velocidadCurvatura = 3f;
+    public float curvaturaMaxima = 3f;
+
+    // --- Estructura para guardar el estado original de TODOS los conectores ---
+    private struct ConectorCache
+    {
+        public Transform transform;
+        public Vector3 originalRootPos;
+        public Quaternion originalRootRot;
+    }
+
+    // --- Variables Internas de Curvatura ---
+    private float curvaturaActual = 0f;
+    private float tiempoCurvado = 0f;
+    private MeshFilter[] hologramMeshFilters;
+    private Vector3[][] hologramOriginalVerts;
+    private List<ConectorCache> conectoresHologramaCache = new List<ConectorCache>();
+    private float hologramaMinZ, hologramaMaxZ;
+
+    // --- Variables Internas del Sistema ---
     private GameObject hologramaActual;
     public bool modoConstruccion = false;
     private bool estaImantado = false;
-
     private Collider imanApuntado = null;
     private float rotacionManualOffset = 0f;
-
     private GameObject edificioApuntado = null;
     private GameObject edificioApuntadoAnterior = null;
-
     private float cooldownHolograma = 0f;
-
     private Collider slotBloqueado = null;
     private Vector3? posicionSueloBloqueada = null;
     private float timerBloqueoSlot = 0f;
@@ -93,28 +108,32 @@ public class SistemaConstruccion : MonoBehaviour
 
         if (modoConstruccion)
         {
-            // AÑADIDO: Lógica del temporizador
             if (cooldownHolograma > 0f)
             {
-                cooldownHolograma -= Time.deltaTime;
-
-                // Mientras estamos en cooldown, si existe un holograma, lo ocultamos
                 if (hologramaActual != null && hologramaActual.activeSelf)
                 {
                     hologramaActual.SetActive(false);
                 }
 
-                // Si el cooldown acaba de terminar y no tenemos holograma, lo creamos
+                cooldownHolograma -= Time.deltaTime;
+
                 if (cooldownHolograma <= 0f && hologramaActual == null)
                 {
                     CrearHolograma();
                 }
 
-                // Evitamos que ejecute lógica de construcción mientras espera
                 return;
             }
             else if (hologramaActual != null)
             {
+                // ==========================================
+                // LÓGICA DE CURVATURA DINÁMICA (SOLO RAMPAS)
+                // ==========================================
+                if (edificios[indiceEdificioActual].tipo == TipoEdificio.Rampa)
+                {
+                    ManejarCurvaturaRampa();
+                }
+
                 // 1. Calculamos la posición y rotación base (Imán o Suelo)
                 ManejarPosicionamientoYMagnetismo();
 
@@ -138,8 +157,7 @@ public class SistemaConstruccion : MonoBehaviour
 
     public void SetModoConstruccion(bool activar)
     {
-        if (modoConstruccion == activar)
-            return;
+        if (modoConstruccion == activar) return;
 
         modoConstruccion = activar;
 
@@ -150,11 +168,7 @@ public class SistemaConstruccion : MonoBehaviour
 
         if (modoConstruccion)
         {
-            // Si hay un cooldown activo de antes, no creamos el holograma todavía
-            if (cooldownHolograma <= 0f)
-            {
-                CrearHolograma();
-            }
+            if (cooldownHolograma <= 0f) CrearHolograma();
             Debug.Log("Modo construcción ACTIVADO");
         }
         else
@@ -169,7 +183,6 @@ public class SistemaConstruccion : MonoBehaviour
         indiceEdificioActual = (indiceEdificioActual + 1) % edificios.Length;
         DestruirHolograma();
 
-        // Al cambiar de tipo, ignoramos el cooldown para que la respuesta sea inmediata
         cooldownHolograma = 0f;
         CrearHolograma();
     }
@@ -177,8 +190,8 @@ public class SistemaConstruccion : MonoBehaviour
     void CrearHolograma()
     {
         rotacionManualOffset = 0f;
-
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
+
         if (edificioActual.prefabsHologramas.Length > 0)
         {
             indiceVarianteActual = Random.Range(0, edificioActual.prefabsHologramas.Length);
@@ -192,6 +205,14 @@ public class SistemaConstruccion : MonoBehaviour
         slotBloqueado = null;
         posicionSueloBloqueada = null;
         timerBloqueoSlot = 0f;
+
+        // Si es una rampa, preparamos las cachés de los vértices para curvarla
+        if (edificioActual.tipo == TipoEdificio.Rampa)
+        {
+            curvaturaActual = 0f;
+            tiempoCurvado = 0f;
+            InicializarCurvaturaHolograma();
+        }
     }
 
     void DestruirHolograma()
@@ -207,6 +228,203 @@ public class SistemaConstruccion : MonoBehaviour
             edificioApuntado = null;
         }
     }
+
+    // ========================================================
+    // DEFORMADOR MATEMÁTICO DE RAMPAS (EJE X)
+    // ========================================================
+    void InicializarCurvaturaHolograma()
+    {
+        hologramMeshFilters = hologramaActual.GetComponentsInChildren<MeshFilter>();
+        hologramOriginalVerts = new Vector3[hologramMeshFilters.Length][];
+        Transform rootTransform = hologramaActual.transform;
+
+        for (int i = 0; i < hologramMeshFilters.Length; i++)
+        {
+            Mesh clon = Instantiate(hologramMeshFilters[i].sharedMesh);
+            hologramMeshFilters[i].mesh = clon;
+            hologramOriginalVerts[i] = clon.vertices;
+        }
+
+        conectoresHologramaCache.Clear();
+        Transform conectorEntrada = null;
+        Transform conectorSalida = null;
+
+        Transform[] hijos = hologramaActual.GetComponentsInChildren<Transform>();
+        foreach (Transform t in hijos)
+        {
+            if (t.CompareTag("ConectorEntrada")) conectorEntrada = t;
+            if (t.CompareTag("ConectorSalida")) conectorSalida = t;
+
+            if (t.CompareTag("ConectorSalida") || t.CompareTag("ConectorEntrada") ||
+                t.CompareTag("RailRampa") || t.CompareTag("ConectorParedSalida") ||
+                t.CompareTag("ConectorParedEntrada") || t.name.Contains("PuntoConexion"))
+            {
+                ConectorCache cache = new ConectorCache();
+                cache.transform = t;
+                cache.originalRootPos = rootTransform.InverseTransformPoint(t.position);
+                cache.originalRootRot = Quaternion.Inverse(rootTransform.rotation) * t.rotation;
+                conectoresHologramaCache.Add(cache);
+            }
+        }
+
+        if (conectorEntrada != null && conectorSalida != null)
+        {
+            hologramaMinZ = rootTransform.InverseTransformPoint(conectorEntrada.position).z;
+            hologramaMaxZ = rootTransform.InverseTransformPoint(conectorSalida.position).z;
+        }
+        else
+        {
+            hologramaMinZ = float.MaxValue;
+            hologramaMaxZ = float.MinValue;
+            foreach (var cache in conectoresHologramaCache)
+            {
+                if (cache.originalRootPos.z < hologramaMinZ) hologramaMinZ = cache.originalRootPos.z;
+                if (cache.originalRootPos.z > hologramaMaxZ) hologramaMaxZ = cache.originalRootPos.z;
+            }
+        }
+    }
+
+    void ManejarCurvaturaRampa()
+    {
+        if (Input.GetKey(teclaCurvar))
+        {
+            float scroll = Input.GetAxis("Mouse ScrollWheel") * 10f;
+            float teclado = 0f;
+            if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow)) teclado = 1f;
+            if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.DownArrow)) teclado = -1f;
+
+            float inputTotal = scroll + (teclado * Time.deltaTime * velocidadCurvatura);
+
+            if (inputTotal == 0f)
+            {
+                tiempoCurvado += Time.deltaTime * velocidadCurvatura * 0.5f;
+                curvaturaActual = Mathf.Sin(tiempoCurvado) * curvaturaMaxima;
+            }
+            else
+            {
+                curvaturaActual += inputTotal;
+                curvaturaActual = Mathf.Clamp(curvaturaActual, -curvaturaMaxima, curvaturaMaxima);
+                tiempoCurvado = Mathf.Asin(curvaturaActual / curvaturaMaxima);
+            }
+
+            AplicarCurvaturaHolograma();
+        }
+    }
+
+    void AplicarCurvaturaHolograma()
+    {
+        if (hologramMeshFilters == null) return;
+        float lengthZ = hologramaMaxZ - hologramaMinZ;
+        if (Mathf.Abs(lengthZ) <= 0.001f) return;
+
+        Transform rootTransform = hologramaActual.transform;
+
+        for (int i = 0; i < hologramMeshFilters.Length; i++)
+        {
+            Mesh m = hologramMeshFilters[i].mesh;
+            Vector3[] verts = m.vertices;
+            Vector3[] orig = hologramOriginalVerts[i];
+            Transform mfTransform = hologramMeshFilters[i].transform;
+
+            for (int j = 0; j < verts.Length; j++)
+            {
+                Vector3 vMundo = mfTransform.TransformPoint(orig[j]);
+                Vector3 vRoot = rootTransform.InverseTransformPoint(vMundo);
+
+                // CAMBIO CLAVE: Cambiado de vRoot.z - hologramaMinZ (Entrada) a hologramaMaxZ - vRoot.z (Salida)
+                // de modo que en el extremo de Salida (MaxZ) "t" sea 0 (fijo) y en la Entrada (MinZ) "t" sea 1 (máximo movimiento).
+                float t = (hologramaMaxZ - vRoot.z) / lengthZ;
+                vRoot.x += curvaturaActual * (t * t);
+
+                vMundo = rootTransform.TransformPoint(vRoot);
+                verts[j] = mfTransform.InverseTransformPoint(vMundo);
+            }
+            m.vertices = verts;
+            m.RecalculateNormals();
+            m.RecalculateBounds();
+        }
+
+        foreach (ConectorCache cache in conectoresHologramaCache)
+        {
+            if (cache.transform == null) continue;
+
+            // Mismo cálculo inverso para que el conector de salida sea el estático (T=0)
+            float tVal = (hologramaMaxZ - cache.originalRootPos.z) / lengthZ;
+            Vector3 nuevaPosRoot = cache.originalRootPos;
+            nuevaPosRoot.x += curvaturaActual * (tVal * tVal);
+
+            cache.transform.position = rootTransform.TransformPoint(nuevaPosRoot);
+
+            // Derivada de la parábola invertida para que la rotación también se anule en el extremo estático (Salida, t=0).
+            float slopeExtra = (2f * curvaturaActual * tVal) / lengthZ;
+            float anguloExtra = Mathf.Atan(slopeExtra) * Mathf.Rad2Deg;
+
+            // Se calcula y aplica la rotación dinamica desde la Salida fija hacia la Entrada curvada.
+            Quaternion rotacionDinamicaRoot = Quaternion.Euler(0, anguloExtra, 0) * cache.originalRootRot;
+            cache.transform.rotation = rootTransform.rotation * rotacionDinamicaRoot;
+        }
+    }
+
+    void AplicarCurvaturaAObjetoReal(GameObject estructuraReal)
+    {
+        MeshFilter[] mfs = estructuraReal.GetComponentsInChildren<MeshFilter>();
+        float lengthZ = hologramaMaxZ - hologramaMinZ;
+        Transform rootTransform = estructuraReal.transform;
+
+        foreach (MeshFilter mf in mfs)
+        {
+            Mesh clon = Instantiate(mf.sharedMesh);
+            Vector3[] verts = clon.vertices;
+            Transform mfTransform = mf.transform;
+
+            for (int j = 0; j < verts.Length; j++)
+            {
+                Vector3 vMundo = mfTransform.TransformPoint(verts[j]);
+                Vector3 vRoot = rootTransform.InverseTransformPoint(vMundo);
+
+                // Aplicar el mismo cálculo inverso para la malla del objeto real.
+                float t = (hologramaMaxZ - vRoot.z) / lengthZ;
+                vRoot.x += curvaturaActual * (t * t);
+
+                vMundo = rootTransform.TransformPoint(vRoot);
+                verts[j] = mfTransform.InverseTransformPoint(vMundo);
+            }
+            clon.vertices = verts;
+            clon.RecalculateNormals();
+            clon.RecalculateBounds();
+            mf.mesh = clon;
+
+            MeshCollider mc = mf.GetComponent<MeshCollider>();
+            if (mc != null)
+            {
+                mc.sharedMesh = clon;
+            }
+        }
+
+        Transform[] hijos = estructuraReal.GetComponentsInChildren<Transform>();
+        foreach (Transform t in hijos)
+        {
+            if (t.CompareTag("ConectorSalida") || t.CompareTag("ConectorEntrada") ||
+                t.CompareTag("RailRampa") || t.CompareTag("ConectorParedSalida") ||
+                t.CompareTag("ConectorParedEntrada") || t.name.Contains("PuntoConexion"))
+            {
+                Vector3 origPosRoot = rootTransform.InverseTransformPoint(t.position);
+                // Mismo cálculo inverso para los conectores reales.
+                float tVal = (hologramaMaxZ - origPosRoot.z) / lengthZ;
+
+                origPosRoot.x += curvaturaActual * (tVal * tVal);
+                t.position = rootTransform.TransformPoint(origPosRoot);
+
+                float slopeExtra = (2f * curvaturaActual * tVal) / lengthZ;
+                float anguloExtra = Mathf.Atan(slopeExtra) * Mathf.Rad2Deg;
+
+                Quaternion originalRootRot = Quaternion.Inverse(rootTransform.rotation) * t.rotation;
+                Quaternion rotacionDinamicaRoot = Quaternion.Euler(0, anguloExtra, 0) * originalRootRot;
+                t.rotation = rootTransform.rotation * rotacionDinamicaRoot;
+            }
+        }
+    }
+    // ========================================================
 
     void ManejarPosicionamientoYMagnetismo()
     {
@@ -458,7 +676,6 @@ public class SistemaConstruccion : MonoBehaviour
                 edificioApuntadoAnterior = null;
                 edificioApuntado = null;
 
-                // Aplicar cooldown modificado al destruir
                 cooldownHolograma = tiempoEsperaConstruccion;
                 timerBloqueoSlot = 1.0f;
 
@@ -471,6 +688,12 @@ public class SistemaConstruccion : MonoBehaviour
                 InfoEdificio actual = edificios[indiceEdificioActual];
 
                 GameObject nuevaEstructura = Instantiate(actual.prefabsReales[indiceVarianteActual], hologramaActual.transform.position, hologramaActual.transform.rotation);
+
+                // APLICAR LA CURVA A LA ESTRUCTURA REAL Y AL MESH COLLIDER
+                if (actual.tipo == TipoEdificio.Rampa && curvaturaActual != 0f)
+                {
+                    AplicarCurvaturaAObjetoReal(nuevaEstructura);
+                }
 
                 nuevaEstructura.AddComponent<EfectoBloop>();
 
@@ -545,11 +768,8 @@ public class SistemaConstruccion : MonoBehaviour
                     }
                 }
 
-                // AÑADIDO: Aplicar el cooldown desde el inspector al construir
                 cooldownHolograma = tiempoEsperaConstruccion;
 
-                // Destruimos el holograma actual. El Update se encargará de crear el nuevo
-                // cuando termine el tiempo de cooldown.
                 DestruirHolograma();
             }
         }

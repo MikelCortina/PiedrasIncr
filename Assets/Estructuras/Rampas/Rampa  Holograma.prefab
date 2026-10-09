@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
   m_LocalPosition: {x: -0, y: 0.5, z: 0}
-  m_LocalScale: {x: 125, y: 80, z: 150}
+  m_LocalScale: {x: 125, y: 125, z: 150}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4861139524609099855}
@@ -136,6 +136,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1071930334888911904
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,7 +219,7 @@ Transform:
   m_GameObject: {fileID: 2088384508191657918}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -4}
+  m_LocalPosition: {x: -0, y: 0, z: -5}
   m_LocalScale: {x: 0.060802, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -321,7 +325,7 @@ Transform:
   m_GameObject: {fileID: 6237173010343076700}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 4}
+  m_LocalPosition: {x: -0, y: 0, z: 5}
   m_LocalScale: {x: 0.060802, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -370,7 +374,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 80
+      value: 125
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalScale.z
@@ -711,3 +715,7 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
