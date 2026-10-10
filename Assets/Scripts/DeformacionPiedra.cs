@@ -14,6 +14,10 @@ public class DeformacionPiedra : MonoBehaviour
     public float fuerzaDeErosion = 0.1f;
     public float fuerzaMinimaChoque = 1.0f;
 
+    [Header("Forma Final (100% Desgaste)")]
+    [Tooltip("El tamaño (radio local) exacto que tendrá la piedra al estar pulida al 100%. Ajústalo para que sea MÁS PEQUEÑO que tu esfera hija de color.")]
+    public float radioFinalEsfera = 0.4f;
+
     [HideInInspector]
     public float multiplicadorErosion = 1f;
 
@@ -26,6 +30,12 @@ public class DeformacionPiedra : MonoBehaviour
     public float fuerzaMaximaParticulas = 20.0f;
     public int minParticulasPorGolpe = 2;
     public int maxParticulasPorGolpe = 50;
+
+    [Header("Colores de Partículas (Desgaste > 95%)")]
+    [Tooltip("Color de las partículas cuando la piedra está normal")]
+    public Color colorParticulasNormal = Color.white;
+    [Tooltip("Color de las partículas cuando la piedra supera el 95% de erosión")]
+    public Color colorParticulasErosionado = Color.yellow;
 
     [Header("Deslizamiento Visual")]
     public float velocidadMinimaDeslizamiento = 3.0f;
@@ -70,7 +80,6 @@ public class DeformacionPiedra : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-        // --- SOLUCIÓN 1: Forzar MeshCollider Convexo ---
         MeshCollider mc = GetComponent<MeshCollider>();
         if (mc != null) mc.convex = true;
 
@@ -166,12 +175,9 @@ public class DeformacionPiedra : MonoBehaviour
 
     void CalcularRadioObjetivo()
     {
-        radioObjetivoMinimo = float.MaxValue;
-        foreach (Vector3 vertice in vertices)
-        {
-            float distanciaAlCentro = vertice.magnitude;
-            if (distanciaAlCentro < radioObjetivoMinimo) radioObjetivoMinimo = distanciaAlCentro;
-        }
+        // En lugar de calcular el valle aleatorio de esta malla,
+        // forzamos el tamaño exacto que tú has puesto en el Inspector para todas.
+        radioObjetivoMinimo = radioFinalEsfera;
     }
 
     void OnCollisionEnter(Collision colision)
@@ -245,6 +251,19 @@ public class DeformacionPiedra : MonoBehaviour
     {
         particulasPolvo.transform.position = pos;
         particulasPolvo.transform.rotation = Quaternion.LookRotation(norm);
+
+        float desgaste = ObtenerPorcentajeDesgasteHaciaEsfera();
+        var main = particulasPolvo.main;
+
+        if (desgaste >= 95f)
+        {
+            main.startColor = colorParticulasErosionado;
+        }
+        else
+        {
+            main.startColor = colorParticulasNormal;
+        }
+
         float pct = Mathf.InverseLerp(minF, maxF, fActual);
         particulasPolvo.Emit(Mathf.RoundToInt(Mathf.Lerp(minP, maxP, pct)));
     }
@@ -285,7 +304,7 @@ public class DeformacionPiedra : MonoBehaviour
 
             MeshCollider mc = GetComponent<MeshCollider>();
             mc.sharedMesh = malla;
-            mc.convex = true; // --- Mantener Convexidad ---
+            mc.convex = true;
             GetComponent<MeshFilter>().sharedMesh = malla;
         }
     }
@@ -320,7 +339,7 @@ public class DeformacionPiedra : MonoBehaviour
 
             MeshCollider mc = GetComponent<MeshCollider>();
             mc.sharedMesh = malla;
-            mc.convex = true; // --- Mantener Convexidad ---
+            mc.convex = true;
             GetComponent<MeshFilter>().sharedMesh = malla;
         }
     }

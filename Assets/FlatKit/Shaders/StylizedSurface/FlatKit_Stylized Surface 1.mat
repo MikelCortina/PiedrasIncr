@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - DR_ENABLE_LIGHTMAP_DIR
   - DR_OUTLINE_ON
   - DR_OUTLINE_SMOOTH_NORMALS
   - _CELPRIMARYMODE_SINGLE
@@ -56,6 +57,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
@@ -65,11 +70,14 @@ Material:
     - _CelExtraEnabled: 0
     - _CelNumSteps: 3
     - _CelPrimaryMode: 1
+    - _CenterLighten: 1
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailMapBlendingMode: 0
     - _DetailMapImpact: 0
     - _DstBlend: 0
+    - _EdgeDarken: 1
+    - _FakeAOEnabled: 0
     - _FlatRimEdgeSmoothness: 0.5
     - _FlatRimLightAlign: 0
     - _FlatRimSize: 0.5
@@ -87,6 +95,7 @@ Material:
     - _LightFalloffSize: 0
     - _LightmapDirectionPitch: 0
     - _LightmapDirectionYaw: 0
+    - _NoiseScale: 1
     - _OutlineDepthOffset: 0
     - _OutlineEnabled: 1
     - _OutlineScale: 1

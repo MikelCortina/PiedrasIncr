@@ -231,13 +231,45 @@ Varyings StylizedPassVertex(Attributes input)
     return output;
 }
 
+// --- VARIABLES BALATRO AISLADAS ---
+#if defined(BALATRO_DISTORTION)
+float4 _BalatroColor1;
+float4 _BalatroColor2;
+float4 _BalatroColor3;
+float _DistortionSpeed;
+float _DistortionScale;
+#endif
+// ----------------------------------
+
 half4 StylizedPassFragment(Varyings input) : SV_Target
-{
-    UNITY_SETUP_INSTANCE_ID(input);
+{UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
+
+    // --- EFECTO BALATRO PROCEDURAL ---
+    #if defined(BALATRO_DISTORTION)
+        float t = _Time.y * _DistortionSpeed;
+        
+        // Generar un patrón de ondas cruzadas
+        float pattern = sin(input.uv.x * _DistortionScale + t) + 
+                        cos(input.uv.y * _DistortionScale - t * 0.8);
+                        
+        // Añadir una segunda capa para hacer el remolino más complejo
+        pattern += sin((input.uv.x - input.uv.y) * _DistortionScale * 0.5 + t * 1.2);
+        
+        // Normalizar el valor a un rango aproximado de 0 a 1
+        pattern = (pattern * 0.25) + 0.5;
+
+        // Mezclar los 3 colores en base al patrón generado
+        half3 balatroColor = lerp(_BalatroColor1.rgb, _BalatroColor2.rgb, smoothstep(0.0, 0.5, pattern));
+        balatroColor = lerp(balatroColor, _BalatroColor3.rgb, smoothstep(0.5, 1.0, pattern));
+        
+        // Reemplazar el color base o multiplicarlo
+        _BaseColor.rgb = balatroColor.rgb; // O puedes usar *= si quieres mantener la textura base original
+    #endif
+    // -------
 
 #if defined(LOD_FADE_CROSSFADE) && !VERSION_LOWER(13, 0)
     LODFadeCrossFade(input.positionCS);
@@ -245,26 +277,18 @@ half4 StylizedPassFragment(Varyings input) : SV_Target
 
     InputData inputData;
     InitializeInputData_DR(input, surfaceData.normalTS, inputData);
-    #if UNITY_VERSION >= 202330
+#if UNITY_VERSION >= 202330
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv);
-    #elif UNITY_VERSION >= 202210
+#elif UNITY_VERSION >= 202210
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
-    #endif
+#endif
 
-    // Apply vertex color before shading (default behavior). Remove the #if block and uncomment below to apply after
-    // shading.
-    #if defined(DR_VERTEX_COLORS_ON)
+#if defined(DR_VERTEX_COLORS_ON)
         _BaseColor.rgb *= input.VertexColor.rgb;
-    #endif
+#endif
 
     // Computes direct light contribution.
     half4 color = UniversalFragment_DSTRM(inputData, surfaceData, input.uv);
-
-    /*
-    #if defined(DR_VERTEX_COLORS_ON)
-    color.rgb *= input.VertexColor.rgb;
-    #endif
-    */
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
 #if UNITY_VERSION >= 202220
@@ -275,5 +299,4 @@ half4 StylizedPassFragment(Varyings input) : SV_Target
 
     return color;
 }
-
 #endif // FLATKIT_LIGHT_PASS_DR_INCLUDED
