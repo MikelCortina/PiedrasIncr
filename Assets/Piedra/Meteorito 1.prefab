@@ -194,8 +194,8 @@ MonoBehaviour:
   fuerzaMaximaParticulas: 30
   minParticulasPorGolpe: 2
   maxParticulasPorGolpe: 5
-  colorParticulasNormal: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  colorParticulasErosionado: {r: 0.5943396, g: 0.4177198, b: 0.5127942, a: 1}
+  colorParticulasNormal: {r: 8, g: 7.372549, b: 0.1254902, a: 1}
+  colorParticulasErosionado: {r: 7.4716983, g: 0.88109636, b: 4.3876333, a: 1}
   velocidadMinimaDeslizamiento: 5
   tiempoEntrePolvo: 0.1
   sonidosRebote:
@@ -296,6 +296,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1438012291908866971, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2005f0489c186d6488adfaba216b0dc8, type: 2}
     - target: {fileID: 5013780143572598559, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
       propertyPath: m_Name
       value: Chispas

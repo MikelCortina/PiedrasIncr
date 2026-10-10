@@ -33,8 +33,11 @@ public class DeformacionPiedra : MonoBehaviour
 
     [Header("Colores de Partículas (Desgaste > 95%)")]
     [Tooltip("Color de las partículas cuando la piedra está normal")]
+    [ColorUsage(true, true)] // <-- Esto habilita el selector HDR con intensidad
     public Color colorParticulasNormal = Color.white;
+
     [Tooltip("Color de las partículas cuando la piedra supera el 95% de erosión")]
+    [ColorUsage(true, true)] // <-- Esto habilita el selector HDR con intensidad
     public Color colorParticulasErosionado = Color.yellow;
 
     [Header("Deslizamiento Visual")]

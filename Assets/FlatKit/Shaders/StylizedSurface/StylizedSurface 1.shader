@@ -17,10 +17,15 @@
         _CelCurveTexture ("[_CELPRIMARYMODE_CURVE][LAST_PROP_CURVE]Ramp", 2D) = "black" {}
 
 [Space(10)]
+        [Space(10)]
         [Header(Balatro Procedural Colors)]
-        _BalatroColor1 ("Color 1", Color) = (0.8, 0.1, 0.2, 1)
-        _BalatroColor2 ("Color 2", Color) = (0.5, 0.0, 0.4, 1)
-        _BalatroColor3 ("Color 3", Color) = (1.0, 0.4, 0.1, 1)
+        [HDR] _BalatroColor1 ("Color 1", Color) = (0.8, 0.1, 0.2, 1)
+        [HDR] _BalatroColor2 ("Color 2", Color) = (0.5, 0.0, 0.4, 1)
+        [HDR] _BalatroColor3 ("Color 3", Color) = (1.0, 0.4, 0.1, 1)
+        
+        // Opcional: Puedes añadir un multiplicador global si editas la lógica en los .hlsl
+        _BalatroIntensity ("Global Intensity", Float) = 1.0
+        
         _DistortionSpeed ("Animation Speed", Float) = 1.0
         _DistortionScale ("Pattern Scale", Float) = 5.0
 
