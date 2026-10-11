@@ -42,6 +42,7 @@ public class AgarreLanzamiento : MonoBehaviour
             LanzarObjeto();
         }
     }
+
     void LateUpdate()
     {
         if (gestorEquipamiento != null && !gestorEquipamiento.PuedeUsarManos())
@@ -54,15 +55,14 @@ public class AgarreLanzamiento : MonoBehaviour
             SostenerObjeto();
         }
     }
+
     void IntentarAgarrar()
     {
         // --- 1. PRIORIDAD: COMPROBAR SI ESTÁ INSPECCIONANDO UNA ROCA CON EL AIM ASSIST ---
-        // Verificamos si el sistema visual está activo y tiene una piedra fijada como objetivo
         if (AimAssistVisual.Instancia != null && AimAssistVisual.Instancia.objetivoActual != null)
         {
             Transform rocaInspeccionada = AimAssistVisual.Instancia.objetivoActual;
 
-            // Comprobamos si está dentro del rango de alcance permitido para agarrar
             float distanciaAlJugador = Vector3.Distance(transform.position, rocaInspeccionada.position);
             if (distanciaAlJugador <= distanciaAgarre)
             {
@@ -70,8 +70,7 @@ public class AgarreLanzamiento : MonoBehaviour
                 if (rbInspeccionado != null)
                 {
                     objetoSostenido = rbInspeccionado;
-                    objetoSostenido.isKinematic = true;
-                    objetoSostenido.interpolation = RigidbodyInterpolation.None;
+                    PrepararPiedraAgarrada();
                     return; // ¡Agarrada con éxito, salimos de la función!
                 }
             }
@@ -88,21 +87,38 @@ public class AgarreLanzamiento : MonoBehaviour
                 if (rbGolpeado != null)
                 {
                     objetoSostenido = rbGolpeado;
-                    objetoSostenido.isKinematic = true;
-                    objetoSostenido.interpolation = RigidbodyInterpolation.None;
+                    PrepararPiedraAgarrada();
                 }
             }
         }
     }
 
+    // Método agrupado para aplicar los ajustes físicos al agarrar
+    void PrepararPiedraAgarrada()
+    {
+        objetoSostenido.isKinematic = true;
+        objetoSostenido.interpolation = RigidbodyInterpolation.None;
+
+        // ¡LA MAGIA AQUÍ! 
+        // Desactiva el cálculo de colisiones temporalmente. Así no choca ni bloquea al jugador.
+        objetoSostenido.detectCollisions = false;
+    }
+
     void SostenerObjeto()
     {
+        // Medida de seguridad en caso de que la piedra haya sido destruida por una máquina mientras la sujetamos
+        if (objetoSostenido == null) return;
+
         objetoSostenido.transform.position = Vector3.Lerp(objetoSostenido.transform.position, puntoAgarre.position, 15f * Time.deltaTime);
         objetoSostenido.transform.rotation = Quaternion.Lerp(objetoSostenido.transform.rotation, puntoAgarre.rotation, 15f * Time.deltaTime);
     }
 
     void LanzarObjeto()
     {
+        if (objetoSostenido == null) return;
+
+        // ¡REACTIVAMOS LA FÍSICA PARA QUE VUELVA A CHOCAR CON EL MUNDO!
+        objetoSostenido.detectCollisions = true;
         objetoSostenido.isKinematic = false;
         objetoSostenido.interpolation = RigidbodyInterpolation.Interpolate;
 
@@ -123,9 +139,9 @@ public class AgarreLanzamiento : MonoBehaviour
     {
         return objetoSostenido != null;
     }
+
     public bool EstaSosteniendoPiedra(Rigidbody piedra)
     {
-        return objetoSostenido != null &&
-               objetoSostenido == piedra;
+        return objetoSostenido != null && objetoSostenido == piedra;
     }
 }
