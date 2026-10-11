@@ -95,6 +95,11 @@ public class DeformacionPiedra : MonoBehaviour
 
     void Dormir()
     {
+        if (sobreCintaTransportadora)
+        {
+            return;
+        }
+
         rb.isKinematic = true;
         if (GestorAudioPiedras.Instancia != null)
         {
@@ -104,23 +109,53 @@ public class DeformacionPiedra : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!rb.isKinematic)
+        // Mientras la piedra está sobre una cinta,
+        // NO permitimos que el sistema de sueño espacial la congele.
+        if (sobreCintaTransportadora)
+        {
+            temporizadorEspacial = 0f;
+
+            // Actualizamos estas referencias para que,
+            // al salir de la cinta, no se duerma inmediatamente
+            // usando una posición antigua.
+            posicionAnterior = transform.position;
+            rotacionAnterior = transform.rotation;
+
+            if (rb.isKinematic)
+            {
+                Despertar();
+            }
+        }
+        else if (!rb.isKinematic)
         {
             temporizadorEspacial += Time.fixedDeltaTime;
 
             if (temporizadorEspacial >= intervaloComprobacion)
             {
-                float distanciaRecorrida = Vector3.Distance(transform.position, posicionAnterior);
-                float gradosGirados = Quaternion.Angle(transform.rotation, rotacionAnterior);
+                float distanciaRecorrida =
+                    Vector3.Distance(
+                        transform.position,
+                        posicionAnterior
+                    );
 
-                if (distanciaRecorrida < umbralDistancia && gradosGirados < umbralRotacion)
+                float gradosGirados =
+                    Quaternion.Angle(
+                        transform.rotation,
+                        rotacionAnterior
+                    );
+
+                if (distanciaRecorrida < umbralDistancia &&
+                    gradosGirados < umbralRotacion)
                 {
                     Dormir();
                 }
                 else
                 {
-                    posicionAnterior = transform.position;
-                    rotacionAnterior = transform.rotation;
+                    posicionAnterior =
+                        transform.position;
+
+                    rotacionAnterior =
+                        transform.rotation;
                 }
 
                 temporizadorEspacial = 0f;
@@ -348,6 +383,18 @@ public class DeformacionPiedra : MonoBehaviour
         if (GestorAudioPiedras.Instancia != null)
         {
             GestorAudioPiedras.Instancia.DetenerDeslizamiento(this);
+        }
+    }
+
+    private bool sobreCintaTransportadora = false;
+
+    public void SetSobreCintaTransportadora(bool valor)
+    {
+        sobreCintaTransportadora = valor;
+
+        if (valor)
+        {
+            Despertar();
         }
     }
 }

@@ -163,27 +163,6 @@ public class SistemaConstruccion : MonoBehaviour
     public Material materialRailSplineHolograma;
 
 
-    [Header("Cinta Spline - Visual deformado SOLO VISUAL")]
-
-    [Tooltip(
-        "Instancia el primer prefab real de Cinta y deforma solo sus meshes. " +
-        "No modifica colliders, transporte, conectores ni física."
-    )]
-    public bool usarVisualPrefabDeformadoSpline = true;
-
-    [Tooltip(
-        "Subdivisiones del mesh antes de deformarlo. 1 o 2 suele ser suficiente."
-    )]
-    [Range(0, 3)]
-    public int subdivisionesVisualPrefabSpline = 2;
-
-    [Tooltip(
-        "Oculta solo los MeshRenderer procedurales después de crear el visual. " +
-        "Los MeshCollider procedurales permanecen activos."
-    )]
-    public bool ocultarVisualProceduralSpline = true;
-
-
     [Header("Cinta Spline - Límites")]
 
     [Min(0.25f)]
@@ -1697,31 +1676,6 @@ public class SistemaConstruccion : MonoBehaviour
             layerConector,
             tamanoConectorSpline
         );
-
-
-        // =================================================
-        // VISUAL DEL PREFAB: SOLO APARIENCIA
-        // =================================================
-        // Se añade DESPUÉS de construir la física funcional.
-        // CintaSplineVisualDeformado no modifica el MeshCollider procedural
-        // ni CintaSplineTransportador.
-        if (usarVisualPrefabDeformadoSpline &&
-            actual.prefabsReales != null &&
-            actual.prefabsReales.Length > 0 &&
-            actual.prefabsReales[0] != null)
-        {
-            CintaSplineVisualDeformado visualDeformado =
-                nuevaCinta.AddComponent<CintaSplineVisualDeformado>();
-
-
-            visualDeformado.Construir(
-                spline,
-                actual.prefabsReales[0],
-                fuerzaCurvaCintaSpline,
-                subdivisionesVisualPrefabSpline,
-                ocultarVisualProceduralSpline
-            );
-        }
 
 
         nuevaCinta.AddComponent<

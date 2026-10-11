@@ -143,6 +143,18 @@ public class CintaSplineVisualDeformado : MonoBehaviour
 
         Quaternion baseFuente = Quaternion.LookRotation(ejeFuente, upFuente);
         Quaternion inversaBaseFuente = Quaternion.Inverse(baseFuente);
+        float correccionAlturaBanda =
+    CalcularCorreccionAlturaBanda(
+        prefabModulo,
+        entradaFuente,
+        inversaBaseFuente
+    );
+
+        Debug.Log(
+            "[CINTA VISUAL] Corrección vertical automática: " +
+            correccionAlturaBanda.ToString("0.###") +
+            " m"
+        );
 
         int cantidadModulos = Mathf.Max(
             1,
@@ -275,7 +287,7 @@ public class CintaSplineVisualDeformado : MonoBehaviour
                         puntoSpline +
                         baseSpline * new Vector3(
                             offsetFuente.x,
-                            offsetFuente.y,
+                            offsetFuente.y - correccionAlturaBanda,
                             0f
                         );
 
@@ -362,6 +374,72 @@ public class CintaSplineVisualDeformado : MonoBehaviour
         }
 
         longitudTotal = acumulada;
+    }
+
+    private static float CalcularCorreccionAlturaBanda(
+    GameObject prefab,
+    Vector3 entradaFuente,
+    Quaternion inversaBaseFuente)
+    {
+        if (prefab == null)
+            return 0f;
+
+        CintaTransportadora cinta =
+            prefab.GetComponentInChildren<CintaTransportadora>(true);
+
+        if (cinta == null)
+            return 0f;
+
+        MeshFilter filtro =
+            cinta.GetComponent<MeshFilter>();
+
+        if (filtro == null)
+        {
+            filtro =
+                cinta.GetComponentInChildren<MeshFilter>(true);
+        }
+
+        if (filtro == null ||
+            filtro.sharedMesh == null ||
+            !filtro.sharedMesh.isReadable)
+        {
+            return 0f;
+        }
+
+        Vector3[] vertices =
+            filtro.sharedMesh.vertices;
+
+        float alturaSuperior =
+            float.NegativeInfinity;
+
+        foreach (Vector3 vertice in vertices)
+        {
+            Vector3 posicionMundo =
+                filtro.transform.TransformPoint(
+                    vertice
+                );
+
+            Vector3 posicionBase =
+                inversaBaseFuente *
+                (
+                    posicionMundo -
+                    entradaFuente
+                );
+
+            alturaSuperior =
+                Mathf.Max(
+                    alturaSuperior,
+                    posicionBase.y
+                );
+        }
+
+        if (float.IsNegativeInfinity(
+                alturaSuperior))
+        {
+            return 0f;
+        }
+
+        return alturaSuperior;
     }
 
 

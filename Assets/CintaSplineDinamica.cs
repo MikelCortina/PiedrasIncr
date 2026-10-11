@@ -1260,7 +1260,6 @@ public class CintaSplineDinamica : MonoBehaviour
             );
     }
 
-
     private static void CrearOActualizarColliderRail(
         GameObject rail,
         Mesh meshRail)
@@ -1271,17 +1270,14 @@ public class CintaSplineDinamica : MonoBehaviour
             return;
         }
 
-
         MeshCollider collider =
             rail.GetComponent<MeshCollider>();
-
 
         if (collider == null)
         {
             collider =
                 rail.AddComponent<MeshCollider>();
         }
-
 
         collider.sharedMesh =
             meshRail;
