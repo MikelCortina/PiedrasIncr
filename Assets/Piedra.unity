@@ -636,6 +636,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4883396070958072702, guid: 61c5ba9970c152c44a989197bd0f009e, type: 3}
+--- !u!4 &72340527 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2595293246058683020, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
+  m_PrefabInstance: {fileID: 799865791}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &81338616
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1544,7 +1549,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &126540974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7413,8 +7418,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4a4d758db1f8c142bb47aaf26835b5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  armaLanzadoraDesbloqueada: 0
-  torbellinoDesbloqueado: 0
+  armaLanzadoraDesbloqueada: 1
+  torbellinoDesbloqueado: 1
   martilloDesbloqueado: 1
   equipamientoActual: 0
   agarreLanzamiento: {fileID: 584387204}
@@ -11152,7 +11157,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 1395961413273577589, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 1916710579096751666, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -11160,11 +11165,11 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 2180095218868249125, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5654321808158702963, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6926327416938763131, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -11176,7 +11181,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 7668629534871315232, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8478998776334714300, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: m_Name
@@ -11188,7 +11193,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8887363285899100460, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 9142488500725571334, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -22369,7 +22374,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &902201532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29862,6 +29867,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1135341696}
   m_CullTransparentMesh: 1
+--- !u!4 &1158129598 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5379471781712636691, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
+  m_PrefabInstance: {fileID: 799865791}
+  m_PrefabAsset: {fileID: 0}
 --- !u!198 &1158846621 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 3710549394266641551, guid: 3dad045c4148e924fb9135571d3da8e7, type: 3}
@@ -31931,6 +31941,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1296109410}
   m_Mesh: {fileID: 4300000, guid: 147692c76d2ee95498bab52144d5a410, type: 2}
+--- !u!4 &1300534459 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3045683857034497059, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
+  m_PrefabInstance: {fileID: 799865791}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1302795545 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f3dd253c96dbae142a16a22432c80d0c, type: 3}
@@ -32686,7 +32701,7 @@ MonoBehaviour:
     edgeSize: 0.05
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 0.75
+    grosorContorno: 1
     modificarSombras: 0
     shadowPower: 0
     shadowColor: {r: 0, g: 0, b: 0, a: 0}
@@ -33993,6 +34008,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1117343130}
   m_SourcePrefab: {fileID: 100100000, guid: d0f2fccb08c70dd45849e62e6db87fe3, type: 3}
+--- !u!4 &1477175019 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 821741727529195440, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
+  m_PrefabInstance: {fileID: 799865791}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1479871073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42968,13 +42988,13 @@ MonoBehaviour:
   intensidadBobbing: 0.1
   suavidadAnimacion: 8
   piezasGiratorias:
-  - objeto: {fileID: 0}
+  - objeto: {fileID: 72340527}
     velocidadMaximaZ: 600
-  - objeto: {fileID: 0}
+  - objeto: {fileID: 1300534459}
     velocidadMaximaZ: -500
-  - objeto: {fileID: 0}
+  - objeto: {fileID: 1158129598}
     velocidadMaximaZ: -750
-  - objeto: {fileID: 0}
+  - objeto: {fileID: 1477175019}
     velocidadMaximaZ: 800
   aceleracionGiro: 5
   desaceleracionGiro: 2
@@ -49187,6 +49207,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 669346953}
     m_Modifications:
     - target: {fileID: 42381141607798866, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
+      propertyPath: premioBueno
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 42381141607798866, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
       propertyPath: rotacionMax
       value: 0
       objectReference: {fileID: 0}
@@ -49208,11 +49232,15 @@ PrefabInstance:
       objectReference: {fileID: 980504112}
     - target: {fileID: 42381141607798866, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
       propertyPath: premioPerfecto
-      value: 10
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 42381141607798866, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
       propertyPath: umbralPerfecto
       value: 95
+      objectReference: {fileID: 0}
+    - target: {fileID: 42381141607798866, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
+      propertyPath: premioAceptable
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 42381141607798866, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
       propertyPath: dispersionLateral

@@ -166,11 +166,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6ea42cf2f39e8f84d9ea5d573d1131c1, type: 3}
       propertyPath: m_LocalScale.y
-      value: 132
+      value: 165
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6ea42cf2f39e8f84d9ea5d573d1131c1, type: 3}
       propertyPath: m_LocalScale.z
-      value: -65
+      value: -75
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6ea42cf2f39e8f84d9ea5d573d1131c1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -284,6 +284,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!65 &4294795920965121075
 BoxCollider:
   m_ObjectHideFlags: 0
