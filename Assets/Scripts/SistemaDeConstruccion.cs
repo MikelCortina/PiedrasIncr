@@ -96,6 +96,178 @@ public class SistemaConstruccion : MonoBehaviour
     [Tooltip("Tiempo en segundos que tarda en aparecer el siguiente holograma tras construir")]
     public float tiempoEsperaConstruccion = 0.5f;
 
+
+    // =====================================================
+    // CINTA SPLINE - CONSTRUCCIÓN FLEXIBLE
+    // =====================================================
+
+    [Header("Cinta Spline - Experimental")]
+
+    [Tooltip(
+        "Sustituye el sistema recta/izquierda/derecha por una cinta flexible " +
+        "de dos clics cuando el edificio seleccionado es de tipo Cinta."
+    )]
+    public bool usarCintaSpline = true;
+
+
+    [Tooltip("Material usado mientras la cinta se está previsualizando.")]
+    public Material materialCintaSplineHolograma;
+
+
+    [Tooltip(
+        "Material de la cinta construida. Si queda vacío se intenta copiar " +
+        "el material del primer prefab real de Cinta."
+    )]
+    public Material materialCintaSplineReal;
+
+
+    [Header("Cinta Spline - Geometría")]
+
+    [Min(0.20f)]
+    public float anchoCintaSpline = 1.60f;
+
+    [Min(0.02f)]
+    public float grosorCintaSpline = 0.14f;
+
+    [Range(8, 64)]
+    public int segmentosCintaSpline = 28;
+
+    [Range(0.05f, 0.80f)]
+    public float fuerzaCurvaCintaSpline = 0.35f;
+
+
+    [Header("Cinta Spline - Visual estilo prefab")]
+
+    [Tooltip("Ancho de cada rail lateral.")]
+    [Min(0.03f)]
+    public float anchoRailSpline = 0.16f;
+
+    [Tooltip("Altura de cada rail lateral sobre la banda.")]
+    [Min(0.02f)]
+    public float altoRailSpline = 0.10f;
+
+    [Tooltip("Separación entre la banda central y cada rail.")]
+    [Min(0f)]
+    public float separacionRailBandaSpline = 0.035f;
+
+    [Tooltip(
+        "Material opcional para los railes. Si queda vacío se intenta copiar " +
+        "automáticamente el material de 'Cube (1)' del prefab real."
+    )]
+    public Material materialRailSplineReal;
+
+    [Tooltip(
+        "Material opcional de railes para el holograma. Si queda vacío se usa " +
+        "el material real de rail y se tiñe verde/rojo."
+    )]
+    public Material materialRailSplineHolograma;
+
+
+    [Header("Cinta Spline - Límites")]
+
+    [Min(0.25f)]
+    public float longitudMinimaCintaSpline = 1.00f;
+
+    [Min(1.00f)]
+    public float longitudMaximaCintaSpline = 18.00f;
+
+    [Tooltip(
+        "Radio mínimo permitido en una curva horizontal. " +
+        "Cuanto mayor sea, más suaves tendrán que ser los giros."
+    )]
+    [Min(0.10f)]
+    public float radioMinimoCurvaturaSpline = 1.25f;
+
+    [Tooltip(
+        "Pendiente máxima permitida en grados. " +
+        "30° es una subida fuerte pero todavía razonable para una cinta."
+    )]
+    [Range(1f, 80f)]
+    public float pendienteMaximaGradosSpline = 30f;
+
+    [Tooltip(
+        "La rueda del ratón sube o baja el extremo libre mientras se diseña la cinta."
+    )]
+    public float velocidadAlturaCintaSpline = 0.35f;
+
+
+    [Header("Cinta Spline - Transporte")]
+
+    [Min(0f)]
+    public float velocidadTransporteSpline = 5f;
+
+    public bool animarTexturaSpline = true;
+
+    public Vector2 direccionTexturaSpline =
+        new Vector2(0f, -1f);
+
+    public float multiplicadorTexturaSpline =
+        0.20f;
+
+
+    [Header("Cinta Spline - Conectores")]
+
+    [Min(0.05f)]
+    public float tamanoConectorSpline = 0.35f;
+
+
+    [Header("Cinta Spline - Clearance")]
+
+    [Tooltip(
+        "Activa la comprobación de obstáculos a lo largo de toda la spline."
+    )]
+    public bool usarClearanceCintaSpline = true;
+
+    [Tooltip(
+        "Margen extra a cada lado de la cinta para detectar obstáculos."
+    )]
+    [Min(0f)]
+    public float margenLateralClearanceSpline = 0.08f;
+
+    [Tooltip(
+        "Altura mínima de la caja de comprobación. Útil para detectar paredes y máquinas."
+    )]
+    [Min(0.02f)]
+    public float alturaClearanceSpline = 0.30f;
+
+    [Tooltip(
+        "Separa un poco las cajas del inicio y del final para evitar falsos positivos justo en los conectores."
+    )]
+    [Range(0f, 0.45f)]
+    public float recorteExtremosClearanceSpline = 0.08f;
+
+
+    [Header("Cinta Spline - Debug")]
+
+    public bool debugCintaSpline = true;
+
+
+    private bool splineInicioFijado =
+        false;
+
+    private Vector3 splinePuntoInicio;
+
+    private Vector3 splineDireccionInicio =
+        Vector3.forward;
+
+    private float splineAlturaManual =
+        0f;
+
+    private Collider splineConectorInicio =
+        null;
+
+    private CintaSplineDinamica splinePreview =
+        null;
+
+
+    // Cinta spline construida actualmente apuntada con el martillo.
+    private GameObject cintaSplineApuntadaActual =
+        null;
+
+    private CintaSplineDinamica visualSplineApuntadaAnterior =
+        null;
+
+
     private GameObject hologramaActual;
     public bool modoConstruccion = false;
     private bool estaImantado = false;
@@ -139,6 +311,15 @@ public class SistemaConstruccion : MonoBehaviour
                 posicionSueloBloqueada = null;
             }
         }
+
+        if (modoConstruccion &&
+            EsCintaSplineSeleccionada())
+        {
+            ActualizarConstruccionCintaSpline();
+
+            return;
+        }
+
 
         if (modoConstruccion)
         {
@@ -199,7 +380,8 @@ public class SistemaConstruccion : MonoBehaviour
 
         if (modoConstruccion)
         {
-            if (cooldownHolograma <= 0f)
+            if (cooldownHolograma <= 0f &&
+                !EsCintaSplineSeleccionada())
             {
                 CrearHolograma();
             }
@@ -208,6 +390,8 @@ public class SistemaConstruccion : MonoBehaviour
         }
         else
         {
+            LimpiarResaltadoDestruccionSpline();
+            CancelarCintaSpline();
             LiberarSnapCinta(false);
             DestruirHolograma();
             Debug.Log("Modo construcción DESACTIVADO");
@@ -216,17 +400,33 @@ public class SistemaConstruccion : MonoBehaviour
 
     void CambiarEdificioActual()
     {
+        LimpiarResaltadoDestruccionSpline();
+        CancelarCintaSpline();
         LiberarSnapCinta(false);
 
-        indiceEdificioActual = (indiceEdificioActual + 1) % edificios.Length;
+        indiceEdificioActual =
+            (indiceEdificioActual + 1) %
+            edificios.Length;
+
         DestruirHolograma();
 
         cooldownHolograma = 0f;
-        CrearHolograma();
+
+
+        if (!EsCintaSplineSeleccionada())
+        {
+            CrearHolograma();
+        }
     }
 
     void CrearHolograma()
     {
+        if (EsCintaSplineSeleccionada())
+        {
+            return;
+        }
+
+
         rotacionManualOffset = 0f;
 
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
@@ -506,6 +706,1201 @@ public class SistemaConstruccion : MonoBehaviour
 
         hologramaActual.SetActive(apuntandoValido);
     }
+
+    // =====================================================
+    // CINTA SPLINE - INTEGRACIÓN CON MARTILLO
+    // =====================================================
+
+    bool EsCintaSplineSeleccionada()
+    {
+        if (!usarCintaSpline ||
+            edificios == null ||
+            edificios.Length == 0 ||
+            indiceEdificioActual < 0 ||
+            indiceEdificioActual >= edificios.Length)
+        {
+            return false;
+        }
+
+
+        return
+            edificios[indiceEdificioActual].tipo ==
+            TipoEdificio.Cinta;
+    }
+
+
+    void ActualizarConstruccionCintaSpline()
+    {
+        // El sistema spline sustituye únicamente el posicionamiento de Cinta.
+        // Rampas, paredes y edificios libres siguen usando el sistema anterior.
+        if (hologramaActual != null)
+        {
+            DestruirHolograma();
+        }
+
+
+        // Clic derecho cancela la cinta que estamos dibujando.
+        if (Input.GetMouseButtonDown(1))
+        {
+            CancelarCintaSpline();
+
+            return;
+        }
+
+
+        Ray rayo =
+            camaraPrincipal.ScreenPointToRay(
+                Input.mousePosition
+            );
+
+
+        // =================================================
+        // DESTRUCCIÓN CON MARTILLO
+        // =================================================
+        //
+        // Si la mirilla está sobre una cinta spline YA construida,
+        // el clic izquierdo destruye esa cinta en vez de iniciar/terminar
+        // una nueva spline. Esto mantiene el comportamiento antiguo:
+        // "apuntar a una construcción del mismo tipo -> destruir".
+        //
+        // También funciona mientras el encadenado automático tiene una
+        // nueva spline preparada: al destruir cancelamos primero ese preview.
+        ActualizarCintaSplineApuntadaParaDestruccion(
+            rayo
+        );
+
+
+        if (cintaSplineApuntadaActual != null &&
+            Input.GetMouseButtonDown(0))
+        {
+            DestruirCintaSplineConMartillo(
+                cintaSplineApuntadaActual
+            );
+
+            return;
+        }
+
+
+        Collider conectorCercano =
+            BuscarConectorCintaZonaMagnetica();
+
+
+        // =================================================
+        // PRIMER CLIC -> FIJAR INICIO
+        // =================================================
+
+        if (!splineInicioFijado)
+        {
+            if (!Input.GetMouseButtonDown(0))
+            {
+                return;
+            }
+
+
+            if (!IntentarObtenerInicioCintaSpline(
+                    rayo,
+                    conectorCercano,
+                    out Vector3 puntoInicio,
+                    out Vector3 direccionInicio,
+                    out Collider conectorInicio))
+            {
+                return;
+            }
+
+
+            splinePuntoInicio =
+                puntoInicio;
+
+            splineDireccionInicio =
+                direccionInicio;
+
+            splineConectorInicio =
+                conectorInicio;
+
+            splineAlturaManual =
+                0f;
+
+            splineInicioFijado =
+                true;
+
+
+            CrearPreviewCintaSpline();
+
+
+            if (debugCintaSpline)
+            {
+                Debug.Log(
+                    "[CINTA SPLINE] Inicio fijado" +
+                    (
+                        splineConectorInicio != null
+                        ? " en conector " +
+                          splineConectorInicio.name
+                        : " en suelo"
+                    )
+                );
+            }
+
+
+            return;
+        }
+
+
+        // =================================================
+        // EXTREMO LIBRE -> SIGUE LA MIRILLA
+        // =================================================
+
+        bool finalImantado =
+            conectorCercano != null &&
+            conectorCercano != splineConectorInicio;
+
+
+        Vector3 puntoFinal;
+
+        Vector3 direccionFinal;
+
+
+        if (finalImantado)
+        {
+            puntoFinal =
+                conectorCercano.transform.position;
+
+
+            direccionFinal =
+                ObtenerDireccionSalidaConectorSpline(
+                    conectorCercano,
+                    false
+                );
+        }
+        else
+        {
+            float rueda =
+                Input.mouseScrollDelta.y;
+
+
+            if (Mathf.Abs(rueda) >
+                0.001f)
+            {
+                splineAlturaManual +=
+                    rueda *
+                    velocidadAlturaCintaSpline;
+            }
+
+
+            if (!IntentarObtenerPuntoFinalCintaSpline(
+                    rayo,
+                    out puntoFinal))
+            {
+                return;
+            }
+
+
+            puntoFinal +=
+                Vector3.up *
+                splineAlturaManual;
+
+
+            Vector3 delta =
+                puntoFinal -
+                splinePuntoInicio;
+
+
+            direccionFinal =
+                Vector3.ProjectOnPlane(
+                    delta,
+                    Vector3.up
+                );
+
+
+            if (direccionFinal.sqrMagnitude <
+                0.001f)
+            {
+                direccionFinal =
+                    splineDireccionInicio;
+            }
+            else
+            {
+                direccionFinal.Normalize();
+            }
+        }
+
+
+        float distancia =
+            Vector3.Distance(
+                splinePuntoInicio,
+                puntoFinal
+            );
+
+
+        bool longitudValida =
+            distancia >=
+                longitudMinimaCintaSpline &&
+            distancia <=
+                longitudMaximaCintaSpline;
+
+
+        if (splinePreview == null)
+        {
+            CrearPreviewCintaSpline();
+        }
+
+
+        bool clearanceValido = true;
+
+
+        if (splinePreview != null)
+        {
+            splinePreview.ConfigurarCurva(
+                splinePuntoInicio,
+                puntoFinal,
+                splineDireccionInicio,
+                direccionFinal,
+                anchoCintaSpline,
+                grosorCintaSpline,
+                segmentosCintaSpline,
+                fuerzaCurvaCintaSpline
+            );
+
+
+            if (usarClearanceCintaSpline &&
+                longitudValida)
+            {
+                GameObject estructuraInicioAIgnorar =
+                    splineConectorInicio != null
+                    ? splineConectorInicio.transform.root.gameObject
+                    : null;
+
+
+                GameObject estructuraFinalAIgnorar =
+                    conectorCercano != null
+                    ? conectorCercano.transform.root.gameObject
+                    : null;
+
+
+                clearanceValido =
+                    !splinePreview.HayBloqueoClearance(
+                        capaEdificios,
+                        margenLateralClearanceSpline,
+                        alturaClearanceSpline,
+                        recorteExtremosClearanceSpline,
+                        estructuraInicioAIgnorar,
+                        estructuraFinalAIgnorar,
+                        debugCintaSpline
+                    );
+            }
+
+
+            bool geometriaValida =
+                true;
+
+
+            float radioMinimoDetectado =
+                float.PositiveInfinity;
+
+            float pendienteMaximaDetectada =
+                0f;
+
+
+            if (longitudValida)
+            {
+                geometriaValida =
+                    splinePreview.ValidarLimitesGeometricos(
+                        radioMinimoCurvaturaSpline,
+                        pendienteMaximaGradosSpline,
+                        debugCintaSpline,
+                        out radioMinimoDetectado,
+                        out pendienteMaximaDetectada
+                    );
+            }
+
+
+            bool splineValida =
+                longitudValida &&
+                clearanceValido &&
+                geometriaValida;
+
+
+            splinePreview.EstablecerEstadoValido(
+                splineValida,
+                colorOutlineValido,
+                colorOutlineInvalido
+            );
+
+
+            // =================================================
+            // SEGUNDO CLIC -> CONSTRUIR
+            // =================================================
+
+            if (Input.GetMouseButtonDown(0) &&
+                splineValida)
+            {
+                ConstruirCintaSpline(
+                    puntoFinal,
+                    direccionFinal,
+                    conectorCercano
+                );
+            }
+        }
+    }
+
+
+    void ActualizarCintaSplineApuntadaParaDestruccion(
+        Ray rayo)
+    {
+        GameObject nuevaCintaApuntada =
+            null;
+
+        CintaSplineDinamica nuevoVisual =
+            null;
+
+
+        if (Physics.Raycast(
+                rayo,
+                out RaycastHit hit,
+                distanciaMaximaConstruccion,
+                capaEdificios,
+                QueryTriggerInteraction.Ignore))
+        {
+            GameObject raiz =
+                hit.transform.root.gameObject;
+
+
+            EdificioConstruido info =
+                raiz.GetComponent<
+                    EdificioConstruido
+                >();
+
+
+            CintaSplineDinamica spline =
+                raiz.GetComponent<
+                    CintaSplineDinamica
+                >();
+
+
+            if (info != null &&
+                info.tipo == TipoEdificio.Cinta &&
+                spline != null)
+            {
+                nuevaCintaApuntada =
+                    raiz;
+
+                nuevoVisual =
+                    spline;
+            }
+        }
+
+
+        if (visualSplineApuntadaAnterior != null &&
+            visualSplineApuntadaAnterior != nuevoVisual)
+        {
+            visualSplineApuntadaAnterior
+                .RestaurarResaltadoTemporal();
+        }
+
+
+        cintaSplineApuntadaActual =
+            nuevaCintaApuntada;
+
+
+        visualSplineApuntadaAnterior =
+            nuevoVisual;
+
+
+        if (visualSplineApuntadaAnterior != null)
+        {
+            visualSplineApuntadaAnterior
+                .ForzarResaltadoTemporal(
+                    colorOutlineDestruccion
+                );
+        }
+    }
+
+
+    void LimpiarResaltadoDestruccionSpline()
+    {
+        if (visualSplineApuntadaAnterior != null)
+        {
+            visualSplineApuntadaAnterior
+                .RestaurarResaltadoTemporal();
+        }
+
+
+        visualSplineApuntadaAnterior =
+            null;
+
+        cintaSplineApuntadaActual =
+            null;
+    }
+
+
+    void DestruirCintaSplineConMartillo(
+        GameObject cinta)
+    {
+        if (cinta == null)
+        {
+            return;
+        }
+
+
+        // Si el encadenado automático estaba preparando otra cinta,
+        // lo cancelamos para no conservar referencias a conectores
+        // que podrían desaparecer con esta destrucción.
+        CancelarCintaSpline();
+
+
+        EdificioConstruido info =
+            cinta.GetComponent<
+                EdificioConstruido
+            >();
+
+
+        if (info != null)
+        {
+            // -------------------------------------------------
+            // 1) LIBERAR EL CONECTOR DEL LADO DE ENTRADA
+            // -------------------------------------------------
+            //
+            // Al crear una spline enganchada, conectorUsado apunta
+            // al conector de la estructura anterior que apagamos.
+            if (info.conectorUsado != null)
+            {
+                info.conectorUsado.enabled =
+                    true;
+
+
+                // Mantenemos el pequeño bloqueo temporal que ya utilizaba
+                // tu sistema antiguo para evitar reenganchar en el mismo frame.
+                slotBloqueado =
+                    info.conectorUsado;
+
+                posicionSueloBloqueada =
+                    null;
+            }
+            else
+            {
+                slotBloqueado =
+                    null;
+
+                posicionSueloBloqueada =
+                    cinta.transform.position;
+            }
+
+
+            // -------------------------------------------------
+            // 2) LIBERAR CONSTRUCCIONES DEPENDIENTES
+            // -------------------------------------------------
+            foreach (GameObject dependiente
+                     in info.edificiosDependientes)
+            {
+                if (dependiente != null &&
+                    dependiente.GetComponent<
+                        EfectoBloopDestruccion
+                    >() == null)
+                {
+                    dependiente.AddComponent<
+                        EfectoBloopDestruccion
+                    >();
+                }
+            }
+
+
+            // -------------------------------------------------
+            // 3) LIBERAR EL OTRO LADO / SIGUIENTE CINTA
+            // -------------------------------------------------
+            //
+            // Aquí están guardados:
+            // - el input de una spline construida después de ésta;
+            // - un conector externo al que terminamos enganchados.
+            //
+            // Por eso, al borrar una cinta intermedia A-B-C,
+            // vuelve a quedar disponible la salida de A y la entrada de C.
+            foreach (Collider conector
+                     in info.conectoresHijosBloqueados)
+            {
+                if (conector != null)
+                {
+                    conector.enabled =
+                        true;
+                }
+            }
+        }
+
+
+        // Si por cualquier motivo el snap magnético antiguo tenía
+        // bloqueado un conector de esta cinta, lo soltamos.
+        if (conectorCintaBloqueado != null &&
+            conectorCintaBloqueado.transform.root.gameObject ==
+            cinta)
+        {
+            LiberarSnapCinta(
+                false
+            );
+        }
+
+
+        // Quitamos el rojo antes de lanzar el efecto de destrucción.
+        LimpiarResaltadoDestruccionSpline();
+
+
+        if (cinta.GetComponent<
+                EfectoBloopDestruccion
+            >() == null)
+        {
+            cinta.AddComponent<
+                EfectoBloopDestruccion
+            >();
+        }
+
+
+        timerBloqueoSlot =
+            1.0f;
+
+
+        if (debugCintaSpline)
+        {
+            Debug.Log(
+                "[CINTA SPLINE] Destruida con martillo. " +
+                "Conectores liberados."
+            );
+        }
+    }
+
+
+    bool IntentarObtenerInicioCintaSpline(
+        Ray rayo,
+        Collider conector,
+        out Vector3 punto,
+        out Vector3 direccion,
+        out Collider conectorUsado)
+    {
+        punto =
+            Vector3.zero;
+
+        direccion =
+            Vector3.forward;
+
+        conectorUsado =
+            null;
+
+
+        if (conector != null)
+        {
+            punto =
+                conector.transform.position;
+
+            direccion =
+                ObtenerDireccionSalidaConectorSpline(
+                    conector,
+                    true
+                );
+
+            conectorUsado =
+                conector;
+
+            return true;
+        }
+
+
+        if (Physics.Raycast(
+                rayo,
+                out RaycastHit hit,
+                distanciaMaximaConstruccion,
+                capaSuelo,
+                QueryTriggerInteraction.Ignore))
+        {
+            punto =
+                hit.point;
+
+
+            direccion =
+                Vector3.ProjectOnPlane(
+                    camaraPrincipal.transform.forward,
+                    Vector3.up
+                );
+
+
+            if (direccion.sqrMagnitude <
+                0.001f)
+            {
+                direccion =
+                    Vector3.forward;
+            }
+
+
+            direccion.Normalize();
+
+
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+    bool IntentarObtenerPuntoFinalCintaSpline(
+        Ray rayo,
+        out Vector3 punto)
+    {
+        if (Physics.Raycast(
+                rayo,
+                out RaycastHit hit,
+                distanciaMaximaConstruccion,
+                capaSuelo,
+                QueryTriggerInteraction.Ignore))
+        {
+            punto =
+                hit.point;
+
+            return true;
+        }
+
+
+        Plane plano =
+            new Plane(
+                Vector3.up,
+                splinePuntoInicio
+            );
+
+
+        if (plano.Raycast(
+                rayo,
+                out float distanciaPlano))
+        {
+            punto =
+                rayo.GetPoint(
+                    distanciaPlano
+                );
+
+
+            return
+                distanciaPlano <=
+                distanciaMaximaConstruccion *
+                2f;
+        }
+
+
+        punto =
+            Vector3.zero;
+
+        return false;
+    }
+
+
+    Vector3 ObtenerDireccionSalidaConectorSpline(
+        Collider conector,
+        bool esInicio)
+    {
+        if (conector == null)
+        {
+            return Vector3.forward;
+        }
+
+
+        Vector3 direccion;
+
+
+        if (esInicio)
+        {
+            direccion =
+                conector.CompareTag(
+                    "ConectorEntrada"
+                )
+                ? -conector.transform.forward
+                : conector.transform.forward;
+        }
+        else
+        {
+            // Para llegar al conector hacemos la operación inversa:
+            // la tangente debe entrar en él, no salir de él.
+            direccion =
+                conector.CompareTag(
+                    "ConectorEntrada"
+                )
+                ? conector.transform.forward
+                : -conector.transform.forward;
+        }
+
+
+        direccion =
+            Vector3.ProjectOnPlane(
+                direccion,
+                Vector3.up
+            );
+
+
+        if (direccion.sqrMagnitude <
+            0.001f)
+        {
+            direccion =
+                Vector3.forward;
+        }
+
+
+        return direccion.normalized;
+    }
+
+
+    void CrearPreviewCintaSpline()
+    {
+        if (splinePreview != null)
+        {
+            return;
+        }
+
+
+        GameObject preview =
+            new GameObject(
+                "CintaSpline_Holograma"
+            );
+
+
+        splinePreview =
+            preview.AddComponent<
+                CintaSplineDinamica
+            >();
+
+
+        splinePreview.ConfigurarMateriales(
+            ObtenerMaterialBandaCintaSpline(true),
+            ObtenerMaterialRailCintaSpline(true)
+        );
+
+
+        splinePreview.ConfigurarVisual(
+            anchoRailSpline,
+            altoRailSpline,
+            separacionRailBandaSpline
+        );
+
+
+        splinePreview.ConfigurarComoPreview();
+    }
+
+
+    Material ObtenerMaterialBandaCintaSpline(
+        bool holograma)
+    {
+        Material materialAsignado =
+            holograma
+            ? materialCintaSplineHolograma
+            : materialCintaSplineReal;
+
+
+        if (materialAsignado != null)
+        {
+            return materialAsignado;
+        }
+
+
+        InfoEdificio actual =
+            edificios[indiceEdificioActual];
+
+
+        // Para la banda real buscamos primero el hijo "Cube",
+        // que es la pieza que en tu prefab lleva CintaTransportadora.
+        if (actual.prefabsReales != null &&
+            actual.prefabsReales.Length > 0 &&
+            actual.prefabsReales[0] != null)
+        {
+            Transform[] hijos =
+                actual.prefabsReales[0]
+                    .GetComponentsInChildren<Transform>(true);
+
+
+            foreach (Transform hijo in hijos)
+            {
+                if (hijo.name == "Cube")
+                {
+                    Renderer renderer =
+                        hijo.GetComponent<Renderer>();
+
+
+                    if (renderer != null &&
+                        renderer.sharedMaterial != null)
+                    {
+                        return renderer.sharedMaterial;
+                    }
+                }
+            }
+        }
+
+
+        // Fallback al primer renderer disponible.
+        GameObject[] prefabs =
+            holograma
+            ? actual.prefabsHologramas
+            : actual.prefabsReales;
+
+
+        if (prefabs != null &&
+            prefabs.Length > 0 &&
+            prefabs[0] != null)
+        {
+            Renderer renderer =
+                prefabs[0]
+                    .GetComponentInChildren<Renderer>(true);
+
+
+            if (renderer != null)
+            {
+                return renderer.sharedMaterial;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    Material ObtenerMaterialRailCintaSpline(
+        bool holograma)
+    {
+        Material materialAsignado =
+            holograma
+            ? materialRailSplineHolograma
+            : materialRailSplineReal;
+
+
+        if (materialAsignado != null)
+        {
+            return materialAsignado;
+        }
+
+
+        InfoEdificio actual =
+            edificios[indiceEdificioActual];
+
+
+        // En tu prefab Cube (1) es la estructura/laterales.
+        if (actual.prefabsReales != null &&
+            actual.prefabsReales.Length > 0 &&
+            actual.prefabsReales[0] != null)
+        {
+            Transform[] hijos =
+                actual.prefabsReales[0]
+                    .GetComponentsInChildren<Transform>(true);
+
+
+            foreach (Transform hijo in hijos)
+            {
+                if (hijo.name == "Cube (1)")
+                {
+                    Renderer renderer =
+                        hijo.GetComponent<Renderer>();
+
+
+                    if (renderer != null &&
+                        renderer.sharedMaterial != null)
+                    {
+                        return renderer.sharedMaterial;
+                    }
+                }
+            }
+        }
+
+
+        // Si no encontramos Cube (1), usamos el material de banda.
+        return ObtenerMaterialBandaCintaSpline(
+            holograma
+        );
+    }
+
+
+    void ConstruirCintaSpline(
+        Vector3 puntoFinal,
+        Vector3 direccionFinal,
+        Collider conectorFinal)
+    {
+        GameObject nuevaCinta =
+            new GameObject(
+                "CintaSpline"
+            );
+
+
+        // Copiamos la layer principal de la cinta real antigua.
+        InfoEdificio actual =
+            edificios[indiceEdificioActual];
+
+
+        if (actual.prefabsReales != null &&
+            actual.prefabsReales.Length > 0 &&
+            actual.prefabsReales[0] != null)
+        {
+            nuevaCinta.layer =
+                actual.prefabsReales[0].layer;
+        }
+
+
+        CintaSplineDinamica spline =
+            nuevaCinta.AddComponent<
+                CintaSplineDinamica
+            >();
+
+
+        spline.ConfigurarMateriales(
+            ObtenerMaterialBandaCintaSpline(false),
+            ObtenerMaterialRailCintaSpline(false)
+        );
+
+
+        spline.ConfigurarVisual(
+            anchoRailSpline,
+            altoRailSpline,
+            separacionRailBandaSpline
+        );
+
+
+        spline.ConfigurarCurva(
+            splinePuntoInicio,
+            puntoFinal,
+            splineDireccionInicio,
+            direccionFinal,
+            anchoCintaSpline,
+            grosorCintaSpline,
+            segmentosCintaSpline,
+            fuerzaCurvaCintaSpline
+        );
+
+
+        int layerConector =
+            ObtenerPrimerLayerDeMask(
+                capaConectores
+            );
+
+
+        spline.ConstruirFisicaYConectores(
+            velocidadTransporteSpline,
+            animarTexturaSpline,
+            direccionTexturaSpline,
+            multiplicadorTexturaSpline,
+            layerConector,
+            tamanoConectorSpline
+        );
+
+
+        nuevaCinta.AddComponent<
+            EfectoBloop
+        >();
+
+
+        EdificioConstruido id =
+            nuevaCinta.AddComponent<
+                EdificioConstruido
+            >();
+
+
+        id.tipo =
+            TipoEdificio.Cinta;
+
+
+        // =================================================
+        // QUEMAR CONECTOR DE INICIO SI ESTABA ENGANCHADO
+        // =================================================
+
+        Collider conectorEntradaNuevo =
+            spline.ConectorEntrada;
+
+
+        Collider conectorSalidaNuevo =
+            spline.ConectorSalida;
+
+
+        if (splineConectorInicio != null)
+        {
+            id.conectorUsado =
+                splineConectorInicio;
+
+
+            splineConectorInicio.enabled =
+                false;
+
+
+            if (conectorEntradaNuevo != null)
+            {
+                conectorEntradaNuevo.enabled =
+                    false;
+            }
+
+
+            EdificioConstruido estructuraPadre =
+                splineConectorInicio
+                    .transform
+                    .root
+                    .GetComponent<
+                        EdificioConstruido
+                    >();
+
+
+            if (estructuraPadre != null &&
+                conectorEntradaNuevo != null)
+            {
+                estructuraPadre
+                    .conectoresHijosBloqueados
+                    .Add(
+                        conectorEntradaNuevo
+                    );
+            }
+        }
+
+
+        // De momento permitimos snap visual al conector final y lo quemamos
+        // también si existe. Esto deja la cinta físicamente cerrada por ambos lados.
+        if (conectorFinal != null &&
+            conectorFinal != splineConectorInicio)
+        {
+            conectorFinal.enabled =
+                false;
+
+
+            // Guardamos también el conector externo en ESTA cinta.
+            // Así, si destruimos la spline, el sistema existente lo
+            // vuelve a habilitar automáticamente.
+            id.conectoresHijosBloqueados.Add(
+                conectorFinal
+            );
+
+
+            if (conectorSalidaNuevo != null)
+            {
+                conectorSalidaNuevo.enabled =
+                    false;
+            }
+
+
+            EdificioConstruido estructuraFinal =
+                conectorFinal
+                    .transform
+                    .root
+                    .GetComponent<
+                        EdificioConstruido
+                    >();
+
+
+            if (estructuraFinal != null &&
+                conectorSalidaNuevo != null)
+            {
+                estructuraFinal
+                    .conectoresHijosBloqueados
+                    .Add(
+                        conectorSalidaNuevo
+                    );
+            }
+        }
+
+
+        if (debugCintaSpline)
+        {
+            Debug.Log(
+                "[CINTA SPLINE] Construida | Longitud: " +
+                Vector3.Distance(
+                    splinePuntoInicio,
+                    puntoFinal
+                ).ToString("0.00") +
+                " m"
+            );
+        }
+
+
+        // =================================================
+        // ENCADENAR AUTOMÁTICAMENTE
+        // =================================================
+
+        DestruirPreviewCintaSpline();
+
+
+        if (encadenarCintasAutomaticamente &&
+            conectorSalidaNuevo != null &&
+            conectorFinal == null)
+        {
+            splineInicioFijado =
+                true;
+
+
+            splinePuntoInicio =
+                conectorSalidaNuevo
+                    .transform
+                    .position;
+
+
+            splineDireccionInicio =
+                conectorSalidaNuevo
+                    .transform
+                    .forward;
+
+
+            splineConectorInicio =
+                conectorSalidaNuevo;
+
+
+            splineAlturaManual =
+                0f;
+
+
+            CrearPreviewCintaSpline();
+        }
+        else
+        {
+            ResetearEstadoCintaSpline();
+        }
+    }
+
+
+    void CancelarCintaSpline()
+    {
+        DestruirPreviewCintaSpline();
+        ResetearEstadoCintaSpline();
+    }
+
+
+    void DestruirPreviewCintaSpline()
+    {
+        if (splinePreview != null)
+        {
+            Destroy(
+                splinePreview.gameObject
+            );
+
+
+            splinePreview =
+                null;
+        }
+    }
+
+
+    void ResetearEstadoCintaSpline()
+    {
+        splineInicioFijado =
+            false;
+
+        splineConectorInicio =
+            null;
+
+        splineAlturaManual =
+            0f;
+    }
+
+
+    int ObtenerPrimerLayerDeMask(
+        LayerMask mascara)
+    {
+        int valor =
+            mascara.value;
+
+
+        for (int i = 0;
+             i < 32;
+             i++)
+        {
+            if ((valor & (1 << i)) != 0)
+            {
+                return i;
+            }
+        }
+
+
+        return 0;
+    }
+
 
     void BloquearSnapCinta(Collider conector)
     {
