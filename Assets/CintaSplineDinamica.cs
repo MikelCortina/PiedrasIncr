@@ -44,6 +44,14 @@ public class CintaSplineDinamica : MonoBehaviour
 
     private MaterialPropertyBlock bloqueResaltadoTemporal;
 
+    private GameObject contenedorVisualModular;
+
+    private readonly List<Renderer> renderersVisualModular =
+        new List<Renderer>();
+
+    private readonly List<Renderer> renderersBandaVisualDeformada =
+        new List<Renderer>();
+
 
     private readonly List<Vector3> centros =
         new List<Vector3>();
@@ -458,6 +466,14 @@ public class CintaSplineDinamica : MonoBehaviour
         AplicarBloqueResaltado(
             railDerechoMR
         );
+
+
+        foreach (Renderer renderer in renderersVisualModular)
+        {
+            AplicarBloqueResaltado(
+                renderer
+            );
+        }
     }
 
 
@@ -491,6 +507,17 @@ public class CintaSplineDinamica : MonoBehaviour
             railDerechoMR.SetPropertyBlock(
                 vacio
             );
+        }
+
+
+        foreach (Renderer renderer in renderersVisualModular)
+        {
+            if (renderer != null)
+            {
+                renderer.SetPropertyBlock(
+                    vacio
+                );
+            }
         }
     }
 
@@ -1168,6 +1195,1217 @@ public class CintaSplineDinamica : MonoBehaviour
 
         destino.RecalculateNormals();
         destino.RecalculateBounds();
+    }
+
+
+    public bool ConstruirVisualDeformado(
+        GameObject prefabModulo,
+        float longitudModulo,
+        int subdivisiones)
+    {
+        if (prefabModulo == null ||
+            longitudModulo <= 0.0001f ||
+            centros.Count < 2)
+        {
+            return false;
+        }
+
+
+        Transform conectorEntrada =
+            BuscarHijoPorNombre(
+                prefabModulo,
+                "PuntoConexion_Entrada"
+            );
+
+
+        Transform conectorSalida =
+            BuscarHijoPorNombre(
+                prefabModulo,
+                "PuntoConexion_Salida"
+            );
+
+
+        if (conectorEntrada == null ||
+            conectorSalida == null)
+        {
+            Debug.LogWarning(
+                "[CINTA SPLINE V9.1] No puedo deformar '" +
+                prefabModulo.name +
+                "': faltan PuntoConexion_Entrada o PuntoConexion_Salida."
+            );
+
+            return false;
+        }
+
+
+        Vector3 entradaFuente =
+            conectorEntrada.position;
+
+        Vector3 salidaFuente =
+            conectorSalida.position;
+
+
+        Vector3 ejeFuente =
+            salidaFuente -
+            entradaFuente;
+
+
+        float longitudFuente =
+            ejeFuente.magnitude;
+
+
+        if (longitudFuente <
+            0.0001f)
+        {
+            return false;
+        }
+
+
+        ejeFuente.Normalize();
+
+
+        Vector3 upFuente =
+            Vector3.ProjectOnPlane(
+                conectorEntrada.up,
+                ejeFuente
+            );
+
+
+        if (upFuente.sqrMagnitude <
+            0.0001f)
+        {
+            upFuente =
+                Vector3.ProjectOnPlane(
+                    Vector3.up,
+                    ejeFuente
+                );
+        }
+
+
+        if (upFuente.sqrMagnitude <
+            0.0001f)
+        {
+            upFuente =
+                Vector3.ProjectOnPlane(
+                    Vector3.right,
+                    ejeFuente
+                );
+        }
+
+
+        upFuente.Normalize();
+
+
+        Quaternion baseFuente =
+            Quaternion.LookRotation(
+                ejeFuente,
+                upFuente
+            );
+
+
+        Quaternion inversaBaseFuente =
+            Quaternion.Inverse(
+                baseFuente
+            );
+
+
+        float longitudTotal =
+            ObtenerLongitudAproximada();
+
+
+        if (longitudTotal <=
+            0.0001f)
+        {
+            return false;
+        }
+
+
+        int cantidadModulos =
+            Mathf.Max(
+                1,
+                Mathf.RoundToInt(
+                    longitudTotal /
+                    longitudModulo
+                )
+            );
+
+
+        float longitudTramoObjetivo =
+            longitudTotal /
+            cantidadModulos;
+
+
+        if (contenedorVisualModular != null)
+        {
+            Destroy(
+                contenedorVisualModular
+            );
+        }
+
+
+        renderersVisualModular.Clear();
+        renderersBandaVisualDeformada.Clear();
+
+
+        contenedorVisualModular =
+            new GameObject(
+                "VisualDeformado"
+            );
+
+
+        contenedorVisualModular.transform.SetParent(
+            transform,
+            false
+        );
+
+
+        contenedorVisualModular.layer =
+            gameObject.layer;
+
+
+        MeshFilter[] filtrosFuente =
+            prefabModulo.GetComponentsInChildren<MeshFilter>(
+                true
+            );
+
+
+        int piezasCreadas =
+            0;
+
+        bool encontroMeshNoLegible =
+            false;
+
+
+        for (int moduloIndice = 0;
+             moduloIndice < cantidadModulos;
+             moduloIndice++)
+        {
+            float distanciaInicioModulo =
+                moduloIndice *
+                longitudTramoObjetivo;
+
+
+            // IMPORTANTE:
+            // Instanciamos el prefab REAL en vez de reconstruir renderers vacíos.
+            // Así conservamos exactamente sus materiales y dejamos activo
+            // VariacionAlbedo, que en tu prefab puede modificar el material.
+            GameObject modulo =
+                Instantiate(
+                    prefabModulo,
+                    contenedorVisualModular.transform,
+                    false
+                );
+
+
+            modulo.name =
+                prefabModulo.name +
+                "_Deformado_" +
+                (moduloIndice + 1).ToString("00");
+
+
+            EstablecerLayerRecursivo(
+                modulo,
+                gameObject.layer
+            );
+
+
+            // Desactivamos primero los colliders originales y la lógica
+            // funcional del prefab. Los nuevos colliders seguirán el mesh curvo.
+            Collider[] collidersOriginales =
+                modulo.GetComponentsInChildren<Collider>(
+                    true
+                );
+
+
+            foreach (Collider col in collidersOriginales)
+            {
+                if (col != null)
+                {
+                    col.enabled =
+                        false;
+                }
+            }
+
+
+            CintaTransportadora[] cintasOriginales =
+                modulo.GetComponentsInChildren<CintaTransportadora>(
+                    true
+                );
+
+
+            foreach (CintaTransportadora cintaOriginal in cintasOriginales)
+            {
+                if (cintaOriginal != null)
+                {
+                    cintaOriginal.enabled =
+                        false;
+                }
+            }
+
+
+            Rigidbody[] rigidbodies =
+                modulo.GetComponentsInChildren<Rigidbody>(
+                    true
+                );
+
+
+            foreach (Rigidbody rb in rigidbodies)
+            {
+                if (rb != null)
+                {
+                    rb.isKinematic =
+                        true;
+
+                    rb.detectCollisions =
+                        false;
+                }
+            }
+
+
+            foreach (MeshFilter filtroFuente in filtrosFuente)
+            {
+                if (filtroFuente == null ||
+                    filtroFuente.sharedMesh == null)
+                {
+                    continue;
+                }
+
+
+                Mesh meshFuente =
+                    filtroFuente.sharedMesh;
+
+
+                if (!meshFuente.isReadable)
+                {
+                    encontroMeshNoLegible =
+                        true;
+
+                    continue;
+                }
+
+
+                string ruta =
+                    ObtenerRutaRelativa(
+                        prefabModulo.transform,
+                        filtroFuente.transform
+                    );
+
+
+                Transform transformInstancia =
+                    BuscarPorRutaRelativa(
+                        modulo.transform,
+                        ruta
+                    );
+
+
+                if (transformInstancia == null)
+                {
+                    continue;
+                }
+
+
+                MeshFilter filtroInstancia =
+                    transformInstancia.GetComponent<MeshFilter>();
+
+
+                MeshRenderer rendererInstancia =
+                    transformInstancia.GetComponent<MeshRenderer>();
+
+
+                if (filtroInstancia == null ||
+                    rendererInstancia == null ||
+                    !rendererInstancia.enabled)
+                {
+                    continue;
+                }
+
+
+                Mesh meshTrabajo =
+                    SubdividirMeshParaDeformacion(
+                        meshFuente,
+                        subdivisiones
+                    );
+
+
+                Vector3[] vertices =
+                    meshTrabajo.vertices;
+
+
+                Vector3[] verticesDeformados =
+                    new Vector3[
+                        vertices.Length
+                    ];
+
+
+                for (int v = 0;
+                     v < vertices.Length;
+                     v++)
+                {
+                    Vector3 posicionFuenteMundo =
+                        filtroFuente.transform.TransformPoint(
+                            vertices[v]
+                        );
+
+
+                    Vector3 offsetFuente =
+                        inversaBaseFuente *
+                        (
+                            posicionFuenteMundo -
+                            entradaFuente
+                        );
+
+
+                    float tLongitudinal =
+                        offsetFuente.z /
+                        longitudFuente;
+
+
+                    tLongitudinal =
+                        Mathf.Clamp01(
+                            tLongitudinal
+                        );
+
+
+                    float distanciaSpline =
+                        distanciaInicioModulo +
+                        tLongitudinal *
+                        longitudTramoObjetivo;
+
+
+                    if (!ObtenerPuntoYTangentePorDistancia(
+                            distanciaSpline,
+                            out Vector3 puntoSpline,
+                            out Vector3 tangenteSpline))
+                    {
+                        verticesDeformados[v] =
+                            vertices[v];
+
+                        continue;
+                    }
+
+
+                    Vector3 upSpline =
+                        CalcularUpParaTangente(
+                            tangenteSpline
+                        );
+
+
+                    Quaternion baseSpline =
+                        Quaternion.LookRotation(
+                            tangenteSpline,
+                            upSpline
+                        );
+
+
+                    Vector3 posicionDeformadaMundo =
+                        puntoSpline +
+                        baseSpline *
+                        new Vector3(
+                            offsetFuente.x,
+                            offsetFuente.y,
+                            0f
+                        );
+
+
+                    // Guardamos cada vértice en el espacio local del MeshFilter
+                    // DE LA INSTANCIA. Así mantenemos su renderer/materiales y
+                    // toda la jerarquía original del prefab.
+                    verticesDeformados[v] =
+                        transformInstancia.InverseTransformPoint(
+                            posicionDeformadaMundo
+                        );
+                }
+
+
+                meshTrabajo.vertices =
+                    verticesDeformados;
+
+
+                meshTrabajo.RecalculateNormals();
+                meshTrabajo.RecalculateBounds();
+
+
+                try
+                {
+                    meshTrabajo.RecalculateTangents();
+                }
+                catch
+                {
+                }
+
+
+                filtroInstancia.sharedMesh =
+                    meshTrabajo;
+
+
+                renderersVisualModular.Add(
+                    rendererInstancia
+                );
+
+
+                bool esBanda =
+                    filtroFuente.GetComponent<CintaTransportadora>() != null;
+
+
+                if (esBanda)
+                {
+                    renderersBandaVisualDeformada.Add(
+                        rendererInstancia
+                    );
+                }
+
+
+                // V9.3:
+                // El prefab deformado es SOLO VISUAL.
+                //
+                // No creamos colliders aquí. La física vuelve a usar
+                // exclusivamente el MeshCollider procedural de la spline,
+                // que es el sistema que ya estaba probado y movía las piedras
+                // correctamente antes de introducir la deformación visual.
+                piezasCreadas++;
+            }
+        }
+
+
+        if (piezasCreadas == 0)
+        {
+            if (encontroMeshNoLegible)
+            {
+                Debug.LogError(
+                    "[CINTA SPLINE V9.1] Los meshes de '" +
+                    prefabModulo.name +
+                    "' necesitan Read/Write Enabled."
+                );
+            }
+
+
+            return false;
+        }
+
+
+        Debug.Log(
+            "[CINTA SPLINE V9.3] Visual deformado creado | Prefab: " +
+            prefabModulo.name +
+            " | Módulos: " +
+            cantidadModulos +
+            " | Física procedural conservada"
+        );
+
+
+        return true;
+    }
+
+
+    private void EstablecerLayerRecursivo(
+        GameObject raiz,
+        int layer)
+    {
+        if (raiz == null)
+        {
+            return;
+        }
+
+
+        Transform[] transforms =
+            raiz.GetComponentsInChildren<Transform>(
+                true
+            );
+
+
+        foreach (Transform t in transforms)
+        {
+            t.gameObject.layer =
+                layer;
+        }
+    }
+
+
+    private string ObtenerRutaRelativa(
+        Transform raiz,
+        Transform objetivo)
+    {
+        if (raiz == null ||
+            objetivo == null)
+        {
+            return string.Empty;
+        }
+
+
+        if (raiz ==
+            objetivo)
+        {
+            return string.Empty;
+        }
+
+
+        List<string> partes =
+            new List<string>();
+
+
+        Transform actual =
+            objetivo;
+
+
+        while (actual != null &&
+               actual != raiz)
+        {
+            partes.Add(
+                actual.name
+            );
+
+
+            actual =
+                actual.parent;
+        }
+
+
+        partes.Reverse();
+
+
+        return string.Join(
+            "/",
+            partes
+        );
+    }
+
+
+    private Transform BuscarPorRutaRelativa(
+        Transform raiz,
+        string ruta)
+    {
+        if (raiz == null)
+        {
+            return null;
+        }
+
+
+        if (string.IsNullOrEmpty(
+                ruta))
+        {
+            return raiz;
+        }
+
+
+        return raiz.Find(
+            ruta
+        );
+    }
+
+
+    private Vector3 CalcularUpParaTangente(
+        Vector3 tangente)
+    {
+        Vector3 up =
+            Vector3.ProjectOnPlane(
+                Vector3.up,
+                tangente
+            );
+
+
+        if (up.sqrMagnitude <
+            0.0001f)
+        {
+            up =
+                Vector3.ProjectOnPlane(
+                    transform.forward,
+                    tangente
+                );
+        }
+
+
+        if (up.sqrMagnitude <
+            0.0001f)
+        {
+            up =
+                Vector3.right;
+        }
+
+
+        return up.normalized;
+    }
+
+
+    private Mesh SubdividirMeshParaDeformacion(
+        Mesh original,
+        int iteraciones)
+    {
+        iteraciones =
+            Mathf.Clamp(
+                iteraciones,
+                0,
+                3
+            );
+
+
+        Vector3[] verticesOriginales =
+            original.vertices;
+
+
+        Vector2[] uvOriginales =
+            original.uv;
+
+
+        List<Vector3> vertices =
+            new List<Vector3>(
+                verticesOriginales
+            );
+
+
+        bool tieneUV =
+            uvOriginales != null &&
+            uvOriginales.Length ==
+            verticesOriginales.Length;
+
+
+        List<Vector2> uvs =
+            tieneUV
+            ? new List<Vector2>(
+                uvOriginales
+            )
+            : new List<Vector2>();
+
+
+        List<List<int>> triangulosPorSubmesh =
+            new List<List<int>>();
+
+
+        for (int s = 0;
+             s < original.subMeshCount;
+             s++)
+        {
+            triangulosPorSubmesh.Add(
+                new List<int>(
+                    original.GetTriangles(
+                        s
+                    )
+                )
+            );
+        }
+
+
+        for (int iteracion = 0;
+             iteracion < iteraciones;
+             iteracion++)
+        {
+            Dictionary<ulong, int> cacheAristas =
+                new Dictionary<ulong, int>();
+
+
+            List<List<int>> nuevosSubmeshes =
+                new List<List<int>>();
+
+
+            for (int s = 0;
+                 s < triangulosPorSubmesh.Count;
+                 s++)
+            {
+                List<int> origen =
+                    triangulosPorSubmesh[s];
+
+
+                List<int> destino =
+                    new List<int>(
+                        origen.Count *
+                        4
+                    );
+
+
+                for (int i = 0;
+                     i + 2 < origen.Count;
+                     i += 3)
+                {
+                    int a =
+                        origen[i];
+
+                    int b =
+                        origen[i + 1];
+
+                    int c =
+                        origen[i + 2];
+
+
+                    int ab =
+                        ObtenerVerticeMedio(
+                            a,
+                            b,
+                            vertices,
+                            uvs,
+                            tieneUV,
+                            cacheAristas
+                        );
+
+
+                    int bc =
+                        ObtenerVerticeMedio(
+                            b,
+                            c,
+                            vertices,
+                            uvs,
+                            tieneUV,
+                            cacheAristas
+                        );
+
+
+                    int ca =
+                        ObtenerVerticeMedio(
+                            c,
+                            a,
+                            vertices,
+                            uvs,
+                            tieneUV,
+                            cacheAristas
+                        );
+
+
+                    AgregarTriangulo(
+                        destino,
+                        a,
+                        ab,
+                        ca
+                    );
+
+
+                    AgregarTriangulo(
+                        destino,
+                        ab,
+                        b,
+                        bc
+                    );
+
+
+                    AgregarTriangulo(
+                        destino,
+                        ca,
+                        bc,
+                        c
+                    );
+
+
+                    AgregarTriangulo(
+                        destino,
+                        ab,
+                        bc,
+                        ca
+                    );
+                }
+
+
+                nuevosSubmeshes.Add(
+                    destino
+                );
+            }
+
+
+            triangulosPorSubmesh =
+                nuevosSubmeshes;
+        }
+
+
+        Mesh resultado =
+            new Mesh();
+
+
+        resultado.name =
+            original.name +
+            "_SplineDeformado";
+
+
+        if (vertices.Count >
+            65535)
+        {
+            resultado.indexFormat =
+                UnityEngine.Rendering.IndexFormat.UInt32;
+        }
+
+
+        resultado.SetVertices(
+            vertices
+        );
+
+
+        if (tieneUV)
+        {
+            resultado.SetUVs(
+                0,
+                uvs
+            );
+        }
+
+
+        resultado.subMeshCount =
+            triangulosPorSubmesh.Count;
+
+
+        for (int s = 0;
+             s < triangulosPorSubmesh.Count;
+             s++)
+        {
+            resultado.SetTriangles(
+                triangulosPorSubmesh[s],
+                s
+            );
+        }
+
+
+        return resultado;
+    }
+
+
+    private int ObtenerVerticeMedio(
+        int a,
+        int b,
+        List<Vector3> vertices,
+        List<Vector2> uvs,
+        bool tieneUV,
+        Dictionary<ulong, int> cache)
+    {
+        uint menor =
+            (uint)Mathf.Min(
+                a,
+                b
+            );
+
+
+        uint mayor =
+            (uint)Mathf.Max(
+                a,
+                b
+            );
+
+
+        ulong clave =
+            (
+                (ulong)menor <<
+                32
+            ) |
+            mayor;
+
+
+        if (cache.TryGetValue(
+                clave,
+                out int existente))
+        {
+            return existente;
+        }
+
+
+        int nuevoIndice =
+            vertices.Count;
+
+
+        vertices.Add(
+            (
+                vertices[a] +
+                vertices[b]
+            ) *
+            0.5f
+        );
+
+
+        if (tieneUV)
+        {
+            uvs.Add(
+                (
+                    uvs[a] +
+                    uvs[b]
+                ) *
+                0.5f
+            );
+        }
+
+
+        cache.Add(
+            clave,
+            nuevoIndice
+        );
+
+
+        return nuevoIndice;
+    }
+
+
+    private static void AgregarTriangulo(
+        List<int> triangulos,
+        int a,
+        int b,
+        int c)
+    {
+        triangulos.Add(a);
+        triangulos.Add(b);
+        triangulos.Add(c);
+    }
+
+
+    public Renderer[] ObtenerRenderersBandaVisual()
+    {
+        return
+            renderersBandaVisualDeformada.ToArray();
+    }
+
+
+    public void EstablecerVisualProceduralVisible(
+        bool visible)
+    {
+        PrepararComponentes();
+
+
+        if (meshRenderer != null)
+        {
+            meshRenderer.enabled =
+                visible;
+        }
+
+
+        if (railIzquierdoMR != null)
+        {
+            railIzquierdoMR.enabled =
+                visible;
+        }
+
+
+        if (railDerechoMR != null)
+        {
+            railDerechoMR.enabled =
+                visible;
+        }
+    }
+
+
+    private void PrepararModuloSoloVisual(
+        GameObject modulo)
+    {
+        if (modulo == null)
+        {
+            return;
+        }
+
+
+        Collider[] colliders =
+            modulo.GetComponentsInChildren<Collider>(
+                true
+            );
+
+
+        foreach (Collider col in colliders)
+        {
+            if (col != null)
+            {
+                col.enabled =
+                    false;
+            }
+        }
+
+
+        Rigidbody[] rigidbodies =
+            modulo.GetComponentsInChildren<Rigidbody>(
+                true
+            );
+
+
+        foreach (Rigidbody rb in rigidbodies)
+        {
+            if (rb != null)
+            {
+                rb.isKinematic =
+                    true;
+
+                rb.detectCollisions =
+                    false;
+            }
+        }
+
+
+        // El prefab repetido solo aporta su geometría/materiales.
+        // Toda la lógica real sigue perteneciendo a la spline principal.
+        MonoBehaviour[] comportamientos =
+            modulo.GetComponentsInChildren<MonoBehaviour>(
+                true
+            );
+
+
+        foreach (MonoBehaviour comportamiento in comportamientos)
+        {
+            if (comportamiento != null)
+            {
+                comportamiento.enabled =
+                    false;
+            }
+        }
+    }
+
+
+    private Transform BuscarHijoPorNombre(
+        GameObject raiz,
+        string nombre)
+    {
+        if (raiz == null)
+        {
+            return null;
+        }
+
+
+        Transform[] hijos =
+            raiz.GetComponentsInChildren<Transform>(
+                true
+            );
+
+
+        foreach (Transform hijo in hijos)
+        {
+            if (hijo.name ==
+                nombre)
+            {
+                return hijo;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    public bool ObtenerPuntoYTangentePorDistancia(
+        float distanciaObjetivo,
+        out Vector3 punto,
+        out Vector3 tangente)
+    {
+        punto =
+            puntoInicio;
+
+        tangente =
+            direccionInicio;
+
+
+        if (centros.Count < 2)
+        {
+            return false;
+        }
+
+
+        float longitudTotal =
+            ObtenerLongitudAproximada();
+
+
+        distanciaObjetivo =
+            Mathf.Clamp(
+                distanciaObjetivo,
+                0f,
+                longitudTotal
+            );
+
+
+        float acumulada =
+            0f;
+
+
+        for (int i = 0;
+             i < centros.Count - 1;
+             i++)
+        {
+            Vector3 a =
+                centros[i];
+
+            Vector3 b =
+                centros[i + 1];
+
+
+            float longitudTramo =
+                Vector3.Distance(
+                    a,
+                    b
+                );
+
+
+            if (longitudTramo <
+                0.000001f)
+            {
+                continue;
+            }
+
+
+            if (acumulada +
+                longitudTramo >=
+                distanciaObjetivo)
+            {
+                float t =
+                    (
+                        distanciaObjetivo -
+                        acumulada
+                    ) /
+                    longitudTramo;
+
+
+                punto =
+                    Vector3.Lerp(
+                        a,
+                        b,
+                        t
+                    );
+
+
+                Vector3 tangenteA =
+                    tangentes[
+                        Mathf.Min(
+                            i,
+                            tangentes.Count - 1
+                        )
+                    ];
+
+
+                Vector3 tangenteB =
+                    tangentes[
+                        Mathf.Min(
+                            i + 1,
+                            tangentes.Count - 1
+                        )
+                    ];
+
+
+                tangente =
+                    Vector3.Slerp(
+                        tangenteA,
+                        tangenteB,
+                        t
+                    );
+
+
+                if (tangente.sqrMagnitude <
+                    0.0001f)
+                {
+                    tangente =
+                        (
+                            b -
+                            a
+                        ).normalized;
+                }
+                else
+                {
+                    tangente.Normalize();
+                }
+
+
+                return true;
+            }
+
+
+            acumulada +=
+                longitudTramo;
+        }
+
+
+        punto =
+            centros[
+                centros.Count - 1
+            ];
+
+
+        tangente =
+            tangentes[
+                tangentes.Count - 1
+            ].normalized;
+
+
+        return true;
     }
 
 
@@ -1901,6 +3139,40 @@ public class CintaSplineDinamica : MonoBehaviour
                 color
             );
         }
+    }
+
+
+    public float ObtenerAnchoActual()
+    {
+        return ancho;
+    }
+
+
+    public float ObtenerLongitudAproximada()
+    {
+        if (centros.Count < 2)
+        {
+            return 0f;
+        }
+
+
+        float longitud =
+            0f;
+
+
+        for (int i = 0;
+             i < centros.Count - 1;
+             i++)
+        {
+            longitud +=
+                Vector3.Distance(
+                    centros[i],
+                    centros[i + 1]
+                );
+        }
+
+
+        return longitud;
     }
 
 
