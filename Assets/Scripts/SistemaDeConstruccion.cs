@@ -136,29 +136,6 @@ public class SistemaConstruccion : MonoBehaviour
     public float fuerzaCurvaCintaSpline = 0.35f;
 
 
-    [Header("Cinta Spline - Visual Deformado")]
-
-    [InspectorName("Usar Prefab Deformado Sobre Spline")]
-    [Tooltip(
-        "Usa el primer prefab real de tipo Cinta como molde visual. " +
-        "Sus meshes se subdividen y se deforman siguiendo exactamente la spline."
-    )]
-    public bool usarPrefabComoVisualModularSpline = true;
-
-    [Tooltip(
-        "Número de subdivisiones previas del mesh antes de curvarlo. " +
-        "2 suele dar una curva suave sin disparar demasiado los polígonos."
-    )]
-    [Range(0, 3)]
-    public int subdivisionesVisualDeformadoSpline = 2;
-
-    [Tooltip(
-        "Oculta la geometría procedural cuando el visual deformado se ha generado correctamente. " +
-        "La geometría procedural sigue existiendo para física, transporte, clearance y conectores."
-    )]
-    public bool ocultarVisualProceduralAlConstruir = true;
-
-
     [Header("Cinta Spline - Visual estilo prefab")]
 
     [Tooltip("Ancho de cada rail lateral.")]
@@ -186,20 +163,25 @@ public class SistemaConstruccion : MonoBehaviour
     public Material materialRailSplineHolograma;
 
 
-    [Header("Cinta Spline - Módulo")]
+    [Header("Cinta Spline - Visual deformado SOLO VISUAL")]
 
     [Tooltip(
-        "Se calcula automáticamente midiendo la distancia entre " +
-        "PuntoConexion_Entrada y PuntoConexion_Salida del primer prefab real de tipo Cinta."
+        "Instancia el primer prefab real de Cinta y deforma solo sus meshes. " +
+        "No modifica colliders, transporte, conectores ni física."
     )]
-    [Min(0f)]
-    public float longitudModuloCintaSpline = 0f;
+    public bool usarVisualPrefabDeformadoSpline = true;
 
     [Tooltip(
-        "Si está activo, cuando el extremo no está imantado la longitud total " +
-        "se ajusta automáticamente a múltiplos completos del módulo detectado."
+        "Subdivisiones del mesh antes de deformarlo. 1 o 2 suele ser suficiente."
     )]
-    public bool usarLongitudModularSpline = true;
+    [Range(0, 3)]
+    public int subdivisionesVisualPrefabSpline = 2;
+
+    [Tooltip(
+        "Oculta solo los MeshRenderer procedurales después de crear el visual. " +
+        "Los MeshCollider procedurales permanecen activos."
+    )]
+    public bool ocultarVisualProceduralSpline = true;
 
 
     [Header("Cinta Spline - Límites")]
@@ -330,139 +312,6 @@ public class SistemaConstruccion : MonoBehaviour
     private float tiempoHastaReengancheCinta = 0f;
     private float tiempoFueraRangoSnapCinta = 0f;
     private bool cancelarRotacionCintaEsteFrame = false;
-
-    void Awake()
-    {
-        RecalcularLongitudModuloCintaSpline();
-    }
-
-
-    void OnValidate()
-    {
-        RecalcularLongitudModuloCintaSpline();
-    }
-
-
-    public float RecalcularLongitudModuloCintaSpline()
-    {
-        longitudModuloCintaSpline =
-            0f;
-
-
-        if (edificios == null)
-        {
-            return 0f;
-        }
-
-
-        for (int i = 0;
-             i < edificios.Length;
-             i++)
-        {
-            InfoEdificio info =
-                edificios[i];
-
-
-            if (info.tipo != TipoEdificio.Cinta ||
-                info.prefabsReales == null ||
-                info.prefabsReales.Length == 0 ||
-                info.prefabsReales[0] == null)
-            {
-                continue;
-            }
-
-
-            GameObject prefab =
-                info.prefabsReales[0];
-
-
-            Transform entrada =
-                BuscarTransformPorNombreSpline(
-                    prefab,
-                    "PuntoConexion_Entrada"
-                );
-
-
-            Transform salida =
-                BuscarTransformPorNombreSpline(
-                    prefab,
-                    "PuntoConexion_Salida"
-                );
-
-
-            if (entrada == null ||
-                salida == null)
-            {
-                if (debugCintaSpline)
-                {
-                    Debug.LogWarning(
-                        "[CINTA SPLINE] No pude calcular la longitud del módulo en '" +
-                        prefab.name +
-                        "'. Faltan PuntoConexion_Entrada o PuntoConexion_Salida."
-                    );
-                }
-
-
-                return 0f;
-            }
-
-
-            longitudModuloCintaSpline =
-                Vector3.Distance(
-                    entrada.position,
-                    salida.position
-                );
-
-
-            if (debugCintaSpline &&
-                longitudModuloCintaSpline > 0.0001f)
-            {
-                Debug.Log(
-                    "[CINTA SPLINE] Longitud de módulo detectada automáticamente desde '" +
-                    prefab.name +
-                    "': " +
-                    longitudModuloCintaSpline.ToString("0.###") +
-                    " m"
-                );
-            }
-
-
-            return longitudModuloCintaSpline;
-        }
-
-
-        return 0f;
-    }
-
-
-    Transform BuscarTransformPorNombreSpline(
-        GameObject raiz,
-        string nombre)
-    {
-        if (raiz == null)
-        {
-            return null;
-        }
-
-
-        Transform[] hijos =
-            raiz.GetComponentsInChildren<Transform>(
-                true
-            );
-
-
-        foreach (Transform hijo in hijos)
-        {
-            if (hijo.name == nombre)
-            {
-                return hijo;
-            }
-        }
-
-
-        return null;
-    }
-
 
     void Update()
     {
@@ -1096,27 +945,31 @@ public class SistemaConstruccion : MonoBehaviour
         }
 
 
+        float distancia =
+            Vector3.Distance(
+                splinePuntoInicio,
+                puntoFinal
+            );
+
+
+        bool longitudValida =
+            distancia >=
+                longitudMinimaCintaSpline &&
+            distancia <=
+                longitudMaximaCintaSpline;
+
+
         if (splinePreview == null)
         {
             CrearPreviewCintaSpline();
         }
 
 
-        bool clearanceValido =
-            true;
-
-
-        float longitudRealSpline =
-            0f;
-
-
-        int numeroModulos =
-            0;
+        bool clearanceValido = true;
 
 
         if (splinePreview != null)
         {
-            // Primero calculamos la spline con el punto libre actual.
             splinePreview.ConfigurarCurva(
                 splinePuntoInicio,
                 puntoFinal,
@@ -1127,123 +980,6 @@ public class SistemaConstruccion : MonoBehaviour
                 segmentosCintaSpline,
                 fuerzaCurvaCintaSpline
             );
-
-
-            longitudRealSpline =
-                splinePreview.ObtenerLongitudAproximada();
-
-
-            // Si NO estamos terminando en otro conector, ajustamos la
-            // longitud completa de la curva al múltiplo de módulo más cercano.
-            if (!finalImantado &&
-                usarLongitudModularSpline &&
-                longitudModuloCintaSpline > 0.0001f &&
-                longitudRealSpline > 0.0001f)
-            {
-                numeroModulos =
-                    Mathf.Max(
-                        1,
-                        Mathf.RoundToInt(
-                            longitudRealSpline /
-                            longitudModuloCintaSpline
-                        )
-                    );
-
-
-                int minimoModulos =
-                    Mathf.Max(
-                        1,
-                        Mathf.CeilToInt(
-                            longitudMinimaCintaSpline /
-                            longitudModuloCintaSpline
-                        )
-                    );
-
-
-                int maximoModulos =
-                    Mathf.Max(
-                        minimoModulos,
-                        Mathf.FloorToInt(
-                            longitudMaximaCintaSpline /
-                            longitudModuloCintaSpline
-                        )
-                    );
-
-
-                numeroModulos =
-                    Mathf.Clamp(
-                        numeroModulos,
-                        minimoModulos,
-                        maximoModulos
-                    );
-
-
-                float longitudObjetivo =
-                    numeroModulos *
-                    longitudModuloCintaSpline;
-
-
-                float factorEscala =
-                    longitudObjetivo /
-                    longitudRealSpline;
-
-
-                Vector3 deltaFinal =
-                    puntoFinal -
-                    splinePuntoInicio;
-
-
-                puntoFinal =
-                    splinePuntoInicio +
-                    deltaFinal *
-                    factorEscala;
-
-
-                // La dirección horizontal no cambia al escalar todo el vector.
-                splinePreview.ConfigurarCurva(
-                    splinePuntoInicio,
-                    puntoFinal,
-                    splineDireccionInicio,
-                    direccionFinal,
-                    anchoCintaSpline,
-                    grosorCintaSpline,
-                    segmentosCintaSpline,
-                    fuerzaCurvaCintaSpline
-                );
-
-
-                longitudRealSpline =
-                    splinePreview.ObtenerLongitudAproximada();
-            }
-            else if (longitudModuloCintaSpline > 0.0001f)
-            {
-                numeroModulos =
-                    Mathf.Max(
-                        1,
-                        Mathf.RoundToInt(
-                            longitudRealSpline /
-                            longitudModuloCintaSpline
-                        )
-                    );
-            }
-
-
-            bool longitudValida =
-                longitudRealSpline >=
-                    longitudMinimaCintaSpline &&
-                longitudRealSpline <=
-                    longitudMaximaCintaSpline;
-
-
-            if (debugCintaSpline &&
-                splineInicioFijado)
-            {
-                Debug.DrawRay(
-                    puntoFinal,
-                    Vector3.up * 0.45f,
-                    Color.yellow
-                );
-            }
 
 
             if (usarClearanceCintaSpline &&
@@ -1318,19 +1054,6 @@ public class SistemaConstruccion : MonoBehaviour
             if (Input.GetMouseButtonDown(0) &&
                 splineValida)
             {
-                if (debugCintaSpline)
-                {
-                    Debug.Log(
-                        "[CINTA SPLINE] Longitud final: " +
-                        longitudRealSpline.ToString("0.###") +
-                        " m | Módulo: " +
-                        longitudModuloCintaSpline.ToString("0.###") +
-                        " m | Nº módulos: " +
-                        numeroModulos
-                    );
-                }
-
-
                 ConstruirCintaSpline(
                     puntoFinal,
                     direccionFinal,
@@ -1977,37 +1700,27 @@ public class SistemaConstruccion : MonoBehaviour
 
 
         // =================================================
-        // VISUAL DEFORMADO CON TU PREFAB ORIGINAL
+        // VISUAL DEL PREFAB: SOLO APARIENCIA
         // =================================================
-        //
-        // La spline procedural continúa siendo el "esqueleto":
-        // física, transporte, clearance, snap y destrucción.
-        //
-        // El prefab Rampa Variant se usa únicamente como molde visual:
-        // copiamos sus meshes, los subdividimos y deformamos sus vértices
-        // directamente sobre la spline. Así desaparecen los huecos y
-        // solapes que producían los módulos rígidos de la v8.
-        if (usarPrefabComoVisualModularSpline &&
+        // Se añade DESPUÉS de construir la física funcional.
+        // CintaSplineVisualDeformado no modifica el MeshCollider procedural
+        // ni CintaSplineTransportador.
+        if (usarVisualPrefabDeformadoSpline &&
             actual.prefabsReales != null &&
             actual.prefabsReales.Length > 0 &&
-            actual.prefabsReales[0] != null &&
-            longitudModuloCintaSpline > 0.0001f)
+            actual.prefabsReales[0] != null)
         {
-            bool visualDeformadoCreado =
-                spline.ConstruirVisualDeformado(
-                    actual.prefabsReales[0],
-                    longitudModuloCintaSpline,
-                    subdivisionesVisualDeformadoSpline
-                );
+            CintaSplineVisualDeformado visualDeformado =
+                nuevaCinta.AddComponent<CintaSplineVisualDeformado>();
 
 
-            if (visualDeformadoCreado &&
-                ocultarVisualProceduralAlConstruir)
-            {
-                spline.EstablecerVisualProceduralVisible(
-                    false
-                );
-            }
+            visualDeformado.Construir(
+                spline,
+                actual.prefabsReales[0],
+                fuerzaCurvaCintaSpline,
+                subdivisionesVisualPrefabSpline,
+                ocultarVisualProceduralSpline
+            );
         }
 
 

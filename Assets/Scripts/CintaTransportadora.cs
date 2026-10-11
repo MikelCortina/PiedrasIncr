@@ -12,7 +12,7 @@ public class CintaTransportadora : MonoBehaviour
     public Vector2 direccionTextura = new Vector2(0f, -1f);
 
     [Tooltip("Ajusta este multiplicador hasta que la textura se mueva a la misma velocidad que los objetos sobre ella.")]
-    public float multiplicadorSincronizacion = 0.2f; // ¡NUEVO! El sincronizador mágico
+    public float multiplicadorSincronizacion = 0.2f;
 
     private Material materialCinta;
     private Vector2 offsetTextura;
@@ -33,7 +33,6 @@ public class CintaTransportadora : MonoBehaviour
     {
         if (animarTextura && materialCinta != null)
         {
-            // Usamos tu multiplicador en lugar de un número fijo
             offsetTextura += direccionTextura * (velocidad * multiplicadorSincronizacion * Time.deltaTime);
             materialCinta.mainTextureOffset = offsetTextura;
         }
