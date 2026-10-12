@@ -32,12 +32,9 @@ public class DeformacionPiedra : MonoBehaviour
     public int maxParticulasPorGolpe = 50;
 
     [Header("Colores de Partículas (Desgaste > 95%)")]
-    [Tooltip("Color de las partículas cuando la piedra está normal")]
-    [ColorUsage(true, true)] // <-- Esto habilita el selector HDR con intensidad
+    [ColorUsage(true, true)]
     public Color colorParticulasNormal = Color.white;
-
-    [Tooltip("Color de las partículas cuando la piedra supera el 95% de erosión")]
-    [ColorUsage(true, true)] // <-- Esto habilita el selector HDR con intensidad
+    [ColorUsage(true, true)]
     public Color colorParticulasErosionado = Color.yellow;
 
     [Header("Deslizamiento Visual")]
@@ -94,15 +91,15 @@ public class DeformacionPiedra : MonoBehaviour
 
     public void Despertar()
     {
+        // CORRECCIÓN: Solo reseteamos las variables y la despertamos si estaba realmente dormida
         if (rb.isKinematic)
         {
             rb.isKinematic = false;
             rb.WakeUp();
+            posicionAnterior = transform.position;
+            rotacionAnterior = transform.rotation;
+            temporizadorEspacial = 0f;
         }
-
-        posicionAnterior = transform.position;
-        rotacionAnterior = transform.rotation;
-        temporizadorEspacial = 0f;
     }
 
     void Dormir()
@@ -178,8 +175,6 @@ public class DeformacionPiedra : MonoBehaviour
 
     void CalcularRadioObjetivo()
     {
-        // En lugar de calcular el valle aleatorio de esta malla,
-        // forzamos el tamaño exacto que tú has puesto en el Inspector para todas.
         radioObjetivoMinimo = radioFinalEsfera;
     }
 

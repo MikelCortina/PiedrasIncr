@@ -37,6 +37,15 @@ public class GestorRuletasFPS : MonoBehaviour
                     {
                         boton.Interaccionar(); // Click!
                     }
+                    else
+                    {
+                        // 3. NUEVO: Si no era botón tubería, comprobamos si es el botón del Ventilador
+                        VentiladorPiedras ventilador = hit.collider.GetComponentInParent<VentiladorPiedras>();
+                        if (ventilador != null)
+                        {
+                            ventilador.Interaccionar(); // Click!
+                        }
+                    }
                 }
             }
         }
