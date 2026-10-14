@@ -18,6 +18,9 @@ public class SistemaPatada : MonoBehaviour
     public Transform puntoGolpe;
     public LayerMask capaPiedra;
 
+    [Tooltip("Ángulo máximo hacia los lados desde el centro de tu visión donde puedes detectar piedras. 60 es similar a lo que ves en pantalla.")]
+    public float anguloVisionMaximo = 60f;
+
     [Header("Sonidos")]
     public AudioClip sonidoPatada;
     [Range(0f, 1f)] public float volumenPatada = 1f;
@@ -36,6 +39,7 @@ public class SistemaPatada : MonoBehaviour
         scriptAgarre = FindObjectOfType<AgarreLanzamiento>();
         gestorEquipamiento = FindObjectOfType<GestorEquipamiento>();
     }
+
     void Update()
     {
         // Si tenemos cualquier herramienta equipada, no podemos patear
@@ -55,15 +59,49 @@ public class SistemaPatada : MonoBehaviour
             DarPatada();
         }
     }
+
     void DarPatada()
     {
         Collider[] objetosGolpeados = Physics.OverlapSphere(puntoGolpe.position, radioGolpe, capaPiedra);
 
-        // ¡FILTRO DE SEGURIDAD! Si no hay piedras en el radio, salimos al instante (no hay sonido ni acción)
         if (objetosGolpeados.Length == 0) return;
 
-        // Convertimos el array en una lista para poder ordenarlas por cercanía
-        List<Collider> listaPiedras = new List<Collider>(objetosGolpeados);
+        List<Collider> listaPiedras = new List<Collider>();
+        Transform camaraTrans = Camera.main.transform;
+
+        // Obtenemos la dirección hacia adelante de la cámara aplastada en el plano X-Z (ignorando arriba/abajo)
+        Vector3 forwardCamaraPlano = new Vector3(camaraTrans.forward.x, 0, camaraTrans.forward.z).normalized;
+
+        // --- FILTRO DE VISIÓN (Solo delante del jugador) ---
+        foreach (Collider col in objetosGolpeados)
+        {
+            // Vector desde la cámara hasta la piedra
+            Vector3 direccionHaciaPiedra = col.bounds.center - camaraTrans.position;
+            // Lo aplastamos también para ignorar si la piedra está en el suelo y la cámara muy arriba
+            direccionHaciaPiedra.y = 0;
+
+            if (direccionHaciaPiedra.sqrMagnitude > 0.001f)
+            {
+                direccionHaciaPiedra.Normalize();
+                // Calculamos el ángulo entre donde miramos y donde está la piedra
+                float angulo = Vector3.Angle(forwardCamaraPlano, direccionHaciaPiedra);
+
+                // Si está dentro del cono de visión, es válida
+                if (angulo <= anguloVisionMaximo)
+                {
+                    listaPiedras.Add(col);
+                }
+            }
+            else
+            {
+                // Si la distancia horizontal es prácticamente 0, significa que está exactamente 
+                // debajo de nosotros en la misma coordenada XZ. La damos por válida.
+                listaPiedras.Add(col);
+            }
+        }
+
+        // Si después de filtrar las de atrás y los lados no queda ninguna, salimos
+        if (listaPiedras.Count == 0) return;
 
         // Ordenamos de más cercana a más lejana respecto al punto del golpe
         listaPiedras.Sort((a, b) =>
@@ -71,7 +109,7 @@ public class SistemaPatada : MonoBehaviour
             .CompareTo(Vector3.Distance(puntoGolpe.position, b.transform.position))
         );
 
-        // Limitamos la cantidad de piedras a procesar según el límite configurado
+        // Limitamos la cantidad de piedras a procesar
         int cantidadAGolpear = Mathf.Min(listaPiedras.Count, maxPiedrasPorPatada);
 
         for (int i = 0; i < cantidadAGolpear; i++)
@@ -85,13 +123,11 @@ public class SistemaPatada : MonoBehaviour
 
             if (rbPiedra != null)
             {
-                Vector3 dirCamara = Camera.main.transform.forward;
+                Vector3 dirCamara = camaraTrans.forward;
 
-                // 1. CORRECCIÓN NaN: Usamos Mathf.Clamp 
                 float anguloCamara = Mathf.Asin(Mathf.Clamp(dirCamara.y, -1f, 1f)) * Mathf.Rad2Deg;
                 float anguloPatada = anguloCamara;
 
-                // 2. Cálculo de Elevación
                 if (anguloCamara > anguloFielMaximo)
                 {
                     float rangoCamaraRestante = 90f - anguloFielMaximo;
@@ -106,18 +142,14 @@ public class SistemaPatada : MonoBehaviour
                     anguloPatada = anguloFielMaximo + (rangoPatadaRestante * suavizado);
                 }
 
-                // 3. Dirección horizontal
                 Vector3 dirPlano = new Vector3(dirCamara.x, 0, dirCamara.z).normalized;
-                if (dirPlano.sqrMagnitude < 0.001f) dirPlano = Camera.main.transform.up;
+                if (dirPlano.sqrMagnitude < 0.001f) dirPlano = camaraTrans.up;
 
-                // 4. Vector final
                 Vector3 direccionFinal = (dirPlano * Mathf.Cos(anguloPatada * Mathf.Deg2Rad)) + (Vector3.up * Mathf.Sin(anguloPatada * Mathf.Deg2Rad));
 
-                // 5. ¡Pateamos!
                 rbPiedra.AddForce(direccionFinal * fuerzaPatada, ForceMode.Impulse);
                 rbPiedra.AddTorque(new Vector3(Random.Range(-5f, 5f), Random.Range(-5f, 5f), Random.Range(-5f, 5f)), ForceMode.Impulse);
 
-                // 6. Efectos visuales en la primera piedra golpeada
                 if (i == 0 && particulasPatada != null)
                 {
                     particulasPatada.transform.position = rbPiedra.transform.position;
@@ -126,7 +158,6 @@ public class SistemaPatada : MonoBehaviour
             }
         }
 
-        // 7. Sonido general de la patada (AHORA SÍ: Solo suena si encontró y golpeó al menos una piedra)
         if (sonidoPatada != null)
         {
             audioSource.PlayOneShot(sonidoPatada, volumenPatada);
@@ -137,8 +168,26 @@ public class SistemaPatada : MonoBehaviour
     {
         if (puntoGolpe != null)
         {
+            // Dibujamos la esfera de detección
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(puntoGolpe.position, radioGolpe);
+
+            // Dibujamos el cono de visión permitido en azul
+            if (Camera.main != null)
+            {
+                Vector3 origen = puntoGolpe.position;
+                Vector3 forward = Camera.main.transform.forward;
+                forward.y = 0;
+                forward.Normalize();
+
+                Vector3 limiteDerecho = Quaternion.Euler(0, anguloVisionMaximo, 0) * forward;
+                Vector3 limiteIzquierdo = Quaternion.Euler(0, -anguloVisionMaximo, 0) * forward;
+
+                Gizmos.color = new Color(0f, 0.5f, 1f, 0.5f);
+                Gizmos.DrawRay(origen, limiteDerecho * radioGolpe);
+                Gizmos.DrawRay(origen, limiteIzquierdo * radioGolpe);
+                Gizmos.DrawRay(origen, forward * radioGolpe);
+            }
         }
     }
 }

@@ -19596,6 +19596,7 @@ MonoBehaviour:
   capaPiedra:
     serializedVersion: 2
     m_Bits: 5632
+  anguloVisionMaximo: 25
   sonidoPatada: {fileID: 8300000, guid: 273826e6f7012554d930422887e37e81, type: 3}
   volumenPatada: 0.66
   particulasPatada: {fileID: 342513635}
@@ -41821,10 +41822,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -41842,7 +41843,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 2046494805}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -41898,6 +41899,9 @@ MonoBehaviour:
   teclaEscanear: 101
   tagPiedra: Piedra
   distanciaMaximaReal: 5
+  elementosUIExtras:
+  - {fileID: 1794160168}
+  velocidadPopUI: 15
   velocidadTransicion: 10
   velocidadRotacion: 150
   intensidadDelay: 15
@@ -81752,7 +81756,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 440, y: 236}
+  m_AnchoredPosition: {x: 806, y: 496}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1794160169

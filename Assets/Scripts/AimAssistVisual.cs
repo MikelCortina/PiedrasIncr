@@ -14,6 +14,12 @@ public class AimAssistVisual : MonoBehaviour
     public string tagPiedra = "Piedra";
     public float distanciaMaximaReal = 15f;
 
+    [Header("Elementos de UI (Canvas)")]
+    [Tooltip("Arrastra aquí otros paneles, iconos o textos del Canvas que quieras que aparezcan al escanear.")]
+    public RectTransform[] elementosUIExtras;
+    [Tooltip("Velocidad a la que se inflan (pop in) y desinflan (pop out) los elementos del Canvas.")]
+    public float velocidadPopUI = 15f;
+
     [Header("Movimiento y Animación")]
     public float velocidadTransicion = 10f;
     public float velocidadRotacion = 150f;
@@ -21,6 +27,10 @@ public class AimAssistVisual : MonoBehaviour
     [Header("Efecto de Delay (Sway de Cámara)")]
     public float intensidadDelay = 15f;
     public float velocidadRecuperacion = 15f;
+
+    // Variables internas para la UI
+    private Vector3 escalaOriginalMirilla;
+    private Vector3[] escalasOriginalesExtras;
 
     private Vector2 posicionOriginal;
     private Quaternion rotacionOriginal;
@@ -40,17 +50,32 @@ public class AimAssistVisual : MonoBehaviour
     void Start()
     {
         posicionOriginal = Vector2.zero;
-        rotacionOriginal = mirilla.localRotation;
+        rotacionOriginal = mirilla != null ? mirilla.localRotation : Quaternion.identity;
 
         if (camaraPrincipal != null)
         {
             rotacionAnteriorCamara = camaraPrincipal.transform.eulerAngles;
         }
 
-        // Al iniciar, nos aseguramos de que la mirilla empiece oculta si no se escanea
+        // ==========================================
+        // GUARDAMOS ESCALAS ORIGINALES Y OCULTAMOS
+        // ==========================================
         if (mirilla != null)
         {
+            escalaOriginalMirilla = mirilla.localScale;
+            mirilla.localScale = Vector3.zero;
             mirilla.gameObject.SetActive(false);
+        }
+
+        escalasOriginalesExtras = new Vector3[elementosUIExtras.Length];
+        for (int i = 0; i < elementosUIExtras.Length; i++)
+        {
+            if (elementosUIExtras[i] != null)
+            {
+                escalasOriginalesExtras[i] = elementosUIExtras[i].localScale;
+                elementosUIExtras[i].localScale = Vector3.zero;
+                elementosUIExtras[i].gameObject.SetActive(false);
+            }
         }
     }
 
@@ -59,12 +84,19 @@ public class AimAssistVisual : MonoBehaviour
         // Comprobamos si el jugador MANTIENE PULSADA la tecla de escaneo
         escaneandoActivo = Input.GetKey(teclaEscanear);
 
-        // Activamos o desactivamos la visibilidad de la mirilla según se pulse la tecla
-        if (mirilla != null && mirilla.gameObject.activeSelf != escaneandoActivo)
+        // ==========================================
+        // ANIMACIÓN "POP" DE LA MIRILLA Y LOS EXTRAS
+        // ==========================================
+        AnimarElementoUI(mirilla, escalaOriginalMirilla, escaneandoActivo);
+
+        for (int i = 0; i < elementosUIExtras.Length; i++)
         {
-            mirilla.gameObject.SetActive(escaneandoActivo);
+            AnimarElementoUI(elementosUIExtras[i], escalasOriginalesExtras[i], escaneandoActivo);
         }
 
+        // ==========================================
+        // LÓGICA DE ESCANEO
+        // ==========================================
         if (escaneandoActivo)
         {
             CalcularDelayDeCamara();
@@ -78,8 +110,11 @@ public class AimAssistVisual : MonoBehaviour
 
                 Vector3 posPantalla = camaraPrincipal.WorldToScreenPoint(centroPiedra);
 
-                mirilla.position = Vector3.Lerp(mirilla.position, posPantalla, Time.deltaTime * velocidadTransicion);
-                mirilla.Rotate(0f, 0f, velocidadRotacion * Time.deltaTime);
+                if (mirilla != null)
+                {
+                    mirilla.position = Vector3.Lerp(mirilla.position, posPantalla, Time.deltaTime * velocidadTransicion);
+                    mirilla.Rotate(0f, 0f, velocidadRotacion * Time.deltaTime);
+                }
 
                 // Obtenemos el porcentaje de desgaste hacia la esfera primitiva central
                 DeformacionPiedra piedraScript = objetivoActual.GetComponent<DeformacionPiedra>();
@@ -97,11 +132,39 @@ public class AimAssistVisual : MonoBehaviour
         {
             // Si suelta la tecla, limpiamos el objetivo actual
             objetivoActual = null;
+            DevolverMirillaAlCentro(); // Para que vuelva al centro mientras se hace pequeña
+        }
+    }
+
+    // ==========================================
+    // MÉTODO PARA INFLAR/DESINFLAR UI
+    // ==========================================
+    void AnimarElementoUI(RectTransform elemento, Vector3 escalaOriginal, bool mostrar)
+    {
+        if (elemento == null) return;
+
+        Vector3 escalaObjetivo = mostrar ? escalaOriginal : Vector3.zero;
+
+        // Si queremos mostrarlo y está apagado, lo encendemos de inmediato
+        if (mostrar && !elemento.gameObject.activeSelf)
+        {
+            elemento.gameObject.SetActive(true);
+        }
+
+        // Interpolamos el tamaño para crear el efecto "Pop"
+        elemento.localScale = Vector3.Lerp(elemento.localScale, escalaObjetivo, Time.deltaTime * velocidadPopUI);
+
+        // Si ya es minúsculo (invisible) y no queremos mostrarlo, lo apagamos para ahorrar rendimiento
+        if (!mostrar && elemento.localScale.sqrMagnitude < 0.001f && elemento.gameObject.activeSelf)
+        {
+            elemento.localScale = Vector3.zero;
+            elemento.gameObject.SetActive(false);
         }
     }
 
     void DevolverMirillaAlCentro()
     {
+        if (mirilla == null) return;
         Vector2 centroConDelay = posicionOriginal + offsetSway;
         mirilla.anchoredPosition = Vector2.Lerp(mirilla.anchoredPosition, centroConDelay, Time.deltaTime * velocidadTransicion);
         mirilla.localRotation = Quaternion.Lerp(mirilla.localRotation, rotacionOriginal, Time.deltaTime * velocidadTransicion);
