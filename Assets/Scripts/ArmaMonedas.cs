@@ -19,6 +19,33 @@ public class ArmaLanzadora : MonoBehaviour
     [Tooltip("Qué tan rápido frena al soltar el gatillo (valores bajos = más inercia)")]
     public float desaceleracionGiro = 2f;
 
+    // ========================================================
+    // NUEVO: SISTEMA DE NEONES RÁPIDOS
+    // ========================================================
+    [Header("Efectos Visuales (Neones)")]
+    [Tooltip("Arrastra aquí las piezas del arma que tengan el script ControladorNeon")]
+    public ControladorNeon[] neonesArma;
+
+    [ColorUsage(true, true)]
+    public Color colorNeonReposo = Color.cyan;
+
+    [ColorUsage(true, true)]
+    public Color colorNeonActivo = new Color(1f, 0.3f, 0f, 1f);
+
+    [Tooltip("Intensidad extra de brillo que se sumará a los neones al disparar")]
+    public float aumentoIntensidadActivo = 2f;
+
+    [Tooltip("Velocidad de parpadeo extra que se sumará a los neones al disparar")]
+    public float aumentoParpadeoActivo = 15f;
+
+    [Tooltip("Velocidad a la que el neón hace la transición de encendido a apagado (20 es rápido)")]
+    public float velocidadTransicionNeon = 20f;
+
+    private float transicionNeonActual = 0f;
+    private float[] intensidadesBaseNeones;
+    private float[] parpadeosBaseNeones;
+    // ========================================================
+
     [Header("Economía")]
     public Cartera cartera;
 
@@ -86,6 +113,24 @@ public class ArmaLanzadora : MonoBehaviour
         if (cartera == null)
             cartera = GetComponentInParent<Cartera>();
 
+        // --- INICIALIZAMOS LOS NEONES GUARDANDO SUS VALORES BASE ---
+        if (neonesArma != null && neonesArma.Length > 0)
+        {
+            intensidadesBaseNeones = new float[neonesArma.Length];
+            parpadeosBaseNeones = new float[neonesArma.Length];
+
+            for (int i = 0; i < neonesArma.Length; i++)
+            {
+                if (neonesArma[i] != null)
+                {
+                    intensidadesBaseNeones[i] = neonesArma[i].intensidad;
+                    parpadeosBaseNeones[i] = neonesArma[i].velocidadParpadeo;
+                    neonesArma[i].colorNeon = colorNeonReposo;
+                }
+            }
+        }
+        // -------------------------------------------------------------
+
         if (modeloArma != null)
         {
             escalaOriginalArma = modeloArma.transform.localScale;
@@ -102,11 +147,13 @@ public class ArmaLanzadora : MonoBehaviour
         {
             ManejarDisparo();
             ManejarGiroObjeto();
+            ManejarNeones(); // Añadimos la actualización de los neones
             ManejarRetrocesoVisual();
             ManejarBlendShape();
             ActualizarAnimacionModelo();
         }
     }
+
     public void SetEquipada(bool equipada)
     {
         if (armaEquipada == equipada)
@@ -125,6 +172,8 @@ public class ArmaLanzadora : MonoBehaviour
 
                 temporizadorBobbing = 0f;
                 velocidadGiroActual = 0f;
+                transicionNeonActual = 0f; // Reseteamos la transición de la luz al equipar
+                ManejarNeones();
             }
         }
 
@@ -143,28 +192,52 @@ public class ArmaLanzadora : MonoBehaviour
         }
     }
 
-    // --- NUEVO: SISTEMA DE INERCIA ---
     void ManejarGiroObjeto()
     {
         if (objetoGiratorio == null) return;
 
         if (Input.GetKey(teclaDisparo))
         {
-            // Acelera suavemente hacia la velocidad máxima
             velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, velocidadGiroZ, Time.deltaTime * aceleracionGiro);
         }
         else
         {
-            // Frena suavemente hacia 0 cuando sueltas el botón
             velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, 0f, Time.deltaTime * desaceleracionGiro);
         }
 
-        // Si todavía tiene algo de velocidad residual, lo seguimos girando
         if (Mathf.Abs(velocidadGiroActual) > 0.1f)
         {
             objetoGiratorio.Rotate(0f, 0f, velocidadGiroActual * Time.deltaTime, Space.Self);
         }
     }
+
+    // ========================================================
+    // LÓGICA DE NEONES: Lerp rápido separado del giro físico
+    // ========================================================
+    void ManejarNeones()
+    {
+        if (neonesArma == null || neonesArma.Length == 0) return;
+
+        // Si mantenemos pulsado, la luz se activa (incluso entre los frames de cadencia de disparo)
+        bool disparando = Input.GetKey(teclaDisparo);
+        float transicionObjetivo = disparando ? 1f : 0f;
+
+        // Lerp ultrarrápido
+        transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
+
+        Color colorActualizado = Color.Lerp(colorNeonReposo, colorNeonActivo, transicionNeonActual);
+
+        for (int i = 0; i < neonesArma.Length; i++)
+        {
+            if (neonesArma[i] != null)
+            {
+                neonesArma[i].colorNeon = colorActualizado;
+                neonesArma[i].intensidad = intensidadesBaseNeones[i] + (aumentoIntensidadActivo * transicionNeonActual);
+                neonesArma[i].velocidadParpadeo = parpadeosBaseNeones[i] + (aumentoParpadeoActivo * transicionNeonActual);
+            }
+        }
+    }
+    // ========================================================
 
     void ActualizarAnimacionModelo()
     {
@@ -200,60 +273,38 @@ public class ArmaLanzadora : MonoBehaviour
 
     void Disparar()
     {
-        // Comprobamos que el arma está configurada correctamente
         if (prefabProyectil == null || puntoDisparo == null)
         {
             return;
         }
 
-        // Comprobamos que tenemos una cartera
         if (cartera == null)
         {
             Debug.LogWarning("ArmaLanzadora: No se ha encontrado una Cartera.");
             return;
         }
 
-        // Intentamos pagar el disparo
         if (!cartera.GastarMonedas(costePorDisparo))
         {
             Debug.Log("No hay monedas suficientes para disparar.");
             return;
         }
 
-        // -------------------------
-        // DISPERSIÓN DEL DISPARO
-        // -------------------------
-        Vector2 dispersionAleatoria =
-            Random.insideUnitCircle * anguloDispersion;
+        Vector2 dispersionAleatoria = Random.insideUnitCircle * anguloDispersion;
 
-        Quaternion rotacionDispersion =
-            Quaternion.Euler(
-                dispersionAleatoria.y,
-                dispersionAleatoria.x,
-                0f
-            );
-
-        Vector3 direccionFinal =
-            (puntoDisparo.rotation * rotacionDispersion)
-            * Vector3.forward;
-
-        Quaternion rotacionFrisbee =
-            Quaternion.LookRotation(
-                direccionFinal,
-                puntoDisparo.up
-            );
-
-        // -------------------------
-        // CREAR PROYECTIL
-        // -------------------------
-        GameObject proyectil = Instantiate(
-            prefabProyectil,
-            puntoDisparo.position,
-            rotacionFrisbee
+        Quaternion rotacionDispersion = Quaternion.Euler(
+            dispersionAleatoria.y,
+            dispersionAleatoria.x,
+            0f
         );
 
-        Moneda moneda = proyectil.GetComponent<Moneda>();
+        Vector3 direccionFinal = (puntoDisparo.rotation * rotacionDispersion) * Vector3.forward;
 
+        Quaternion rotacionFrisbee = Quaternion.LookRotation(direccionFinal, puntoDisparo.up);
+
+        GameObject proyectil = Instantiate(prefabProyectil, puntoDisparo.position, rotacionFrisbee);
+
+        Moneda moneda = proyectil.GetComponent<Moneda>();
         if (moneda == null)
         {
             moneda = proyectil.AddComponent<Moneda>();
@@ -264,68 +315,34 @@ public class ArmaLanzadora : MonoBehaviour
         {
             proyectil.AddComponent<ProyectilArma>();
         }
-        // -------------------------
-        // FÍSICAS DEL PROYECTIL
-        // -------------------------
-        Rigidbody rb = proyectil.GetComponent<Rigidbody>();
 
+        Rigidbody rb = proyectil.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.AddForce(
-                direccionFinal * fuerzaDisparo,
-                ForceMode.Impulse
-            );
-
+            rb.AddForce(direccionFinal * fuerzaDisparo, ForceMode.Impulse);
             float fuerzaGiro = Random.Range(-15f, 15f);
-
-            rb.AddRelativeTorque(
-                new Vector3(0f, fuerzaGiro, 0f),
-                ForceMode.Impulse
-            );
+            rb.AddRelativeTorque(new Vector3(0f, fuerzaGiro, 0f), ForceMode.Impulse);
         }
 
-        // -------------------------
-        // CRECIMIENTO DEL PROYECTIL
-        // -------------------------
-        CrecimientoProyectil animCrecimiento =
-            proyectil.AddComponent<CrecimientoProyectil>();
+        CrecimientoProyectil animCrecimiento = proyectil.AddComponent<CrecimientoProyectil>();
+        animCrecimiento.Configurar(escalaMaxima, velocidadCrecimiento);
 
-        animCrecimiento.Configurar(
-            escalaMaxima,
-            velocidadCrecimiento
-        );
-
-        // -------------------------
-        // INMUNIDAD AL IMÁN
-        // -------------------------
-        ProteccionMagnetica animInmunidad =
-            proyectil.AddComponent<ProteccionMagnetica>();
-
+        ProteccionMagnetica animInmunidad = proyectil.AddComponent<ProteccionMagnetica>();
         animInmunidad.Configurar(tiempoInmunidad);
 
-        // Destruir proyectil pasado un tiempo
         Destroy(proyectil, vidaProyectil);
 
-        // -------------------------
-        // PARTÍCULAS
-        // -------------------------
         if (particulasDisparo != null)
         {
             particulasDisparo.Play();
         }
 
-        // -------------------------
-        // SONIDO
-        // -------------------------
         if (audioSource != null && sonidoDisparo != null)
         {
             audioSource.pitch = Random.Range(0.9f, 1.1f);
             audioSource.PlayOneShot(sonidoDisparo, 0.7f);
         }
 
-        // -------------------------
-        // RETROCESO VISUAL
-        // -------------------------
         retrocesoActual = fuerzaRetrocesoVisual;
         pesoActualBlend = pesoMaximoBlendShape;
     }

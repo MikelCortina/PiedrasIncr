@@ -6,7 +6,7 @@ public struct PiezaGiratoria
 {
     [Tooltip("La parte del modelo que va a girar")]
     public Transform objeto;
-    [Tooltip("Velocidad mÃ¡xima en el eje Z para esta pieza en concreto")]
+    [Tooltip("Velocidad máxima en el eje Z para esta pieza en concreto")]
     public float velocidadMaximaZ;
 }
 
@@ -16,7 +16,7 @@ public class HerramientaTorbellino : MonoBehaviour
     public bool equipada = false;
     public GameObject modeloHerramienta;
 
-    [Header("AnimaciÃ³n del Modelo (Sway & Bobbing)")]
+    [Header("Animación del Modelo (Sway & Bobbing)")]
     public float intensidadSway = 0.02f;
     public float limiteSway = 0.06f;
     public float intensidadInclinacion = 2f;
@@ -25,28 +25,50 @@ public class HerramientaTorbellino : MonoBehaviour
     public float suavidadAnimacion = 8f;
 
     [Header("Efectos Visuales (Giro con Inercia)")]
-    [Tooltip("Lista de piezas del modelo que girarÃ¡n, cada una con su propia velocidad")]
+    [Tooltip("Lista de piezas del modelo que girarán, cada una con su propia velocidad")]
     public PiezaGiratoria[] piezasGiratorias;
-
     public float aceleracionGiro = 5f;
     public float desaceleracionGiro = 2f;
     private float intensidadGiroActual = 0f;
+
+    [Header("Efectos Visuales (Neones)")]
+    [Tooltip("Arrastra aquí las piezas de la herramienta que tengan el script ControladorNeon")]
+    public ControladorNeon[] neonesHerramienta;
+
+    [ColorUsage(true, true)]
+    public Color colorNeonReposo = Color.cyan;
+
+    [ColorUsage(true, true)]
+    public Color colorNeonActivo = new Color(1f, 0.3f, 0f, 1f);
+
+    [Tooltip("Intensidad extra de brillo que se sumará a los neones al disparar aire")]
+    public float aumentoIntensidadActivo = 2f;
+
+    [Tooltip("Velocidad de parpadeo extra que se sumará a los neones al disparar aire")]
+    public float aumentoParpadeoActivo = 15f;
+
+    [Tooltip("Velocidad a la que el neón hace la transición de encendido a apagado (20 es rápido)")]
+    public float velocidadTransicionNeon = 20f;
+    private float transicionNeonActual = 0f;
+
+    private float[] intensidadesBaseNeones;
+    private float[] parpadeosBaseNeones;
 
     [Header("Raycast y Apuntado")]
     public LayerMask capaSuelo;
     public float alcanceMaximo = 100f;
 
-    [Tooltip("Sistema de partÃ­culas que aparecerÃ¡ en el punto donde toca el tornado (Se mueve y rota)")]
+    [Tooltip("Sistema de partículas que aparecerá en el punto donde toca el tornado (Se mueve y rota)")]
     public ParticleSystem particulasTorbellino;
 
-    [Tooltip("Sistemas de partÃ­culas que se activan al usar la herramienta pero NO cambian su posiciÃ³n ni rotaciÃ³n")]
+    [Tooltip("Sistemas de partículas que se activan al usar la herramienta pero NO cambian su posición ni rotación")]
     public ParticleSystem[] particulasEstaticas;
 
-    [Header("VisualizaciÃ³n del Ãrea")]
+    [Header("Visualización del Área")]
     public LineRenderer circuloAreaVisual;
     public int segmentosCirculo = 50;
 
-    [Header("FÃ­sicas Estables del VÃ³rtice")]
+    [Header("Físicas Estables del Vórtice")]
     public float radioAtraccion = 15f;
     public float radioOjoTornado = 3f;
     public float velocidadRotacion = 25f;
@@ -98,9 +120,9 @@ public class HerramientaTorbellino : MonoBehaviour
     private float multiplicadorMovilidadActual = 0.50f;
 
     public int NivelMovilidad => nivelMovilidad;
-
     public int NivelAlcance => nivelAlcance;
     public int NivelRadio => nivelRadio;
+
     private Camera camaraPrincipal;
 
     private bool torbellinoActivo = false;
@@ -130,12 +152,29 @@ public class HerramientaTorbellino : MonoBehaviour
         AplicarNivelAlcance();
         AplicarNivelMovilidad();
     }
+
     void Start()
     {
         AplicarNivelRadio();
         AplicarNivelAlcance();
         AplicarNivelMovilidad();
         camaraPrincipal = Camera.main;
+
+        if (neonesHerramienta != null && neonesHerramienta.Length > 0)
+        {
+            intensidadesBaseNeones = new float[neonesHerramienta.Length];
+            parpadeosBaseNeones = new float[neonesHerramienta.Length];
+
+            for (int i = 0; i < neonesHerramienta.Length; i++)
+            {
+                if (neonesHerramienta[i] != null)
+                {
+                    intensidadesBaseNeones[i] = neonesHerramienta[i].intensidad;
+                    parpadeosBaseNeones[i] = neonesHerramienta[i].velocidadParpadeo;
+                    neonesHerramienta[i].colorNeon = colorNeonReposo;
+                }
+            }
+        }
 
         if (modeloHerramienta != null)
         {
@@ -176,7 +215,6 @@ public class HerramientaTorbellino : MonoBehaviour
         if (scriptCamara != null) sensibilidadOriginalCamara = scriptCamara.sensibilidadRaton;
     }
 
-    // --- NUEVO: FunciÃ³n pÃºblica llamada por GestorEquipamiento.cs ---
     public void SetEquipada(bool estado)
     {
         if (equipada == estado) return;
@@ -192,6 +230,8 @@ public class HerramientaTorbellino : MonoBehaviour
                 modeloHerramienta.transform.localRotation = rotacionInicialModelo;
                 temporizadorBobbing = 0f;
                 intensidadGiroActual = 0f;
+                transicionNeonActual = 0f; // Reseteamos la transición de la luz
+                ManejarNeones();
 
                 if (particulasEstaticas != null)
                 {
@@ -215,6 +255,7 @@ public class HerramientaTorbellino : MonoBehaviour
         {
             ActualizarAnimacionModelo();
             ManejarGiroObjetos();
+            ManejarNeones();
         }
 
         if (equipada && Input.GetMouseButton(0))
@@ -312,6 +353,33 @@ public class HerramientaTorbellino : MonoBehaviour
         }
     }
 
+    // ========================================================
+    // LÓGICA DE NEONES: Lerp rápido separado del giro físico
+    // ========================================================
+    void ManejarNeones()
+    {
+        if (neonesHerramienta == null || neonesHerramienta.Length == 0) return;
+
+        bool disparando = torbellinoActivo && Input.GetMouseButton(0);
+        float transicionObjetivo = disparando ? 1f : 0f;
+
+        // Lerp rápido (efecto filamento encendiéndose/apagándose)
+        transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
+
+        Color colorActualizado = Color.Lerp(colorNeonReposo, colorNeonActivo, transicionNeonActual);
+
+        for (int i = 0; i < neonesHerramienta.Length; i++)
+        {
+            if (neonesHerramienta[i] != null)
+            {
+                neonesHerramienta[i].colorNeon = colorActualizado;
+                neonesHerramienta[i].intensidad = intensidadesBaseNeones[i] + (aumentoIntensidadActivo * transicionNeonActual);
+                neonesHerramienta[i].velocidadParpadeo = parpadeosBaseNeones[i] + (aumentoParpadeoActivo * transicionNeonActual);
+            }
+        }
+    }
+    // ========================================================
+
     void ControlarEmisionParticulas(bool activar)
     {
         if (particulasTorbellino != null)
@@ -387,18 +455,17 @@ public class HerramientaTorbellino : MonoBehaviour
     {
         if (scriptMovimiento != null)
         {
-            scriptMovimiento.velocidad =
-                velocidadOriginalMovimiento * multiplicadorMovilidadActual;
+            scriptMovimiento.velocidad = velocidadOriginalMovimiento * multiplicadorMovilidadActual;
         }
 
         if (scriptCamara != null)
         {
-            scriptCamara.sensibilidadRaton =
-                sensibilidadOriginalCamara * multiplicadorMovilidadActual;
+            scriptCamara.sensibilidadRaton = sensibilidadOriginalCamara * multiplicadorMovilidadActual;
         }
 
         penalizacionAplicada = true;
     }
+
     void RestaurarValoresJugador()
     {
         if (penalizacionAplicada)
@@ -524,22 +591,9 @@ public class HerramientaTorbellino : MonoBehaviour
 
     public bool MejorarRadio()
     {
-        if (nivelRadio >= 3)
-        {
-            return false;
-        }
-
+        if (nivelRadio >= 3) return false;
         nivelRadio++;
-
         AplicarNivelRadio();
-
-        Debug.Log(
-            "Radio del Torbellino mejorado a nivel " +
-            nivelRadio +
-            " | Radio: " +
-            radioAtraccion
-        );
-
         return true;
     }
 
@@ -551,48 +605,24 @@ public class HerramientaTorbellino : MonoBehaviour
                 radioAtraccion = radioAtraccionNivel1;
                 radioOjoTornado = radioOjoNivel1;
                 break;
-
             case 2:
                 radioAtraccion = radioAtraccionNivel2;
                 radioOjoTornado = radioOjoNivel2;
                 break;
-
             case 3:
                 radioAtraccion = radioAtraccionNivel3;
                 radioOjoTornado = radioOjoNivel3;
                 break;
         }
-
-        Debug.Log(
-            "Torbellino Nivel " + nivelRadio +
-            " | Radio Atracción: " + radioAtraccion +
-            " | Radio Ojo: " + radioOjoTornado
-        );
     }
 
-    public bool RadioAlMaximo()
-    {
-        return nivelRadio >= 3;
-    }
+    public bool RadioAlMaximo() { return nivelRadio >= 3; }
 
     public bool MejorarAlcance()
     {
-        if (nivelAlcance >= 3)
-        {
-            return false;
-        }
-
+        if (nivelAlcance >= 3) return false;
         nivelAlcance++;
-
         AplicarNivelAlcance();
-
-        Debug.Log(
-            "Alcance del Torbellino mejorado a nivel " +
-            nivelAlcance +
-            " | Alcance: " +
-            alcanceMaximo
-        );
-
         return true;
     }
 
@@ -600,36 +630,17 @@ public class HerramientaTorbellino : MonoBehaviour
     {
         switch (nivelAlcance)
         {
-            case 1:
-                alcanceMaximo = alcanceNivel1;
-                break;
-
-            case 2:
-                alcanceMaximo = alcanceNivel2;
-                break;
-
-            case 3:
-                alcanceMaximo = alcanceNivel3;
-                break;
+            case 1: alcanceMaximo = alcanceNivel1; break;
+            case 2: alcanceMaximo = alcanceNivel2; break;
+            case 3: alcanceMaximo = alcanceNivel3; break;
         }
     }
 
     public bool MejorarMovilidad()
     {
-        if (nivelMovilidad >= 3)
-            return false;
-
+        if (nivelMovilidad >= 3) return false;
         nivelMovilidad++;
-
         AplicarNivelMovilidad();
-
-        Debug.Log(
-            "Movilidad del Torbellino mejorada a nivel " +
-            nivelMovilidad +
-            " | Multiplicador: " +
-            multiplicadorMovilidadActual
-        );
-
         return true;
     }
 
@@ -637,28 +648,12 @@ public class HerramientaTorbellino : MonoBehaviour
     {
         switch (nivelMovilidad)
         {
-            case 1:
-                multiplicadorMovilidadActual = movilidadNivel1;
-                break;
-
-            case 2:
-                multiplicadorMovilidadActual = movilidadNivel2;
-                break;
-
-            case 3:
-                multiplicadorMovilidadActual = movilidadNivel3;
-                break;
+            case 1: multiplicadorMovilidadActual = movilidadNivel1; break;
+            case 2: multiplicadorMovilidadActual = movilidadNivel2; break;
+            case 3: multiplicadorMovilidadActual = movilidadNivel3; break;
         }
     }
 
-    public bool MovilidadAlMaximo()
-    {
-        return nivelMovilidad >= 3;
-    }
-
-    public bool AlcanceAlMaximo()
-    {
-        return nivelAlcance >= 3;
-    }
+    public bool MovilidadAlMaximo() { return nivelMovilidad >= 3; }
+    public bool AlcanceAlMaximo() { return nivelAlcance >= 3; }
 }
-
