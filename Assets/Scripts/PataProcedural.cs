@@ -205,7 +205,6 @@ public class PataProcedural : MonoBehaviour
 
     public float direccionRodilla = 1f;
 
-
     // =====================================================
     // DEBUG
     // =====================================================
@@ -1352,8 +1351,19 @@ public class PataProcedural : MonoBehaviour
 
 
     // =====================================================
-    // COLOCAR CILINDRO
+    // COLOCAR SEGMENTO: ORIENTACION COMUN A LAS SEIS PATAS
     // =====================================================
+    // IMPORTANTE:
+    // No usamos la rotacion que tiene el prefab ni la del frame anterior.
+    // Los prefabs de izquierda y derecha pueden estar montados con giros
+    // distintos. El IK decide la direccion; SpiderVisual fija la torsion.
+    //
+    // Eje local Y: del inicio al final del segmento.
+    // Eje local Z: hacia delante del cuerpo, proyectado en el plano
+    // perpendicular al segmento. De este modo no queda un giro libre
+    // alrededor de Y y todas las patas comparten la misma regla.
+    //
+    // Este metodo no altera targets, posicion de la rodilla ni pasos.
 
     private void ColocarSegmento(
         Transform segmento,
@@ -1363,43 +1373,46 @@ public class PataProcedural : MonoBehaviour
         if (segmento == null)
             return;
 
-
-        Vector3 direccion =
-            final -
-            inicio;
-
-
-        float longitud =
-            direccion.magnitude;
-
-
-        if (longitud <
-            0.001f)
-        {
+        Vector3 vector = final - inicio;
+        float longitud = vector.magnitude;
+        if (longitud < 0.001f)
             return;
-        }
 
+        Vector3 ejeY = vector / longitud;
 
-        segmento.position =
-            (
-                inicio +
-                final
-            )
-            *
-            0.5f;
+        // Tomamos la misma orientacion del cuerpo para todas las patas.
+        // 'referenciaGiro' normalmente apunta a SpiderVisual.
+        Transform cuerpo = referenciaGiro != null ? referenciaGiro : cadera;
+        Vector3 adelanteCuerpo = cuerpo != null ? cuerpo.forward : Vector3.forward;
+        Vector3 derechaCuerpo = cuerpo != null ? cuerpo.right : Vector3.right;
 
+        // Definimos el segundo eje sin depender del montaje del prefab.
+        // Se proyecta el 'adelante' del cuerpo sobre el plano normal a Y.
+        Vector3 ejeZ = Vector3.ProjectOnPlane(adelanteCuerpo, ejeY);
 
-        segmento.up =
-            direccion.normalized;
+        // En situaciones casi paralelas (pata muy adelantada), se utiliza
+        // la normal de la superficie. Esto tambien vale para paredes.
+        if (ejeZ.sqrMagnitude < 0.01f)
+            ejeZ = Vector3.ProjectOnPlane(ObtenerNormalSuperficieSegura(), ejeY);
 
+        if (ejeZ.sqrMagnitude < 0.0001f)
+            ejeZ = Vector3.ProjectOnPlane(derechaCuerpo, ejeY);
 
-        segmento.localScale =
-            new Vector3(
-                grosorPata,
-                longitud *
-                0.5f,
-                grosorPata
-            );
+        if (ejeZ.sqrMagnitude < 0.0001f)
+            return;
+
+        segmento.position = (inicio + final) * 0.5f;
+
+        // Quaternion.LookRotation fija +Z y +Y: no existe giro
+        // longitudinal libre y no se arrastra ninguna rotacion del prefab.
+        segmento.rotation = Quaternion.LookRotation(ejeZ.normalized, ejeY);
+
+        // Conservamos EXACTAMENTE la escala procedural del script original.
+        segmento.localScale = new Vector3(
+            grosorPata,
+            longitud * 0.5f,
+            grosorPata
+        );
     }
 
 
