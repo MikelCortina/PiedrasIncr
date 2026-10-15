@@ -1,641 +1,285 @@
+Ôªøusing System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Se coloca en un objeto SIEMPRE ACTIVO con un Collider marcado Is Trigger.
+/// Recibe monedas disparadas (ProyectilArma + Moneda) para construir la
+/// desgastadora y para pagar sus mejoras de nivel. La tienda usa el MISMO
+/// saldo de progreso a trav√©s de ComprarMejoraDesdeTienda().
+/// </summary>
 public class DesbloqueoProcesadoraMonedas : MonoBehaviour
 {
-    // =====================================================
-    // REFERENCIAS
-    // =====================================================
-
-    [Header("Referencias")]
-
+    [Header("Construcci√≥n: objetos de la escena")]
     public MaquinaErosion maquinaErosion;
+    [Tooltip("Objeto visual de las ruinas. NO debe contener este componente ni su trigger.")]
+    public GameObject ruinasVisual;
+    [Tooltip("Objeto de la m√°quina completa. Debe estar fuera de la jerarqu√≠a del trigger.")]
+    public GameObject maquinaDesbloqueada;
 
+    [Header("Precio de construcci√≥n")]
+    [Min(1)] public int monedasNecesarias = 20;
+    [SerializeField, Min(0)] private int monedasRecibidas = 0;
 
-    [Tooltip(
-        "UI flotante de la procesadora."
-    )]
-    public UIProcesadoraMundo uiProcesadora;
+    [Header("Precio de las mejoras")]
+    [Min(1)] public int precioNivel2 = 10;
+    [Min(1)] public int precioNivel3 = 20;
+    [SerializeField, Min(0)] private int monedasMejoraRecibidas = 0;
+    [SerializeField] private int nivelDeMejoraEnPago = 2;
 
-
-    // =====================================================
-    // VISUALES BLOQUEADA / DESBLOQUEADA
-    // =====================================================
-
-    [Header("Aspecto de la m·quina")]
-
-    [Tooltip(
-        "Objetos que estar·n ocultos mientras la procesadora " +
-        "estÈ bloqueada. Ejemplo: VFX, luces, humo."
-    )]
-    public GameObject[] objetosSoloDesbloqueada;
-
-
-    [Tooltip(
-        "Renderers que estar·n oscuros mientras " +
-        "la m·quina estÈ bloqueada."
-    )]
-    public Renderer[] renderersProcesadora;
-
-
-    [Tooltip(
-        "Material oscuro utilizado mientras la " +
-        "procesadora est· bloqueada."
-    )]
-    public Material materialBloqueado;
-
-
-    // =====================================================
-    // TIENDA
-    // =====================================================
-
-    [Header("Tienda")]
-
+    [Header("Tienda y texto")]
+    public Cartera cartera;
     public TiendaTrabajo tiendaTrabajo;
+    [Tooltip("Texto de mundo OPCIONAL, mejor situado en un Canvas junto a las ruinas.")]
+    public TMP_Text textoProgreso;
 
-
-    // =====================================================
-    // DESBLOQUEO
-    // =====================================================
-
-    [Header("Desbloqueo")]
-
-    [Min(1)]
-    public int monedasNecesarias = 20;
-
-
-    [SerializeField]
-    private int monedasRecibidas = 0;
-
-
-    // =====================================================
-    // EFECTOS
-    // =====================================================
-
-    [Header("Efectos de desbloqueo")]
-
+    [Header("Efectos opcionales")]
     public ParticleSystem[] particulasDesbloqueo;
-
     public AudioSource audioSource;
-
     public AudioClip sonidoMoneda;
-
     public AudioClip sonidoDesbloqueo;
 
+    // Conservados como campos compatibles con el montaje anterior.
+    // Al usar ruinas + m√°quina como objetos separados ya no es necesario
+    // cambiar materiales de renderers para simular el bloqueo.
+    [Header("Compatibilidad con montaje anterior (opcional)")]
+    public GameObject[] objetosSoloDesbloqueada;
+    public Renderer[] renderersProcesadora;
+    public Material materialBloqueado;
 
-    // =====================================================
-    // MATERIALES ORIGINALES
-    // =====================================================
+    // Compatibilidad con UIProcesadoraMundo.cs ya existente.
+    public int MonedasRecibidas => monedasRecibidas;
+    public int MonedasNecesarias => monedasNecesarias;
+    public int MonedasMejoraRecibidas => monedasMejoraRecibidas;
 
-    private Material[][] materialesOriginales;
+    public int PrecioMejoraActual
+    {
+        get
+        {
+            if (maquinaErosion == null || !maquinaErosion.ProcesadoraDesbloqueada)
+                return 0;
+            if (maquinaErosion.NivelProcesado == 1) return precioNivel2;
+            if (maquinaErosion.NivelProcesado == 2) return precioNivel3;
+            return 0;
+        }
+    }
 
+    public int PrecioMejoraRestante =>
+        Mathf.Max(0, PrecioMejoraActual - monedasMejoraRecibidas);
 
-    // =====================================================
-    // PROPIEDADES
-    // =====================================================
+    private readonly HashSet<int> proyectilesRecibidosFrame = new HashSet<int>();
+    private int ultimoFrameImpacto = -1;
 
-    public int MonedasRecibidas
-        => monedasRecibidas;
-
-
-    public int MonedasNecesarias
-        => monedasNecesarias;
-
-
-    // =====================================================
-    // AWAKE
-    // =====================================================
+    private void OnValidate()
+    {
+        monedasNecesarias = Mathf.Max(1, monedasNecesarias);
+        precioNivel2 = Mathf.Max(1, precioNivel2);
+        precioNivel3 = Mathf.Max(1, precioNivel3);
+        monedasRecibidas = Mathf.Clamp(monedasRecibidas, 0, monedasNecesarias);
+        monedasMejoraRecibidas = Mathf.Max(0, monedasMejoraRecibidas);
+    }
 
     private void Awake()
     {
-        // =================================================
-        // M¡QUINA
-        // =================================================
-
         if (maquinaErosion == null)
-        {
-            maquinaErosion =
-                GetComponentInParent<
-                    MaquinaErosion
-                >();
-        }
-
-
-        // =================================================
-        // UI
-        // =================================================
-
-        if (uiProcesadora == null &&
-            maquinaErosion != null)
-        {
-            uiProcesadora =
-                maquinaErosion
-                    .GetComponentInChildren<
-                        UIProcesadoraMundo
-                    >(
-                        true
-                    );
-        }
-
-
-        // =================================================
-        // GUARDAR MATERIALES
-        // =================================================
-
-        GuardarMaterialesOriginales();
+            maquinaErosion = GetComponentInParent<MaquinaErosion>();
+        if (maquinaDesbloqueada == null && maquinaErosion != null)
+            maquinaDesbloqueada = maquinaErosion.gameObject;
     }
-
-
-    // =====================================================
-    // START
-    // =====================================================
 
     private void Start()
     {
-        if (maquinaErosion == null)
+        if (maquinaErosion == null || ruinasVisual == null || maquinaDesbloqueada == null)
         {
-            Debug.LogError(
-                name +
-                ": no se ha encontrado MaquinaErosion."
-            );
-
+            Debug.LogError(name + ": asigna MaquinaErosion, Ruinas Visual y Maquina Desbloqueada.", this);
+            enabled = false;
             return;
         }
 
-
-        // =================================================
-        // BUSCAR TIENDA SI NO EST¡ ASIGNADA
-        // =================================================
-
-        if (tiendaTrabajo == null)
+        // Al desactivar estos objetos el detector de monedas debe seguir activo.
+        if (transform.IsChildOf(ruinasVisual.transform) ||
+            transform.IsChildOf(maquinaDesbloqueada.transform))
         {
-            tiendaTrabajo =
-                FindFirstObjectByType<
-                    TiendaTrabajo
-                >();
+            Debug.LogError(name + ": mueve este componente/trigger fuera de Ruinas y de la m√°quina. Debe permanecer activo.", this);
+            enabled = false;
+            return;
         }
 
+        bool desbloqueada = maquinaErosion.ProcesadoraDesbloqueada;
+        ruinasVisual.SetActive(!desbloqueada);
+        maquinaDesbloqueada.SetActive(desbloqueada);
 
-        // =================================================
-        // ESTADO INICIAL
-        // =================================================
+        if (desbloqueada)
+            monedasRecibidas = monedasNecesarias;
 
-        if (maquinaErosion
-            .ProcesadoraDesbloqueada)
+        SincronizarNivelPagado();
+        ActualizarTexto();
+        RefrescarTienda();
+    }
+
+    /// <summary>Se dispara desde la zona con Collider IsTrigger.</summary>
+    private void OnTriggerEnter(Collider otro)
+    {
+        if (otro == null || maquinaErosion == null || maquinaErosion.ProcesadoAlMaximo() && maquinaErosion.ProcesadoraDesbloqueada)
+            return;
+
+        Rigidbody rigidbodyProyectil = otro.attachedRigidbody;
+        GameObject raiz = rigidbodyProyectil != null
+            ? rigidbodyProyectil.gameObject : otro.gameObject;
+
+        // S√≥lo los proyectiles del arma; las monedas del suelo no cuentan.
+        ProyectilArma proyectil = raiz.GetComponent<ProyectilArma>();
+        if (proyectil == null)
+            proyectil = otro.GetComponentInParent<ProyectilArma>();
+        if (proyectil == null)
+            return;
+
+        Moneda moneda = raiz.GetComponent<Moneda>();
+        if (moneda == null)
+            moneda = raiz.GetComponentInChildren<Moneda>();
+        if (moneda == null)
+            moneda = otro.GetComponentInParent<Moneda>();
+        if (moneda == null)
+            return;
+
+        // Un proyectil con varios colliders s√≥lo puede sumar una vez.
+        if (ultimoFrameImpacto != Time.frameCount)
         {
-            monedasRecibidas =
-                monedasNecesarias;
+            proyectilesRecibidosFrame.Clear();
+            ultimoFrameImpacto = Time.frameCount;
+        }
+        int id = proyectil.GetInstanceID();
+        if (!proyectilesRecibidosFrame.Add(id))
+            return;
 
+        int valor = Mathf.Max(1, moneda.valor);
+        if (!AceptarPago(valor))
+            return;
 
-            MostrarDesbloqueada();
+        if (audioSource != null && sonidoMoneda != null)
+            audioSource.PlayOneShot(sonidoMoneda);
+
+        // El arma ya descont√≥ el coste al disparar: aqu√≠ NO cobramos a Cartera.
+        Destroy(proyectil.gameObject);
+    }
+
+    /// <summary>Recibe una cantidad pagada y avanza s√≥lo la fase actual.</summary>
+    private bool AceptarPago(int cantidad)
+    {
+        if (cantidad <= 0 || maquinaErosion == null) return false;
+
+        if (!maquinaErosion.ProcesadoraDesbloqueada)
+        {
+            monedasRecibidas = Mathf.Min(monedasNecesarias, monedasRecibidas + cantidad);
+            if (monedasRecibidas >= monedasNecesarias)
+                CompletarConstruccion();
         }
         else
         {
-            monedasRecibidas =
-                Mathf.Clamp(
-                    monedasRecibidas,
-                    0,
-                    monedasNecesarias
-                );
-
-
-            MostrarBloqueada();
+            if (maquinaErosion.ProcesadoAlMaximo()) return false;
+            SincronizarNivelPagado();
+            monedasMejoraRecibidas = Mathf.Min(PrecioMejoraActual,
+                monedasMejoraRecibidas + cantidad);
+            if (monedasMejoraRecibidas >= PrecioMejoraActual)
+                CompletarMejora();
         }
+
+        ActualizarTexto();
+        RefrescarTienda();
+        return true;
     }
 
-
-    // =====================================================
-    // GUARDAR MATERIALES ORIGINALES
-    // =====================================================
-
-    private void GuardarMaterialesOriginales()
+    private void CompletarConstruccion()
     {
-        if (renderersProcesadora == null)
+        // Primero aparece la m√°quina; despu√©s queda habilitada para procesar.
+        maquinaDesbloqueada.SetActive(true);
+        maquinaErosion.DesbloquearProcesadora();
+        ruinasVisual.SetActive(false);
+
+        if (objetosSoloDesbloqueada != null)
         {
-            materialesOriginales =
-                new Material[0][];
-
-            return;
+            foreach (GameObject go in objetosSoloDesbloqueada)
+                if (go != null) go.SetActive(true);
         }
-
-
-        materialesOriginales =
-            new Material[
-                renderersProcesadora.Length
-            ][];
-
-
-        for (int i = 0;
-             i < renderersProcesadora.Length;
-             i++)
-        {
-            Renderer renderer =
-                renderersProcesadora[i];
-
-
-            if (renderer == null)
-                continue;
-
-
-            materialesOriginales[i] =
-                renderer.sharedMaterials;
-        }
-    }
-
-
-    // =====================================================
-    // DETECTAR IMPACTO
-    // =====================================================
-
-    private void OnTriggerEnter(
-        Collider otro)
-    {
-        if (otro == null ||
-            maquinaErosion == null)
-        {
-            return;
-        }
-
-
-        // =================================================
-        // OBTENER OBJETO DEL PROYECTIL
-        // =================================================
-
-        GameObject objetoProyectil =
-            otro.gameObject;
-
-
-        if (otro.attachedRigidbody != null)
-        {
-            objetoProyectil =
-                otro.attachedRigidbody
-                    .gameObject;
-        }
-
-
-        // =================================================
-        // øES PROYECTIL DEL ARMA?
-        // =================================================
-
-        ProyectilArma proyectil =
-            objetoProyectil
-                .GetComponent<ProyectilArma>();
-
-
-        if (proyectil == null)
-        {
-            proyectil =
-                otro.GetComponentInParent<
-                    ProyectilArma
-                >();
-        }
-
-
-        // Si no viene del arma,
-        // no nos interesa.
-        if (proyectil == null)
-            return;
-
-
-        // =================================================
-        // MOSTRAR UI POR EL IMPACTO
-        // =================================================
-
-        if (uiProcesadora != null)
-        {
-            uiProcesadora
-                .MostrarTemporalmente();
-        }
-
-
-        // =================================================
-        // SI YA EST¡ DESBLOQUEADA
-        // =================================================
-
-        if (maquinaErosion
-            .ProcesadoraDesbloqueada)
-        {
-            // Mostramos informaciÛn,
-            // pero NO consumimos la moneda.
-            return;
-        }
-
-
-        // =================================================
-        // BUSCAR MONEDA
-        // =================================================
-
-        Moneda moneda =
-            objetoProyectil
-                .GetComponent<Moneda>();
-
-
-        if (moneda == null)
-        {
-            moneda =
-                otro.GetComponentInParent<
-                    Moneda
-                >();
-        }
-
-
-        if (moneda == null)
-            return;
-
-
-        // =================================================
-        // VALOR DE LA MONEDA
-        // =================================================
-
-        int valor =
-            Mathf.Max(
-                1,
-                moneda.valor
-            );
-
-
-        // =================================================
-        // SUMAR
-        // =================================================
-
-        monedasRecibidas +=
-            valor;
-
-
-        monedasRecibidas =
-            Mathf.Clamp(
-                monedasRecibidas,
-                0,
-                monedasNecesarias
-            );
-
-
-        // =================================================
-        // SONIDO DE MONEDA
-        // =================================================
-
-        if (audioSource != null &&
-            sonidoMoneda != null)
-        {
-            audioSource.PlayOneShot(
-                sonidoMoneda
-            );
-        }
-
-
-        Debug.Log(
-            "Procesadora: " +
-            monedasRecibidas +
-            "/" +
-            monedasNecesarias +
-            " monedas."
-        );
-
-
-        // =================================================
-        // CONSUMIR PROYECTIL
-        // =================================================
-
-        Destroy(
-            objetoProyectil
-        );
-
-
-        // =================================================
-        // øHEMOS LLEGADO AL M¡XIMO?
-        // =================================================
-
-        if (monedasRecibidas >=
-            monedasNecesarias)
-        {
-            Desbloquear();
-        }
-    }
-
-
-    // =====================================================
-    // DESBLOQUEAR
-    // =====================================================
-
-    private void Desbloquear()
-    {
-        if (maquinaErosion == null)
-            return;
-
-
-        if (maquinaErosion
-            .ProcesadoraDesbloqueada)
-        {
-            return;
-        }
-
-
-        monedasRecibidas =
-            monedasNecesarias;
-
-
-        // =================================================
-        // DESBLOQUEAR M¡QUINA
-        // =================================================
-
-        maquinaErosion
-            .DesbloquearProcesadora();
-
-
-        // =================================================
-        // ASPECTO NORMAL
-        // =================================================
-
-        MostrarDesbloqueada();
-
-
-        // =================================================
-        // MOSTRAR UI
-        // =================================================
-
-        if (uiProcesadora != null)
-        {
-            uiProcesadora
-                .MostrarTemporalmente();
-        }
-
-
-        // =================================================
-        // ACTUALIZAR TIENDA
-        // =================================================
-
-        if (tiendaTrabajo != null)
-        {
-            tiendaTrabajo
-                .RefrescarTienda();
-        }
-
-
-        // =================================================
-        // PARTÕCULAS
-        // =================================================
 
         if (particulasDesbloqueo != null)
         {
-            foreach (
-                ParticleSystem ps
-                in particulasDesbloqueo)
-            {
-                if (ps != null)
-                {
-                    ps.Play();
-                }
-            }
+            foreach (ParticleSystem ps in particulasDesbloqueo)
+                if (ps != null) ps.Play();
         }
+        if (audioSource != null && sonidoDesbloqueo != null)
+            audioSource.PlayOneShot(sonidoDesbloqueo);
 
-
-        // =================================================
-        // SONIDO
-        // =================================================
-
-        if (audioSource != null &&
-            sonidoDesbloqueo != null)
-        {
-            audioSource.PlayOneShot(
-                sonidoDesbloqueo
-            );
-        }
-
-
-        Debug.Log(
-            "°PROCESADORA ACTIVADA!"
-        );
+        nivelDeMejoraEnPago = maquinaErosion.NivelProcesado + 1;
+        monedasMejoraRecibidas = 0;
+        Debug.Log("¬°Desgastadora construida! Ahora acepta mejoras por disparos o tienda.", this);
     }
 
-
-    // =====================================================
-    // BLOQUEADA
-    // =====================================================
-
-    private void MostrarBloqueada()
+    private void CompletarMejora()
     {
-        // =================================================
-        // APAGAR VFX / LUCES
-        // =================================================
-
-        ActualizarObjetosDesbloqueo(
-            false
-        );
-
-
-        // =================================================
-        // MATERIAL OSCURO
-        // =================================================
-
-        if (materialBloqueado == null ||
-            renderersProcesadora == null)
-        {
-            return;
-        }
-
-
-        foreach (
-            Renderer renderer
-            in renderersProcesadora)
-        {
-            if (renderer == null)
-                continue;
-
-
-            Material[] materiales =
-                renderer.sharedMaterials;
-
-
-            for (int i = 0;
-                 i < materiales.Length;
-                 i++)
-            {
-                materiales[i] =
-                    materialBloqueado;
-            }
-
-
-            renderer.sharedMaterials =
-                materiales;
-        }
+        // S√≥lo avanzamos si realmente se pudo aplicar la mejora.
+        if (!maquinaErosion.MejorarProcesado()) return;
+        nivelDeMejoraEnPago = maquinaErosion.NivelProcesado + 1;
+        monedasMejoraRecibidas = 0;
+        Debug.Log("Desgastadora mejorada al nivel " + maquinaErosion.NivelProcesado, this);
     }
 
-
-    // =====================================================
-    // DESBLOQUEADA
-    // =====================================================
-
-    private void MostrarDesbloqueada()
+    private void SincronizarNivelPagado()
     {
-        // =================================================
-        // ENCENDER VFX / LUCES
-        // =================================================
-
-        ActualizarObjetosDesbloqueo(
-            true
-        );
-
-
-        // =================================================
-        // RECUPERAR MATERIALES
-        // =================================================
-
-        if (renderersProcesadora == null ||
-            materialesOriginales == null)
+        if (maquinaErosion == null || !maquinaErosion.ProcesadoraDesbloqueada) return;
+        int nivelEsperado = maquinaErosion.NivelProcesado + 1;
+        if (nivelEsperado != nivelDeMejoraEnPago)
         {
-            return;
+            // Una mejora externa ha cambiado el nivel: evitamos trasladar pagos
+            // hechos para el nivel anterior a otro nivel accidentalmente.
+            nivelDeMejoraEnPago = nivelEsperado;
+            monedasMejoraRecibidas = 0;
         }
-
-
-        for (int i = 0;
-             i < renderersProcesadora.Length;
-             i++)
-        {
-            Renderer renderer =
-                renderersProcesadora[i];
-
-
-            if (renderer == null)
-                continue;
-
-
-            if (i >=
-                materialesOriginales.Length)
-            {
-                continue;
-            }
-
-
-            if (materialesOriginales[i] == null)
-                continue;
-
-
-            renderer.sharedMaterials =
-                materialesOriginales[i];
-        }
+        monedasMejoraRecibidas = Mathf.Clamp(
+            monedasMejoraRecibidas, 0, PrecioMejoraActual);
     }
 
-
-    // =====================================================
-    // OBJETOS SOLO DESBLOQUEADA
-    // =====================================================
-
-    private void ActualizarObjetosDesbloqueo(
-        bool activos)
+    /// <summary>
+    /// Enlazar a OnClick del bot√≥n "Mejorar procesadora" de la tienda,
+    /// sustituyendo el callback antiguo TiendaTrabajo.ComprarMejoraProcesadora.
+    /// S√≥lo cobra las monedas QUE FALTAN tras los disparos.
+    /// </summary>
+    public void ComprarMejoraDesdeTienda()
     {
-        if (objetosSoloDesbloqueada == null)
+        if (maquinaErosion == null || cartera == null ||
+            !maquinaErosion.ProcesadoraDesbloqueada ||
+            maquinaErosion.ProcesadoAlMaximo())
             return;
 
+        SincronizarNivelPagado();
+        int restante = PrecioMejoraRestante;
+        if (restante <= 0) return;
 
-        foreach (
-            GameObject objeto
-            in objetosSoloDesbloqueada)
+        if (!cartera.GastarMonedas(restante))
         {
-            if (objeto != null)
-            {
-                objeto.SetActive(
-                    activos
-                );
-            }
+            Debug.Log("Faltan monedas para completar la mejora: " + restante, this);
+            return;
         }
+        AceptarPago(restante);
+    }
+
+    public void ActualizarTexto()
+    {
+        if (textoProgreso == null || maquinaErosion == null) return;
+
+        if (!maquinaErosion.ProcesadoraDesbloqueada)
+            textoProgreso.text = "CONSTRUIR DESGASTADORA\n" +
+                                 monedasRecibidas + " / " + monedasNecesarias;
+        else if (!maquinaErosion.ProcesadoAlMaximo())
+            textoProgreso.text = "DESGASTADORA NIVEL " + maquinaErosion.NivelProcesado +
+                " ‚Üí " + (maquinaErosion.NivelProcesado + 1) + "\n" +
+                monedasMejoraRecibidas + " / " + PrecioMejoraActual;
+        else
+            textoProgreso.text = "DESGASTADORA NIVEL M√ÅXIMO";
+    }
+
+    public void RefrescarTienda()
+    {
+        if (tiendaTrabajo != null) tiendaTrabajo.RefrescarTienda();
     }
 }
