@@ -26274,6 +26274,22 @@ MonoBehaviour:
     - {fileID: 6201382076537045778, guid: 1f10b694e9fa9ae4caa481b831c0801a, type: 3}
     offsetPosicion: {x: 0, y: 0.8, z: 0}
     offsetRotacion: {x: 0, y: 180, z: 0}
+  - nombre: Procesadora
+    tipo: 3
+    prefabsReales:
+    - {fileID: 6260934872055449074, guid: 7105f49b05315e748a71cfc5034ad0d5, type: 3}
+    prefabsHologramas:
+    - {fileID: 6260934872055449074, guid: 7105f49b05315e748a71cfc5034ad0d5, type: 3}
+    offsetPosicion: {x: 0, y: 0.8, z: 0}
+    offsetRotacion: {x: 0, y: 180, z: 0}
+  - nombre: Ventilador
+    tipo: 4
+    prefabsReales:
+    - {fileID: 795584233672776353, guid: ee349f217a1df9447914e69d778d7a33, type: 3}
+    prefabsHologramas:
+    - {fileID: 795584233672776353, guid: ee349f217a1df9447914e69d778d7a33, type: 3}
+    offsetPosicion: {x: 0, y: 0.8, z: 0}
+    offsetRotacion: {x: 0, y: 180, z: 0}
   camaraPrincipal: {fileID: 2046494805}
   capaSuelo:
     serializedVersion: 2

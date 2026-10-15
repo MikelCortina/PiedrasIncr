@@ -3,7 +3,14 @@ using System.Collections.Generic;
 
 public class SistemaConstruccion : MonoBehaviour
 {
-    public enum TipoEdificio { Rampa, Pared, Libre }
+    public enum TipoEdificio
+    {
+        Rampa,
+        Pared,
+        Libre,
+        Procesadora,
+        Ventilador
+    }
 
     [System.Serializable]
     public struct InfoEdificio
