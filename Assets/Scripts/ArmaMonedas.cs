@@ -27,13 +27,16 @@ public class ArmaLanzadora : MonoBehaviour
     public ControladorNeon[] neonesArma;
 
     [ColorUsage(true, true)]
-    public Color colorNeonReposo = Color.cyan;
+    public Color colorNeonInicio = Color.cyan;
 
     [ColorUsage(true, true)]
-    public Color colorNeonActivo = new Color(1f, 0.3f, 0f, 1f);
+    public Color colorNeonFinal = new Color(1f, 0.3f, 0f, 1f);
 
-    [Tooltip("Intensidad extra de brillo que se sumará a los neones al disparar")]
-    public float aumentoIntensidadActivo = 2f;
+    [Range(0f, 10f)]
+    public float intensidadNeonInicio = 1f;
+
+    [Range(0f, 10f)]
+    public float intensidadNeonFinal = 3f;
 
     [Tooltip("Velocidad de parpadeo extra que se sumará a los neones al disparar")]
     public float aumentoParpadeoActivo = 15f;
@@ -123,9 +126,9 @@ public class ArmaLanzadora : MonoBehaviour
             {
                 if (neonesArma[i] != null)
                 {
-                    intensidadesBaseNeones[i] = neonesArma[i].intensidad;
+                    // Ya no necesitamos guardar la intensidad base de esta forma
                     parpadeosBaseNeones[i] = neonesArma[i].velocidadParpadeo;
-                    neonesArma[i].colorNeon = colorNeonReposo;
+                    //neonesArma[i].colorNeon = colorNeonReposo; //Se actualizara en update
                 }
             }
         }
@@ -225,14 +228,15 @@ public class ArmaLanzadora : MonoBehaviour
         // Lerp ultrarrápido
         transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
 
-        Color colorActualizado = Color.Lerp(colorNeonReposo, colorNeonActivo, transicionNeonActual);
+        Color colorActualizado = Color.Lerp(colorNeonInicio, colorNeonFinal, transicionNeonActual);
+        float intensidadActualizada = Mathf.Lerp(intensidadNeonInicio, intensidadNeonFinal, transicionNeonActual);
 
         for (int i = 0; i < neonesArma.Length; i++)
         {
             if (neonesArma[i] != null)
             {
                 neonesArma[i].colorNeon = colorActualizado;
-                neonesArma[i].intensidad = intensidadesBaseNeones[i] + (aumentoIntensidadActivo * transicionNeonActual);
+                neonesArma[i].intensidad = intensidadActualizada;
                 neonesArma[i].velocidadParpadeo = parpadeosBaseNeones[i] + (aumentoParpadeoActivo * transicionNeonActual);
             }
         }

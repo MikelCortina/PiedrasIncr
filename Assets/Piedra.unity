@@ -8042,7 +8042,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &144239448
@@ -8058,14 +8059,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 144239447}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion: []
 --- !u!1 &145229331 stripped
@@ -10664,8 +10665,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  colorNeon: {r: 1.082353, g: 0.94875, b: 0.22100401, a: 1}
+  intensidad: 0.3
+  grosorOutline: 0.33
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1001 &193903648
@@ -15809,7 +15811,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -16516,7 +16518,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -17095,7 +17097,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &336118007
@@ -17111,14 +17114,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 336118006}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion: []
 --- !u!1001 &336418822
@@ -18766,7 +18769,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.5
+  grosorOutline: 0.33
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1001 &359663999
@@ -19069,7 +19073,7 @@ PrefabInstance:
     - target: {fileID: -1526964690268444965, guid: be397213e8d300745ba110bc2abb849a, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: -1526964690268444965, guid: be397213e8d300745ba110bc2abb849a, type: 3}
       propertyPath: 'm_BlendShapeWeights.Array.data[0]'
       value: 100
@@ -19975,7 +19979,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 7754171746062102885, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -20806,6 +20810,7 @@ MonoBehaviour:
   indiceMaterial: 1
   colorNeon: {r: 1, g: 0.1503219, b: 0, a: 1}
   intensidad: 1.75
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 116
 --- !u!1001 &387386314
@@ -25832,7 +25837,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &492602218
@@ -25848,14 +25854,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 492602217}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 2101907895}
@@ -26167,7 +26173,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &497232565
@@ -26183,14 +26190,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 497232564}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 7
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 1404383875}
@@ -36132,6 +36139,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
   intensidad: 2.51
+  grosorOutline: 1
   cantidadZonasMuertas: 0.157
   velocidadParpadeo: 226.1
 --- !u!1001 &666098653
@@ -37544,6 +37552,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 1, g: 1, b: 1, a: 1}
   intensidad: 10
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!4 &690868587 stripped
@@ -38064,7 +38073,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -39791,6 +39800,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 1, g: 0.65217334, b: 0, a: 1}
   intensidad: 10
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &727016590 stripped
@@ -43786,7 +43796,7 @@ PrefabInstance:
     - target: {fileID: 659779728043391454, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 1304992735868938509, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -43794,7 +43804,7 @@ PrefabInstance:
     - target: {fileID: 1304992735868938509, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 1395961413273577589, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
       value: 0.5
@@ -43806,7 +43816,7 @@ PrefabInstance:
     - target: {fileID: 1916710579096751666, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 2180095218868249125, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
       value: 0.5
@@ -43838,7 +43848,7 @@ PrefabInstance:
     - target: {fileID: 6926327416938763131, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 7014146894709150908, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -43846,7 +43856,7 @@ PrefabInstance:
     - target: {fileID: 7014146894709150908, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 7668629534871315232, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
       propertyPath: configuraciones.Array.data[0].grosorContorno
       value: 0.5
@@ -49960,7 +49970,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &819069391
@@ -49976,14 +49987,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 819069390}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 1612631795}
@@ -51889,7 +51900,7 @@ PrefabInstance:
     - target: {fileID: -4591290669818967746, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 919132149155446097, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: m_Name
       value: AntenaAlmacen
@@ -51901,7 +51912,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -60328,6 +60339,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
   intensidad: 2.51
+  grosorOutline: 1
   cantidadZonasMuertas: 0.157
   velocidadParpadeo: 226.1
 --- !u!1001 &937734234
@@ -62159,7 +62171,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &981413743
@@ -62175,14 +62188,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 981413742}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 1895588444}
@@ -63608,7 +63621,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1012910024
@@ -63624,14 +63638,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1012910023}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 960406634}
@@ -65209,7 +65223,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 7754171746062102885, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -71900,7 +71914,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1078070722
@@ -71916,14 +71931,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1078070721}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 7
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 89562533}
@@ -74110,7 +74125,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -75206,6 +75221,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
   intensidad: 2.51
+  grosorOutline: 1
   cantidadZonasMuertas: 0.157
   velocidadParpadeo: 226.1
 --- !u!4 &1134846120 stripped
@@ -76590,7 +76606,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.5
+  grosorOutline: 0.33
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1001 &1158714247
@@ -77754,6 +77771,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
   intensidad: 2.51
+  grosorOutline: 1
   cantidadZonasMuertas: 0.157
   velocidadParpadeo: 226.1
 --- !u!1001 &1178967623
@@ -84837,7 +84855,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.5
+  grosorOutline: 0.33
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!4 &1301821686 stripped
@@ -85040,6 +85059,7 @@ MonoBehaviour:
   indiceMaterial: 1
   colorNeon: {r: 0, g: 1, b: 1, a: 1}
   intensidad: 3
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 40.1
 --- !u!4 &1302795551 stripped
@@ -87083,7 +87103,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1350020882
@@ -87099,14 +87120,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1350020881}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 2050034653}
@@ -90376,7 +90397,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1421278315
@@ -90392,14 +90414,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1421278314}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 109063764}
@@ -95409,7 +95431,7 @@ PrefabInstance:
     - target: {fileID: -4591290669818967746, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: -3683040733527841217, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.96
@@ -95433,7 +95455,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 8632055958874330854, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.18
@@ -98179,7 +98201,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1553128318
@@ -98195,14 +98218,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1553128317}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion: []
 --- !u!23 &1553128319
@@ -98230,7 +98253,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102278,7 +102301,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -103679,7 +103702,11 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: 7754171746062102885, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: 47615a4899ac8fe4d88cbe9a0a712c75, type: 2}
     - target: {fileID: 8632055958874330854, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: m_LocalScale.x
       value: 133
@@ -105780,6 +105807,7 @@ MonoBehaviour:
   indiceMaterial: 0
   colorNeon: {r: 0, g: 1, b: 1, a: 1}
   intensidad: 3
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 40.1
 --- !u!1 &1664253827
@@ -107912,7 +107940,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.5
+  grosorOutline: 0.33
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!4 &1694735747 stripped
@@ -108638,7 +108667,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1705294368
@@ -108654,14 +108684,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1705294367}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 7
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 1762008830}
@@ -112542,7 +112572,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 7754171746062102885, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -119094,10 +119124,10 @@ MonoBehaviour:
   ametralladora: {fileID: 598619042}
   antenaVisual: {fileID: 2049592784}
   ledAntena: {fileID: 1965148635}
-  colorLedVacio: {r: 0, g: 0, b: 0, a: 1}
-  colorLedLleno: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadLedVacio: 1
-  intensidadLedLleno: 5
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorFinal: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  intensidadFinal: 1.5
   precioConstruccion: 30
   precioNivel2: 20
   precioNivel3: 20
@@ -122649,7 +122679,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1952492543
@@ -122665,14 +122696,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1952492542}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 1977968985}
@@ -122987,7 +123018,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1953311911
@@ -123003,14 +123035,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1953311910}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 851262656}
@@ -123137,7 +123169,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &1954656435
@@ -123153,14 +123186,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 1954656434}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 1258459038}
@@ -123205,7 +123238,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -123729,8 +123762,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
-  colorNeon: {r: 1.3373576, g: 0.10766863, b: 0.14733602, a: 1}
-  intensidad: 3
+  colorNeon: {r: 0.7490196, g: 0, b: 0, a: 1}
+  intensidad: 1.5
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &1965438534
@@ -124442,7 +124476,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -126773,7 +126807,7 @@ PrefabInstance:
     - target: {fileID: 6317578925029434746, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
     - target: {fileID: 7754171746062102885, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -127072,7 +127106,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!114 &2018480479
@@ -127088,14 +127123,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BucleNeonParticulas
   tiempoCarga: 3
-  tiempoDescarga: 1.5
+  tiempoDescarga: 3
   neones:
   - {fileID: 2018480478}
-  colorInicio: {r: 0, g: 0, b: 0, a: 1}
-  intensidadInicio: 0
-  parpadeoInicio: 2
+  colorInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0.1
+  parpadeoInicio: 0
   colorFin: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  intensidadFin: 5
+  intensidadFin: 1.5
   parpadeoFin: 0
   particulasExplosion:
   - {fileID: 588233566}
@@ -129511,10 +129546,11 @@ MonoBehaviour:
   desaceleracionGiro: 6
   neonesArma:
   - {fileID: 193120813}
-  colorNeonReposo: {r: 0, g: 0, b: 0, a: 1}
-  colorNeonActivo: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
-  aumentoIntensidadActivo: 4
-  aumentoParpadeoActivo: 30
+  colorNeonInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorNeonFinal: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadNeonInicio: 0.1
+  intensidadNeonFinal: 1.5
+  aumentoParpadeoActivo: 0
   velocidadTransicionNeon: 20
   cartera: {fileID: 584387209}
   costePorDisparo: 1
@@ -129607,10 +129643,11 @@ MonoBehaviour:
   - {fileID: 1300534463}
   - {fileID: 1158129602}
   - {fileID: 1694605983}
-  colorNeonReposo: {r: 0, g: 0, b: 0, a: 1}
-  colorNeonActivo: {r: 0.9245283, g: 0.07413671, b: 0.10071145, a: 1}
-  aumentoIntensidadActivo: 4
-  aumentoParpadeoActivo: 50
+  colorNeonInicio: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorNeonFinal: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadNeonInicio: 0.1
+  intensidadNeonFinal: 1.5
+  aumentoParpadeoActivo: 0
   velocidadTransicionNeon: 20
   capaSuelo:
     serializedVersion: 2
@@ -137678,7 +137715,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 0.5
+  grosorOutline: 0.33
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &2101275257 stripped

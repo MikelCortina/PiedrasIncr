@@ -35,17 +35,18 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
     public AmetralladoraAsteroides ametralladora;
 
-    [Header("Antena de Progreso")]
+    [Header("Antena de Progreso (LED)")]
     [Tooltip("El objeto 3D de la antena. Ahora se mantiene activa en todos los niveles.")]
     public Transform antenaVisual;
     [Tooltip("El script ControladorNeon asignado a la bombilla de la antena.")]
     public ControladorNeon ledAntena;
 
-    [ColorUsage(true, true)] public Color colorLedVacio = Color.red;
-    [ColorUsage(true, true)] public Color colorLedLleno = Color.green;
+    [Space(5)]
+    [ColorUsage(true, true)] public Color colorInicio = Color.red;
+    [ColorUsage(true, true)] public Color colorFinal = Color.green;
 
-    public float intensidadLedVacio = 1f;
-    public float intensidadLedLleno = 5f;
+    [Range(0f, 10f)] public float intensidadInicio = 1f;
+    [Range(0f, 10f)] public float intensidadFinal = 5f;
 
     private float progresoVisualLed = 0f;
     private Vector3 escalaOriginalAntena;
@@ -212,10 +213,6 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         ActualizarPresentacion();
     }
 
-    // =========================================================================
-    // CORTAFUEGOS DE JERARQUÍA (NUEVO)
-    // Evita que los hijos de niveles futuros se enciendan por culpa de sus padres
-    // =========================================================================
     private void ApagarPiezasFuturas()
     {
         if (nivelActual < 2 || !construida)
@@ -244,9 +241,12 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             }
             else progresoObjetivo = 1f;
 
+            // Suavizamos el progreso
             progresoVisualLed = Mathf.Lerp(progresoVisualLed, progresoObjetivo, Time.deltaTime * 5f);
-            ledAntena.colorNeon = Color.Lerp(colorLedVacio, colorLedLleno, progresoVisualLed);
-            ledAntena.intensidad = Mathf.Lerp(intensidadLedVacio, intensidadLedLleno, progresoVisualLed);
+
+            // Interpolamos estrictamente entre nuestro COLOR DE INICIO y FINAL, e INTENSIDAD DE INICIO y FINAL
+            ledAntena.colorNeon = Color.Lerp(colorInicio, colorFinal, progresoVisualLed);
+            ledAntena.intensidad = Mathf.Lerp(intensidadInicio, intensidadFinal, progresoVisualLed);
         }
     }
 
@@ -327,7 +327,6 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             ReproducirParticulas(particulasMejora);
             ReproducirSonido(sonidoMejora);
 
-            // Apagamos los futuros antes de lanzar la mejora para evitar parpadeos
             ApagarPiezasFuturas();
             StartCoroutine(AnimarMejora(nivelActual == 2 ? nivel2 : nivel3));
         }
@@ -335,7 +334,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
     private void SincronizarAspecto(bool animado)
     {
-        ApagarPiezasFuturas(); // Siempre forzamos el apagado de hijos futuros
+        ApagarPiezasFuturas();
 
         if (!animado)
         {

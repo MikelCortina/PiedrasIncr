@@ -36,13 +36,16 @@ public class HerramientaTorbellino : MonoBehaviour
     public ControladorNeon[] neonesHerramienta;
 
     [ColorUsage(true, true)]
-    public Color colorNeonReposo = Color.cyan;
+    public Color colorNeonInicio = Color.cyan;
 
     [ColorUsage(true, true)]
-    public Color colorNeonActivo = new Color(1f, 0.3f, 0f, 1f);
+    public Color colorNeonFinal = new Color(1f, 0.3f, 0f, 1f);
 
-    [Tooltip("Intensidad extra de brillo que se sumará a los neones al disparar aire")]
-    public float aumentoIntensidadActivo = 2f;
+    [Range(0f, 10f)]
+    public float intensidadNeonInicio = 1f;
+
+    [Range(0f, 10f)]
+    public float intensidadNeonFinal = 3f;
 
     [Tooltip("Velocidad de parpadeo extra que se sumará a los neones al disparar aire")]
     public float aumentoParpadeoActivo = 15f;
@@ -169,9 +172,9 @@ public class HerramientaTorbellino : MonoBehaviour
             {
                 if (neonesHerramienta[i] != null)
                 {
-                    intensidadesBaseNeones[i] = neonesHerramienta[i].intensidad;
+                    // Ya no necesitamos guardar la intensidad base de esta forma
                     parpadeosBaseNeones[i] = neonesHerramienta[i].velocidadParpadeo;
-                    neonesHerramienta[i].colorNeon = colorNeonReposo;
+                    //neonesHerramienta[i].colorNeon = colorNeonReposo; //Se actualizara en el update
                 }
             }
         }
@@ -366,14 +369,15 @@ public class HerramientaTorbellino : MonoBehaviour
         // Lerp rápido (efecto filamento encendiéndose/apagándose)
         transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
 
-        Color colorActualizado = Color.Lerp(colorNeonReposo, colorNeonActivo, transicionNeonActual);
+        Color colorActualizado = Color.Lerp(colorNeonInicio, colorNeonFinal, transicionNeonActual);
+        float intensidadActualizada = Mathf.Lerp(intensidadNeonInicio, intensidadNeonFinal, transicionNeonActual);
 
         for (int i = 0; i < neonesHerramienta.Length; i++)
         {
             if (neonesHerramienta[i] != null)
             {
                 neonesHerramienta[i].colorNeon = colorActualizado;
-                neonesHerramienta[i].intensidad = intensidadesBaseNeones[i] + (aumentoIntensidadActivo * transicionNeonActual);
+                neonesHerramienta[i].intensidad = intensidadActualizada;
                 neonesHerramienta[i].velocidadParpadeo = parpadeosBaseNeones[i] + (aumentoParpadeoActivo * transicionNeonActual);
             }
         }
