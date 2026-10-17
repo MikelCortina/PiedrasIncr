@@ -17,14 +17,25 @@ public class MovimientoPersonaje : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocidadCaida;
     private AudioSource audioPasos;
-
     private Vector3 movimientoCinta = Vector3.zero;
 
-    // --- NUEVAS VARIABLES PARA RAMPAS ---
     private Vector3 normalDelSuelo = Vector3.up;
     private bool tocandoSueloExtra = false;
+    private Vector3 puntoSueloDetectado;
+    private Collider colliderSueloDetectado;
 
-    void Start()
+    // Ascenso: el rescate anima la posición y bloquea WASD.
+    // Levitación: WASD libre horizontal, pero sin gravedad ni cinta.
+    private bool modoRescate = false;
+    private bool permitirMovimientoEnRescate = false;
+
+    public bool EstaLevitandoPorRescate => modoRescate;
+    public bool SueloDetectado => tocandoSueloExtra;
+    public Vector3 NormalSueloDetectado => normalDelSuelo;
+    public Vector3 PuntoSueloDetectado => puntoSueloDetectado;
+    public Collider ColliderSueloDetectado => colliderSueloDetectado;
+
+    private void Start()
     {
         controller = GetComponent<CharacterController>();
 
@@ -36,57 +47,67 @@ public class MovimientoPersonaje : MonoBehaviour
         audioPasos.playOnAwake = false;
     }
 
-    void Update()
+    private void Update()
     {
+        if (controller == null || !controller.enabled)
+            return;
+
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-
         Vector3 direccion = transform.right * h + transform.forward * v;
 
-        // 1. Escaneamos el suelo (Detecta la cinta y el ángulo de la rampa)
-        DetectarSueloYCinta();
+        if (modoRescate)
+        {
+            velocidadCaida = Vector3.zero;
+            movimientoCinta = Vector3.zero;
 
-        // 2. --- LA MAGIA CONTRA EL TEMBLEQUE ---
-        // Si estamos en el suelo, inclinamos la dirección del movimiento para que sea paralela a la rampa
+            if (permitirMovimientoEnRescate)
+            {
+                // La levitación conserva la altura. WASD permite volver al mapa.
+                Vector3 horizontal = Vector3.ProjectOnPlane(direccion, Vector3.up) * velocidad;
+                controller.Move(horizontal * Time.deltaTime);
+            }
+
+            ManejarSonidoPasos(0f, 0f);
+            return;
+        }
+
+        // Se conserva el sistema original de detección de rampa y cinta.
+        DetectarSueloYCinta();
         if (tocandoSueloExtra)
         {
-            direccion = Vector3.ProjectOnPlane(direccion, normalDelSuelo).normalized * direccion.magnitude;
+            direccion = Vector3.ProjectOnPlane(direccion, normalDelSuelo).normalized
+                        * direccion.magnitude;
         }
 
-        // 3. Aplicamos la gravedad
-        if (controller.isGrounded && velocidadCaida.y < 0)
-        {
-            // Usamos una fuerza mayor a -2f para obligarle a pegarse a la rampa de Blender
+        if (controller.isGrounded && velocidadCaida.y < 0f)
             velocidadCaida.y = fuerzaPegadoAlSuelo;
-        }
         velocidadCaida.y += gravedad * Time.deltaTime;
 
-        // 4. Movimiento Final
-        Vector3 movimientoFinal = (direccion * velocidad) + velocidadCaida + movimientoCinta;
+        Vector3 movimientoFinal = direccion * velocidad + velocidadCaida + movimientoCinta;
         controller.Move(movimientoFinal * Time.deltaTime);
-
-        // 5. Sistema de pasos
         ManejarSonidoPasos(h, v);
     }
 
-    // --- ESCÁNER MEJORADO (SphereCast) ---
-    void DetectarSueloYCinta()
+    private void DetectarSueloYCinta()
     {
         float radioEsfera = controller.radius * 0.9f;
         float distanciaRayo = (controller.height / 2f) + 0.3f;
         Vector3 origen = transform.position + controller.center;
 
-        // Usamos SphereCast en lugar de Raycast. Es "gordito" y no falla en mallas de Blender.
-        if (Physics.SphereCast(origen, radioEsfera, Vector3.down, out RaycastHit hit, distanciaRayo))
+        if (Physics.SphereCast(origen, radioEsfera, Vector3.down, out RaycastHit hit,
+                distanciaRayo, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
             tocandoSueloExtra = true;
-            normalDelSuelo = hit.normal; // Guardamos el ángulo de la rampa
+            normalDelSuelo = hit.normal;
+            puntoSueloDetectado = hit.point;
+            colliderSueloDetectado = hit.collider;
 
-            // Comprobamos la cinta
             CintaTransportadora cinta = hit.collider.GetComponentInParent<CintaTransportadora>();
             if (cinta != null)
             {
-                Vector3 direccionMundo = cinta.transform.TransformDirection(cinta.direccionLocal).normalized;
+                Vector3 direccionMundo =
+                    cinta.transform.TransformDirection(cinta.direccionLocal).normalized;
                 movimientoCinta = direccionMundo * cinta.velocidad;
             }
             else
@@ -98,25 +119,67 @@ public class MovimientoPersonaje : MonoBehaviour
         {
             tocandoSueloExtra = false;
             normalDelSuelo = Vector3.up;
+            colliderSueloDetectado = null;
             movimientoCinta = Vector3.zero;
         }
     }
 
-    void ManejarSonidoPasos(float h, float v)
+    // Llamado al comenzar la subida ANIMADA. NO cambia transform.position.
+    public void ComenzarAscensoRescate()
     {
-        bool pulsandoTeclas = (Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f);
-        bool deberiaCaminar = pulsandoTeclas && controller.isGrounded;
+        modoRescate = true;
+        permitirMovimientoEnRescate = false;
+        velocidadCaida = Vector3.zero;
+        movimientoCinta = Vector3.zero;
+        tocandoSueloExtra = false;
+        colliderSueloDetectado = null;
+        normalDelSuelo = Vector3.up;
+        ApagarPasos();
+    }
 
-        if (sonidoPasos != null)
+    // Llamado al terminar la subida: ahora WASD sí puede mover al jugador.
+    public void ComenzarLevitacionRescate()
+    {
+        modoRescate = true;
+        permitirMovimientoEnRescate = true;
+        velocidadCaida = Vector3.zero;
+        movimientoCinta = Vector3.zero;
+        ApagarPasos();
+    }
+
+    // Solo se llama cuando se ha pulsado la tecla de aterrizar sobre suelo.
+    public void TerminarLevitacionRescate()
+    {
+        modoRescate = false;
+        permitirMovimientoEnRescate = false;
+        velocidadCaida = Vector3.zero;
+        movimientoCinta = Vector3.zero;
+    }
+
+    private void ApagarPasos()
+    {
+        if (audioPasos == null) return;
+        audioPasos.volume = 0f;
+        if (audioPasos.isPlaying) audioPasos.Pause();
+    }
+
+    private void ManejarSonidoPasos(float h, float v)
+    {
+        bool pulsandoTeclas = Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f;
+        bool deberiaCaminar = pulsandoTeclas && controller.isGrounded && !modoRescate;
+
+        if (sonidoPasos != null && audioPasos != null)
         {
             if (deberiaCaminar)
             {
                 if (!audioPasos.isPlaying) audioPasos.Play();
-                audioPasos.volume = Mathf.Lerp(audioPasos.volume, volumenPasos, velocidadFade * Time.deltaTime);
+                audioPasos.volume = Mathf.Lerp(audioPasos.volume, volumenPasos,
+                    velocidadFade * Time.deltaTime);
             }
             else
             {
-                audioPasos.volume = Mathf.Lerp(audioPasos.volume, 0f, velocidadFade * Time.deltaTime);
+                audioPasos.volume = Mathf.Lerp(audioPasos.volume, 0f,
+                    velocidadFade * Time.deltaTime);
                 if (audioPasos.volume < 0.01f && audioPasos.isPlaying)
                 {
                     audioPasos.volume = 0f;
