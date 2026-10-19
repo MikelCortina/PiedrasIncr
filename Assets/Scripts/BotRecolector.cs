@@ -595,6 +595,16 @@ public class BotRecolector : MonoBehaviour
     public float alturaArcoSalidaBorde =
         0.18f;
 
+    [Header("Coronación natural - patas delanteras primero")]
+    [Tooltip("Busca suelo desde los targets delanteros ANTES de perder contacto con la pared.")]
+    public bool usarCoronacionNatural = true;
+
+    [Tooltip("Tiempo máximo de espera del apoyo delantero antes de recurrir a la salida tradicional.")]
+    [Min(0.2f)] public float tiempoMaximoApoyoDelantero = 3f;
+
+    [Tooltip("Altura máxima del arco del cuerpo cuando se ha conseguido apoyo delantero.")]
+    [Min(0f)] public float arcoMaximoCoronacion = 0.025f;
+
 
     [Tooltip(
         "Radio usado para localizar NavMesh alrededor del punto de salida superior."
@@ -848,6 +858,10 @@ public class BotRecolector : MonoBehaviour
     private Vector3 puntoEntradaConexionEscaladaObjetivo =
         Vector3.zero;
 
+    // Evita recalcular el grafo completo cada fotograma si no hay ruta.
+    private float siguienteIntentoPlanEntrega = 0f;
+
+
 
     // =====================================================
     // TRANSICIÓN VISUAL DEL CUERPO
@@ -911,6 +925,13 @@ public class BotRecolector : MonoBehaviour
 
     private float tiempoSalidaEscalada =
         0f;
+
+    private bool apoyosDelanterosDetectadosCoronacion = false;
+    private bool esperandoApoyosDelanteros = false;
+    private bool coronacionConApoyos = false;
+    private float temporizadorApoyoDelantero = 0f;
+    private Vector3 apoyoDelanteroIzquierdo;
+    private Vector3 apoyoDelanteroDerecho;
 
     private Vector3 posicionInicioRaizSalida;
 
@@ -2480,6 +2501,23 @@ public class BotRecolector : MonoBehaviour
         Vector3 origen =
             agente.nextPosition;
 
+        // El planificador nuevo admite VARIAS conexiones encadenadas.
+        // Devuelve solo la primera, para conservar las animaciones actuales.
+        if (PlanificadorConexionesArana.BuscarPrimeraConexion(
+                origen, puntoNavMeshPiedra.position, agente.areaMask,
+                out ConexionEscalada primeraConexion,
+                out bool primeraEsSubida,
+                out Vector3 primeraEntrada,
+                out NavMeshPath caminoPrimerTramo))
+        {
+            conexionElegida = primeraConexion;
+            sentidoElegido = primeraEsSubida
+                ? SentidoConexionEscaladaObjetivo.Subir
+                : SentidoConexionEscaladaObjetivo.Bajar;
+            puntoEntradaElegido = primeraEntrada;
+            caminoInicial = caminoPrimerTramo;
+            return true;
+        }
 
         float mejorCoste =
             float.PositiveInfinity;
@@ -2852,6 +2890,31 @@ public class BotRecolector : MonoBehaviour
             return;
         }
 
+        // Replanificación: tras cruzar una pared puede haber otra delante.
+        if (conexionEscaladaObjetivo == null &&
+            agente != null && agente.enabled && agente.isOnNavMesh &&
+            !IntentarCalcularRutaPiedra(piedraObjetivo,
+                out NavMeshHit puntoRutaDirecta,
+                out NavMeshPath caminoRutaDirecta))
+        {
+            if (IntentarCalcularRutaPiedraConConexion(piedraObjetivo,
+                    out NavMeshHit puntoDestinoRuta,
+                    out NavMeshPath caminoRuta,
+                    out ConexionEscalada nuevaConexion,
+                    out SentidoConexionEscaladaObjetivo nuevoSentido,
+                    out Vector3 nuevaEntrada) && nuevaConexion != null)
+            {
+                conexionEscaladaObjetivo = nuevaConexion;
+                sentidoConexionEscaladaObjetivo = nuevoSentido;
+                puntoEntradaConexionEscaladaObjetivo = nuevaEntrada;
+                agente.isStopped = false;
+                agente.SetDestination(nuevaEntrada);
+                if (debugConexionesEscalada)
+                    Debug.Log(name + " | RUTA MULTINIVEL: siguiente conexión " +
+                        nuevaConexion.name + " (" + nuevoSentido + ")");
+                return;
+            }
+        }
 
         // =====================================================
         // PARED ESCALABLE DELANTE
@@ -2987,34 +3050,36 @@ public class BotRecolector : MonoBehaviour
         }
 
 
-        // Tras cruzar la pared, si ya existe una ruta normal hasta
-        // la piedra, dejamos de usar la conexión.
-        if (IntentarCalcularRutaPiedra(
-                piedraObjetivo,
-                out NavMeshHit puntoDirecto,
-                out NavMeshPath caminoDirecto))
+        // Si transporta la piedra, el objetivo es el agujero, NO la
+        // piedra (que ahora está en sus propias manos).
+        bool llevaPiedra = puntoAgarre != null &&
+            piedraObjetivo.transform.parent == puntoAgarre;
+        NavMeshHit puntoDirecto = new NavMeshHit();
+        NavMeshPath caminoDirecto = new NavMeshPath();
+        bool rutaDirecta = false;
+        if (llevaPiedra && puntoLlegadaReservado != null)
+        {
+            if (NavMesh.SamplePosition(puntoLlegadaReservado.position,
+                    out puntoDirecto, 3f, agente.areaMask))
+            {
+                rutaDirecta = agente.CalculatePath(
+                    puntoDirecto.position, caminoDirecto) &&
+                    caminoDirecto.status == NavMeshPathStatus.PathComplete;
+            }
+        }
+        else if (!llevaPiedra)
+        {
+            rutaDirecta = IntentarCalcularRutaPiedra(
+                piedraObjetivo, out puntoDirecto, out caminoDirecto);
+        }
+
+        if (rutaDirecta)
         {
             LimpiarConexionEscaladaObjetivo();
-
-
-            agente.isStopped =
-                false;
-
-            agente.SetDestination(
-                puntoDirecto.position
-            );
-
-
+            agente.isStopped = false;
+            agente.SetDestination(puntoDirecto.position);
             if (debugConexionesEscalada)
-            {
-                Debug.Log(
-                    name +
-                    " | CONEXION ESCALADA COMPLETADA: ruta directa recuperada hacia " +
-                    piedraObjetivo.name
-                );
-            }
-
-
+                Debug.Log(name + " | RUTA MULTINIVEL: NavMesh directo recuperado.");
             return false;
         }
 
@@ -3368,12 +3433,18 @@ public class BotRecolector : MonoBehaviour
         // Guardamos la normal de la pared AHORA. De esta forma, aunque
         // el detector deje de verla durante la transición, las patas
         // siguen teniendo un objetivo estable.
-        if (detectorEscalada != null &&
-            detectorEscalada.NormalPared.sqrMagnitude >
-                0.0001f)
+        // Si estamos siguiendo una ConexionEscalada, su pared es la
+        // referencia prioritaria: el detector puede estar viendo otra.
+        Vector3 normalConexion = conexionEscaladaObjetivo != null
+            ? conexionEscaladaObjetivo.NormalPared : Vector3.zero;
+        if (normalConexion.sqrMagnitude > 0.0001f)
         {
-            normalParedEscalada =
-                detectorEscalada.NormalPared.normalized;
+            normalParedEscalada = normalConexion.normalized;
+        }
+        else if (detectorEscalada != null &&
+            detectorEscalada.NormalPared.sqrMagnitude > 0.0001f)
+        {
+            normalParedEscalada = detectorEscalada.NormalPared.normalized;
         }
 
 
@@ -4240,6 +4311,11 @@ public class BotRecolector : MonoBehaviour
 
         tiempoSalidaEscalada =
             0f;
+        esperandoApoyosDelanteros = false;
+        coronacionConApoyos = false;
+        apoyosDelanterosDetectadosCoronacion = false;
+        temporizadorApoyoDelantero = 0f;
+        LiberarApoyosCoronacion();
 
         navMeshSalidaEncontrado =
             false;
@@ -4317,6 +4393,38 @@ public class BotRecolector : MonoBehaviour
             return;
         }
 
+
+        // Si ya habíamos detectado el borde pero la salida fue detenida
+        // (por ejemplo, falta NavMesh), no repetir la búsqueda cada frame.
+        if (bordeSuperiorDetectado && escaladaDetenidaEnPrueba)
+            return;
+
+        // =================================================
+        // CORONACIÓN ANTICIPADA: LOS TARGETS DELANTEROS VEN EL SUELO
+        // ANTES DE QUE EL CENTRO DEL CUERPO PIERDA LA PARED.
+        // =================================================
+        if (usarCoronacionNatural && detectarBordeSuperior &&
+            BuscarApoyosDelanterosCoronacion(normalPared,
+                out RaycastHit apoyoFL, out RaycastHit apoyoFR))
+        {
+            bordeSuperiorDetectado = true;
+            apoyosDelanterosDetectadosCoronacion = true;
+            apoyoDelanteroIzquierdo = apoyoFL.point +
+                apoyoFL.normal * gestorPatasArana.pataFL.offsetSuelo;
+            apoyoDelanteroDerecho = apoyoFR.point +
+                apoyoFR.normal * gestorPatasArana.pataFR.offsetSuelo;
+            puntoSueloSuperior = (apoyoFL.point + apoyoFR.point) * 0.5f;
+            normalSueloSuperior = (apoyoFL.normal + apoyoFR.normal).normalized;
+            escaladaDetenidaEnPrueba = true;
+
+            if (debugEscalada)
+                Debug.Log(name + " | CORONACIÓN: suelo superior detectado " +
+                    "por las patas delanteras. El cuerpo espera sus apoyos.");
+
+            if (salirAutomaticamenteAlDetectarBorde)
+                EntrarEnSalidaEscalada();
+            return;
+        }
 
         // =================================================
         // COMPROBAR QUE LA PARED SIGUE EXISTIENDO
@@ -4633,6 +4741,70 @@ public class BotRecolector : MonoBehaviour
     // PASO 5A - BUSCAR SUELO EN EL BORDE SUPERIOR
     // =====================================================
 
+    // Cada pata delantera busca una zona horizontal de la plataforma,
+    // y solo damos por válido el apoyo si realmente queda al alcance del IK.
+    private bool BuscarApoyosDelanterosCoronacion(
+        Vector3 normalPared,
+        out RaycastHit hitFL,
+        out RaycastHit hitFR)
+    {
+        hitFL = default;
+        hitFR = default;
+
+        if (gestorPatasArana == null ||
+            gestorPatasArana.pataFL == null ||
+            gestorPatasArana.pataFR == null)
+            return false;
+
+        return BuscarApoyoCoronacion(gestorPatasArana.pataFL, normalPared,
+                   out hitFL) &&
+               BuscarApoyoCoronacion(gestorPatasArana.pataFR, normalPared,
+                   out hitFR);
+    }
+
+    private bool BuscarApoyoCoronacion(
+        PataProcedural pata, Vector3 normalPared, out RaycastHit hit)
+    {
+        hit = default;
+        if (pata == null || pata.objetivo == null)
+            return false;
+
+        Vector3 origen = pata.objetivo.position +
+            Vector3.up * Mathf.Max(0.1f, alturaSondeoBorde) -
+            normalPared.normalized * Mathf.Max(0f, avanceSondeoBorde);
+
+        int mascara = capaSueloSalidaEscalada.value != 0
+            ? capaSueloSalidaEscalada.value : Physics.DefaultRaycastLayers;
+
+        bool encontrado = Physics.Raycast(
+            origen, Vector3.down, out hit,
+            Mathf.Max(0.1f, distanciaRaycastSueloSuperior),
+            mascara, QueryTriggerInteraction.Ignore);
+
+        if (debugEscalada)
+            Debug.DrawRay(origen, Vector3.down * distanciaRaycastSueloSuperior,
+                encontrado ? Color.green : Color.red);
+
+        if (!encontrado || Vector3.Dot(hit.normal, Vector3.up) < 0.65f)
+            return false;
+
+        // No confundir la plataforma superior con el suelo inferior.
+        if (hit.point.y <= posicionInicioMovimientoEscalada.y + 0.15f)
+            return false;
+
+        return pata.PuedeAlcanzarApoyo(
+            hit.point + hit.normal * pata.offsetSuelo, 0.97f);
+    }
+
+    private void LiberarApoyosCoronacion()
+    {
+        if (gestorPatasArana == null) return;
+        if (gestorPatasArana.pataFL != null)
+            gestorPatasArana.pataFL.LiberarApoyoSuperior();
+        if (gestorPatasArana.pataFR != null)
+            gestorPatasArana.pataFR.LiberarApoyoSuperior();
+    }
+
     private bool ComprobarSueloSuperiorEscalada(
         Vector3 normalPared,
         Vector3 direccionSubida,
@@ -4904,11 +5076,26 @@ public class BotRecolector : MonoBehaviour
             false;
 
 
-        // Las seis patas cambian progresivamente:
-        // normal de pared -> Vector3.up.
-        gestorPatasArana.IniciarTransicionASuelo(
-            duracionTransicionSalidaSuelo
-        );
+        // Preapoyo: primero colocamos los pies delanteros sobre puntos
+        // fijos del suelo superior. El cuerpo queda QUIETO mientras tanto.
+        coronacionConApoyos = usarCoronacionNatural &&
+            apoyosDelanterosDetectadosCoronacion;
+        esperandoApoyosDelanteros = coronacionConApoyos;
+        temporizadorApoyoDelantero = 0f;
+
+        if (coronacionConApoyos)
+        {
+            gestorPatasArana.pataFL.FijarApoyoSuperior(apoyoDelanteroIzquierdo);
+            gestorPatasArana.pataFR.FijarApoyoSuperior(apoyoDelanteroDerecho);
+            gestorPatasArana.pataFL.EstablecerNormalSuperficie(Vector3.up);
+            gestorPatasArana.pataFR.EstablecerNormalSuperficie(Vector3.up);
+        }
+        else
+        {
+            // Ruta tradicional de seguridad cuando no hay apoyos cercanos.
+            gestorPatasArana.IniciarTransicionASuelo(
+                duracionTransicionSalidaSuelo);
+        }
 
 
         estadoActual =
@@ -4955,6 +5142,43 @@ public class BotRecolector : MonoBehaviour
             return;
         }
 
+
+        if (esperandoApoyosDelanteros)
+        {
+            // El gestor puede ordenar los pasos de las delanteras mientras
+            // el cuerpo permanece en la pared, sin elevar su raíz.
+            temporizadorApoyoDelantero += Time.deltaTime;
+            bool flApoyada = gestorPatasArana.pataFL != null &&
+                             gestorPatasArana.pataFL.ApoyoSuperiorAlcanzado;
+            bool frApoyada = gestorPatasArana.pataFR != null &&
+                             gestorPatasArana.pataFR.ApoyoSuperiorAlcanzado;
+
+            if (flApoyada && frApoyada)
+            {
+                esperandoApoyosDelanteros = false;
+                tiempoSalidaEscalada = 0f;
+                gestorPatasArana.IniciarTransicionASueloPorGrupos(
+                    duracionTransicionSalidaSuelo);
+                if (debugEscalada)
+                    Debug.Log(name + " | CORONACIÓN: ambas patas delanteras " +
+                        "apoyadas; ahora avanza el cuerpo.");
+            }
+            else if (temporizadorApoyoDelantero >= tiempoMaximoApoyoDelantero)
+            {
+                // Evitar bloqueo permanente si la geometría no deja
+                // completar el paso. Avisar y usar ruta anterior.
+                Debug.LogWarning(name + " | CORONACIÓN: apoyo delantero " +
+                    "no completado. Se usa salida tradicional; revisa " +
+                    "distancia de sondeo y alcance de las patas.");
+                esperandoApoyosDelanteros = false;
+                coronacionConApoyos = false;
+                LiberarApoyosCoronacion();
+                tiempoSalidaEscalada = 0f;
+                gestorPatasArana.IniciarTransicionASuelo(
+                    duracionTransicionSalidaSuelo);
+            }
+            return;
+        }
 
         tiempoSalidaEscalada +=
             Time.deltaTime;
@@ -5008,16 +5232,13 @@ public class BotRecolector : MonoBehaviour
             );
 
 
-        // Pequeño arco para no rozar el canto superior.
-        posicionRaiz +=
-            Vector3.up *
-            Mathf.Sin(
-                Mathf.PI * tSuave
-            ) *
-            Mathf.Max(
-                0f,
-                alturaArcoSalidaBorde
-            );
+        // Con los pies delanteros ya apoyados, el arco vertical debe ser
+        // casi nulo: evita elevar el cuerpo innecesariamente.
+        float arcoPermitido = coronacionConApoyos
+            ? Mathf.Min(alturaArcoSalidaBorde, arcoMaximoCoronacion)
+            : alturaArcoSalidaBorde;
+        posicionRaiz += Vector3.up *
+            Mathf.Sin(Mathf.PI * tSuave) * Mathf.Max(0f, arcoPermitido);
 
 
         transform.position =
@@ -5112,6 +5333,11 @@ public class BotRecolector : MonoBehaviour
             gestorPatasArana.RestaurarNormalSuelo();
         }
 
+        // Los targets normales vuelven a tomar el control de las patas.
+        LiberarApoyosCoronacion();
+        esperandoApoyosDelanteros = false;
+        coronacionConApoyos = false;
+        apoyosDelanterosDetectadosCoronacion = false;
 
         // Volvemos a comprobar NavMesh por seguridad porque durante
         // la transición hemos movido manualmente el Transform.
@@ -5230,21 +5456,19 @@ public class BotRecolector : MonoBehaviour
         ResetearAntiAtasco();
 
 
-        // Conservamos EXACTAMENTE la piedra reservada.
-        // El siguiente frame vuelve a utilizar la lógica normal de suelo.
-        if (piedraObjetivo != null)
+        // Cruzada una conexión, la ruta debe recalcularse desde la nueva isla.
+        LimpiarConexionEscaladaObjetivo();
+        bool llevaPiedraSalida = piedraObjetivo != null &&
+            puntoAgarre != null && piedraObjetivo.transform.parent == puntoAgarre;
+        if (llevaPiedraSalida)
+            estadoActual = EstadoBot.LlevandoPiedra;
+        else if (piedraObjetivo != null)
         {
-            estadoActual =
-                EstadoBot.YendoAPiedra;
-
-            temporizadorRevalidacionObjetivo =
-                0f;
+            estadoActual = EstadoBot.YendoAPiedra;
+            temporizadorRevalidacionObjetivo = 0f;
         }
         else
-        {
-            estadoActual =
-                EstadoBot.Buscando;
-        }
+            estadoActual = EstadoBot.Buscando;
 
 
         if (debugEscalada)
@@ -6261,7 +6485,7 @@ public class BotRecolector : MonoBehaviour
 
 
         ResetearAntiAtasco();
-
+        LimpiarConexionEscaladaObjetivo();
 
         // El descenso puede haberse iniciado llevando una piedra
         // o simplemente para llegar hasta una piedra reservada abajo.
@@ -6440,7 +6664,7 @@ public class BotRecolector : MonoBehaviour
 
         estadoActual =
             EstadoBot.LlevandoPiedra;
-
+        LimpiarConexionEscaladaObjetivo();
 
         ResetearAntiAtasco();
     }
@@ -6503,6 +6727,8 @@ public class BotRecolector : MonoBehaviour
             return;
         }
 
+        // También utiliza conexiones cuando transporta piedras al agujero.
+        if (GestionarConexionEscaladaHaciaPiedra()) return;
 
         if (!IrHaciaPuntoEntrega())
             return;
@@ -6588,10 +6814,35 @@ public class BotRecolector : MonoBehaviour
 
         if (!rutaCompleta)
         {
-            // Si acabamos de subir por una pared y el destino está abajo,
-            // volvemos por esa misma pared en lugar de entrar en antiatasco.
-            IntentarIniciarDescensoAutomatico();
+            // El cálculo de varias conexiones es relativamente costoso.
+            // Reintentamos con un intervalo, no en cada Update.
+            if (Time.time < siguienteIntentoPlanEntrega) return false;
+            siguienteIntentoPlanEntrega = Time.time + 0.8f;
 
+            if (usarConexionesEscaladaParaPiedras &&
+                PlanificadorConexionesArana.BuscarPrimeraConexion(
+                    agente.nextPosition, hit.position, agente.areaMask,
+                    out ConexionEscalada conexionRuta,
+                    out bool subirRuta,
+                    out Vector3 entradaRuta,
+                    out NavMeshPath caminoEntradaRuta))
+            {
+                conexionEscaladaObjetivo = conexionRuta;
+                sentidoConexionEscaladaObjetivo = subirRuta
+                    ? SentidoConexionEscaladaObjetivo.Subir
+                    : SentidoConexionEscaladaObjetivo.Bajar;
+                puntoEntradaConexionEscaladaObjetivo = entradaRuta;
+                agente.isStopped = false;
+                agente.SetDestination(entradaRuta);
+                if (debugConexionesEscalada)
+                    Debug.Log(name + " | ENTREGA MULTINIVEL: usando " +
+                        conexionRuta.name + " (" + sentidoConexionEscaladaObjetivo + ")");
+                return false;
+            }
+
+            // Compatibilidad: si no existe ruta nueva, intentar la pared
+            // de regreso guardada durante la subida.
+            IntentarIniciarDescensoAutomatico();
             return false;
         }
 

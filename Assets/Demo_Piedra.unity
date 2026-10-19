@@ -1652,11 +1652,6 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 7830938488364930704, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
   m_PrefabInstance: {fileID: 799865791}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &146310629 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -8391222552659086748, guid: be397213e8d300745ba110bc2abb849a, type: 3}
-  m_PrefabInstance: {fileID: 368076786}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &157611991
 GameObject:
   m_ObjectHideFlags: 0
@@ -2715,7 +2710,7 @@ Transform:
   m_GameObject: {fileID: 282840827}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0338, y: 0.532, z: -0.374}
+  m_LocalPosition: {x: 0.0012, y: 0.532, z: 0.515}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2850,6 +2845,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &294468571
 GameObject:
   m_ObjectHideFlags: 0
@@ -2906,6 +2905,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &294468574
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3718,9 +3721,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 567912684}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: be397213e8d300745ba110bc2abb849a, type: 3}
-      insertIndex: 1
-      addedObject: {fileID: 1418541971}
     - targetCorrespondingSourceObject: {fileID: -5568371526223589888, guid: be397213e8d300745ba110bc2abb849a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2000225705}
@@ -4498,6 +4498,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &407191432
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6494,6 +6498,7 @@ MonoBehaviour:
   capaPiedra:
     serializedVersion: 2
     m_Bits: 5632
+  anguloVisionMaximo: 60
   sonidoPatada: {fileID: 8300000, guid: 273826e6f7012554d930422887e37e81, type: 3}
   volumenPatada: 0.66
   particulasPatada: {fileID: 342513635}
@@ -6684,6 +6689,9 @@ MonoBehaviour:
   velocidadRotacion: 10
   distanciaMaximaConstruccion: 15
   tiempoEsperaConstruccion: 0.2
+  teclaCurvar: 32
+  velocidadCurvatura: 3
+  curvaturaMaxima: 3
   modoConstruccion: 0
 --- !u!114 &584387207
 MonoBehaviour:
@@ -6700,6 +6708,7 @@ MonoBehaviour:
   radioAtraccion: 5
   velocidadAtraccion: 15
   distanciaRecoleccion: 0.75
+  radioApuntadoMoneda: 0.12
   imanDesbloqueado: 0
   nivelAlcance: 1
   alcanceNivel1: 5
@@ -9017,6 +9026,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &689931315
 Transform:
   m_ObjectHideFlags: 0
@@ -10004,6 +10017,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 150
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &729948681 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4586973276703103453, guid: 14c8211d04557064b81b0813176d49da, type: 3}
@@ -10559,7 +10576,7 @@ MonoBehaviour:
     m_Bits: 32768
   distanciaDeteccion: 1.5
   alturaOrigen: 0.45
-  distanciaPararAntePared: 0.6
+  distanciaPararAntePared: 3
   detenerAntePared: 1
   mostrarDebug: 1
   mostrarMensajes: 0
@@ -10826,7 +10843,7 @@ Transform:
   m_GameObject: {fileID: 801377522}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.461, z: -0.549}
+  m_LocalPosition: {x: 0, y: -0.314, z: 0.535}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21907,6 +21924,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &865055183
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -21994,7 +22015,7 @@ Transform:
   m_GameObject: {fileID: 876184689}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.52}
+  m_LocalPosition: {x: 0, y: 0.122, z: 0.5197}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -22294,6 +22315,8 @@ MonoBehaviour:
   teclaEscanear: 101
   tagPiedra: Piedra
   distanciaMaximaReal: 5
+  elementosUIExtras: []
+  velocidadPopUI: 15
   velocidadTransicion: 10
   velocidadRotacion: 150
   intensidadDelay: 15
@@ -22347,6 +22370,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &917035634 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -4683669308469848369, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
@@ -22556,7 +22583,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maquinaErosion: {fileID: 1995621683}
-  uiProcesadora: {fileID: 73899081}
+  ruinasVisual: {fileID: 0}
+  maquinaDesbloqueada: {fileID: 0}
+  monedasNecesarias: 20
+  monedasRecibidas: 0
+  precioNivel2: 10
+  precioNivel3: 20
+  monedasMejoraRecibidas: 0
+  nivelDeMejoraEnPago: 2
+  cartera: {fileID: 0}
+  tiendaTrabajo: {fileID: 1616845191}
+  textoProgreso: {fileID: 0}
+  particulasDesbloqueo: []
+  audioSource: {fileID: 0}
+  sonidoMoneda: {fileID: 0}
+  sonidoDesbloqueo: {fileID: 0}
   objetosSoloDesbloqueada:
   - {fileID: 129773978}
   renderersProcesadora:
@@ -22565,13 +22606,6 @@ MonoBehaviour:
   - {fileID: 1368589852}
   - {fileID: 1713383939}
   materialBloqueado: {fileID: 2100000, guid: 1adf9321c1dc1014c917f5f849aa402e, type: 2}
-  tiendaTrabajo: {fileID: 1616845191}
-  monedasNecesarias: 20
-  monedasRecibidas: 0
-  particulasDesbloqueo: []
-  audioSource: {fileID: 0}
-  sonidoMoneda: {fileID: 0}
-  sonidoDesbloqueo: {fileID: 0}
 --- !u!1 &936726801
 GameObject:
   m_ObjectHideFlags: 0
@@ -22597,7 +22631,7 @@ Transform:
   m_GameObject: {fileID: 936726801}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.11, y: 47.84, z: -10.3}
+  m_LocalPosition: {x: 27.11, y: 47.84, z: 14.36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -22772,6 +22806,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &956748391
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -23042,6 +23080,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &988499566
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -23163,6 +23205,10 @@ MonoBehaviour:
     localizedShading: 0
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!64 &1010650440
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -28452,6 +28498,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: -10000
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1072532988
 GameObject:
   m_ObjectHideFlags: 0
@@ -30345,6 +30395,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &1219950022 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 882129737928793925, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
@@ -30775,6 +30829,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 2.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!23 &1276777479
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -31227,8 +31285,8 @@ Transform:
   m_GameObject: {fileID: 1341320747}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 899.47, y: 415.1224, z: 33.0906}
-  m_LocalScale: {x: 52.29936, y: 11.873775, z: 9.948079}
+  m_LocalPosition: {x: 899.5394, y: 412.2618, z: 33.0906}
+  m_LocalScale: {x: 52.15711, y: 6.1529317, z: 9.948079}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 205359431}
@@ -31841,33 +31899,6 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 8055227382719247110, guid: 49f6f25e140263746bda9de6571dbe79, type: 3}
   m_PrefabInstance: {fileID: 6596978744286938066}
   m_PrefabAsset: {fileID: 0}
---- !u!137 &1418541969 stripped
-SkinnedMeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8417361359673230750, guid: be397213e8d300745ba110bc2abb849a, type: 3}
-  m_PrefabInstance: {fileID: 368076786}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1418541971
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 146310629}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 2800000, guid: 6d158c9087b408b4e9bc515027791a1c, type: 3}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 0.75
 --- !u!1 &1419725177
 GameObject:
   m_ObjectHideFlags: 0
@@ -31992,6 +32023,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1425945911
 GameObject:
   m_ObjectHideFlags: 0
@@ -34419,6 +34454,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1623011178 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7705670468958693459, guid: 88df7b9393f8a3e40b4d418d250b2891, type: 3}
@@ -34468,6 +34507,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1624997799 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 300714899275280604, guid: 14c8211d04557064b81b0813176d49da, type: 3}
@@ -34522,6 +34565,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!198 &1647889297 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 7653133276217353097, guid: 2e3726af24bc1a04f8e75d8591cd0ca4, type: 3}
@@ -36432,6 +36479,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &1782913426 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7803034315633525276, guid: 2e3726af24bc1a04f8e75d8591cd0ca4, type: 3}
@@ -36990,6 +37041,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 150
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1794160167
 GameObject:
   m_ObjectHideFlags: 0
@@ -37191,6 +37246,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 1.5
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1812452596
 GameObject:
   m_ObjectHideFlags: 0
@@ -38618,6 +38677,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.75
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &2014862172
 GameObject:
   m_ObjectHideFlags: 0
@@ -39401,6 +39464,13 @@ MonoBehaviour:
   velocidadGiroZ: 360
   aceleracionGiro: 10
   desaceleracionGiro: 6
+  neonesArma: []
+  colorNeonInicio: {r: 0, g: 1, b: 1, a: 1}
+  colorNeonFinal: {r: 1, g: 0.3, b: 0, a: 1}
+  intensidadNeonInicio: 1
+  intensidadNeonFinal: 3
+  aumentoParpadeoActivo: 15
+  velocidadTransicionNeon: 20
   cartera: {fileID: 584387209}
   costePorDisparo: 1
   intensidadSway: 0.1
@@ -39409,7 +39479,7 @@ MonoBehaviour:
   velocidadBobbing: 10
   intensidadBobbing: 0.1
   suavidadAnimacion: 8
-  mallaArma: {fileID: 1418541969}
+  mallaArma: {fileID: 0}
   indiceBlendShape: 0
   pesoMaximoBlendShape: 100
   velocidadRecuperacionBlend: 5
@@ -39486,6 +39556,13 @@ MonoBehaviour:
     velocidadMaximaZ: 800
   aceleracionGiro: 5
   desaceleracionGiro: 2
+  neonesHerramienta: []
+  colorNeonInicio: {r: 0, g: 1, b: 1, a: 1}
+  colorNeonFinal: {r: 1, g: 0.3, b: 0, a: 1}
+  intensidadNeonInicio: 1
+  intensidadNeonFinal: 3
+  aumentoParpadeoActivo: 15
+  velocidadTransicionNeon: 20
   capaSuelo:
     serializedVersion: 2
     m_Bits: 8
@@ -39539,6 +39616,11 @@ MonoBehaviour:
     m_Bits: 8187
   distanciaInteraccion: 5
   sensibilidadGiro: 0.5
+  imagenMirilla: {fileID: 0}
+  mirillaPorDefecto: {fileID: 0}
+  mirillaInteractiva: {fileID: 0}
+  multiplicadorTamano: 1.5
+  velocidadPop: 15
 --- !u!114 &2046494814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44422,6 +44504,10 @@ MonoBehaviour:
     localizedShading: 0
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 242.91
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &2053682294
 GameObject:
   m_ObjectHideFlags: 0

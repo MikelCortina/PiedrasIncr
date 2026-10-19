@@ -170,6 +170,22 @@ public class PataProcedural : MonoBehaviour
     public float distanciaRaycast = 3f;
     public float offsetSuelo = 0.03f;
 
+    [Header("Seguridad de apoyos")]
+    [Tooltip("Evita iniciar pasos hacia un Target si el raycast no encuentra suelo o pared.")]
+    public bool impedirPasosSinSuperficie = true;
+
+    [Tooltip("En Play, dibuja verde si el raycast encuentra apoyo y rojo si falla.")]
+    public bool mostrarRaycastApoyo = true;
+
+    [SerializeField] private bool ultimoObjetivoConApoyo = true;
+    private Vector3 ultimoOrigenApoyo;
+    private Vector3 ultimaDireccionApoyo;
+    private float ultimaDistanciaApoyo;
+    private bool haComprobadoApoyo = false;
+
+    public bool UltimoObjetivoConApoyo => ultimoObjetivoConApoyo;
+
+
 
     // =====================================================
     // SUPERFICIE DE APOYO
@@ -194,6 +210,50 @@ public class PataProcedural : MonoBehaviour
         }
     }
 
+
+    // =====================================================
+    // CORONACIÓN: APOYO TEMPORAL SOBRE LA PLATAFORMA SUPERIOR
+    // =====================================================
+
+    // Mientras el cuerpo cruza el borde, este punto del mundo NO sigue
+    // al SpiderVisual. El pie puede apoyarse antes de mover el cuerpo.
+    private bool apoyoSuperiorForzado = false;
+    private Vector3 puntoApoyoSuperior;
+
+    public bool ApoyoSuperiorAlcanzado
+    {
+        get
+        {
+            return apoyoSuperiorForzado && !dandoPaso &&
+                   pie != null &&
+                   Vector3.Distance(pie.position, puntoApoyoSuperior) <= 0.17f;
+        }
+    }
+
+    public bool PuedeAlcanzarApoyo(Vector3 punto, float porcentaje = 0.97f)
+    {
+        if (cadera == null || rodilla == null || pie == null)
+            return false;
+
+        float longitud = longitudUpper + longitudLower;
+        if (longitud <= 0.001f)
+            longitud = Vector3.Distance(cadera.position, rodilla.position) +
+                       Vector3.Distance(rodilla.position, pie.position);
+
+        return Vector3.Distance(cadera.position, punto) <=
+               longitud * Mathf.Clamp(porcentaje, 0.1f, 1f);
+    }
+
+    public void FijarApoyoSuperior(Vector3 puntoMundo)
+    {
+        puntoApoyoSuperior = puntoMundo;
+        apoyoSuperiorForzado = true;
+    }
+
+    public void LiberarApoyoSuperior()
+    {
+        apoyoSuperiorForzado = false;
+    }
 
     // =====================================================
     // FORMA
@@ -578,6 +638,11 @@ public class PataProcedural : MonoBehaviour
 
     private Vector3 ObtenerObjetivoParaPaso()
     {
+        // Durante la coronación, el pie se dirige a un punto real y fijo
+        // sobre la plataforma, NO al target que todavía gira con el cuerpo.
+        if (apoyoSuperiorForzado)
+            return puntoApoyoSuperior;
+
         if (objetivo == null)
         {
             return transform.position;
@@ -848,6 +913,10 @@ public class PataProcedural : MonoBehaviour
         Vector3 objetivoPaso =
             ObtenerObjetivoParaPaso();
 
+        // Si el raycast falló, NO levantar la pata hacia un punto flotante.
+        // El pie conserva su posición anterior hasta recuperar superficie.
+        if (impedirPasosSinSuperficie && !apoyoSuperiorForzado &&
+            !ultimoObjetivoConApoyo) return false;
 
         // =================================================
         // PIE -> OBJETIVO FUTURO
@@ -922,6 +991,8 @@ public class PataProcedural : MonoBehaviour
 
 
         return
+            (apoyoSuperiorForzado && distanciaObjetivo > 0.05f)
+            ||
             distanciaObjetivo >=
                 distanciaPaso
             ||
@@ -955,6 +1026,8 @@ public class PataProcedural : MonoBehaviour
         Vector3 nuevoDestino =
             ObtenerObjetivoParaPaso();
 
+        if (impedirPasosSinSuperficie && !apoyoSuperiorForzado &&
+            !ultimoObjetivoConApoyo) return;
 
         float distanciaExtension =
             Vector3.Distance(
@@ -1124,21 +1197,20 @@ public class PataProcedural : MonoBehaviour
             -normalSuperficie;
 
 
-        if (Physics.Raycast(
-                origen,
-                direccionRaycast,
-                out RaycastHit hit,
-                distanciaRaycast,
-                capaSuelo,
-                QueryTriggerInteraction.Ignore))
-        {
-            return
-                hit.point +
-                hit.normal *
-                offsetSuelo;
-        }
+        ultimaDireccionApoyo = direccionRaycast;
+        ultimoOrigenApoyo = origen;
+        ultimaDistanciaApoyo = distanciaRaycast;
+        haComprobadoApoyo = true;
 
+        ultimoObjetivoConApoyo = Physics.Raycast(
+            origen, direccionRaycast, out RaycastHit hit,
+            distanciaRaycast, capaSuelo, QueryTriggerInteraction.Ignore);
 
+        if (ultimoObjetivoConApoyo)
+            return hit.point + hit.normal * offsetSuelo;
+
+        // Devuelve el punto normal solo para conservar compatibilidad;
+        // NecesitaDarPaso y OrdenarPaso impedirán usarlo si está sin apoyo.
         return posicion;
     }
 
@@ -1422,6 +1494,14 @@ public class PataProcedural : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        // El color del raycast es visible incluso sin seleccionar la pata.
+        if (Application.isPlaying && mostrarRaycastApoyo && haComprobadoApoyo)
+        {
+            Gizmos.color = ultimoObjetivoConApoyo ? Color.green : Color.red;
+            Gizmos.DrawLine(ultimoOrigenApoyo,
+                ultimoOrigenApoyo + ultimaDireccionApoyo * ultimaDistanciaApoyo);
+            Gizmos.DrawWireSphere(ultimoOrigenApoyo, 0.04f);
+        }
         if (!mostrarDebug)
             return;
 

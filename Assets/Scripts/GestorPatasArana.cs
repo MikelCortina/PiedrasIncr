@@ -141,6 +141,10 @@ public class GestorPatasArana : MonoBehaviour
 
     private float tiempoTransicionSuperficie = 0f;
 
+    // Transición de coronación: las delanteras ya están en el suelo;
+    // medias y traseras cambian después, en ese orden.
+    private bool transicionSueloPorGrupos = false;
+
 
     public bool TransicionSuperficieEnCurso
     {
@@ -275,6 +279,7 @@ public class GestorPatasArana : MonoBehaviour
 
     public void RestaurarNormalSuelo()
     {
+        transicionSueloPorGrupos = false;
         transicionSuperficieEnCurso = false;
         progresoTransicionSuperficie = 1f;
         tiempoTransicionSuperficie = 0f;
@@ -289,6 +294,8 @@ public class GestorPatasArana : MonoBehaviour
         Vector3 nuevaNormal,
         float duracion)
     {
+        transicionSueloPorGrupos = false;
+
         if (nuevaNormal.sqrMagnitude <
             0.0001f)
         {
@@ -352,6 +359,19 @@ public class GestorPatasArana : MonoBehaviour
     }
 
 
+    // Se llama SOLO cuando las patas delanteras ya han tomado apoyo
+    // sobre el suelo superior. No modifica la transición suelo->pared.
+    public void IniciarTransicionASueloPorGrupos(float duracion)
+    {
+        transicionSueloPorGrupos = true;
+        normalInicioTransicion = NormalSuperficieActual;
+        normalObjetivoTransicion = Vector3.up;
+        duracionTransicionSuperficie = Mathf.Max(0.05f, duracion);
+        tiempoTransicionSuperficie = 0f;
+        progresoTransicionSuperficie = 0f;
+        transicionSuperficieEnCurso = true;
+    }
+
     private void ActualizarTransicionSuperficie()
     {
         if (!transicionSuperficieEnCurso)
@@ -387,12 +407,34 @@ public class GestorPatasArana : MonoBehaviour
             );
 
 
-        if (normalInterpolada.sqrMagnitude >
-            0.0001f)
+        if (transicionSueloPorGrupos)
         {
-            EstablecerNormalSuperficie(
-                normalInterpolada.normalized
-            );
+            // Las delanteras ya han plantado los pies en el suelo.
+            // El resto cambia progresivamente: medias antes, traseras después.
+            float tMedias = Mathf.SmoothStep(0f, 1f,
+                Mathf.InverseLerp(0.12f, 0.72f, t));
+            float tTraseras = Mathf.SmoothStep(0f, 1f,
+                Mathf.InverseLerp(0.45f, 1f, t));
+
+            Vector3 normalMedia = Vector3.Slerp(
+                normalInicioTransicion, Vector3.up, tMedias).normalized;
+            Vector3 normalTrasera = Vector3.Slerp(
+                normalInicioTransicion, Vector3.up, tTraseras).normalized;
+
+            if (pataFL != null) pataFL.EstablecerNormalSuperficie(Vector3.up);
+            if (pataFR != null) pataFR.EstablecerNormalSuperficie(Vector3.up);
+            if (pataML != null) pataML.EstablecerNormalSuperficie(normalMedia);
+            if (pataMR != null) pataMR.EstablecerNormalSuperficie(normalMedia);
+            if (pataBL != null) pataBL.EstablecerNormalSuperficie(normalTrasera);
+            if (pataBR != null) pataBR.EstablecerNormalSuperficie(normalTrasera);
+
+            // Normal de lectura general. NO llamar a EstablecerNormalSuperficie
+            // aquí: pondría las seis patas en la misma orientación.
+            normalSuperficieActual = normalInterpolada.normalized;
+        }
+        else if (normalInterpolada.sqrMagnitude > 0.0001f)
+        {
+            EstablecerNormalSuperficie(normalInterpolada.normalized);
         }
 
 
@@ -401,6 +443,7 @@ public class GestorPatasArana : MonoBehaviour
 
         if (t >= 1f)
         {
+            transicionSueloPorGrupos = false;
             transicionSuperficieEnCurso = false;
             progresoTransicionSuperficie = 1f;
 
