@@ -50,6 +50,21 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
     private float progresoVisualLed = 0f;
     private Vector3 escalaOriginalAntena;
+    private Quaternion rotacionOriginalAntena;
+
+    // ==========================================
+    // SISTEMA DE PANTALLA (RENDER TEXTURE)
+    // ==========================================
+    [Header("Pantalla LED Antena (Render Texture)")]
+    [Tooltip("El texto TextMeshPro que muestra el contador.")]
+    public TMP_Text textoPantallaAntena;
+    [Tooltip("Velocidad a la que bajan los números visualmente.")]
+    public float velocidadNumerosPantalla = 15f;
+    [Tooltip("Formato del texto. Pon '0' para números normales, '00' si quieres que el 5 se vea como 05.")]
+    public string formatoNumeros = "0";
+
+    private float valorMostradoEnPantalla = 0f;
+    // ==========================================
 
     [Header("Costes en monedas")]
     [Min(1)] public int precioConstruccion = 20;
@@ -99,28 +114,40 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
     public AudioClip sonidoConstruccion;
     public AudioClip sonidoMejora;
 
-    [Header("Game Feel (Animaciones)")]
-    [Tooltip("Cuánto crecen los objetos al recibir una moneda o al construirse (1.15 = 15% más grandes).")]
-    public float multiplicadorBloop = 1.15f;
-    [Tooltip("Velocidad a la que los objetos recuperan su tamaño original tras el bloop.")]
-    public float velocidadBloop = 15f;
-    [Tooltip("Tiempo en segundos que las piezas se mantienen infladas al máximo antes de encogerse.")]
-    public float tiempoEsperaBloopRuinas = 0.2f;
+    [Header("Game Feel: Bloop de Antena")]
+    [Tooltip("Cuánto crece la antena al recibir una moneda (1.15 = 15% más grande).")]
+    public float multiplicadorBloopAntena = 1.15f;
+    [Tooltip("Velocidad a la que la antena recupera su tamaño original tras el bloop.")]
+    public float velocidadBloopAntena = 15f;
 
-    [Space(10)]
-    [Tooltip("Velocidad a la que la antena se encoge hasta desaparecer al completarse.")]
-    public float velocidadOcultarAntena = 15f;
-    [Tooltip("Velocidad a la que las piezas de las ruinas se encogen hasta desaparecer.")]
-    public float velocidadOcultarRuinas = 10f;
-    [Tooltip("Velocidad a la que las piezas del arma brotan hacia arriba (antes de rebotar).")]
-    public float velocidadMostrarArma = 15f;
+    [Header("Game Feel: Bloop de Estructura")]
+    [Tooltip("Cuánto crece el cuerpo (ruinas/arma) al recibir una moneda. Usa valores bajos para simular peso (ej: 1.05).")]
+    public float multiplicadorBloopEstructura = 1.05f;
+    [Tooltip("Velocidad a la que el cuerpo recupera su tamaño original.")]
+    public float velocidadBloopEstructura = 12f;
 
-    [Space(10)]
-    [Tooltip("Tiempo (0.1 a 1) para solapar la desaparición de las ruinas. 0.1 = Ola rapidísima. 1.0 = Escalonado.")]
-    [Range(0.1f, 1f)] public float porcentajeCascadaRuinas = 0.5f;
+    [Header("Game Feel: Sway Físico de Antena")]
+    [Tooltip("Fuerza del golpe. Se sumará como velocidad pura, permitiendo múltiples impactos solapados.")]
+    public float fuerzaImpactoMoneda = 1500f;
+    [Tooltip("Rigidez del muelle. Valores altos = intenta volver al centro con mucha fuerza.")]
+    public float rigidezAntena = 250f;
+    [Tooltip("Fricción. Valores bajos = la antena se quedará rebotando más tiempo (efecto muelle loco).")]
+    public float amortiguacionAntena = 15f;
 
-    [Tooltip("Tiempo (0.1 a 1) para solapar la construcción de piezas y mejoras. 0.1 = Ráfaga inmediata. 1.0 = Escalonado.")]
-    [Range(0.1f, 1f)] public float porcentajeCascadaArma = 0.5f;
+    // VARIABLES DEL SISTEMA FÍSICO DEL MUELLE
+    private Vector2 velocidadSwayAntena;
+    private Vector2 swayActualAntena;
+
+    [Header("Animación de Construcción y Mejora")]
+    public float velocidadDesaparicion = 10f;
+    public float velocidadAparicion = 15f;
+    [Tooltip("Tiempo (0.1 a 1) para solapar las animaciones. 0.1 = Ráfaga inmediata. 1.0 = Escalonado.")]
+    [Range(0.1f, 1f)] public float porcentajeCascada = 0.5f;
+
+    [Header("Rebote del Arma al Construir")]
+    public float velocidadReboteArma = 12f;
+    public float intensidadReboteArma = 0.15f;
+
 
     public event Action ProgresoActualizado;
 
@@ -148,7 +175,8 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
     // Diccionario de escalas: Guarda el tamaño de CUALQUIER pieza automáticamente
     private Dictionary<GameObject, Vector3> escalasOriginales = new Dictionary<GameObject, Vector3>();
 
-    private Coroutine corrutinaBloop;
+    private Coroutine corrutinaBloopAntena;
+    private Coroutine corrutinaBloopEstructura;
     private bool enTransicion = false;
     private int piezasEnAnimacion = 0;
 
@@ -197,16 +225,22 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             return;
         }
 
-        // Registramos todos los tamaños iniciales de cualquier pieza que pueda aparecer en el juego
         RegistrarEscalas(partesRuinas);
         RegistrarEscalas(partesArmaDesbloqueada);
         RegistrarEscalas(nivel1.piezasViejas); RegistrarEscalas(nivel1.piezasNuevas);
         RegistrarEscalas(nivel2.piezasViejas); RegistrarEscalas(nivel2.piezasNuevas);
         RegistrarEscalas(nivel3.piezasViejas); RegistrarEscalas(nivel3.piezasNuevas);
 
-        if (antenaVisual != null) escalaOriginalAntena = antenaVisual.localScale;
+        if (antenaVisual != null)
+        {
+            escalaOriginalAntena = antenaVisual.localScale;
+            rotacionOriginalAntena = antenaVisual.localRotation;
+        }
 
         if (construida) monedasAportadas = Mathf.Clamp(monedasAportadas, 0, PrecioActual);
+
+        // Inicializamos el valor de la pantalla
+        valorMostradoEnPantalla = NivelMaximo ? 0f : MonedasRestantes;
 
         SincronizarAspecto(false);
         AplicarEstadisticas();
@@ -232,21 +266,59 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
     private void Update()
     {
+        // ==========================================
+        // 1. ACTUALIZAR LED Y PANTALLA (RENDER TEXTURE)
+        // ==========================================
+        float progresoObjetivo = 0f;
+        float monedasFaltantesReales = NivelMaximo ? 0f : MonedasRestantes;
+
+        if (!NivelMaximo)
+        {
+            if (PrecioActual > 0) progresoObjetivo = (float)monedasAportadas / PrecioActual;
+        }
+        else progresoObjetivo = 1f;
+
         if (ledAntena != null)
         {
-            float progresoObjetivo = 0f;
-            if (!NivelMaximo)
-            {
-                if (PrecioActual > 0) progresoObjetivo = (float)monedasAportadas / PrecioActual;
-            }
-            else progresoObjetivo = 1f;
-
-            // Suavizamos el progreso
             progresoVisualLed = Mathf.Lerp(progresoVisualLed, progresoObjetivo, Time.deltaTime * 5f);
-
-            // Interpolamos estrictamente entre nuestro COLOR DE INICIO y FINAL, e INTENSIDAD DE INICIO y FINAL
             ledAntena.colorNeon = Color.Lerp(colorInicio, colorFinal, progresoVisualLed);
             ledAntena.intensidad = Mathf.Lerp(intensidadInicio, intensidadFinal, progresoVisualLed);
+        }
+
+        if (textoPantallaAntena != null)
+        {
+            if (valorMostradoEnPantalla < monedasFaltantesReales)
+            {
+                valorMostradoEnPantalla = monedasFaltantesReales;
+            }
+
+            if (valorMostradoEnPantalla != monedasFaltantesReales)
+            {
+                valorMostradoEnPantalla = Mathf.MoveTowards(valorMostradoEnPantalla, monedasFaltantesReales, velocidadNumerosPantalla * Time.deltaTime);
+            }
+
+            if (NivelMaximo && valorMostradoEnPantalla <= 0.01f)
+            {
+                textoPantallaAntena.text = "MAX";
+            }
+            else
+            {
+                textoPantallaAntena.text = Mathf.CeilToInt(valorMostradoEnPantalla).ToString(formatoNumeros);
+            }
+        }
+
+        // ==========================================
+        // 2. FÍSICAS ADITIVAS DE MUELLE (SWAY)
+        // ==========================================
+        if (antenaVisual != null && antenaVisual.gameObject.activeSelf && !enTransicion)
+        {
+            Vector2 fuerzaResorte = -swayActualAntena * rigidezAntena;
+            Vector2 fuerzaAmortiguacion = -velocidadSwayAntena * amortiguacionAntena;
+
+            velocidadSwayAntena += (fuerzaResorte + fuerzaAmortiguacion) * Time.deltaTime;
+            swayActualAntena += velocidadSwayAntena * Time.deltaTime;
+
+            antenaVisual.localRotation = rotacionOriginalAntena * Quaternion.Euler(swayActualAntena.x, 0f, swayActualAntena.y);
         }
     }
 
@@ -278,12 +350,30 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
         if (!enTransicion)
         {
-            if (corrutinaBloop != null) StopCoroutine(corrutinaBloop);
-            corrutinaBloop = StartCoroutine(HacerBloop());
+            // 1. Bloop de Antena
+            if (corrutinaBloopAntena != null) StopCoroutine(corrutinaBloopAntena);
+            corrutinaBloopAntena = StartCoroutine(HacerBloopAntena());
+
+            // 2. Bloop de Estructura Independiente
+            if (corrutinaBloopEstructura != null) StopCoroutine(corrutinaBloopEstructura);
+            corrutinaBloopEstructura = StartCoroutine(HacerBloopEstructura());
+
+            // 3. IMPACTO FÍSICO Sway
+            AplicarGolpeFisicoAntena();
         }
 
         if (audioSource != null && sonidoMoneda != null) audioSource.PlayOneShot(sonidoMoneda);
         Destroy(proyectil.gameObject);
+    }
+
+    private void AplicarGolpeFisicoAntena()
+    {
+        if (antenaVisual == null || !antenaVisual.gameObject.activeSelf) return;
+
+        Vector2 direccionImpacto = UnityEngine.Random.insideUnitCircle.normalized;
+        float fuerzaReal = UnityEngine.Random.Range(fuerzaImpactoMoneda * 0.7f, fuerzaImpactoMoneda);
+
+        velocidadSwayAntena += direccionImpacto * fuerzaReal;
     }
 
     private void AportarPago(int cantidad)
@@ -339,10 +429,16 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         if (!animado)
         {
             foreach (var p in partesRuinas) { if (p) { p.SetActive(!construida); p.transform.localScale = construida ? Vector3.zero : escalasOriginales[p]; } }
-            if (antenaVisual) { antenaVisual.gameObject.SetActive(true); antenaVisual.localScale = escalaOriginalAntena; }
+            if (antenaVisual)
+            {
+                antenaVisual.gameObject.SetActive(true);
+                antenaVisual.localScale = escalaOriginalAntena;
+                antenaVisual.localRotation = rotacionOriginalAntena;
+                swayActualAntena = Vector2.zero;
+                velocidadSwayAntena = Vector2.zero;
+            }
             foreach (var p in partesArmaDesbloqueada) { if (p) { p.SetActive(construida); p.transform.localScale = construida ? escalasOriginales[p] : Vector3.zero; } }
 
-            // Aplicar visibilidad de las piezas extra si cargamos la partida
             if (construida)
             {
                 if (nivel2.piezasViejas != null) foreach (var p in nivel2.piezasViejas) if (p) p.SetActive(nivelActual < 2);
@@ -383,8 +479,13 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
         if (!enTransicion)
         {
-            if (corrutinaBloop != null) StopCoroutine(corrutinaBloop);
-            corrutinaBloop = StartCoroutine(HacerBloop());
+            if (corrutinaBloopAntena != null) StopCoroutine(corrutinaBloopAntena);
+            corrutinaBloopAntena = StartCoroutine(HacerBloopAntena());
+
+            if (corrutinaBloopEstructura != null) StopCoroutine(corrutinaBloopEstructura);
+            corrutinaBloopEstructura = StartCoroutine(HacerBloopEstructura());
+
+            AplicarGolpeFisicoAntena();
         }
     }
 
@@ -415,12 +516,32 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
     // CORRUTINAS DE ANIMACIÓN (GAME FEEL)
     // =========================================================================
 
-    private IEnumerator HacerBloop()
+    private IEnumerator HacerBloopAntena()
     {
-        bool hayAntena = antenaVisual != null && antenaVisual.gameObject.activeSelf;
-        Vector3 escalaBaseAntena = hayAntena ? escalaOriginalAntena : Vector3.zero;
-        if (hayAntena) antenaVisual.localScale = escalaBaseAntena * multiplicadorBloop;
+        if (antenaVisual == null || !antenaVisual.gameObject.activeSelf) yield break;
 
+        Vector3 escalaBaseAntena = escalaOriginalAntena;
+        antenaVisual.localScale = escalaBaseAntena * multiplicadorBloopAntena;
+
+        while (true)
+        {
+            if (enTransicion) yield break;
+
+            if (Vector3.Distance(antenaVisual.localScale, escalaBaseAntena) > (escalaBaseAntena.magnitude * 0.02f + 0.01f))
+            {
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBaseAntena, Time.deltaTime * velocidadBloopAntena);
+            }
+            else
+            {
+                antenaVisual.localScale = escalaBaseAntena;
+                break;
+            }
+            yield return null;
+        }
+    }
+
+    private IEnumerator HacerBloopEstructura()
+    {
         List<GameObject> piezasActivas = new List<GameObject>();
         if (!construida)
         {
@@ -433,9 +554,11 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             if (nivelActual >= 3 && nivel3.piezasNuevas != null) foreach (var p in nivel3.piezasNuevas) if (p != null && p.activeSelf) piezasActivas.Add(p);
         }
 
+        // Aplicamos el hinchado inicial
         foreach (var p in piezasActivas)
         {
-            if (escalasOriginales.ContainsKey(p)) p.transform.localScale = escalasOriginales[p] * multiplicadorBloop;
+            if (escalasOriginales.ContainsKey(p))
+                p.transform.localScale = escalasOriginales[p] * multiplicadorBloopEstructura;
         }
 
         while (true)
@@ -444,16 +567,6 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
             bool todoTerminado = true;
 
-            if (hayAntena)
-            {
-                if (Vector3.Distance(antenaVisual.localScale, escalaBaseAntena) > (escalaBaseAntena.magnitude * 0.02f + 0.01f))
-                {
-                    antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBaseAntena, Time.deltaTime * velocidadBloop);
-                    todoTerminado = false;
-                }
-                else antenaVisual.localScale = escalaBaseAntena;
-            }
-
             foreach (var p in piezasActivas)
             {
                 if (p != null && p.activeSelf && escalasOriginales.ContainsKey(p))
@@ -461,10 +574,13 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
                     Vector3 escBase = escalasOriginales[p];
                     if (Vector3.Distance(p.transform.localScale, escBase) > (escBase.magnitude * 0.02f + 0.01f))
                     {
-                        p.transform.localScale = Vector3.Lerp(p.transform.localScale, escBase, Time.deltaTime * velocidadBloop);
+                        p.transform.localScale = Vector3.Lerp(p.transform.localScale, escBase, Time.deltaTime * velocidadBloopEstructura);
                         todoTerminado = false;
                     }
-                    else p.transform.localScale = escBase;
+                    else
+                    {
+                        p.transform.localScale = escBase;
+                    }
                 }
             }
 
@@ -478,22 +594,10 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         piezasEnAnimacion++;
         if (pieza != null)
         {
-            Vector3 escalaBloopObjetivo = escalaOriginal * multiplicadorBloop;
-            float umbralBloop = escalaBloopObjetivo.magnitude * 0.02f + 0.01f;
-
-            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaBloopObjetivo) > umbralBloop)
-            {
-                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaBloopObjetivo, Time.deltaTime * velocidadBloop * 2f);
-                yield return null;
-            }
-            if (pieza != null) pieza.transform.localScale = escalaBloopObjetivo;
-
-            if (tiempoEsperaBloopRuinas > 0f) yield return new WaitForSeconds(tiempoEsperaBloopRuinas);
-
             float umbralCero = escalaOriginal.magnitude * 0.05f + 0.01f;
             while (pieza != null && pieza.transform.localScale.magnitude > umbralCero)
             {
-                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, Vector3.zero, Time.deltaTime * velocidadOcultarRuinas);
+                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, Vector3.zero, Time.deltaTime * velocidadDesaparicion);
                 yield return null;
             }
             if (pieza != null) { pieza.transform.localScale = Vector3.zero; pieza.SetActive(false); }
@@ -501,23 +605,25 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         piezasEnAnimacion--;
     }
 
-    private IEnumerator AnimarPiezaIndividualArma(GameObject pieza, Vector3 escalaFinal, Vector3 escalaBloop)
+    private IEnumerator AnimarPiezaIndividualArma(GameObject pieza, Vector3 escalaFinal)
     {
         piezasEnAnimacion++;
         if (pieza != null)
         {
-            float umbralBloopPieza = escalaBloop.magnitude * 0.02f + 0.01f;
-            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaBloop) > umbralBloopPieza)
+            Vector3 escalaRebote = escalaFinal * (1f + intensidadReboteArma);
+
+            float umbralRebote = escalaRebote.magnitude * 0.02f + 0.01f;
+            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaRebote) > umbralRebote)
             {
-                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaBloop, Time.deltaTime * velocidadMostrarArma);
+                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaRebote, Time.deltaTime * velocidadAparicion);
                 yield return null;
             }
-            if (pieza != null) pieza.transform.localScale = escalaBloop;
+            if (pieza != null) pieza.transform.localScale = escalaRebote;
 
             float umbralFinalPieza = escalaFinal.magnitude * 0.02f + 0.01f;
             while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaFinal) > umbralFinalPieza)
             {
-                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaFinal, Time.deltaTime * velocidadBloop);
+                pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaFinal, Time.deltaTime * velocidadReboteArma);
                 yield return null;
             }
             if (pieza != null) pieza.transform.localScale = escalaFinal;
@@ -535,25 +641,27 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             if (partesArmaDesbloqueada[i] != null) { partesArmaDesbloqueada[i].SetActive(false); partesArmaDesbloqueada[i].transform.localScale = Vector3.zero; }
         }
 
-        // FASE 1: Antena se esconde
+        // FASE 1: Antena hace bloop y se esconde
         if (antenaVisual != null && antenaVisual.gameObject.activeSelf)
         {
-            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloop;
+            swayActualAntena = Vector2.zero;
+            velocidadSwayAntena = Vector2.zero;
+            antenaVisual.localRotation = rotacionOriginalAntena;
+
+            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
 
             while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadBloop * 2f);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadBloopAntena * 2f);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
 
-            if (tiempoEsperaBloopRuinas > 0f) yield return new WaitForSeconds(tiempoEsperaBloopRuinas);
-
             float umbralAntena = escalaOriginalAntena.magnitude * 0.05f + 0.01f;
             while (antenaVisual.localScale.magnitude > umbralAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, Vector3.zero, Time.deltaTime * velocidadOcultarAntena);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, Vector3.zero, Time.deltaTime * velocidadDesaparicion);
                 yield return null;
             }
             antenaVisual.localScale = Vector3.zero;
@@ -569,8 +677,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
                 StartCoroutine(AnimarDesaparicionPiezaRuina(pieza, escalasOriginales[pieza]));
 
-                float tiempoTotalPieza = 0.15f + tiempoEsperaBloopRuinas + 0.25f;
-                float tiempoEspera = Mathf.Lerp(0.01f, tiempoTotalPieza, porcentajeCascadaRuinas);
+                float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
             while (piezasEnAnimacion > 0) yield return null;
@@ -580,12 +687,16 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         if (antenaVisual != null)
         {
             progresoVisualLed = 0f;
-            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloop;
+            swayActualAntena = Vector2.zero;
+            velocidadSwayAntena = Vector2.zero;
+            antenaVisual.localRotation = rotacionOriginalAntena;
+
+            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
 
             while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadMostrarArma);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadAparicion);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
@@ -593,7 +704,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             float umbralFinalAntena = escalaOriginalAntena.magnitude * 0.02f + 0.01f;
             while (Vector3.Distance(antenaVisual.localScale, escalaOriginalAntena) > umbralFinalAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaOriginalAntena, Time.deltaTime * velocidadBloop);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaOriginalAntena, Time.deltaTime * velocidadBloopAntena);
                 yield return null;
             }
             antenaVisual.localScale = escalaOriginalAntena;
@@ -617,12 +728,9 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
                 pieza.transform.localScale = Vector3.zero;
 
                 Vector3 escalaFinal = escalasOriginales[pieza];
-                Vector3 escalaBloop = escalaFinal * multiplicadorBloop;
+                StartCoroutine(AnimarPiezaIndividualArma(pieza, escalaFinal));
 
-                StartCoroutine(AnimarPiezaIndividualArma(pieza, escalaFinal, escalaBloop));
-
-                float tiempoTotalArma = 0.35f;
-                float tiempoEspera = Mathf.Lerp(0.01f, tiempoTotalArma, porcentajeCascadaArma);
+                float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
             while (piezasEnAnimacion > 0) yield return null;
@@ -636,25 +744,27 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         enTransicion = true;
         piezasEnAnimacion = 0;
 
-        // FASE 1: Antena se esconde
+        // FASE 1: Antena hace bloop y se esconde
         if (antenaVisual != null && antenaVisual.gameObject.activeSelf)
         {
-            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloop;
+            swayActualAntena = Vector2.zero;
+            velocidadSwayAntena = Vector2.zero;
+            antenaVisual.localRotation = rotacionOriginalAntena;
+
+            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
 
             while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadBloop * 2f);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadBloopAntena * 2f);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
 
-            if (tiempoEsperaBloopRuinas > 0f) yield return new WaitForSeconds(tiempoEsperaBloopRuinas);
-
             float umbralAntena = escalaOriginalAntena.magnitude * 0.05f + 0.01f;
             while (antenaVisual.localScale.magnitude > umbralAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, Vector3.zero, Time.deltaTime * velocidadOcultarAntena);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, Vector3.zero, Time.deltaTime * velocidadDesaparicion);
                 yield return null;
             }
             antenaVisual.localScale = Vector3.zero;
@@ -670,8 +780,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
                 StartCoroutine(AnimarDesaparicionPiezaRuina(pieza, escalasOriginales[pieza]));
 
-                float tiempoTotalPieza = 0.15f + tiempoEsperaBloopRuinas + 0.25f;
-                float tiempoEspera = Mathf.Lerp(0.01f, tiempoTotalPieza, porcentajeCascadaArma);
+                float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
             while (piezasEnAnimacion > 0) yield return null;
@@ -681,12 +790,16 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         if (antenaVisual != null)
         {
             progresoVisualLed = 0f;
-            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloop;
+            swayActualAntena = Vector2.zero;
+            velocidadSwayAntena = Vector2.zero;
+            antenaVisual.localRotation = rotacionOriginalAntena;
+
+            Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
 
             while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadMostrarArma);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadAparicion);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
@@ -694,7 +807,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             float umbralFinalAntena = escalaOriginalAntena.magnitude * 0.02f + 0.01f;
             while (Vector3.Distance(antenaVisual.localScale, escalaOriginalAntena) > umbralFinalAntena)
             {
-                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaOriginalAntena, Time.deltaTime * velocidadBloop);
+                antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaOriginalAntena, Time.deltaTime * velocidadBloopAntena);
                 yield return null;
             }
             antenaVisual.localScale = escalaOriginalAntena;
@@ -712,12 +825,9 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
                 pieza.transform.localScale = Vector3.zero;
 
                 Vector3 escalaFinal = escalasOriginales[pieza];
-                Vector3 escalaBloop = escalaFinal * multiplicadorBloop;
+                StartCoroutine(AnimarPiezaIndividualArma(pieza, escalaFinal));
 
-                StartCoroutine(AnimarPiezaIndividualArma(pieza, escalaFinal, escalaBloop));
-
-                float tiempoTotalArma = 0.35f;
-                float tiempoEspera = Mathf.Lerp(0.01f, tiempoTotalArma, porcentajeCascadaArma);
+                float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
             while (piezasEnAnimacion > 0) yield return null;
