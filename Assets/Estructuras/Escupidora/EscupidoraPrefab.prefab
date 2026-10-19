@@ -104,9 +104,9 @@ GameObject:
   - component: {fileID: 299713463194248195}
   - component: {fileID: 4031141098821307419}
   - component: {fileID: 8109882565788912983}
-  - component: {fileID: 278657400711487769}
   - component: {fileID: 6769081156003973714}
   - component: {fileID: 3115861723600554367}
+  - component: {fileID: 8074304068836005902}
   m_Layer: 14
   m_Name: Cube.003
   m_TagString: Untagged
@@ -162,7 +162,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -186,32 +186,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &278657400711487769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2703226451944495990}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1.5
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!64 &6769081156003973714
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -247,12 +221,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BotonTuberia
   particulasAbsorcion: {fileID: 5386020818714938796}
-  scriptVariacionAlbedo: {fileID: 278657400711487769}
-  colorApagado: {r: 0.5660378, g: 0.5660378, b: 0.5660378, a: 1}
   distanciaHundido: 0.15
   velocidadAnimacion: 10
   ejeHundimiento: {x: 0, y: -1, z: 0}
+  neonesBoton:
+  - {fileID: 8074304068836005902}
+  colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
+  aumentoIntensidadEncendido: 5
+  aumentoParpadeoEncendido: 0
+  velocidadTransicionNeon: 20
   encendido: 1
+--- !u!114 &8074304068836005902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2703226451944495990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  indiceMaterial: 0
+  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
+  intensidad: 3
+  cantidadZonasMuertas: 0
+  velocidadParpadeo: 0
 --- !u!1 &2867092835054536349
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,9 +291,9 @@ GameObject:
   - component: {fileID: 6188624718107038792}
   - component: {fileID: 7874414983067950750}
   - component: {fileID: 2425366844849678498}
-  - component: {fileID: 4937425772478191412}
   - component: {fileID: 6347676080076849262}
   - component: {fileID: 4343886049563244477}
+  - component: {fileID: 894277177929681408}
   m_Layer: 14
   m_Name: Cube.001
   m_TagString: Untagged
@@ -353,7 +349,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -377,32 +373,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &4937425772478191412
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2911270204909833153}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1.5
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!64 &6347676080076849262
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -438,12 +408,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BotonTuberia
   particulasAbsorcion: {fileID: 1878473378323755434}
-  scriptVariacionAlbedo: {fileID: 4937425772478191412}
-  colorApagado: {r: 0.5660378, g: 0.5660378, b: 0.5660378, a: 1}
   distanciaHundido: 0.15
   velocidadAnimacion: 10
   ejeHundimiento: {x: 0, y: -1, z: 0}
+  neonesBoton:
+  - {fileID: 894277177929681408}
+  colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
+  aumentoIntensidadEncendido: 5
+  aumentoParpadeoEncendido: 0
+  velocidadTransicionNeon: 20
   encendido: 1
+--- !u!114 &894277177929681408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2911270204909833153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  indiceMaterial: 0
+  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
+  intensidad: 3
+  cantidadZonasMuertas: 0
+  velocidadParpadeo: 0
 --- !u!1 &3047991593530213884
 GameObject:
   m_ObjectHideFlags: 0
@@ -1083,6 +1075,7 @@ GameObject:
   - component: {fileID: 7469570197844184689}
   - component: {fileID: 3610581204241498079}
   - component: {fileID: 6860382463142057849}
+  - component: {fileID: 608054982432885451}
   m_Layer: 7
   m_Name: Cube.004
   m_TagString: Construcciones
@@ -1113,7 +1106,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5890884826462782733}
-  m_Mesh: {fileID: -5053925668127403250, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: -5053925668127403250, guid: e93836941c7da964a8013e1b38f8ba9f, type: 3}
 --- !u!23 &7469570197844184689
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1140,6 +1133,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1211,6 +1205,23 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -5053925668127403250, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+--- !u!114 &608054982432885451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5890884826462782733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  indiceMaterial: 1
+  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
+  intensidad: 3
+  cantidadZonasMuertas: 0
+  velocidadParpadeo: 0
 --- !u!1 &5918209742060617712
 GameObject:
   m_ObjectHideFlags: 0
@@ -1336,6 +1347,13 @@ MonoBehaviour:
   fuerzaLanzamiento: 125
   ritmoLanzamiento: 0.2
   tiempoCrecimiento: 0.2
+  neonesMaquina:
+  - {fileID: 608054982432885451}
+  fuerzaLanzamientoMinima: 5
+  fuerzaLanzamientoMaxima: 30
+  colorFuerzaBaja: {r: 0, g: 0, b: 0, a: 1}
+  colorFuerzaAlta: {r: 1.4980392, g: 0.12060486, b: 0.16503823, a: 1}
+  velocidadTransicionLed: 10
 --- !u!1 &7481839149996096841
 GameObject:
   m_ObjectHideFlags: 0
@@ -1379,9 +1397,9 @@ GameObject:
   - component: {fileID: 1956132770103611596}
   - component: {fileID: 3611140407090820955}
   - component: {fileID: 8756181171569531694}
-  - component: {fileID: 8705629490228261963}
   - component: {fileID: 3448111195696137156}
   - component: {fileID: 4952354617402029035}
+  - component: {fileID: 8296952278264011045}
   m_Layer: 14
   m_Name: Cube.005
   m_TagString: Untagged
@@ -1437,7 +1455,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1461,32 +1479,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &8705629490228261963
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8112577767632340005}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1.5
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!64 &3448111195696137156
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1522,12 +1514,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BotonTuberia
   particulasAbsorcion: {fileID: 2624145472337226657}
-  scriptVariacionAlbedo: {fileID: 8705629490228261963}
-  colorApagado: {r: 0.5660378, g: 0.5660378, b: 0.5660378, a: 1}
   distanciaHundido: 0.15
   velocidadAnimacion: 10
   ejeHundimiento: {x: 0, y: -1, z: 0}
+  neonesBoton:
+  - {fileID: 8296952278264011045}
+  colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
+  aumentoIntensidadEncendido: 5
+  aumentoParpadeoEncendido: 0
+  velocidadTransicionNeon: 20
   encendido: 1
+--- !u!114 &8296952278264011045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8112577767632340005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  indiceMaterial: 0
+  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
+  intensidad: 3
+  cantidadZonasMuertas: 0
+  velocidadParpadeo: 0
 --- !u!1 &9058292084142825668
 GameObject:
   m_ObjectHideFlags: 0
@@ -1539,9 +1553,9 @@ GameObject:
   - component: {fileID: 3886493026641132334}
   - component: {fileID: 2538747186467943294}
   - component: {fileID: 3932079290410198015}
-  - component: {fileID: 7879834564867321695}
   - component: {fileID: 808465255214232601}
   - component: {fileID: 8620717899610816211}
+  - component: {fileID: 3136748495579574731}
   m_Layer: 14
   m_Name: Cube.002
   m_TagString: Untagged
@@ -1597,7 +1611,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1621,32 +1635,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7879834564867321695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9058292084142825668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1.5
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!64 &808465255214232601
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1682,12 +1670,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BotonTuberia
   particulasAbsorcion: {fileID: 1774568410717187986}
-  scriptVariacionAlbedo: {fileID: 7879834564867321695}
-  colorApagado: {r: 0.5660378, g: 0.5660378, b: 0.5660378, a: 1}
   distanciaHundido: 0.15
   velocidadAnimacion: 10
   ejeHundimiento: {x: 0, y: -1, z: 0}
+  neonesBoton:
+  - {fileID: 3136748495579574731}
+  colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
+  aumentoIntensidadEncendido: 5
+  aumentoParpadeoEncendido: 0
+  velocidadTransicionNeon: 20
   encendido: 1
+--- !u!114 &3136748495579574731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9058292084142825668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  indiceMaterial: 0
+  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
+  intensidad: 3
+  cantidadZonasMuertas: 0
+  velocidadParpadeo: 0
 --- !u!1001 &560345782692735972
 PrefabInstance:
   m_ObjectHideFlags: 0

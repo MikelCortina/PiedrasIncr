@@ -36,6 +36,29 @@ public class MaquinaPiedras : MonoBehaviour
     public float ritmoLanzamiento = 0.1f;
     public float tiempoCrecimiento = 0.2f;
 
+    // ========================================================
+    // NUEVO: SISTEMA DE NEONES 
+    // ========================================================
+    [Header("Indicadores Visuales (Neones)")]
+    [Tooltip("Arrastra aquí los objetos con el script ControladorNeon de esta máquina")]
+    public ControladorNeon[] neonesMaquina;
+
+    [Tooltip("La fuerza a la que el neón empezará a cambiar de color (fuerza mínima)")]
+    public float fuerzaLanzamientoMinima = 5f;
+    [Tooltip("La fuerza a la que el neón llegará a su color máximo")]
+    public float fuerzaLanzamientoMaxima = 30f;
+
+    [ColorUsage(true, true)]
+    public Color colorFuerzaBaja = Color.green;
+    [ColorUsage(true, true)]
+    public Color colorFuerzaAlta = Color.red;
+
+    [Tooltip("Velocidad a la que el LED reacciona a los cambios de fuerza")]
+    public float velocidadTransicionLed = 10f;
+
+    private float porcentajeFuerzaActual = 0f;
+    // ========================================================
+
     private class DatosPiedra
     {
         public Rigidbody rb;
@@ -57,7 +80,35 @@ public class MaquinaPiedras : MonoBehaviour
     void Update()
     {
         ManejarLanzamiento();
+        ManejarLeds(); // Nueva función para los Leds
     }
+
+    // ========================================================
+    // LÓGICA DE LOS LEDS
+    // ========================================================
+    void ManejarLeds()
+    {
+        if (neonesMaquina == null || neonesMaquina.Length == 0) return;
+
+        // 1. Calculamos en qué porcentaje estamos entre la fuerza mínima y máxima (0 a 1)
+        float porcentajeObjetivo = Mathf.InverseLerp(fuerzaLanzamientoMinima, fuerzaLanzamientoMaxima, fuerzaLanzamiento);
+
+        // 2. Transición suave del led
+        porcentajeFuerzaActual = Mathf.Lerp(porcentajeFuerzaActual, porcentajeObjetivo, Time.deltaTime * velocidadTransicionLed);
+
+        // 3. Calculamos el color final mezclando el color bajo y el alto
+        Color colorFinal = Color.Lerp(colorFuerzaBaja, colorFuerzaAlta, porcentajeFuerzaActual);
+
+        // 4. Se lo aplicamos a todos los neones que tenga la máquina
+        foreach (ControladorNeon neon in neonesMaquina)
+        {
+            if (neon != null)
+            {
+                neon.colorNeon = colorFinal;
+            }
+        }
+    }
+    // ========================================================
 
     void DetectarPiedrasNuevas()
     {
