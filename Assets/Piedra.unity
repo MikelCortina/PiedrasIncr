@@ -8520,6 +8520,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2519669007900956026, guid: 044251bc8c500c04f9b9615d59d99f4d, type: 3}
   m_PrefabInstance: {fileID: 433255901}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &147240853 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4767400413853537203, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+  m_PrefabInstance: {fileID: 2134075890}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &147240855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 147240853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 1990270c5ccf02f4caec36664d49291d, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &149036616
 GameObject:
   m_ObjectHideFlags: 0
@@ -20893,6 +20924,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4865889836087296814, guid: b69765f35a97e47459a59f29206940b4, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4865889836088394222, guid: b69765f35a97e47459a59f29206940b4, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -28983,6 +29018,11 @@ MonoBehaviour:
   piezasMaquinaBase:
   - {fileID: 1219950012}
   - {fileID: 917035624}
+  - {fileID: 1468682300}
+  - {fileID: 1550117187}
+  - {fileID: 147240853}
+  - {fileID: 2039479972}
+  - {fileID: 1289283508}
   - {fileID: 1713383937}
   maquinaErosion: {fileID: 1995621683}
   piezasNivel2:
@@ -87901,6 +87941,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
+--- !u!1 &1289283508 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 50754954277266222, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+  m_PrefabInstance: {fileID: 2134075890}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1289283510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1289283508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 1990270c5ccf02f4caec36664d49291d, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1289941865
 GameObject:
   m_ObjectHideFlags: 0
@@ -97602,6 +97673,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &1468682300 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6507901977716847365, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+  m_PrefabInstance: {fileID: 2134075890}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1468682302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468682300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 1990270c5ccf02f4caec36664d49291d, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &1469037621
 GameObject:
   m_ObjectHideFlags: 0
@@ -102009,6 +102111,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
   m_PrefabInstance: {fileID: 1553728446}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1550117187 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -8961359253771211100, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+  m_PrefabInstance: {fileID: 2134075890}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1550117189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550117187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 1990270c5ccf02f4caec36664d49291d, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &1550643056
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133489,6 +133622,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
   m_PrefabInstance: {fileID: 529700672}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2039479972 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1063203228461421988, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+  m_PrefabInstance: {fileID: 2134075890}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2039479974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2039479972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 1990270c5ccf02f4caec36664d49291d, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &2040035383 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
@@ -145442,6 +145606,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1494131322}
     m_Modifications:
+    - target: {fileID: -9003323146575883303, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -8714662114212306585, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: c15444a10f8524945925e9e087fa2c4e, type: 2}
     - target: {fileID: -8679921383154817045, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.408081
@@ -145482,10 +145654,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7023974396876390944, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -6280290099886436049, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: 2aeaad5f74f483347bae7f4e86ec855f, type: 2}
+    - target: {fileID: -4901520103849510830, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: c1a5886f462e17f4ba4228de254a2a96, type: 2}
+    - target: {fileID: -4867360008418024867, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: 375a32323fd7ba94cb7f519fd1d03148, type: 2}
     - target: {fileID: -4683669308469848369, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -241587437493983680, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 763392349456102199, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: 43f3e7e32c5b25545a3400a7c56f4492, type: 2}
     - target: {fileID: 882129737928793925, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -145498,6 +145694,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2786534777698132407, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     - target: {fileID: 5334037119324981776, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -145505,7 +145705,11 @@ PrefabInstance:
     - target: {fileID: 6697621763907784786, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: 5966812409f3d5046966c494e1d81e0b, type: 2}
+      objectReference: {fileID: 4300000, guid: cdb78f26d6cd09748b8e3d093da82a79, type: 2}
+    - target: {fileID: 7339356831882890532, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -145543,6 +145747,21 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5148817236446094103, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1219950016}
+    - targetCorrespondingSourceObject: {fileID: 6507901977716847365, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1468682302}
+    - targetCorrespondingSourceObject: {fileID: -8961359253771211100, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1550117189}
+    - targetCorrespondingSourceObject: {fileID: 4767400413853537203, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 147240855}
+    - targetCorrespondingSourceObject: {fileID: -1063203228461421988, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2039479974}
+    - targetCorrespondingSourceObject: {fileID: 50754954277266222, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1289283510}
   m_SourcePrefab: {fileID: 100100000, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
 --- !u!4 &2134187512 stripped
 Transform:
