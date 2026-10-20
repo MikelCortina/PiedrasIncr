@@ -39,21 +39,13 @@ public class VariacionAlbedo : MonoBehaviour
     private Renderer render;
     private MaterialPropertyBlock propBlock;
 
-    // Variables de Contorno / Albedo / Sombras originales
-    private bool estadoGuardado = false;
-    private Color[] coloresOriginales;
-    private float[] grosoresOriginales;
+    // Variables originales
+    private bool estadoContornoGuardado = false;
+    private Color[] contornoColoresOriginales;
+    private float[] contornoGrosoresOriginales;
 
     private bool estadoColorGuardado = false;
     private Color[] coloresAlbedoOriginales;
-
-    private bool estadoSombreadoGuardado = false;
-    private Color[] coloresSombreadoOriginales;
-
-    private bool estadoSombrasGuardado = false;
-    private float[] shadowPowersOriginales;
-    private Color[] shadowColoresOriginales;
-    private float[] shadowSharpnessOriginales;
 
     void OnEnable()
     {
@@ -66,17 +58,107 @@ public class VariacionAlbedo : MonoBehaviour
     }
 
     // ==========================================
-    // FUNCIONES DE CONTROL (Se mantienen igual)
+    // FUNCIONES DE CONTROL: ALBEDO (COLOR BASE)
     // ==========================================
-    public void ForzarColor(Color nuevoColor) { /* Mismo código */ }
-    public void RestaurarColor() { /* Mismo código */ }
-    public void ForzarColorSombreado(Color nuevoColor) { /* Mismo código */ }
-    public void RestaurarColorSombreado() { /* Mismo código */ }
-    public void ForzarContorno(Color nuevoColor, float nuevoGrosor) { /* Mismo código */ }
-    public void RestaurarContorno() { /* Mismo código */ }
+    public void ForzarColor(Color nuevoColor)
+    {
+        if (render == null) render = GetComponent<Renderer>();
+        if (propBlock == null) propBlock = new MaterialPropertyBlock();
+
+        if (!estadoColorGuardado && configuraciones != null)
+        {
+            estadoColorGuardado = true;
+            coloresAlbedoOriginales = new Color[configuraciones.Length];
+
+            for (int i = 0; i < configuraciones.Length; i++)
+            {
+                coloresAlbedoOriginales[i] = configuraciones[i].nuevoColor;
+            }
+        }
+
+        if (configuraciones == null) return;
+
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            if (render.sharedMaterials == null || render.sharedMaterials.Length <= configuraciones[i].indiceMaterial) continue;
+
+            render.GetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+            propBlock.SetColor("_BaseColor", nuevoColor);
+            propBlock.SetColor("_Color", nuevoColor); // Por si usa el shader viejo estándar
+            render.SetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+        }
+    }
+
+    public void RestaurarColor()
+    {
+        if (!estadoColorGuardado || render == null || configuraciones == null) return;
+
+        if (propBlock == null) propBlock = new MaterialPropertyBlock();
+
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            if (render.sharedMaterials == null || render.sharedMaterials.Length <= configuraciones[i].indiceMaterial) continue;
+
+            render.GetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+            propBlock.SetColor("_BaseColor", coloresAlbedoOriginales[i]);
+            propBlock.SetColor("_Color", coloresAlbedoOriginales[i]);
+            render.SetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+        }
+    }
 
     // ==========================================
-    // APLICACIÓN DEL MATERIAL (Corregido)
+    // FUNCIONES DE CONTROL: CONTORNOS
+    // ==========================================
+    public void ForzarContorno(Color nuevoColor, float nuevoGrosor)
+    {
+        if (render == null) render = GetComponent<Renderer>();
+        if (propBlock == null) propBlock = new MaterialPropertyBlock();
+
+        if (!estadoContornoGuardado && configuraciones != null)
+        {
+            estadoContornoGuardado = true;
+            contornoColoresOriginales = new Color[configuraciones.Length];
+            contornoGrosoresOriginales = new float[configuraciones.Length];
+
+            for (int i = 0; i < configuraciones.Length; i++)
+            {
+                contornoColoresOriginales[i] = configuraciones[i].colorContorno;
+                contornoGrosoresOriginales[i] = configuraciones[i].grosorContorno;
+            }
+        }
+
+        if (configuraciones == null) return;
+
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            if (render.sharedMaterials == null || render.sharedMaterials.Length <= configuraciones[i].indiceMaterial) continue;
+
+            render.GetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+            propBlock.SetColor("_OutlineColor", nuevoColor);
+            propBlock.SetFloat("_OutlineWidth", nuevoGrosor);
+            render.SetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+        }
+    }
+
+    public void RestaurarContorno()
+    {
+        if (!estadoContornoGuardado || render == null || configuraciones == null) return;
+
+        if (propBlock == null) propBlock = new MaterialPropertyBlock();
+
+        for (int i = 0; i < configuraciones.Length; i++)
+        {
+            if (render.sharedMaterials == null || render.sharedMaterials.Length <= configuraciones[i].indiceMaterial) continue;
+
+            render.GetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+            propBlock.SetColor("_OutlineColor", contornoColoresOriginales[i]);
+            propBlock.SetFloat("_OutlineWidth", contornoGrosoresOriginales[i]);
+            render.SetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
+        }
+    }
+
+    // ==========================================
+    // APLICACIÓN INICIAL DEL MATERIAL
     // ==========================================
     private void AplicarMaterial()
     {
@@ -89,7 +171,6 @@ public class VariacionAlbedo : MonoBehaviour
         {
             var config = configuraciones[i];
 
-            // Evitar errores si el array de materiales es menor
             if (render.sharedMaterials == null || render.sharedMaterials.Length <= config.indiceMaterial) continue;
 
             Material matBase = render.sharedMaterials[config.indiceMaterial];
@@ -112,26 +193,15 @@ public class VariacionAlbedo : MonoBehaviour
             propBlock.SetColor("_OutlineColor", config.colorContorno);
             propBlock.SetFloat("_OutlineWidth", config.grosorContorno);
 
-            // --- UNITY BUILT-IN SHADOWS (CORREGIDO) ---
+            // Unity Shadows
             if (config.modificarSombras)
             {
-                // SINCRONIZACIÓN OBLIGATORIA: Copiamos el modo de sombra del material
-                // para que Flat Kit no asuma que vale 0 (None) al inyectar el bloque.
                 if (matBase.HasProperty("_UnityShadowMode"))
                 {
                     float currentMode = matBase.GetFloat("_UnityShadowMode");
                     propBlock.SetFloat("_UnityShadowMode", currentMode);
-
-                    // SISTEMA DE DEBUGGING: Mira la pestaña 'Console' en Unity si las sombras fallan.
-                    if (currentMode == 0f)
-                        Debug.LogWarning($"[VariacionAlbedo] El material '{matBase.name}' tiene las sombras en modo 'None'. El script no podrá mostrarlas.");
-                    else if (currentMode == 1f && config.shadowPower <= 0.05f)
-                        Debug.LogWarning($"[VariacionAlbedo] Material '{matBase.name}' está en 'Multiply' pero el Shadow Power es casi 0. Serán invisibles.");
-                    else if (currentMode == 2f && config.shadowColor.a <= 0.05f)
-                        Debug.LogWarning($"[VariacionAlbedo] Material '{matBase.name}' está en 'Color' pero el Alpha del color es casi 0. Serán invisibles.");
                 }
 
-                // Inyección segura (Sharpness nunca bajará de 1)
                 propBlock.SetFloat("_UnityShadowPower", config.shadowPower);
                 propBlock.SetColor("_UnityShadowColor", config.shadowColor);
                 propBlock.SetFloat("_UnityShadowSharpness", Mathf.Max(1f, config.shadowSharpness));

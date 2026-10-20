@@ -136,7 +136,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2703226451944495990}
-  m_Mesh: {fileID: -8678823145569952518, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 6eb15cbefa2786a4b88e2e2b7c4780a7, type: 2}
 --- !u!23 &8109882565788912983
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -162,7 +162,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -228,7 +228,7 @@ MonoBehaviour:
   - {fileID: 8074304068836005902}
   colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
   colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
-  aumentoIntensidadEncendido: 5
+  aumentoIntensidadEncendido: 1.25
   aumentoParpadeoEncendido: 0
   velocidadTransicionNeon: 20
   encendido: 1
@@ -246,7 +246,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &2867092835054536349
@@ -323,7 +324,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2911270204909833153}
-  m_Mesh: {fileID: 4493585093827132993, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 19ed390e5fc3b544a87754d4be9f5526, type: 2}
 --- !u!23 &2425366844849678498
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -349,7 +350,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -415,7 +416,7 @@ MonoBehaviour:
   - {fileID: 894277177929681408}
   colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
   colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
-  aumentoIntensidadEncendido: 5
+  aumentoIntensidadEncendido: 1.25
   aumentoParpadeoEncendido: 0
   velocidadTransicionNeon: 20
   encendido: 1
@@ -433,7 +434,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &3047991593530213884
@@ -479,7 +481,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3047991593530213884}
-  m_Mesh: {fileID: 8691780276856062721, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: a5eb0b705216e5a458b3f8691f687656, type: 2}
 --- !u!23 &3751431071256453298
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -640,7 +642,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3338581186362191883}
-  m_Mesh: {fileID: -5495902117074765545, guid: e93836941c7da964a8013e1b38f8ba9f, type: 3}
+  m_Mesh: {fileID: 4300000, guid: f492a747f481fd34794ccea52a7c1814, type: 2}
 --- !u!23 &8225540571168691226
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -781,7 +783,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5042514859012236200}
-  m_Mesh: {fileID: -5731547941117289742, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 023f226c5b9680c479ddbfd935135d74, type: 2}
 --- !u!23 &6618824038587469872
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -943,7 +945,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5172213655584834519}
-  m_Mesh: {fileID: -7387706064836869012, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 9da9f8140e2a4e248b839e1718723a92, type: 2}
 --- !u!23 &3953551411256430458
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1106,7 +1108,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5890884826462782733}
-  m_Mesh: {fileID: -5053925668127403250, guid: e93836941c7da964a8013e1b38f8ba9f, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 64ba0e5b663a51c468959873218eba91, type: 2}
 --- !u!23 &7469570197844184689
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1133,7 +1135,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1219,7 +1221,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 1
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &5918209742060617712
@@ -1429,7 +1432,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8112577767632340005}
-  m_Mesh: {fileID: 2212009239438826721, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: d932e276b74553845848d553baf57e0e, type: 2}
 --- !u!23 &8756181171569531694
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1455,7 +1458,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1521,7 +1524,7 @@ MonoBehaviour:
   - {fileID: 8296952278264011045}
   colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
   colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
-  aumentoIntensidadEncendido: 5
+  aumentoIntensidadEncendido: 1.25
   aumentoParpadeoEncendido: 0
   velocidadTransicionNeon: 20
   encendido: 1
@@ -1539,7 +1542,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1 &9058292084142825668
@@ -1585,7 +1589,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9058292084142825668}
-  m_Mesh: {fileID: -1550514412580984892, guid: fbc530d8d68e18843ac6a6f3c14ee5a9, type: 3}
+  m_Mesh: {fileID: 4300000, guid: f3613d9994e1957459a3ac11171cd991, type: 2}
 --- !u!23 &3932079290410198015
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1611,7 +1615,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 945af27bed5b42a41ab6f09af68ba98d, type: 2}
+  - {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1677,7 +1681,7 @@ MonoBehaviour:
   - {fileID: 3136748495579574731}
   colorNeonEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
   colorNeonApagado: {r: 0, g: 0, b: 0, a: 1}
-  aumentoIntensidadEncendido: 5
+  aumentoIntensidadEncendido: 1.25
   aumentoParpadeoEncendido: 0
   velocidadTransicionNeon: 20
   encendido: 1
@@ -1695,7 +1699,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   indiceMaterial: 0
   colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 3
+  intensidad: 1
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 0
 --- !u!1001 &560345782692735972

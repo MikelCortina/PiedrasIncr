@@ -562,6 +562,9 @@ MonoBehaviour:
   alturaRaycast: 1.5
   distanciaRaycast: 3
   offsetSuelo: 0.03
+  impedirPasosSinSuperficie: 1
+  mostrarRaycastApoyo: 1
+  ultimoObjetivoConApoyo: 1
   normalSuperficieActual: {x: 0, y: 1, z: 0}
   grosorPata: 0.1
   direccionRodilla: 1
@@ -734,6 +737,9 @@ MonoBehaviour:
   alturaRaycast: 1.5
   distanciaRaycast: 3
   offsetSuelo: 0.03
+  impedirPasosSinSuperficie: 1
+  mostrarRaycastApoyo: 1
+  ultimoObjetivoConApoyo: 1
   normalSuperficieActual: {x: 0, y: 1, z: 0}
   grosorPata: 0.1
   direccionRodilla: 1
@@ -970,6 +976,9 @@ MonoBehaviour:
   alturaRaycast: 1.5
   distanciaRaycast: 3
   offsetSuelo: 0.03
+  impedirPasosSinSuperficie: 1
+  mostrarRaycastApoyo: 1
+  ultimoObjetivoConApoyo: 1
   normalSuperficieActual: {x: 0, y: 1, z: 0}
   grosorPata: 0.1
   direccionRodilla: 1
@@ -1751,6 +1760,9 @@ MonoBehaviour:
   duracionTransicionSalidaSuelo: 0.9
   distanciaEntradaSueloSuperior: 0.2
   alturaArcoSalidaBorde: 0.18
+  usarCoronacionNatural: 1
+  tiempoMaximoApoyoDelantero: 3
+  arcoMaximoCoronacion: 0.025
   radioBuscarNavMeshSalida: 1.5
   exigirNavMeshEnSalida: 1
   usarConexionesEscaladaParaPiedras: 1
@@ -1962,6 +1974,9 @@ MonoBehaviour:
   alturaRaycast: 1.5
   distanciaRaycast: 3
   offsetSuelo: 0.03
+  impedirPasosSinSuperficie: 1
+  mostrarRaycastApoyo: 1
+  ultimoObjetivoConApoyo: 1
   normalSuperficieActual: {x: 0, y: 1, z: 0}
   grosorPata: 0.1
   direccionRodilla: 1
@@ -2411,6 +2426,9 @@ MonoBehaviour:
   alturaRaycast: 1.5
   distanciaRaycast: 3
   offsetSuelo: 0.03
+  impedirPasosSinSuperficie: 1
+  mostrarRaycastApoyo: 1
+  ultimoObjetivoConApoyo: 1
   normalSuperficieActual: {x: 0, y: 1, z: 0}
   grosorPata: 0.1
   direccionRodilla: 1
@@ -2771,6 +2789,9 @@ MonoBehaviour:
   alturaRaycast: 1.5
   distanciaRaycast: 3
   offsetSuelo: 0.03
+  impedirPasosSinSuperficie: 1
+  mostrarRaycastApoyo: 1
+  ultimoObjetivoConApoyo: 1
   normalSuperficieActual: {x: 0, y: 1, z: 0}
   grosorPata: 0.1
   direccionRodilla: 1
@@ -2840,6 +2861,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: f886e48d83e90834c846d181045879ee, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: edc4d6dea4890f846afd818800577a43, type: 2}
     - target: {fileID: 919132149155446097, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Name
       value: SpiderTip (1)
@@ -2955,7 +2980,7 @@ PrefabInstance:
     - target: {fileID: -5754084199372789682, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: e530a3bd812f22c42ba4947068f350f4, type: 2}
+      objectReference: {fileID: 4300000, guid: 76134625f19c64b4f8c7cb6d6d6e4fe8, type: 2}
     - target: {fileID: 919132149155446097, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Name
       value: SpiderTip
@@ -3068,6 +3093,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: f886e48d83e90834c846d181045879ee, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: edc4d6dea4890f846afd818800577a43, type: 2}
     - target: {fileID: 919132149155446097, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Name
       value: SpiderTip (5)
@@ -3183,7 +3212,7 @@ PrefabInstance:
     - target: {fileID: -5754084199372789682, guid: c6b4887b05912e840b9d648e1d8a1a70, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: d9d099537b470c34e90a6397f07cca0e, type: 2}
+      objectReference: {fileID: 4300000, guid: 2893fba389a0f5e43b297f3aebcf773f, type: 2}
     - target: {fileID: 919132149155446097, guid: c6b4887b05912e840b9d648e1d8a1a70, type: 3}
       propertyPath: m_Name
       value: SpiderBody
@@ -3219,6 +3248,7 @@ MonoBehaviour:
   indiceMaterial: 1
   colorNeon: {r: 0.4339623, g: 0.116678536, b: 0.13304023, a: 1}
   intensidad: 3
+  grosorOutline: 1
   cantidadZonasMuertas: 0
   velocidadParpadeo: 26.7
 --- !u!114 &8801582391897852778
@@ -3323,7 +3353,7 @@ PrefabInstance:
     - target: {fileID: -5754084199372789682, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: 7895ed93feb1b9440a4578aae1756394, type: 2}
+      objectReference: {fileID: 4300000, guid: cc24d8b7ebb08ce44b623df541f15cbc, type: 2}
     - target: {fileID: 919132149155446097, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Name
       value: SpiderBase
@@ -3436,6 +3466,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: fdb94296d7a26cd4a8c288ff484f4325, type: 2}
     - target: {fileID: 919132149155446097, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Name
       value: SpiderBase (1)
@@ -3548,6 +3582,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: f886e48d83e90834c846d181045879ee, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: edc4d6dea4890f846afd818800577a43, type: 2}
     - target: {fileID: 919132149155446097, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Name
       value: SpiderTip (3)
@@ -3660,6 +3698,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: f886e48d83e90834c846d181045879ee, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: edc4d6dea4890f846afd818800577a43, type: 2}
     - target: {fileID: 919132149155446097, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Name
       value: SpiderTip (2)
@@ -3772,6 +3814,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: fdb94296d7a26cd4a8c288ff484f4325, type: 2}
     - target: {fileID: 919132149155446097, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Name
       value: SpiderBase (3)
@@ -3884,6 +3930,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: fdb94296d7a26cd4a8c288ff484f4325, type: 2}
     - target: {fileID: 919132149155446097, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Name
       value: SpiderBase (2)
@@ -3996,6 +4046,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: fdb94296d7a26cd4a8c288ff484f4325, type: 2}
     - target: {fileID: 919132149155446097, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Name
       value: SpiderBase (1)
@@ -4108,6 +4162,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: fdb94296d7a26cd4a8c288ff484f4325, type: 2}
     - target: {fileID: 919132149155446097, guid: 72a6d3695e2d2ee4ebd2fffbcfe4b29c, type: 3}
       propertyPath: m_Name
       value: SpiderBase (2)
@@ -4220,6 +4278,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5754084199372789682, guid: f886e48d83e90834c846d181045879ee, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: edc4d6dea4890f846afd818800577a43, type: 2}
     - target: {fileID: 919132149155446097, guid: f886e48d83e90834c846d181045879ee, type: 3}
       propertyPath: m_Name
       value: SpiderTip (4)

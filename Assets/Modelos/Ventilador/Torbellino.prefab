@@ -659,11 +659,11 @@ PrefabInstance:
     - target: {fileID: -3857212601033656251, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: db1a1dd6652265c4c9b33c613a13d12c, type: 2}
+      objectReference: {fileID: 4300000, guid: 4006843c0900e094b859c4ffcf9c30b7, type: 2}
     - target: {fileID: -2406529696252057888, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: -125435165217083709, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
+      objectReference: {fileID: 4300000, guid: b0b2c66c6266d384c885b239ac276df4, type: 2}
     - target: {fileID: 919132149155446097, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       propertyPath: m_Name
       value: Torbellino
@@ -676,6 +676,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 6768739086193722078, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: bef814595cf4d5e43a3f1f4e91b5126d, type: 2}
     - target: {fileID: 7202271454713460447, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -688,6 +692,14 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 8189099293778688450, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: c9462e3558ceb7e47a2204dac22c9ac7, type: 2}
+    - target: {fileID: 8777296173403088981, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: c07b0ec9f0838744d81bd1834c7e97a3, type: 2}
     - target: {fileID: 7071182760956848314, guid: cbc9bf60e43d6fc46913cb08d23fae1b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -754,6 +766,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.33
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &3575924402170096598 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5245042011116262203, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
@@ -781,6 +797,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.33
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &4670739693369310681 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5063223942988036812, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
@@ -808,6 +828,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.33
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &5463770413725202157 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5568371526223589888, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
@@ -835,6 +859,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.33
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &5478355249183559877 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3849762623622064168, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}
@@ -862,6 +890,10 @@ MonoBehaviour:
     localizedShading: 1
     colorContorno: {r: 0, g: 0, b: 0, a: 0}
     grosorContorno: 0.33
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &9142488500725571334 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c008e0e5fa2517f42967ff01ae8f13fe, type: 3}

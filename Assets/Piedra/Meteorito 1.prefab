@@ -75,7 +75,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6288764415059956693}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 4300000, guid: 68260ac1f3f55e647810bd4c2d1bcb38, type: 2}
 --- !u!23 &7889327288948656312
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -426,6 +426,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: f0d1602914fc0004f984f9da3676a30c, type: 2}
+    - target: {fileID: -5754084199372789682, guid: 3f3aa86cf18983b49845890a0fd5d3ae, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: 6b689ee0e86410a478b549fa2ad53901, type: 2}
     - target: {fileID: 919132149155446097, guid: 3f3aa86cf18983b49845890a0fd5d3ae, type: 3}
       propertyPath: m_Name
       value: PerfectSphere
