@@ -386,19 +386,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -406,7 +406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1626467820872500600, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -536,6 +536,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Construcciones
       objectReference: {fileID: 0}
+    - target: {fileID: 6269614910566615158, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
+      propertyPath: direccionLocal.y
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 6373626728984238693, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_Layer
       value: 7
@@ -587,7 +591,7 @@ PrefabInstance:
     - target: {fileID: 8029652385186509798, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: f9d795fdc1bd9524fbf78c3c53993449, type: 2}
+      objectReference: {fileID: 4300000, guid: e1d236195ffae72438f65e34ea809b57, type: 2}
     - target: {fileID: 8565080304519307262, guid: cac14360e7a82b447a10ffbf775e192b, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
