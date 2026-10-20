@@ -20,6 +20,12 @@ public class AimAssistVisual : MonoBehaviour
     [Tooltip("Velocidad a la que se inflan (pop in) y desinflan (pop out) los elementos del Canvas.")]
     public float velocidadPopUI = 15f;
 
+    [Header("Efecto de Respiración (Latido)")]
+    [Tooltip("Qué tan rápido respira la mirilla cuando apunta a un objetivo.")]
+    public float velocidadRespiracion = 4f;
+    [Tooltip("Cuánto crece/se encoge en cada latido (0.1 = 10% de su tamaño).")]
+    public float amplitudRespiracion = 0.08f;
+
     [Header("Movimiento y Animación")]
     public float velocidadTransicion = 10f;
     public float velocidadRotacion = 150f;
@@ -81,34 +87,60 @@ public class AimAssistVisual : MonoBehaviour
 
     void Update()
     {
-        // Comprobamos si el jugador MANTIENE PULSADA la tecla de escaneo
-        escaneandoActivo = Input.GetKey(teclaEscanear);
+        // Comprobamos si estamos en modo construcción
+        bool enModoConstruccion = SistemaConstruccion.Instancia != null && SistemaConstruccion.Instancia.modoConstruccion;
+
+        // Comprobamos si el jugador MANTIENE PULSADA la tecla de escaneo (y NO está construyendo)
+        escaneandoActivo = !enModoConstruccion && Input.GetKey(teclaEscanear);
+
+        // Variables maestras para decidir qué hacer con la mirilla al final del frame
+        bool mostrarMirilla = escaneandoActivo;
+        Vector3 escalaObjetivoMirilla = escalaOriginalMirilla;
 
         // ==========================================
-        // ANIMACIÓN "POP" DE LA MIRILLA Y LOS EXTRAS
+        // LÓGICA DE ESCANEO Y APUNTADO
         // ==========================================
-        AnimarElementoUI(mirilla, escalaOriginalMirilla, escaneandoActivo);
-
-        for (int i = 0; i < elementosUIExtras.Length; i++)
-        {
-            AnimarElementoUI(elementosUIExtras[i], escalasOriginalesExtras[i], escaneandoActivo);
-        }
-
-        // ==========================================
-        // LÓGICA DE ESCANEO
-        // ==========================================
-        if (escaneandoActivo)
+        if (escaneandoActivo || enModoConstruccion)
         {
             CalcularDelayDeCamara();
-            BuscarPiedraMasCentrada();
+
+            if (enModoConstruccion)
+            {
+                // En modo construcción, el objetivo es la estructura apuntada (si la hay)
+                if (SistemaConstruccion.Instancia != null && SistemaConstruccion.Instancia.edificioApuntado != null)
+                {
+                    objetivoActual = SistemaConstruccion.Instancia.edificioApuntado.transform;
+                }
+                else
+                {
+                    objetivoActual = null;
+                }
+            }
+            else
+            {
+                // En modo escáner, buscamos la piedra
+                BuscarPiedraMasCentrada();
+            }
 
             if (objetivoActual != null)
             {
-                Vector3 centroPiedra = objetivoActual.position;
-                Collider col = objetivoActual.GetComponentInChildren<Collider>();
-                if (col != null) centroPiedra = col.bounds.center;
+                Vector3 centroObjetivo = objetivoActual.position; // PIVOTE POR DEFECTO
 
-                Vector3 posPantalla = camaraPrincipal.WorldToScreenPoint(centroPiedra);
+                if (enModoConstruccion)
+                {
+                    // Al apuntar a un edificio, usamos SU PIVOTE (transform.position) y forzamos la mirilla grande
+                    centroObjetivo = objetivoActual.position;
+                    mostrarMirilla = true;
+                    escalaObjetivoMirilla = escalaOriginalMirilla * 1.5f; // Un 50% más grande para abrazar la estructura
+                }
+                else
+                {
+                    // Al apuntar a una piedra, usamos EL CENTRO DEL COLLIDER
+                    Collider col = objetivoActual.GetComponentInChildren<Collider>();
+                    if (col != null) centroObjetivo = col.bounds.center;
+                }
+
+                Vector3 posPantalla = camaraPrincipal.WorldToScreenPoint(centroObjetivo);
 
                 if (mirilla != null)
                 {
@@ -116,11 +148,14 @@ public class AimAssistVisual : MonoBehaviour
                     mirilla.Rotate(0f, 0f, velocidadRotacion * Time.deltaTime);
                 }
 
-                // Obtenemos el porcentaje de desgaste hacia la esfera primitiva central
-                DeformacionPiedra piedraScript = objetivoActual.GetComponent<DeformacionPiedra>();
-                if (piedraScript != null)
+                if (!enModoConstruccion)
                 {
-                    porcentajeDesgasteActual = piedraScript.ObtenerPorcentajeDesgasteHaciaEsfera();
+                    // Obtenemos el porcentaje de desgaste hacia la esfera primitiva central (SOLO PIEDRAS)
+                    DeformacionPiedra piedraScript = objetivoActual.GetComponent<DeformacionPiedra>();
+                    if (piedraScript != null)
+                    {
+                        porcentajeDesgasteActual = piedraScript.ObtenerPorcentajeDesgasteHaciaEsfera();
+                    }
                 }
             }
             else
@@ -130,20 +165,40 @@ public class AimAssistVisual : MonoBehaviour
         }
         else
         {
-            // Si suelta la tecla, limpiamos el objetivo actual
+            // Si suelta la tecla o sale de construcción, limpiamos el objetivo actual
             objetivoActual = null;
             DevolverMirillaAlCentro(); // Para que vuelva al centro mientras se hace pequeña
+        }
+
+        // ==========================================
+        // ANIMACIÓN "POP" DE LA MIRILLA Y LOS EXTRAS
+        // ==========================================
+
+        // 1. Añadimos la respiración orgánica a la mirilla si está enfocando un objetivo
+        if (mostrarMirilla && objetivoActual != null)
+        {
+            float pulso = Mathf.Sin(Time.time * velocidadRespiracion) * amplitudRespiracion;
+            escalaObjetivoMirilla *= (1f + pulso); // Multiplicamos por (1 ± amplitud)
+        }
+
+        // 2. Aplicamos la animación final a la mirilla con su tamaño (y respiración)
+        AnimarElementoUIPersonalizado(mirilla, escalaObjetivoMirilla, mostrarMirilla);
+
+        // 3. Los elementos extra (el Canvas general) se muestran tanto si escaneamos como si construimos
+        for (int i = 0; i < elementosUIExtras.Length; i++)
+        {
+            AnimarElementoUIPersonalizado(elementosUIExtras[i], escalasOriginalesExtras[i], escaneandoActivo || enModoConstruccion);
         }
     }
 
     // ==========================================
     // MÉTODO PARA INFLAR/DESINFLAR UI
     // ==========================================
-    void AnimarElementoUI(RectTransform elemento, Vector3 escalaOriginal, bool mostrar)
+    void AnimarElementoUIPersonalizado(RectTransform elemento, Vector3 escalaObjetivoConcreta, bool mostrar)
     {
         if (elemento == null) return;
 
-        Vector3 escalaObjetivo = mostrar ? escalaOriginal : Vector3.zero;
+        Vector3 escalaFinal = mostrar ? escalaObjetivoConcreta : Vector3.zero;
 
         // Si queremos mostrarlo y está apagado, lo encendemos de inmediato
         if (mostrar && !elemento.gameObject.activeSelf)
@@ -151,8 +206,8 @@ public class AimAssistVisual : MonoBehaviour
             elemento.gameObject.SetActive(true);
         }
 
-        // Interpolamos el tamaño para crear el efecto "Pop"
-        elemento.localScale = Vector3.Lerp(elemento.localScale, escalaObjetivo, Time.deltaTime * velocidadPopUI);
+        // Interpolamos el tamaño para crear el efecto "Pop" y absorber la respiración suavemente
+        elemento.localScale = Vector3.Lerp(elemento.localScale, escalaFinal, Time.deltaTime * velocidadPopUI);
 
         // Si ya es minúsculo (invisible) y no queremos mostrarlo, lo apagamos para ahorrar rendimiento
         if (!mostrar && elemento.localScale.sqrMagnitude < 0.001f && elemento.gameObject.activeSelf)

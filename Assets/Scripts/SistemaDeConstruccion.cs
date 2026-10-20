@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 public class SistemaConstruccion : MonoBehaviour
 {
+    public static SistemaConstruccion Instancia;
+
+    void Awake() { if (Instancia == null) Instancia = this; else Destroy(gameObject); }
+
     public enum TipoEdificio
     {
         Rampa,
@@ -88,7 +92,7 @@ public class SistemaConstruccion : MonoBehaviour
     private bool estaImantado = false;
     private Collider imanApuntado = null;
     private float rotacionManualOffset = 0f;
-    private GameObject edificioApuntado = null;
+    public GameObject edificioApuntado = null;
     private GameObject edificioApuntadoAnterior = null;
     private float cooldownHolograma = 0f;
     private Collider slotBloqueado = null;
