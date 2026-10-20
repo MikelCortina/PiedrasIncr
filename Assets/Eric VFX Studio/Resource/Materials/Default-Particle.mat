@@ -49,6 +49,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DistortionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DownTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -106,9 +110,14 @@ Material:
     - _DistortFrequency: 2
     - _DistortSpeed: 1
     - _DistortStrength: 0
+    - _DistortionPower: 0
     - _DstBlend: 0
     - _Exposure: 1
+    - _FresnelIntensity: 5
+    - _FresnelMasksTexture: 0
     - _FresnelPower: 1
+    - _FresnelType: 0
+    - _FresnelWidth: 5
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -121,17 +130,22 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SoftParticlesDistance: 1
     - _SoftParticlesEnabled: 0
+    - _SoftParticlesFadeDistance: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SunDisk: 2
     - _SunSize: 0.04
     - _UVSec: 0
+    - _UseAlphaDissolve: 0
     - _UseFresnel: 0
     - _UseParticleAlphaDissolve: 0
+    - _UseVertexDistort: 0
+    - _VertexAlphaRef: 1
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DissolveEdgeColor: {r: 1, g: 0, b: 0, a: 1}
+    - _DistortionSpeed: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FlowSpeed: {r: 0, g: 0, b: 0, a: 0}
     - _FresnelColor: {r: 1, g: 1, b: 1, a: 1}

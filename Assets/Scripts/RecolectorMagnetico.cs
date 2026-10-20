@@ -152,6 +152,7 @@ public class RecolectorMagnetico : MonoBehaviour
             return false;
 
         Camera cam = Camera.main;
+        // Lanzamos el rayo un poco más lejos para asegurar, luego filtramos por distancia
         float distanciaRayo = Mathf.Max(2f, distanciaRecoleccion + 2f);
         Ray rayo = new Ray(cam.transform.position, cam.transform.forward);
 
@@ -159,6 +160,7 @@ public class RecolectorMagnetico : MonoBehaviour
             rayo, radioApuntadoMoneda, distanciaRayo,
             ~0, QueryTriggerInteraction.Collide);
 
+        // Ordenamos los impactos del más cercano al más lejano
         Array.Sort(impactos, (a, b) => a.distance.CompareTo(b.distance));
 
         foreach (RaycastHit impacto in impactos)
@@ -173,12 +175,13 @@ public class RecolectorMagnetico : MonoBehaviour
             if (moneda == null && col.attachedRigidbody != null)
                 moneda = col.attachedRigidbody.GetComponentInChildren<Moneda>();
 
-            // La pared / el suelo / otra cosa delante de la moneda la tapa.
-            if (moneda == null) return false;
+            // LA SOLUCIÓN ESTÁ AQUÍ: 
+            // Si el rayo choca con el suelo/pared, lo ignoramos (continue) en lugar de abortar (return false)
+            if (moneda == null) continue;
 
-            if (Vector3.Distance(transform.position, moneda.transform.position) >
-                distanciaRecoleccion)
-                return false;
+            // Medimos la distancia real desde la cámara hasta la moneda
+            if (impacto.distance > distanciaRecoleccion)
+                continue;
 
             GameObject objetoMoneda = moneda.gameObject;
             monedaRecogidaUltimoClick = true;
@@ -240,10 +243,64 @@ public class RecolectorMagnetico : MonoBehaviour
             ultimoTiempoSonido = Time.time;
         }
 
-        // Desactivar antes de destruir impide contar dos veces el mismo objeto
-        // si otros colliders lo detectan en el mismo frame.
-        objeto.SetActive(false);
-        Destroy(objeto);
+        // Iniciamos la corrutina de salto y voltereta. 
+        // Como el objeto se va a destruir, le pasamos la responsabilidad a un componente temporal o corrutina.
+        StartCoroutine(AnimarVolteretaYDestruir(objeto));
+    }
+
+    private System.Collections.IEnumerator AnimarVolteretaYDestruir(GameObject obj)
+    {
+        // 1. Desactivar colliders y físicas para que no interfiera más
+        Rigidbody rb = obj.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
+
+        Collider[] colliders = obj.GetComponentsInChildren<Collider>();
+        foreach (Collider c in colliders) c.enabled = false;
+
+        // 2. Parámetros de la animación
+        float duracion = 0.4f; // 400ms de saltito
+        float tiempoPasado = 0f;
+
+        Vector3 posInicial = obj.transform.position;
+        Vector3 posObjetivo = posInicial + Vector3.up * 1.5f; // Salto hacia arriba
+        Vector3 escalaInicial = obj.transform.localScale;
+        Quaternion rotacionInicial = obj.transform.rotation;
+
+        // 3. Cálculo del giro aleatorio: entre 180 y 360, y luego 50% de probabilidad de ser negativo
+        float giroX = UnityEngine.Random.Range(180f, 360f);
+        if (UnityEngine.Random.value > 0.5f)
+        {
+            giroX = -giroX;
+        }
+
+        while (tiempoPasado < duracion)
+        {
+            if (obj == null) yield break; // Por si se destruye por otro lado
+
+            tiempoPasado += Time.deltaTime;
+            float t = tiempoPasado / duracion;
+
+            // Curva de salto tipo parábola (fácil con Seno)
+            float alturaSeno = Mathf.Sin(t * Mathf.PI);
+
+            // Interpolar posición (sube y baja un poquito mientras encoge)
+            obj.transform.position = Vector3.Lerp(posInicial, posObjetivo, t) + (Vector3.up * alturaSeno * 0.5f);
+
+            // Interpolar rotación forzando las vueltas completas (sin que Unity tome el camino corto)
+            float anguloActual = Mathf.Lerp(0f, giroX, t);
+            obj.transform.rotation = rotacionInicial * Quaternion.Euler(anguloActual, 0f, 0f);
+
+            // Interpolar escala a cero
+            obj.transform.localScale = Vector3.Lerp(escalaInicial, Vector3.zero, t);
+
+            yield return null;
+        }
+
+        if (obj != null)
+        {
+            obj.SetActive(false);
+            Destroy(obj);
+        }
     }
 
     public bool MejorarAlcance()

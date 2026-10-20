@@ -1,10 +1,40 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ArmaLanzadora : MonoBehaviour
 {
     [Header("Controles")]
     public KeyCode teclaEquipar = KeyCode.Alpha3;
     public KeyCode teclaDisparo = KeyCode.Mouse0;
+    public KeyCode teclaAspirar = KeyCode.Mouse1;
+
+    [Header("Ajustes de Aspiradora")]
+    [Tooltip("Distancia máxima desde la cual el arma puede atrapar monedas")]
+    public float distanciaMaximaAspiracion = 15f;
+    [Tooltip("Ángulo de apertura del cono de succión (Menor = más cerrado y preciso)")]
+    [Range(10f, 90f)] public float anguloAspiracion = 30f;
+    public float velocidadAspiracion = 25f;
+    [Tooltip("Distancia al cañón a la que la moneda se considera absorbida y desaparece")]
+    public float distanciaRecoleccion = 0.5f;
+
+    [Tooltip("Giro mínimo que dan las monedas mientras son aspiradas")]
+    public float velocidadRotacionMin = 400f;
+    [Tooltip("Giro máximo que dan las monedas mientras son aspiradas")]
+    public float velocidadRotacionMax = 1000f;
+
+    public LayerMask capaMonedas;
+
+    // Estructura para recordar el estado de la moneda al ser capturada
+    private class DatosAspiracion
+    {
+        public GameObject objeto;
+        public Vector3 escalaInicial;
+        public float distanciaInicial;
+        public float velocidadRotacion; // Cada moneda tendrá su propia velocidad de giro
+    }
+
+    // Lista de monedas que están siendo absorbidas
+    private List<DatosAspiracion> monedasAspiradas = new List<DatosAspiracion>();
 
     [Header("Referencias")]
     public GameObject modeloArma;
@@ -20,7 +50,7 @@ public class ArmaLanzadora : MonoBehaviour
     public float desaceleracionGiro = 2f;
 
     // ========================================================
-    // NUEVO: SISTEMA DE NEONES RÁPIDOS
+    // SISTEMA DE NEONES RÁPIDOS
     // ========================================================
     [Header("Efectos Visuales (Neones)")]
     [Tooltip("Arrastra aquí las piezas del arma que tengan el script ControladorNeon")]
@@ -86,6 +116,10 @@ public class ArmaLanzadora : MonoBehaviour
 
     [Header("Game Feel (Efectos)")]
     public ParticleSystem particulasDisparo;
+
+    [Tooltip("Sistema de partículas exacto del sistema de Torbellino para la aspiradora")]
+    public ParticleSystem particulasAspiradora;
+
     public AudioSource audioSource;
     public AudioClip sonidoEquipar;
     public AudioClip sonidoDisparo;
@@ -126,13 +160,17 @@ public class ArmaLanzadora : MonoBehaviour
             {
                 if (neonesArma[i] != null)
                 {
-                    // Ya no necesitamos guardar la intensidad base de esta forma
                     parpadeosBaseNeones[i] = neonesArma[i].velocidadParpadeo;
-                    //neonesArma[i].colorNeon = colorNeonReposo; //Se actualizara en update
                 }
             }
         }
-        // -------------------------------------------------------------
+
+        if (particulasAspiradora != null)
+        {
+            if (!particulasAspiradora.isPlaying) particulasAspiradora.Play(true);
+            particulasAspiradora.Clear(true);
+        }
+        ControlarEmisionParticulasAspiradora(false);
 
         if (modeloArma != null)
         {
@@ -149,8 +187,9 @@ public class ArmaLanzadora : MonoBehaviour
         if (armaEquipada)
         {
             ManejarDisparo();
+            ManejarAspiradora();
             ManejarGiroObjeto();
-            ManejarNeones(); // Añadimos la actualización de los neones
+            ManejarNeones();
             ManejarRetrocesoVisual();
             ManejarBlendShape();
             ActualizarAnimacionModelo();
@@ -175,15 +214,173 @@ public class ArmaLanzadora : MonoBehaviour
 
                 temporizadorBobbing = 0f;
                 velocidadGiroActual = 0f;
-                transicionNeonActual = 0f; // Reseteamos la transición de la luz al equipar
+                transicionNeonActual = 0f;
                 ManejarNeones();
             }
+        }
+
+        if (!armaEquipada)
+        {
+            ControlarEmisionParticulasAspiradora(false);
+            monedasAspiradas.Clear();
         }
 
         if (armaEquipada && sonidoEquipar != null && audioSource != null)
         {
             audioSource.PlayOneShot(sonidoEquipar, 0.8f);
         }
+    }
+
+    void ManejarAspiradora()
+    {
+        bool aspirando = Input.GetKey(teclaAspirar);
+
+        if (aspirando)
+        {
+            // Encender partículas de inmediato al pulsar
+            if (particulasAspiradora != null && !particulasAspiradora.isPlaying)
+            {
+                particulasAspiradora.Play(true);
+            }
+
+            // 1. Detectar nuevas monedas frente al arma (Cono frontal)
+            Collider[] objetosCercanos = Physics.OverlapSphere(puntoDisparo.position, distanciaMaximaAspiracion, capaMonedas);
+
+            foreach (Collider col in objetosCercanos)
+            {
+                Vector3 direccionHaciaMoneda = (col.transform.position - puntoDisparo.position).normalized;
+                float angulo = Vector3.Angle(puntoDisparo.forward, direccionHaciaMoneda);
+
+                if (angulo > anguloAspiracion) continue;
+
+                GameObject objetoReal = col.attachedRigidbody != null ? col.attachedRigidbody.gameObject : col.gameObject;
+
+                bool yaEstaAspirada = false;
+                foreach (var m in monedasAspiradas)
+                {
+                    if (m.objeto == objetoReal) { yaEstaAspirada = true; break; }
+                }
+
+                if (objetoReal.CompareTag("Coin") && !yaEstaAspirada)
+                {
+                    EdadMoneda edad = objetoReal.GetComponent<EdadMoneda>();
+                    if (edad != null && !edad.HaSuperadoInmunidad(tiempoInmunidad))
+                        continue;
+
+                    CrecimientoProyectil crec = objetoReal.GetComponent<CrecimientoProyectil>();
+                    if (crec != null) Destroy(crec);
+
+                    Rigidbody rb = objetoReal.GetComponent<Rigidbody>();
+                    if (rb != null) rb.isKinematic = true;
+
+                    Collider[] colliders = objetoReal.GetComponentsInChildren<Collider>();
+                    foreach (Collider c in colliders) c.enabled = false;
+
+                    float distInicial = Vector3.Distance(puntoDisparo.position, objetoReal.transform.position);
+                    float giroAleatorio = Random.Range(velocidadRotacionMin, velocidadRotacionMax);
+
+                    monedasAspiradas.Add(new DatosAspiracion
+                    {
+                        objeto = objetoReal,
+                        escalaInicial = objetoReal.transform.localScale,
+                        distanciaInicial = distInicial,
+                        velocidadRotacion = giroAleatorio
+                    });
+                }
+            }
+        }
+        else
+        {
+            // APAGADO INSTANTÁNEO AL SOLTAR EL CLIC
+            ControlarEmisionParticulasAspiradora(false);
+        }
+
+        // 2. Mover las monedas aspiradas hacia el cañón del arma
+        for (int i = monedasAspiradas.Count - 1; i >= 0; i--)
+        {
+            DatosAspiracion datos = monedasAspiradas[i];
+            GameObject obj = datos.objeto;
+
+            if (obj == null || !obj.activeInHierarchy)
+            {
+                monedasAspiradas.RemoveAt(i);
+                continue;
+            }
+
+            if (!aspirando)
+            {
+                Rigidbody rb = obj.GetComponent<Rigidbody>();
+                if (rb != null) rb.isKinematic = false;
+
+                Collider[] colliders = obj.GetComponentsInChildren<Collider>();
+                foreach (Collider c in colliders) c.enabled = true;
+
+                CrecimientoProyectil crec = obj.AddComponent<CrecimientoProyectil>();
+                crec.ConfigurarDesdeActualVector(datos.escalaInicial, 15f);
+
+                monedasAspiradas.RemoveAt(i);
+                continue;
+            }
+
+            obj.transform.position = Vector3.MoveTowards(
+                obj.transform.position, puntoDisparo.position,
+                velocidadAspiracion * Time.deltaTime);
+
+            Vector3 direccionVuelo = (puntoDisparo.position - obj.transform.position).normalized;
+            Vector3 ejeGiro = Vector3.Cross(Vector3.up, direccionVuelo) + new Vector3(0.1f, 0.3f, 0.1f);
+            obj.transform.Rotate(ejeGiro.normalized * datos.velocidadRotacion * Time.deltaTime, Space.World);
+
+            float distActual = Vector3.Distance(puntoDisparo.position, obj.transform.position);
+            float t = (datos.distanciaInicial > 0.01f) ? Mathf.Clamp01(distActual / datos.distanciaInicial) : 0f;
+
+            obj.transform.localScale = Vector3.Lerp(Vector3.zero, datos.escalaInicial, t);
+
+            if (distActual <= distanciaRecoleccion + 0.05f || obj.transform.position == puntoDisparo.position)
+            {
+                monedasAspiradas.RemoveAt(i);
+                RecogerMonedaAspirada(obj);
+            }
+        }
+    }
+
+    // Método modificado para corte seco y limpio al instante
+    void ControlarEmisionParticulasAspiradora(bool activar)
+    {
+        if (particulasAspiradora != null)
+        {
+            if (activar)
+            {
+                if (!particulasAspiradora.isPlaying) particulasAspiradora.Play(true);
+            }
+            else
+            {
+                // Detiene la emisión y limpia las partículas activas de golpe
+                particulasAspiradora.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
+    }
+
+    private void RecogerMonedaAspirada(GameObject objeto)
+    {
+        Moneda moneda = objeto.GetComponent<Moneda>();
+        if (moneda == null) moneda = objeto.GetComponentInChildren<Moneda>();
+
+        if (moneda != null && cartera != null)
+        {
+            cartera.AnadirMonedas(moneda.valor);
+        }
+
+        if (sonidoEquipar != null && audioSource != null)
+        {
+            audioSource.pitch = Random.Range(1.2f, 1.5f);
+            audioSource.PlayOneShot(sonidoEquipar, 0.4f);
+        }
+
+        if (particulasDisparo != null) particulasDisparo.Play();
+        retrocesoActual = fuerzaRetrocesoVisual * 0.3f;
+
+        objeto.SetActive(false);
+        Destroy(objeto);
     }
 
     void ManejarDisparo()
@@ -203,6 +400,10 @@ public class ArmaLanzadora : MonoBehaviour
         {
             velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, velocidadGiroZ, Time.deltaTime * aceleracionGiro);
         }
+        else if (Input.GetKey(teclaAspirar))
+        {
+            velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, -velocidadGiroZ * 0.7f, Time.deltaTime * aceleracionGiro);
+        }
         else
         {
             velocidadGiroActual = Mathf.Lerp(velocidadGiroActual, 0f, Time.deltaTime * desaceleracionGiro);
@@ -214,18 +415,13 @@ public class ArmaLanzadora : MonoBehaviour
         }
     }
 
-    // ========================================================
-    // LÓGICA DE NEONES: Lerp rápido separado del giro físico
-    // ========================================================
     void ManejarNeones()
     {
         if (neonesArma == null || neonesArma.Length == 0) return;
 
-        // Si mantenemos pulsado, la luz se activa (incluso entre los frames de cadencia de disparo)
-        bool disparando = Input.GetKey(teclaDisparo);
+        bool disparando = Input.GetKey(teclaDisparo) || Input.GetKey(teclaAspirar);
         float transicionObjetivo = disparando ? 1f : 0f;
 
-        // Lerp ultrarrápido
         transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
 
         Color colorActualizado = Color.Lerp(colorNeonInicio, colorNeonFinal, transicionNeonActual);
@@ -241,7 +437,6 @@ public class ArmaLanzadora : MonoBehaviour
             }
         }
     }
-    // ========================================================
 
     void ActualizarAnimacionModelo()
     {
@@ -277,10 +472,7 @@ public class ArmaLanzadora : MonoBehaviour
 
     void Disparar()
     {
-        if (prefabProyectil == null || puntoDisparo == null)
-        {
-            return;
-        }
+        if (prefabProyectil == null || puntoDisparo == null) return;
 
         if (cartera == null)
         {
@@ -372,6 +564,37 @@ public class ArmaLanzadora : MonoBehaviour
             mallaArma.SetBlendShapeWeight(indiceBlendShape, pesoActualBlend);
         }
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (puntoDisparo == null) return;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(puntoDisparo.position, distanciaRecoleccion);
+
+        Gizmos.color = Color.cyan;
+
+        Vector3 forward = puntoDisparo.forward * distanciaMaximaAspiracion;
+        Gizmos.DrawRay(puntoDisparo.position, forward);
+
+        Vector3 arriba = Quaternion.AngleAxis(-anguloAspiracion, puntoDisparo.right) * forward;
+        Vector3 abajo = Quaternion.AngleAxis(anguloAspiracion, puntoDisparo.right) * forward;
+        Vector3 izquierda = Quaternion.AngleAxis(-anguloAspiracion, puntoDisparo.up) * forward;
+        Vector3 derecha = Quaternion.AngleAxis(anguloAspiracion, puntoDisparo.up) * forward;
+
+        Gizmos.DrawRay(puntoDisparo.position, arriba);
+        Gizmos.DrawRay(puntoDisparo.position, abajo);
+        Gizmos.DrawRay(puntoDisparo.position, izquierda);
+        Gizmos.DrawRay(puntoDisparo.position, derecha);
+
+        Gizmos.DrawLine(puntoDisparo.position + arriba, puntoDisparo.position + derecha);
+        Gizmos.DrawLine(puntoDisparo.position + derecha, puntoDisparo.position + abajo);
+        Gizmos.DrawLine(puntoDisparo.position + abajo, puntoDisparo.position + izquierda);
+        Gizmos.DrawLine(puntoDisparo.position + izquierda, puntoDisparo.position + arriba);
+
+        Gizmos.color = new Color(0f, 1f, 1f, 0.2f);
+        Gizmos.DrawWireSphere(puntoDisparo.position, distanciaMaximaAspiracion);
+    }
 }
 
 // ====================================================================
@@ -386,6 +609,12 @@ public class CrecimientoProyectil : MonoBehaviour
     public void Configurar(float multiplicadorEscala, float vel)
     {
         escalaObjetivo = transform.localScale * multiplicadorEscala;
+        velocidad = vel;
+    }
+
+    public void ConfigurarDesdeActualVector(Vector3 escalaF, float vel)
+    {
+        escalaObjetivo = escalaF;
         velocidad = vel;
     }
 
