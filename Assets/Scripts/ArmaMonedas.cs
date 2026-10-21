@@ -237,24 +237,20 @@ public class ArmaLanzadora : MonoBehaviour
 
         if (aspirando)
         {
-            // Encender partículas de inmediato al pulsar
+            // Partículas de aspirado activo
             if (particulasAspiradora != null && !particulasAspiradora.isPlaying)
             {
                 particulasAspiradora.Play(true);
             }
 
-            // 1. Detectar nuevas monedas frente al arma (Cono frontal)
+            // 1. Detección por Cono Frontal (para larga y media distancia)
             Collider[] objetosCercanos = Physics.OverlapSphere(puntoDisparo.position, distanciaMaximaAspiracion, capaMonedas);
 
             foreach (Collider col in objetosCercanos)
             {
-                Vector3 direccionHaciaMoneda = (col.transform.position - puntoDisparo.position).normalized;
-                float angulo = Vector3.Angle(puntoDisparo.forward, direccionHaciaMoneda);
-
-                if (angulo > anguloAspiracion) continue;
-
                 GameObject objetoReal = col.attachedRigidbody != null ? col.attachedRigidbody.gameObject : col.gameObject;
 
+                // Verificamos que sea una moneda válida y que no esté ya en la lista
                 bool yaEstaAspirada = false;
                 foreach (var m in monedasAspiradas)
                 {
@@ -267,25 +263,38 @@ public class ArmaLanzadora : MonoBehaviour
                     if (edad != null && !edad.HaSuperadoInmunidad(tiempoInmunidad))
                         continue;
 
-                    CrecimientoProyectil crec = objetoReal.GetComponent<CrecimientoProyectil>();
-                    if (crec != null) Destroy(crec);
+                    Vector3 direccionHaciaMoneda = (objetoReal.transform.position - puntoDisparo.position).normalized;
+                    float distanciaAlCanon = Vector3.Distance(puntoDisparo.position, objetoReal.transform.position);
+                    float angulo = Vector3.Angle(puntoDisparo.forward, direccionHaciaMoneda);
 
-                    Rigidbody rb = objetoReal.GetComponent<Rigidbody>();
-                    if (rb != null) rb.isKinematic = true;
+                    // CONDICIÓN DE ATRACCIÓN: 
+                    // O está dentro del cono frontal, o está muy cerca de ti (a menos de 3 metros, ej: bajo tus pies)
+                    bool estaEnCono = (angulo <= anguloAspiracion);
+                    bool estaMuyCerca = (distanciaAlCanon <= 3.0f);
 
-                    Collider[] colliders = objetoReal.GetComponentsInChildren<Collider>();
-                    foreach (Collider c in colliders) c.enabled = false;
-
-                    float distInicial = Vector3.Distance(puntoDisparo.position, objetoReal.transform.position);
-                    float giroAleatorio = Random.Range(velocidadRotacionMin, velocidadRotacionMax);
-
-                    monedasAspiradas.Add(new DatosAspiracion
+                    if (estaEnCono || estaMuyCerca)
                     {
-                        objeto = objetoReal,
-                        escalaInicial = objetoReal.transform.localScale,
-                        distanciaInicial = distInicial,
-                        velocidadRotacion = giroAleatorio
-                    });
+                        // Destruimos el script de crecimiento si acaba de ser disparada
+                        CrecimientoProyectil crec = objetoReal.GetComponent<CrecimientoProyectil>();
+                        if (crec != null) Destroy(crec);
+
+                        // Desactivar físicas de la moneda
+                        Rigidbody rb = objetoReal.GetComponent<Rigidbody>();
+                        if (rb != null) rb.isKinematic = true;
+
+                        Collider[] colliders = objetoReal.GetComponentsInChildren<Collider>();
+                        foreach (Collider c in colliders) c.enabled = false;
+
+                        float giroAleatorio = Random.Range(velocidadRotacionMin, velocidadRotacionMax);
+
+                        monedasAspiradas.Add(new DatosAspiracion
+                        {
+                            objeto = objetoReal,
+                            escalaInicial = objetoReal.transform.localScale,
+                            distanciaInicial = Mathf.Max(distanciaAlCanon, 0.5f), // Evitamos división por cero
+                            velocidadRotacion = giroAleatorio
+                        });
+                    }
                 }
             }
         }
@@ -322,17 +331,24 @@ public class ArmaLanzadora : MonoBehaviour
                 continue;
             }
 
+            // Mover hacia el cañón suavemente
             obj.transform.position = Vector3.MoveTowards(
                 obj.transform.position, puntoDisparo.position,
                 velocidadAspiracion * Time.deltaTime);
 
+            // Girar locamente mientras vuelan
             Vector3 direccionVuelo = (puntoDisparo.position - obj.transform.position).normalized;
             Vector3 ejeGiro = Vector3.Cross(Vector3.up, direccionVuelo) + new Vector3(0.1f, 0.3f, 0.1f);
             obj.transform.Rotate(ejeGiro.normalized * datos.velocidadRotacion * Time.deltaTime, Space.World);
 
+            // ========================================================
+            // REDUCCIÓN LINEAL SEGURA
+            // ========================================================
             float distActual = Vector3.Distance(puntoDisparo.position, obj.transform.position);
+
             float t = (datos.distanciaInicial > 0.01f) ? Mathf.Clamp01(distActual / datos.distanciaInicial) : 0f;
 
+            // Aseguramos que nunca empiece en tamaño 0 absoluto si se aspira muy cerca
             obj.transform.localScale = Vector3.Lerp(Vector3.zero, datos.escalaInicial, t);
 
             if (distActual <= distanciaRecoleccion + 0.05f || obj.transform.position == puntoDisparo.position)
