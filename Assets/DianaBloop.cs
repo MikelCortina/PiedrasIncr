@@ -63,6 +63,10 @@ public class DianaBloop : MonoBehaviour
     public GameObject prefabPiedra;
     public Transform puntoSalidaPiedra;
 
+    [Header("Mejoras: cantidad de piedras por activacion")]
+    [Min(1)] public int piedrasPorActivacion = 1;
+    [Min(0f)] public float intervaloEntrePiedras = 0.12f;
+
     [Header("--- DIRECCIÓN CONCRETA ---")]
     public Vector3 direccionDeTiro = new Vector3(0f, 1f, 0f);
     public bool direccionLocal = true;
@@ -189,7 +193,17 @@ public class DianaBloop : MonoBehaviour
             corrutinaBloopSalida = StartCoroutine(RutinaBloopSalida(modeloSalidaVisual, escalaOriginalSalida));
         }
 
-        LanzarPiedra();
+        // Una activacion puede expulsar varias piedras. Conservamos
+        // el mismo sistema de lanzamiento, crecimiento, inmunidad y fisicas.
+        int cantidad = Mathf.Max(1, piedrasPorActivacion);
+        for (int i = 0; i < cantidad; i++)
+        {
+            LanzarPiedra();
+            if (i < cantidad - 1 && intervaloEntrePiedras > 0f)
+                yield return new WaitForSeconds(intervaloEntrePiedras);
+        }
+
+        // El cooldown comienza tras la ultima piedra del lote.
         StartCoroutine(RutinaRecargaCooldown());
     }
 
