@@ -24,6 +24,7 @@ public class GestorRuletasFPS : MonoBehaviour
     private Vector3 escalaObjetivoMirilla;
 
     private RuletaInteractiva ruletaActiva = null;
+    private RuletaInteractivaGasoil ruletaGasoilActiva = null; // NUEVA VARIABLE
     private float anguloPantallaAnterior;
 
     void Start()
@@ -46,16 +47,16 @@ public class GestorRuletasFPS : MonoBehaviour
         // =========================================================
         // 1. ¿DEBEMOS MOSTRAR LA MIRILLA INTERACTIVA?
         // =========================================================
-        if (ruletaActiva != null)
+        if (ruletaActiva != null || ruletaGasoilActiva != null)
         {
-            // ¡NUEVO! Si estamos agarrando una ruleta, forzamos el icono encendido
-            // aunque el jugador mueva la cámara fuera del objeto al girar.
+            // Si estamos agarrando CUALQUIER ruleta, forzamos el icono encendido
             mirandoInteractuable = true;
         }
         else if (impacto)
         {
             // Si no estamos agarrando nada, miramos a ver qué tenemos delante
             if (hit.collider.GetComponent<RuletaInteractiva>() != null ||
+                hit.collider.GetComponent<RuletaInteractivaGasoil>() != null || // Añadido
                 hit.collider.GetComponent<BotonTuberia>() != null ||
                 hit.collider.GetComponentInParent<VentiladorPiedras>() != null)
             {
@@ -99,11 +100,17 @@ public class GestorRuletasFPS : MonoBehaviour
         {
             if (impacto)
             {
+                // Intentamos coger la ruleta que hayamos mirado
                 ruletaActiva = hit.collider.GetComponent<RuletaInteractiva>();
+                ruletaGasoilActiva = hit.collider.GetComponent<RuletaInteractivaGasoil>();
 
                 if (ruletaActiva != null)
                 {
-                    anguloPantallaAnterior = CalcularAnguloCircular(ruletaActiva, centroPantalla);
+                    anguloPantallaAnterior = CalcularAnguloCircular(ruletaActiva.transform, centroPantalla);
+                }
+                else if (ruletaGasoilActiva != null)
+                {
+                    anguloPantallaAnterior = CalcularAnguloCircular(ruletaGasoilActiva.transform, centroPantalla);
                 }
                 else
                 {
@@ -126,8 +133,9 @@ public class GestorRuletasFPS : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            // Soltamos la ruleta. En el siguiente frame, el icono volverá a la normalidad si apartas la vista
+            // Soltamos cualquier ruleta que estuviéramos agarrando
             ruletaActiva = null;
+            ruletaGasoilActiva = null;
         }
 
         // =========================================================
@@ -135,7 +143,7 @@ public class GestorRuletasFPS : MonoBehaviour
         // =========================================================
         if (ruletaActiva != null && Input.GetMouseButton(0))
         {
-            float anguloActual = CalcularAnguloCircular(ruletaActiva, centroPantalla);
+            float anguloActual = CalcularAnguloCircular(ruletaActiva.transform, centroPantalla);
             float deltaAngulo = Mathf.DeltaAngle(anguloPantallaAnterior, anguloActual);
 
             if (Mathf.Abs(deltaAngulo) > 0.01f)
@@ -144,11 +152,23 @@ public class GestorRuletasFPS : MonoBehaviour
                 anguloPantallaAnterior = anguloActual;
             }
         }
+        else if (ruletaGasoilActiva != null && Input.GetMouseButton(0))
+        {
+            float anguloActual = CalcularAnguloCircular(ruletaGasoilActiva.transform, centroPantalla);
+            float deltaAngulo = Mathf.DeltaAngle(anguloPantallaAnterior, anguloActual);
+
+            if (Mathf.Abs(deltaAngulo) > 0.01f)
+            {
+                ruletaGasoilActiva.ModificarDesdeGiroVisual(deltaAngulo * sensibilidadGiro);
+                anguloPantallaAnterior = anguloActual;
+            }
+        }
     }
 
-    float CalcularAnguloCircular(RuletaInteractiva ruleta, Vector2 mirilla)
+    // Usamos 'Transform' en lugar de la clase directa para que sirva para cualquier tipo de ruleta
+    float CalcularAnguloCircular(Transform transformRuleta, Vector2 mirilla)
     {
-        Vector3 centroRuletaEnPantalla = camaraPrincipal.WorldToScreenPoint(ruleta.transform.position);
+        Vector3 centroRuletaEnPantalla = camaraPrincipal.WorldToScreenPoint(transformRuleta.position);
         Vector2 direccion = mirilla - new Vector2(centroRuletaEnPantalla.x, centroRuletaEnPantalla.y);
         return Mathf.Atan2(direccion.y, direccion.x) * Mathf.Rad2Deg;
     }
