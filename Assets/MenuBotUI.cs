@@ -348,7 +348,8 @@ public class MenuBotUI : MonoBehaviour
                 {
                     "Agujero",
                     "Procesadora",
-                    "Automático"
+"Automático",
+"Zona Piedras"
                 }
             );
 

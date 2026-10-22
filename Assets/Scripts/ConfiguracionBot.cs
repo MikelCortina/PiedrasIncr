@@ -32,6 +32,7 @@ public class ConfiguracionBot : MonoBehaviour
     {
         Agujero,
         Procesadora,
+        ZonaPiedras,
         Automatico
     }
 
