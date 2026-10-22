@@ -65,6 +65,20 @@ public class RescateVacioPiedra : MonoBehaviour
     [Tooltip("Se acerca a una altura extra sobre el destino, luego desciende suavemente.")]
     [Min(0f)] public float alturaExtraTrayecto = 1f;
 
+    [Header("Frenada natural al entrar en rescate")]
+    [Tooltip("Tiempo que tarda en perder suavemente la velocidad de caída. No afecta a la física normal.")]
+    [Min(0.05f)] public float duracionFrenado = 0.6f;
+    [Tooltip("Limita la velocidad heredada para que el frenado no arrastre la piedra demasiado lejos.")]
+    [Min(0.1f)] public float velocidadMaximaDuranteFrenado = 12f;
+
+    [Header("Deslizamiento suave durante el rescate")]
+    [Tooltip("Cuánto tarda el movimiento de levitación en acelerar y frenar cerca de cada punto.")]
+    [Min(0.05f)] public float suavizadoMovimiento = 0.35f;
+    [Tooltip("También hace la oscilación vertical mientras sube y regresa hacia el borde.")]
+    public bool oscilarDuranteRegreso = true;
+    [Tooltip("Tiempo para introducir la oscilación sin un salto al terminar la frenada.")]
+    [Min(0.05f)] public float entradaSuaveOscilacion = 0.45f;
+
     [Header("Levitación tras el rescate")]
     [Tooltip("Altura del CENTRO de la piedra sobre el suelo. Ajustar al radio real de la roca.")]
     [Min(0.1f)] public float alturaLevitacion = 1f;
@@ -81,22 +95,39 @@ public class RescateVacioPiedra : MonoBehaviour
     // Incluye el ascenso y la vuelta al borde, no solo el momento final flotando.
     // No impide la recogida manual ni la de los bots.
     public bool ProtegidaContraGolpes => estado != Estado.Normal;
-    public bool EstaRescatandose => estado == Estado.Subiendo ||
+    public bool EstaRescatandose => estado == Estado.Frenando ||
+                                   estado == Estado.Subiendo ||
                                    estado == Estado.Volviendo ||
                                    estado == Estado.Bajando;
 
-    private enum Estado { Normal, Subiendo, Volviendo, Bajando, Flotando }
+    private enum Estado { Normal, Frenando, Subiendo, Volviendo, Bajando, Flotando }
     private Estado estado = Estado.Normal;
 
     private Rigidbody rb;
-    private bool gravedadInicial;
-    private RigidbodyInterpolation interpolacionInicial;
+
+    // El estado real se guarda EN EL MOMENTO de iniciar el rescate,
+    // no en Awake: el spawner o DeformacionPiedra pueden modificarlo.
+    private bool hayEstadoFisicoRescate;
+    private bool gravedadAntesRescate;
+    private bool colisionesAntesRescate;
+    private bool cinematicoAntesRescate;
+    private RigidbodyInterpolation interpolacionAntesRescate;
     private bool hayAlturaReferencia;
     private float alturaReferenciaSuelo;
     private bool enManosOProcesamiento;
     private float tiempoComprobacion;
     private float proximoIntentoRescate;
-    private float tiempoFlotando;
+    // Solo se usan mientras el rescate tiene el control del Rigidbody.
+    private Vector3 posicionBaseVuelo;
+    private Vector3 velocidadSuavizada;
+    private Vector3 velocidadAlEmpezarFrenado;
+    private Vector3 giroAlEmpezarFrenado;
+    private float tiempoFrenando;
+    private float tiempoOscilando;
+    private float tiempoDesdeFrenada;
+    // Padre mientras la roca esta bajo control del rescate. Si un sistema
+    // de agarre la hace hija de la mano, cedemos el control de inmediato.
+    private Transform padreAntesRescate;
     private Vector3 destino;
     private Vector3 cimaAscenso;
     private Vector3 cimaSobreBorde;
@@ -106,8 +137,6 @@ public class RescateVacioPiedra : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        gravedadInicial = rb.useGravity;
-        interpolacionInicial = rb.interpolation;
     }
 
     private void Start()
@@ -157,6 +186,14 @@ public class RescateVacioPiedra : MonoBehaviour
     {
         if (rb == null) return;
 
+        // Algunos sistemas de agarre hacen SetParent(puntoAgarre).
+        // No podemos seguir imponiendo la levitacion si ya esta en la mano.
+        if (estado != Estado.Normal && transform.parent != padreAntesRescate)
+        {
+            CederControlAQuienRecoge();
+            return;
+        }
+
         // Un bot o una máquina pueden desactivar todos los colliders para
         // recogerla. No les quitamos el control aunque estuviera levitando.
         if (estado != Estado.Normal && !HayColliderActivo())
@@ -199,7 +236,46 @@ public class RescateVacioPiedra : MonoBehaviour
             return;
         }
 
-        if (estado == Estado.Subiendo)
+        // Primero imitamos la pérdida progresiva de inercia: la piedra aún
+        // cae un poco y frena, en vez de detenerse de golpe y salir hacia arriba.
+        if (estado == Estado.Frenando)
+        {
+            tiempoFrenando += Time.fixedDeltaTime;
+            float t = Mathf.Clamp01(tiempoFrenando /
+                Mathf.Max(0.05f, duracionFrenado));
+            float factorInercia = 1f - Mathf.SmoothStep(0f, 1f, t);
+
+            posicionBaseVuelo += velocidadAlEmpezarFrenado *
+                                 factorInercia * Time.fixedDeltaTime;
+            rb.MovePosition(posicionBaseVuelo);
+
+            // Durante la frenada también se extingue progresivamente el giro
+            // que traía del vuelo libre, sin aplicar torque al Rigidbody.
+            float velocidadAngular = giroAlEmpezarFrenado.magnitude;
+            if (velocidadAngular > 0.001f)
+            {
+                Quaternion giro = Quaternion.AngleAxis(
+                    velocidadAngular * Mathf.Rad2Deg * factorInercia * Time.fixedDeltaTime,
+                    giroAlEmpezarFrenado / velocidadAngular);
+                rb.MoveRotation(giro * rb.rotation);
+            }
+
+            if (t >= 1f)
+            {
+                // La frenada ha desplazado ligeramente la piedra: el
+                // ascenso empieza desde SU POSICIÓN REAL tras frenar.
+                float alturaRuta = Mathf.Max(
+                    posicionBaseVuelo.y, destino.y + alturaExtraTrayecto);
+                cimaAscenso = new Vector3(
+                    posicionBaseVuelo.x, alturaRuta, posicionBaseVuelo.z);
+                cimaSobreBorde = new Vector3(destino.x, alturaRuta, destino.z);
+                velocidadSuavizada = Vector3.zero;
+                tiempoDesdeFrenada = 0f;
+                tiempoOscilando = 0f;
+                estado = Estado.Subiendo;
+            }
+        }
+        else if (estado == Estado.Subiendo)
         {
             MoverHacia(cimaAscenso, velocidadAscenso, Estado.Volviendo);
         }
@@ -209,33 +285,66 @@ public class RescateVacioPiedra : MonoBehaviour
         }
         else if (estado == Estado.Bajando)
         {
-            Vector3 siguiente = Vector3.MoveTowards(
-                rb.position, destino, velocidadAscenso * Time.fixedDeltaTime);
-            rb.MovePosition(siguiente);
-            if ((siguiente - destino).sqrMagnitude <= 0.0004f)
-            {
-                estado = Estado.Flotando;
-                tiempoFlotando = 0f;
-                rb.detectCollisions = true; // SphereCast y bots pueden recogerla.
-                if (mensajesDebug) Debug.Log(name + ": levitando junto al borde próximo.");
-            }
+            MoverHacia(destino, velocidadAscenso, Estado.Flotando);
         }
         else if (estado == Estado.Flotando)
         {
-            tiempoFlotando += Time.fixedDeltaTime;
-            float oscilacion = Mathf.Sin(tiempoFlotando * frecuenciaFlotacion *
-                                          Mathf.PI * 2f) * amplitudFlotacion;
-            rb.MovePosition(destino + Vector3.up * oscilacion);
+            tiempoOscilando += Time.fixedDeltaTime;
+            rb.MovePosition(destino + Vector3.up * ObtenerOscilacion());
         }
     }
 
     private void MoverHacia(Vector3 objetivo, float velocidad, Estado siguienteEstado)
     {
-        Vector3 siguiente = Vector3.MoveTowards(rb.position, objetivo,
-                                                 velocidad * Time.fixedDeltaTime);
-        rb.MovePosition(siguiente);
-        if ((siguiente - objetivo).sqrMagnitude <= 0.0004f)
+        float dt = Time.fixedDeltaTime;
+        tiempoOscilando += dt;
+        tiempoDesdeFrenada += dt;
+
+        // SmoothDamp acelera desde el reposo y desacelera al llegar,
+        // evitando los movimientos de velocidad constante y las paradas secas.
+        posicionBaseVuelo = Vector3.SmoothDamp(
+            posicionBaseVuelo, objetivo, ref velocidadSuavizada,
+            Mathf.Max(0.05f, suavizadoMovimiento),
+            Mathf.Max(0.1f, velocidad), dt);
+
+        if ((posicionBaseVuelo - objetivo).sqrMagnitude <= 0.0025f &&
+            velocidadSuavizada.sqrMagnitude <= 0.04f)
+        {
+            posicionBaseVuelo = objetivo;
+            velocidadSuavizada = Vector3.zero;
             estado = siguienteEstado;
+
+            // La trayectoria se recorre sin colisiones para no engancharse
+            // al atravesar el borde. Una vez que la roca esta flotando sobre
+            // la plataforma, debe volver a ser detectable/interactuable.
+            // El Rigidbody sigue siendo kinematic y sin gravedad: NO cae.
+            if (siguienteEstado == Estado.Flotando)
+            {
+                rb.detectCollisions = true;
+
+                if (mensajesDebug)
+                    Debug.Log(name +
+                        ": rescate terminado; colisiones reactivadas para permitir agarrarla.", this);
+            }
+        }
+
+        float oscilacion = 0f;
+        if (oscilarDuranteRegreso)
+        {
+            float intensidad = Mathf.SmoothStep(
+                0f, 1f,
+                Mathf.Clamp01(tiempoDesdeFrenada /
+                    Mathf.Max(0.05f, entradaSuaveOscilacion)));
+            oscilacion = ObtenerOscilacion() * intensidad;
+        }
+
+        rb.MovePosition(posicionBaseVuelo + Vector3.up * oscilacion);
+    }
+
+    private float ObtenerOscilacion()
+    {
+        return Mathf.Sin(tiempoOscilando * frecuenciaFlotacion *
+                         Mathf.PI * 2f) * amplitudFlotacion;
     }
 
     private void RegistrarAlturaSueloSiEstaApoyada()
@@ -324,11 +433,31 @@ public class RescateVacioPiedra : MonoBehaviour
         }
 
         puntoBorde = sueloDestino;
+        padreAntesRescate = transform.parent;
         destino = sueloDestino + Vector3.up * alturaLevitacion;
-        float alturaRuta = Mathf.Max(rb.position.y, destino.y + alturaExtraTrayecto);
-        cimaAscenso = new Vector3(rb.position.x, alturaRuta, rb.position.z);
-        cimaSobreBorde = new Vector3(destino.x, alturaRuta, destino.z);
+        // El ascenso se preparará DESPUÉS del frenado, desde la
+        // posición a la que realmente haya llegado la piedra.
+        posicionBaseVuelo = rb.position;
+        velocidadSuavizada = Vector3.zero;
+        tiempoFrenando = 0f;
+        tiempoOscilando = 0f;
+        tiempoDesdeFrenada = 0f;
 
+        // Desde este instante el rescate es el único dueño temporal
+        // de la física. Guardamos los valores ACTUALES, no los de Awake.
+        gravedadAntesRescate = rb.useGravity;
+        colisionesAntesRescate = rb.detectCollisions;
+        cinematicoAntesRescate = rb.isKinematic;
+        interpolacionAntesRescate = rb.interpolation;
+        hayEstadoFisicoRescate = true;
+
+        // Conservar la inercia para animar un frenado VISIBLE antes de subir.
+        // Se limita solo el recorrido simulado durante el rescate, no la
+        // velocidad ni la masa de las piedras mientras están jugando.
+        velocidadAlEmpezarFrenado = rb.isKinematic ? Vector3.zero :
+            Vector3.ClampMagnitude(rb.linearVelocity,
+                Mathf.Max(0.1f, velocidadMaximaDuranteFrenado));
+        giroAlEmpezarFrenado = rb.isKinematic ? Vector3.zero : rb.angularVelocity;
         if (!rb.isKinematic)
         {
             rb.linearVelocity = Vector3.zero;
@@ -338,10 +467,10 @@ public class RescateVacioPiedra : MonoBehaviour
         rb.useGravity = false;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.detectCollisions = false;
-        estado = Estado.Subiendo;
+        estado = Estado.Frenando;
 
         if (mensajesDebug)
-            Debug.Log(name + ": rescate hacia el borde cercano, no hacia el último apoyo.");
+            Debug.Log(name + ": frenada progresiva; después levitará hacia el borde cercano.");
         return true;
     }
 
@@ -447,29 +576,64 @@ public class RescateVacioPiedra : MonoBehaviour
         return ultimoGolpe.point;
     }
 
-    /// <summary>Llamar cuando el jugador recoja la piedra. Los bots se detectan automáticamente.</summary>
-    public void NotificarRecogida() => CederControlAQuienRecoge();
+    /// <summary>Llamar cuando el jugador recoja la piedra.</summary>
+    public void NotificarRecogida()
+    {
+        // Cede la propiedad del Rigidbody a AgarreLanzamiento.
+        // Este último establecerá isKinematic y detectCollisions.
+        CederControlAQuienRecoge();
+    }
 
-    /// <summary>Llamar al liberarla desde AgarreLanzamiento.</summary>
+    /// <summary>Llamar cuando AgarreLanzamiento suelte la piedra.</summary>
     public void NotificarLiberacion()
     {
         estado = Estado.Normal;
         enManosOProcesamiento = false;
-        rb.useGravity = gravedadInicial;
         tiempoComprobacion = 0f;
-        // No tocar isKinematic/colliders: los gestiona quien la lanza.
+
+        // Si hubo un rescate en curso, restaurar. En caso contrario,
+        // no alterar la física que ya ha configurado quien la soltó.
+        RestaurarPropiedadesNoCinematicas();
     }
 
     private void CederControlAQuienRecoge()
     {
         if (estado != Estado.Normal && mensajesDebug)
-            Debug.Log(name + ": recogida; termina la levitación.");
+            Debug.Log(name + ": recogida; el rescate libera el Rigidbody.");
 
         estado = Estado.Normal;
         enManosOProcesamiento = true;
-        rb.useGravity = gravedadInicial;
-        rb.interpolation = interpolacionInicial;
-        // Quien la toma es responsable de padre, collider y modo cinemático.
+        tiempoComprobacion = 0f;
+        RestaurarPropiedadesNoCinematicas();
+
+        // NO tocamos isKinematic: el bot o AgarreLanzamiento
+        // lo controlan durante el transporte.
+    }
+
+    private void RestaurarPropiedadesNoCinematicas()
+    {
+        if (rb == null || !hayEstadoFisicoRescate)
+            return;
+
+        rb.useGravity = gravedadAntesRescate;
+        rb.detectCollisions = colisionesAntesRescate;
+        rb.interpolation = interpolacionAntesRescate;
+        hayEstadoFisicoRescate = false;
+    }
+
+    private void OnDisable()
+    {
+        // Si se desactiva el script cuando la roca esta flotando,
+        // no debemos dejarla congelada, sin gravedad ni colisiones.
+        if (!Application.isPlaying || rb == null || estado == Estado.Normal)
+            return;
+
+        RestaurarPropiedadesNoCinematicas();
+        rb.isKinematic = cinematicoAntesRescate;
+        if (!rb.isKinematic)
+            rb.WakeUp();
+        estado = Estado.Normal;
+        enManosOProcesamiento = false;
     }
 
     private bool HayColliderActivo()
