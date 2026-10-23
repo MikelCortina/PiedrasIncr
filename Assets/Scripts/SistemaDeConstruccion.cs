@@ -5,7 +5,14 @@ public class SistemaConstruccion : MonoBehaviour
 {
     public static SistemaConstruccion Instancia;
 
-    void Awake() { if (Instancia == null) Instancia = this; else Destroy(gameObject); }
+    void Awake()
+    {
+        if (Instancia == null) Instancia = this;
+        else { Destroy(gameObject); return; }
+
+        if (inventarioEdificios == null)
+            inventarioEdificios = GetComponent<InventarioEdificios>();
+    }
 
     public enum TipoEdificio
     {
@@ -33,6 +40,12 @@ public class SistemaConstruccion : MonoBehaviour
 
     [Header("Martillo")]
     public GameObject modeloMartillo;
+
+    [Header("Tienda / inventario")]
+    [Tooltip("Añade InventarioEdificios en este mismo GameObject, o arrástralo aquí.")]
+    public InventarioEdificios inventarioEdificios;
+    private bool tiendaEdificiosAbierta = false;
+
 
     [Header("Catálogo de Edificios")]
     public InfoEdificio[] edificios;
@@ -101,6 +114,9 @@ public class SistemaConstruccion : MonoBehaviour
 
     void Update()
     {
+        // La tienda tiene prioridad: no cambiar piezas, rotar ni construir detrás de la UI.
+        if (tiendaEdificiosAbierta) return;
+
         if (modoConstruccion && Input.GetKeyDown(teclaCambiarTipo))
         {
             CambiarEdificioActual();
@@ -164,6 +180,13 @@ public class SistemaConstruccion : MonoBehaviour
                 ManejarColocacionODestruccion();
             }
         }
+    }
+
+    public void BloquearPorTienda(bool bloquear)
+    {
+        tiendaEdificiosAbierta = bloquear;
+        if (hologramaActual != null)
+            hologramaActual.SetActive(!bloquear && modoConstruccion);
     }
 
     public void SetModoConstruccion(bool activar)
@@ -606,6 +629,13 @@ public class SistemaConstruccion : MonoBehaviour
 
     bool PuedeColocarActual()
     {
+        if (inventarioEdificios == null || edificios == null || edificios.Length == 0)
+            return false;
+
+        // Una estructura solo puede colocarse si antes se ha comprado.
+        if (!inventarioEdificios.TieneUnidad(edificios[indiceEdificioActual].tipo))
+            return false;
+
         HologramaColision detector = hologramaActual.GetComponent<HologramaColision>();
         return detector == null || !detector.HayColision;
     }
@@ -698,7 +728,23 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 InfoEdificio actual = edificios[indiceEdificioActual];
 
+                // Evita perder unidades si falta un prefab de la variante.
+                if (actual.prefabsReales == null || indiceVarianteActual < 0 ||
+                    indiceVarianteActual >= actual.prefabsReales.Length ||
+                    actual.prefabsReales[indiceVarianteActual] == null)
+                {
+                    Debug.LogWarning("No hay prefab real para la variante de " + actual.nombre, this);
+                    return;
+                }
+
                 GameObject nuevaEstructura = Instantiate(actual.prefabsReales[indiceVarianteActual], hologramaActual.transform.position, hologramaActual.transform.rotation);
+
+                // Se consume exactamente UNA unidad, solo tras crear la estructura.
+                if (!inventarioEdificios.ConsumirUnidad(actual.tipo))
+                {
+                    Destroy(nuevaEstructura);
+                    return;
+                }
 
                 // APLICAR LA CURVA A LA ESTRUCTURA REAL Y AL MESH COLLIDER
                 if (actual.tipo == TipoEdificio.Rampa && curvaturaActual != 0f)

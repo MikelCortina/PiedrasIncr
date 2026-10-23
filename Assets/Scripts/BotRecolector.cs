@@ -146,6 +146,17 @@ public class BotRecolector : MonoBehaviour
     public float distanciaEntrega =
         1.5f;
 
+    [Header("Zona Piedras - nuevo destino de entrega")]
+    [Tooltip("Zona en la que se dejan las piedras sin procesarlas ni destruirlas.")]
+    public ZonaPiedras zonaPiedras;
+
+    [Min(0.2f)] public float distanciaEntregaZonaPiedras = 1.5f;
+    [Min(0.05f)] public float duracionLanzamientoZonaPiedras = 0.45f;
+    [Min(0f)] public float alturaArcoZonaPiedras = 0.35f;
+
+    // Este punto se utiliza solo para la zona, sin ocupar reservas del agujero.
+    private bool puntoReservadoEsZonaPiedras = false;
+
     public float duracionLanzamiento =
         0.5f;
 
@@ -1209,6 +1220,14 @@ public class BotRecolector : MonoBehaviour
 
 
         // =====================================================
+        // ZONA PIEDRAS (puede estar asignada directamente o en la escena)
+        // =====================================================
+        if (zonaPiedras == null)
+        {
+            zonaPiedras = FindAnyObjectByType<ZonaPiedras>();
+        }
+
+        // =====================================================
         // DEBUG DE REFERENCIAS
         // =====================================================
 
@@ -1883,6 +1902,9 @@ public class BotRecolector : MonoBehaviour
             if (!piedra.CompareTag(tagPiedra))
                 continue;
 
+            // Las piedras guardadas en Zona Piedras no vuelven a elegirse.
+            if (piedra.GetComponent<PiedraDepositadaZonaPiedras>() != null)
+                continue;
 
             // =================================================
             // YA LA ESTÁ TRANSPORTANDO ALGUIEN
@@ -6715,6 +6737,14 @@ public class BotRecolector : MonoBehaviour
             return;
         }
 
+        // =====================================================
+        // DESTINO: ZONA PIEDRAS (almacén físico)
+        // =====================================================
+        if (destinoPiedraActual == ConfiguracionBot.DestinoTrabajo.ZonaPiedras)
+        {
+            ComportamientoLlevarZonaPiedras();
+            return;
+        }
 
         // =====================================================
         // DESTINO: AGUJERO
@@ -6754,6 +6784,139 @@ public class BotRecolector : MonoBehaviour
 
 
     // =====================================================
+    // ZONA PIEDRAS - desplazamiento y entrega
+    // =====================================================
+
+    private bool SeleccionarPuntoEntregaZonaPiedras()
+    {
+        if (zonaPiedras == null)
+            zonaPiedras = FindAnyObjectByType<ZonaPiedras>();
+
+        if (zonaPiedras == null || !zonaPiedras.isActiveAndEnabled)
+            return false;
+
+        if (puntoReservadoEsZonaPiedras &&
+            puntoLlegadaReservado == zonaPiedras.PuntoLlegada)
+            return true;
+
+        // Si hubiera una reserva del agujero, la liberamos antes de cambiar.
+        LiberarPuntoEntrega();
+        puntoLlegadaReservado = zonaPiedras.PuntoLlegada;
+        puntoReservadoEsZonaPiedras = true;
+        return puntoLlegadaReservado != null;
+    }
+
+    private void ComportamientoLlevarZonaPiedras()
+    {
+        if (!SeleccionarPuntoEntregaZonaPiedras())
+        {
+            DetenerAgente();
+            return;
+        }
+
+        // Conserva el planificador de conexiones y los descensos ya existentes.
+        if (GestionarConexionEscaladaHaciaPiedra()) return;
+        if (!IrHaciaPuntoEntrega()) return;
+        if (!HaLlegadoAlPuntoEntrega()) return;
+
+        estadoActual = EstadoBot.EntregandoPiedra;
+        DetenerAgente();
+        ResetearAntiAtasco();
+        StartCoroutine(LanzarPiedraAZonaPiedras());
+    }
+
+    private IEnumerator LanzarPiedraAZonaPiedras()
+    {
+        if (piedraObjetivo == null || zonaPiedras == null)
+        {
+            CancelarObjetivo();
+            yield break;
+        }
+
+        Rigidbody piedraEntregada = piedraObjetivo;
+        Vector3 destino = zonaPiedras.ElegirPuntoDeposito();
+
+        // Primero orientamos la araña hacia el montón, como con el agujero.
+        if (orientarAntesDeLanzar)
+        {
+            float restante = Mathf.Max(0f, tiempoMaximoOrientacionEntrega);
+            while (restante > 0f)
+            {
+                if (enInteraccion || pausaForzada) { yield return null; continue; }
+                if (piedraEntregada == null) { CancelarObjetivo(); yield break; }
+
+                Vector3 dir = destino - transform.position;
+                dir.y = 0f;
+                if (dir.sqrMagnitude <= 0.0001f) break;
+
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    Quaternion.LookRotation(dir.normalized, Vector3.up),
+                    Mathf.Max(0f, velocidadGiroEntrega) * Time.deltaTime);
+
+                // El LateUpdate del bot mantiene la piedra en PuntoAgarre.
+                if (puntoAgarre != null)
+                {
+                    piedraEntregada.transform.position = puntoAgarre.position;
+                    piedraEntregada.transform.rotation = puntoAgarre.rotation;
+                }
+                restante -= Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        if (piedraEntregada == null) { CancelarObjetivo(); yield break; }
+        piedraEntregada.transform.SetParent(null, true);
+        piedraEntregada.isKinematic = true;
+        Vector3 origen = piedraEntregada.position;
+
+        float duracion = Mathf.Max(0.05f, duracionLanzamientoZonaPiedras);
+        float tiempo = 0f;
+        while (tiempo < duracion)
+        {
+            if (enInteraccion || pausaForzada) { yield return null; continue; }
+            if (piedraEntregada == null) { CancelarObjetivo(); yield break; }
+
+            tiempo += Time.deltaTime;
+            float t = Mathf.Clamp01(tiempo / duracion);
+            float suave = t * t * (3f - 2f * t);
+            Vector3 pos = Vector3.Lerp(origen, destino, suave);
+            pos.y += Mathf.Sin(t * Mathf.PI) * Mathf.Max(0f, alturaArcoZonaPiedras);
+            piedraEntregada.position = pos;
+            piedraEntregada.transform.Rotate(
+                Vector3.one * velocidadGiroLanzamiento * Time.deltaTime,
+                Space.World);
+            yield return null;
+        }
+
+        if (piedraEntregada == null) { CancelarObjetivo(); yield break; }
+        piedraEntregada.position = destino;
+
+        // Marcamos y desregistramos ANTES de reactivar físicas para que el bot
+        // no reserve la misma piedra en el siguiente ciclo de búsqueda.
+        if (piedraEntregada.GetComponent<PiedraDepositadaZonaPiedras>() == null)
+            piedraEntregada.gameObject.AddComponent<PiedraDepositadaZonaPiedras>();
+
+        if (gestorPiedras != null)
+            gestorPiedras.DesregistrarPiedra(piedraEntregada);
+
+        piedraObjetivo = null;
+        RestaurarPiedraFisica(piedraEntregada);
+        piedraEntregada.detectCollisions = true;
+        piedraEntregada.useGravity = true;
+
+        LiberarPuntoEntrega();
+        if (parkingForzado)
+            EntrarEnEspera();
+        else
+        {
+            estadoActual = EstadoBot.Buscando;
+            temporizadorBusqueda = 0f;
+        }
+        ResetearAntiAtasco();
+    }
+
+    // =====================================================
     // ENTREGA
     // =====================================================
 
@@ -6772,6 +6935,7 @@ public class BotRecolector : MonoBehaviour
                 this
             );
 
+        puntoReservadoEsZonaPiedras = false;
 
         return puntoLlegadaReservado != null;
     }
@@ -6873,7 +7037,11 @@ public class BotRecolector : MonoBehaviour
             );
 
 
-        if (distancia <= distanciaEntrega)
+        float umbralLlegada = puntoReservadoEsZonaPiedras
+            ? distanciaEntregaZonaPiedras
+            : distanciaEntrega;
+
+        if (distancia <= umbralLlegada)
             return true;
 
 
@@ -6888,7 +7056,7 @@ public class BotRecolector : MonoBehaviour
 
         return agente.remainingDistance <=
                Mathf.Max(
-                   distanciaEntrega,
+                   umbralLlegada,
                    agente.stoppingDistance +
                    0.05f
                );
@@ -6897,16 +7065,14 @@ public class BotRecolector : MonoBehaviour
 
     private void LiberarPuntoEntrega()
     {
-        if (gestorPuntosEntrega != null)
+        // Zona Piedras no ocupa puntos en el gestor de entregas al agujero.
+        if (!puntoReservadoEsZonaPiedras && gestorPuntosEntrega != null)
         {
-            gestorPuntosEntrega.LiberarPunto(
-                this
-            );
+            gestorPuntosEntrega.LiberarPunto(this);
         }
 
-
-        puntoLlegadaReservado =
-            null;
+        puntoLlegadaReservado = null;
+        puntoReservadoEsZonaPiedras = false;
     }
 
 
@@ -8214,7 +8380,10 @@ public class BotRecolector : MonoBehaviour
             }
 
 
-            IntentarReservarPuntoEntrega();
+            if (destinoPiedraActual == ConfiguracionBot.DestinoTrabajo.ZonaPiedras)
+                SeleccionarPuntoEntregaZonaPiedras();
+            else
+                IntentarReservarPuntoEntrega();
 
             IrHaciaPuntoEntrega();
         }
@@ -8564,6 +8733,15 @@ public class BotRecolector : MonoBehaviour
                 .Agujero;
         }
 
+
+        // =====================================================
+        // ZONA PIEDRAS: almacenar sin procesar y sin consumir.
+        // =====================================================
+        if (configuracionBot.destinoTrabajo ==
+            ConfiguracionBot.DestinoTrabajo.ZonaPiedras)
+        {
+            return ConfiguracionBot.DestinoTrabajo.ZonaPiedras;
+        }
 
         // =====================================================
         // FORZADO A PROCESADORA
