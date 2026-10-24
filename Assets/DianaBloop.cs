@@ -17,14 +17,12 @@ public class DianaBloop : MonoBehaviour
     public GameObject prefabVFXImpacto;
     public float offsetSuperficieVFX = 0.08f;
 
-    [Header("Sistema de Cooldown y Color")]
-    public Renderer rendererVisual;
-    public string propiedadColor = "_Color";
+    [Header("Sistema de Cooldown y Neón")]
+    [Tooltip("El controlador de neón que cambiará de intensidad")]
+    public ControladorNeon controladorNeon;
     public float tiempoCooldown = 2.5f;
 
-    public Color colorDescargado = Color.red;
     public float intensidadDescargado = 0f;
-    public Color colorListo = Color.cyan;
     public float intensidadListoMin = 1.5f;
     public float intensidadListoMax = 3.5f;
     public float velocidadOscilacion = 3f;
@@ -38,25 +36,18 @@ public class DianaBloop : MonoBehaviour
     public float tasaEmisionCargandoMin = 5f;
     public float tasaEmisionCargandoMax = 40f;
 
-    // Velocidades negativas para que la partícula vaya "hacia adentro" durante la carga
     public float startSpeedInicioMin = -2.5f;
     public float startSpeedInicioMax = -2.0f;
     public float startSpeedFinMin = -9.0f;
     public float startSpeedFinMax = -3.0f;
 
-    [Tooltip("Multiplicador de velocidad para dar el efecto de latigazo/explosión antes de darse la vuelta")]
+    [Tooltip("Multiplicador de velocidad para dar el efecto de latigazo/explosión")]
     public float factorAceleracionExplosion = 4.5f;
-    [Tooltip("Tiempo en segundos que dura el corte de emisión y el latigazo")]
     public float tiempoCorteEmision = 0.15f;
-    [Tooltip("Cantidad de partículas extra que explotan de golpe justo al recibir el impacto")]
     public int cantidadBurstImpacto = 100;
-
-    [Tooltip("Explosión/Chispa de 1 solo uso SOLO al terminar de recargarse.")]
     public ParticleSystem psBurst;
-    // ====================================================================
 
     private bool enCooldown = false;
-    private Material materialInstanciado;
     private Coroutine corrutinaOscilacion;
 
     [Header("Lanzamiento de la Piedra")]
@@ -86,9 +77,7 @@ public class DianaBloop : MonoBehaviour
     [Range(1.0f, 1.8f)] public float expansion = 1.35f;
 
     [Header("Ajustes del Bloop - BOQUILLA SALIDA")]
-    [Tooltip("La boquilla de salida siempre se estirará en el eje Y.")]
     [Range(1.1f, 2.5f)] public float estiramientoYSalida = 1.6f;
-    [Tooltip("Cuánto se estrechan los lados al estirarse.")]
     [Range(0.2f, 0.9f)] public float contraccionXZSalida = 0.7f;
 
     [Header("Audio")]
@@ -99,29 +88,45 @@ public class DianaBloop : MonoBehaviour
     private Vector3 escalaOriginalSalida;
     private Quaternion rotacionOriginalBanderin;
 
+    private bool inicializado = false;
+
     private Coroutine corrutinaBloopPrincipal;
     private Coroutine corrutinaBloopSalida;
     private Coroutine corrutinaBanderin;
 
-    private void Awake()
+    // Forzamos a que coja las escalas justo antes del primer update (después de que el padre lo encienda y estire)
+    private void InicializarTardio()
     {
+        if (inicializado) return;
+
         if (modeloVisual != null) escalaOriginalPrincipal = modeloVisual.localScale;
         if (modeloSalidaVisual != null) escalaOriginalSalida = modeloSalidaVisual.localScale;
         if (modeloBanderin != null) rotacionOriginalBanderin = modeloBanderin.localRotation;
 
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        inicializado = true;
+    }
 
-        if (rendererVisual != null)
-        {
-            materialInstanciado = rendererVisual.material;
-            corrutinaOscilacion = StartCoroutine(RutinaOscilacion());
-        }
+    private void Awake()
+    {
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
         // Estado inicial (Listo para ser golpeado)
         if (psBurst != null) psBurst.Stop();
+
+        // No iniciar la oscilación del neón aquí si está escalándose.
+    }
+
+    private void OnEnable()
+    {
+        // Al encenderse, activamos las partículas y la luz asegurándonos de que ya tiene escala
+        if (controladorNeon != null)
+        {
+            if (corrutinaOscilacion != null) StopCoroutine(corrutinaOscilacion);
+            corrutinaOscilacion = StartCoroutine(RutinaOscilacion());
+        }
+
         if (psCargando != null)
         {
-            // Como empieza "Listo", sus partículas nacen con velocidad hacia AFUERA (positivas)
             var main = psCargando.main;
             float valMin = Mathf.Abs(startSpeedFinMin);
             float valMax = Mathf.Abs(startSpeedFinMax);
@@ -137,6 +142,8 @@ public class DianaBloop : MonoBehaviour
 
     public void RecibirImpacto(Vector3 puntoExactoImpacto, Vector3 normalSuperficie = default)
     {
+        InicializarTardio();
+
         if (prefabVFXImpacto != null)
         {
             Vector3 direccionSalida = normalSuperficie != Vector3.zero ? normalSuperficie : Vector3.up;
@@ -193,8 +200,6 @@ public class DianaBloop : MonoBehaviour
             corrutinaBloopSalida = StartCoroutine(RutinaBloopSalida(modeloSalidaVisual, escalaOriginalSalida));
         }
 
-        // Una activacion puede expulsar varias piedras. Conservamos
-        // el mismo sistema de lanzamiento, crecimiento, inmunidad y fisicas.
         int cantidad = Mathf.Max(1, piedrasPorActivacion);
         for (int i = 0; i < cantidad; i++)
         {
@@ -203,7 +208,6 @@ public class DianaBloop : MonoBehaviour
                 yield return new WaitForSeconds(intervaloEntrePiedras);
         }
 
-        // El cooldown comienza tras la ultima piedra del lote.
         StartCoroutine(RutinaRecargaCooldown());
     }
 
@@ -249,8 +253,10 @@ public class DianaBloop : MonoBehaviour
     {
         if (psCargando != null && !psCargando.isPlaying) psCargando.Play();
 
-        if (materialInstanciado != null && materialInstanciado.HasProperty(propiedadColor))
-            materialInstanciado.SetColor(propiedadColor, colorDescargado * intensidadDescargado);
+        if (controladorNeon != null)
+        {
+            controladorNeon.intensidad = intensidadDescargado;
+        }
 
         float t = 0f;
         while (t < tiempoCooldown)
@@ -258,11 +264,12 @@ public class DianaBloop : MonoBehaviour
             t += Time.deltaTime;
             float progreso = t / tiempoCooldown;
 
-            Color colorActual = Color.Lerp(colorDescargado, colorListo, progreso);
             float intensidadActual = Mathf.Lerp(intensidadDescargado, intensidadListoMax, progreso);
 
-            if (materialInstanciado != null && materialInstanciado.HasProperty(propiedadColor))
-                materialInstanciado.SetColor(propiedadColor, colorActual * intensidadActual);
+            if (controladorNeon != null)
+            {
+                controladorNeon.intensidad = intensidadActual;
+            }
 
             if (psCargando != null)
             {
@@ -282,9 +289,6 @@ public class DianaBloop : MonoBehaviour
 
         enCooldown = false;
 
-        // ==============================================================
-        // INVERSIÓN ORIGINAL QUE FUNCIONA PERFECTA AL RECARGARSE (SIN TOCAR)
-        // ==============================================================
         if (psCargando != null)
         {
             InvertirVelocidadParticulasVivas(psCargando);
@@ -303,7 +307,6 @@ public class DianaBloop : MonoBehaviour
         corrutinaOscilacion = StartCoroutine(RutinaOscilacion());
     }
 
-    // --- FUNCIÓN QUE FUNCIONABA PERFECTA AL RECARGARSE (SIN TOCAR) ---
     private void InvertirVelocidadParticulasVivas(ParticleSystem ps)
     {
         if (ps == null) return;
@@ -319,7 +322,6 @@ public class DianaBloop : MonoBehaviour
         ps.SetParticles(particulas, vivas);
     }
 
-    // --- CORRUTINA ACTUALIZADA: FORZANDO BURST ALTA VELOCIDAD Y ESPERANDO 1 FOTOGRAMA ---
     private IEnumerator RutinaInvertirParticulasConExplosion(ParticleSystem ps, float aceleracion, float tiempoCorte, int cantidadBurst, bool haciaAdentro)
     {
         if (ps == null) yield break;
@@ -327,41 +329,30 @@ public class DianaBloop : MonoBehaviour
         var main = ps.main;
         var emision = ps.emission;
 
-        // 1. Cortar emisión regular
         emision.enabled = false;
 
-        // 2. Nos aseguramos de que el Emisor esté en modo expansión (hacia afuera)
         float valMin = Mathf.Abs(startSpeedFinMin);
         float valMax = Mathf.Abs(startSpeedFinMax);
         main.startSpeed = new ParticleSystem.MinMaxCurve(Mathf.Min(valMin, valMax), Mathf.Max(valMin, valMax));
 
-        // 3. Emitir el Burst (Saldrá hacia afuera a velocidad base)
         if (cantidadBurst > 0)
         {
             ps.Emit(cantidadBurst);
         }
 
-        // =========================================================================
-        // EL TRUCO VITAL: Esperamos 1 fotograma para que Unity registre el Burst 
-        // internamente en su memoria de simulación. 
         yield return null;
-        // =========================================================================
 
-        // 4. Capturar TODAS las partículas (las viejas flotantes + las nuevas del burst)
         ParticleSystem.Particle[] particulas = new ParticleSystem.Particle[main.maxParticles];
         int vivas = ps.GetParticles(particulas);
 
-        // 5. Acelerar de golpe TODAS juntas. El latigazo será masivo y brutal en pantalla.
         for (int i = 0; i < vivas; i++)
         {
             particulas[i].velocity *= aceleracion;
         }
         ps.SetParticles(particulas, vivas);
 
-        // 6. Mantenemos la onda expansiva el tiempo que pediste (restando el frame que ya esperamos)
         yield return new WaitForSeconds(Mathf.Max(0f, tiempoCorte - Time.deltaTime));
 
-        // 7. Frenar e invertir ABSOLUTAMENTE TODAS las partículas para que reboten hacia adentro
         vivas = ps.GetParticles(particulas);
         for (int i = 0; i < vivas; i++)
         {
@@ -369,7 +360,6 @@ public class DianaBloop : MonoBehaviour
         }
         ps.SetParticles(particulas, vivas);
 
-        // 8. Restaurar la velocidad base normal para las partículas que nazcan durante el cooldown
         if (haciaAdentro)
         {
             main.startSpeed = new ParticleSystem.MinMaxCurve(startSpeedInicioMin, startSpeedInicioMax);
@@ -386,11 +376,11 @@ public class DianaBloop : MonoBehaviour
     {
         while (!enCooldown)
         {
-            if (materialInstanciado != null && materialInstanciado.HasProperty(propiedadColor))
+            if (controladorNeon != null)
             {
                 float onda = (Mathf.Sin(Time.time * velocidadOscilacion) + 1f) / 2f;
                 float intensidadActual = Mathf.Lerp(intensidadListoMin, intensidadListoMax, onda);
-                materialInstanciado.SetColor(propiedadColor, colorListo * intensidadActual);
+                controladorNeon.intensidad = intensidadActual;
             }
             yield return null;
         }
@@ -398,6 +388,8 @@ public class DianaBloop : MonoBehaviour
 
     private IEnumerator RutinaBloopPrincipal(Transform objetivo, Vector3 escalaBase, bool ejeAleatorio)
     {
+        if (escalaBase.magnitude < 0.1f) yield break; // Seguridad para no escalar si está oculto
+
         float t = 0f;
         float chafar = aplastamiento;
         float expandir = expansion;
@@ -453,6 +445,8 @@ public class DianaBloop : MonoBehaviour
 
     private IEnumerator RutinaBloopSalida(Transform objetivo, Vector3 escalaBase)
     {
+        if (escalaBase.magnitude < 0.1f) yield break;
+
         float t = 0f;
 
         Vector3 escalaEstirada = new Vector3(escalaBase.x * contraccionXZSalida, escalaBase.y * estiramientoYSalida, escalaBase.z * contraccionXZSalida);
@@ -542,76 +536,11 @@ public class DianaBloop : MonoBehaviour
 
         return dirNormalizada;
     }
-
-    private void OnDrawGizmosSelected()
-    {
-        Vector3 origen = ObtenerPuntoOrigen();
-        Vector3 direccionBase = ObtenerDireccionLanzamiento();
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawRay(origen, direccionBase * 2.5f);
-
-        if (dispersionAleatoria > 0.1f)
-        {
-            Gizmos.color = new Color(1f, 0.5f, 0f, 0.6f);
-            Vector3 ortho1 = Vector3.Cross(direccionBase, Vector3.up);
-            if (ortho1 == Vector3.zero) ortho1 = Vector3.right;
-            Vector3 ortho2 = Vector3.Cross(direccionBase, ortho1);
-
-            Vector3 ray1 = Quaternion.AngleAxis(dispersionAleatoria, ortho1) * direccionBase * 2.5f;
-            Vector3 ray2 = Quaternion.AngleAxis(-dispersionAleatoria, ortho1) * direccionBase * 2.5f;
-            Vector3 ray3 = Quaternion.AngleAxis(dispersionAleatoria, ortho2) * direccionBase * 2.5f;
-            Vector3 ray4 = Quaternion.AngleAxis(-dispersionAleatoria, ortho2) * direccionBase * 2.5f;
-
-            Gizmos.DrawRay(origen, ray1);
-            Gizmos.DrawRay(origen, ray2);
-            Gizmos.DrawRay(origen, ray3);
-            Gizmos.DrawRay(origen, ray4);
-
-            DibujarCirculoGizmo(origen + (direccionBase * 2.5f), direccionBase, Mathf.Tan(dispersionAleatoria * Mathf.Deg2Rad) * 2.5f, 16);
-        }
-
-        Gizmos.color = new Color(0.2f, 0.85f, 1f, 0.8f);
-        DibujarParabola(origen, direccionBase * fuerzaLanzamiento);
-    }
-
-    private void DibujarParabola(Vector3 origen, Vector3 velocidadInicial)
-    {
-        Vector3 anterior = origen;
-        Vector3 gravedad = Physics.gravity;
-        int pasos = 25;
-        float dt = 1.5f / pasos;
-
-        for (int i = 1; i <= pasos; i++)
-        {
-            float t = i * dt;
-            Vector3 actual = origen + (velocidadInicial * t) + (0.5f * gravedad * t * t);
-            Gizmos.DrawLine(anterior, actual);
-            anterior = actual;
-        }
-    }
-
-    private void DibujarCirculoGizmo(Vector3 centro, Vector3 normal, float radio, int segmentos)
-    {
-        Vector3 ortho = Vector3.Cross(normal, Vector3.up).normalized;
-        if (ortho == Vector3.zero) ortho = Vector3.right;
-
-        float paso = 360f / segmentos;
-        Vector3 previo = centro + (ortho * radio);
-
-        for (int i = 1; i <= segmentos; i++)
-        {
-            Vector3 siguiente = centro + (Quaternion.AngleAxis(i * paso, normal) * ortho * radio);
-            Gizmos.DrawLine(previo, siguiente);
-            previo = siguiente;
-        }
-    }
 }
 
 // ====================================================================
 // COMPONENTES AUXILIARES
 // ====================================================================
-
 public class InmunidadTemporalPiedra : MonoBehaviour
 {
     private string tagOriginal;
