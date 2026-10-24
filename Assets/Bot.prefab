@@ -1701,6 +1701,10 @@ MonoBehaviour:
   puntoEntradaAgujero: {fileID: 0}
   agujeroDestino: {fileID: 0}
   distanciaEntrega: 1.5
+  zonaPiedras: {fileID: 0}
+  distanciaEntregaZonaPiedras: 1.5
+  duracionLanzamientoZonaPiedras: 0.45
+  alturaArcoZonaPiedras: 0.35
   duracionLanzamiento: 0.5
   alturaArcoLanzamiento: 2
   velocidadGiroLanzamiento: 360
@@ -3245,12 +3249,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 0.4339623, g: 0.116678536, b: 0.13304023, a: 1}
-  intensidad: 3
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 26.7
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &8801582391897852778
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3276,32 +3276,6 @@ MonoBehaviour:
     shadowPower: 0
     shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
---- !u!114 &50562235
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!4 &51242692 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1085485908691104113, guid: 3dad045c4148e924fb9135571d3da8e7, type: 3}
@@ -7796,32 +7770,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
---- !u!114 &123135063
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336596}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 0.8490566, g: 0.18823424, b: 0.18823424, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!1 &123190934
 GameObject:
   m_ObjectHideFlags: 0
@@ -8237,13 +8185,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 126540973}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.00094088784, y: -0.0008579651, z: 0.0019035891, w: 0.9999974}
   m_LocalPosition: {x: 906.2503, y: 408.17, z: 40.584938}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.108, y: -0.098, z: 0.218}
 --- !u!114 &126540976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9188,32 +9136,6 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &137929961
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336598}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!1001 &139080575
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9421,12 +9343,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &144239448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12575,12 +12499,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.94875, b: 0.22100401, a: 1}
-  intensidad: 0.3
-  grosorOutline: 0.33
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 0.5
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &193903648
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13911,12 +13837,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0.7490196, g: 0, b: 0, a: 1}
-  intensidad: 1.5
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1 &212595195
 GameObject:
   m_ObjectHideFlags: 0
@@ -15220,6 +15148,113 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b69765f35a97e47459a59f29206940b4, type: 3}
+--- !u!1 &238560946 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &238560947 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &238560948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238560946}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27041cb3363b4d942bbd7f66cb9ea39e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteriorNaveEspacial
+  neonesAlarma:
+  - {fileID: 1571453113}
+  - {fileID: 973597567}
+  - {fileID: 1684303381}
+  velocidadAlarma: 6
+  intensidadMinima: 0
+  intensidadMaxima: 1.5
+  agujasMarcadores:
+  - nombre: Aguja1
+    aguja: {fileID: 1368103225}
+    ejeGiro: {x: 0, y: 0, z: 1}
+    rotacionContinua: 0
+    velocidadTemblor: 5
+    anguloMinimo: 20
+    anguloMaximo: 0
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
+  - nombre: Aguja2
+    aguja: {fileID: 590909001}
+    ejeGiro: {x: 0, y: 0, z: 1}
+    rotacionContinua: 0
+    velocidadTemblor: 20
+    anguloMinimo: 20
+    anguloMaximo: 0
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
+  - nombre: MPalanca
+    aguja: {fileID: 597668931}
+    ejeGiro: {x: 1, y: 0, z: 0}
+    rotacionContinua: 0
+    velocidadTemblor: 20
+    anguloMinimo: -5
+    anguloMaximo: 5
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
+  - nombre: Aguja3
+    aguja: {fileID: 250050491}
+    ejeGiro: {x: 0, y: 0, z: 1}
+    rotacionContinua: 1
+    velocidadTemblor: 2750
+    anguloMinimo: -5
+    anguloMaximo: 5
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
+  - nombre: Vaso
+    aguja: {fileID: 1293417158}
+    ejeGiro: {x: 1, y: 1, z: 1}
+    rotacionContinua: 0
+    velocidadTemblor: 30
+    anguloMinimo: -3
+    anguloMaximo: 3
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
+  - nombre: Volante
+    aguja: {fileID: 1684834673}
+    ejeGiro: {x: 0, y: 0, z: 1}
+    rotacionContinua: 0
+    velocidadTemblor: 20
+    anguloMinimo: -5
+    anguloMaximo: 5
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
+  - nombre: Nave
+    aguja: {fileID: 238560947}
+    ejeGiro: {x: 1, y: 1, z: 1}
+    rotacionContinua: 0
+    velocidadTemblor: 0
+    anguloMinimo: -0.2
+    anguloMaximo: 0.2
+    rotacionBase: {x: 0, y: 0, z: 0, w: 0}
+    progresoGiro: 0
+    direccionIda: 1
+    anguloContinuoActual: 0
 --- !u!4 &241074073 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e4b48e5c191461e4cb8d0b8ca0a2b497, type: 3}
@@ -15789,6 +15824,211 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1001 &244475197
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 389462187}
+    m_Modifications:
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.00415
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.0003
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.00507
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.000000027798855
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.70710677
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.000000027798848
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5315096599802090950, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_Name
+      value: Shockwave (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5315096599802090950, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: lengthInSec
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.separateAxes
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: InitialModule.startLifetime.scalar
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.ctime2
+      value: 45875
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.ctime3
+      value: 45875
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key1.b
+      value: 0.2588235
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key1.g
+      value: 0.27769285
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key1.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key2.b
+      value: 0.21114123
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key2.g
+      value: 0.035294116
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key2.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key3.b
+      value: 0.21114123
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key3.g
+      value: 0.035294116
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key3.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.m_ColorSpace
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.m_NumColorKeys
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].time
+      value: 0.99591064
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[0].inSlope
+      value: 1.0041062
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].inSlope
+      value: 1.0041062
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[0].inWeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[0].outSlope
+      value: 1.0041062
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].outSlope
+      value: 1.0041062
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[0].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].outWeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[0].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+      propertyPath: SizeModule.curve.maxCurve.m_Curve.Array.data[1].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
 --- !u!1 &246085831 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: f40972a69d3e6470caab0528da1debf7, type: 3}
@@ -16236,6 +16476,42 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
   m_PrefabInstance: {fileID: 1250943322}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &250050490 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -4620488394884487368, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &250050491 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2950388089411628942, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &250050492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 250050490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &250071946 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
@@ -19946,6 +20222,42 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1732774652}
   m_SourcePrefab: {fileID: 100100000, guid: f40972a69d3e6470caab0528da1debf7, type: 3}
+--- !u!1 &317713705 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 993631201529239896, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &317713706 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &317713707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 317713705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 21fdc5a76e601b34b9cbd17b66eb3a34, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &318381191
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20785,12 +21097,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &336118007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22685,12 +22999,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.5
-  grosorOutline: 0.33
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 0.5
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &359663999
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24885,38 +25201,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1, g: 0.1503219, b: 0, a: 1}
-  intensidad: 1.75
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 116
---- !u!114 &385994505
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336599}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &387386314
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24995,6 +25287,113 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7671152567185983812, guid: 32206b4bb5efff64e8d81b12e13be422, type: 3}
   m_PrefabInstance: {fileID: 1252489619}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &389462186 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -8900123607238129932, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &389462187 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3278312233573616325, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &389462188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389462186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 4fa111549dbd460459bcd25c5647059b, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
+--- !u!114 &389462189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389462186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+--- !u!64 &389462192
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389462186}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -9217266098867441476, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+--- !u!114 &389462193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389462186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 547cf10b85374624cbac65a659580706, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RuletaInteractivaGasoil
+  anguloObjetivo: 720
+  ejeGiroLocal: {x: 0, y: 0, z: -1}
+  velocidadRetorno: 80
+  suavidadFinal: 0.2
+  objetoSecundario: {fileID: 317713706}
+  rotacionObjetivoSecundario: {x: 0, y: 0, z: -90}
+  bajadaEjeYSecundario: 0
+  tiempoDescarga: 0.1
+  particulasExplosion:
+  - {fileID: 730212276}
+  ledControlador: {fileID: 389462189}
+  colorLedApagado: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadInicio: 0
+  parpadeoInicio: 0
+  colorLedEncendido: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 1}
+  intensidadFin: 1.5
+  parpadeoFin: 0
 --- !u!1001 &390872776
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30925,6 +31324,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
   m_PrefabInstance: {fileID: 1334783059}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &479082612 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1624462857607113674, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &479082614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 479082612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &480442040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31348,32 +31778,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b69765f35a97e47459a59f29206940b4, type: 3}
---- !u!114 &484364976
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336593}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!4 &484668801 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
@@ -31832,12 +32236,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &492602218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32176,12 +32582,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &497232565
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38373,6 +38781,42 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &590909000 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -5192281034274402202, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &590909001 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &590909002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590909000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &591293151
 GameObject:
   m_ObjectHideFlags: 0
@@ -38604,6 +39048,62 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &597668930 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -3585801068117093322, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &597668931 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2359244017188774309, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &597668932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597668930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+--- !u!114 &597668933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597668930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 1
 --- !u!1 &598221068
 GameObject:
   m_ObjectHideFlags: 0
@@ -43070,32 +43570,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 658090514}
   m_CullTransparentMesh: 1
---- !u!114 &658896354
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336600}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!4 &660307729 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
@@ -43250,12 +43724,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
-  intensidad: 2.51
-  grosorOutline: 1
-  cantidadZonasMuertas: 0.157
-  velocidadParpadeo: 226.1
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &666098653
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43741,6 +44217,71 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
   m_PrefabInstance: {fileID: 2001898039}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &678013205 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6416597835732159994, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &678013207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 678013205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.1
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 2
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.1
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 3
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.1
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+--- !u!114 &678013208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 678013205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1 &679315195
 GameObject:
   m_ObjectHideFlags: 0
@@ -44626,12 +45167,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1, g: 1, b: 1, a: 1}
-  intensidad: 10
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &690868587 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
@@ -47320,12 +47863,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1, g: 0.65217334, b: 0, a: 1}
-  intensidad: 10
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1 &727016590 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1392740743195232011, guid: f2087d0ce2d2d0a479abbdcd214ebeda, type: 3}
@@ -48175,6 +48720,16 @@ PrefabInstance:
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4586973276703103453, guid: 14c8211d04557064b81b0813176d49da, type: 3}
   m_PrefabInstance: {fileID: 4166718344209281584}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &730212274 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 474707391571045354, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+  m_PrefabInstance: {fileID: 244475197}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &730212276 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
+  m_PrefabInstance: {fileID: 244475197}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &730380038 stripped
 Transform:
@@ -51990,32 +52545,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
---- !u!114 &802774630
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336594}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 2800000, guid: a237c15403a1d8d449b439b634caa807, type: 3}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!1001 &804833615
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -58066,12 +58595,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &819069391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59781,12 +60312,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0.7490196, g: 0, b: 0, a: 1}
-  intensidad: 1.5
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &843321022 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
@@ -69265,12 +69798,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
-  intensidad: 2.51
-  grosorOutline: 1
-  cantidadZonasMuertas: 0.157
-  velocidadParpadeo: 226.1
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &937734234
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -70763,6 +71298,57 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 32206b4bb5efff64e8d81b12e13be422, type: 3}
+--- !u!1 &973597566 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1897968116345473428, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &973597567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973597566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+--- !u!114 &973597568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973597566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 1
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: a237c15403a1d8d449b439b634caa807, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &973659787
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -71320,12 +71906,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &981413743
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73027,12 +73615,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1012910024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81762,12 +82352,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1078070722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85566,12 +86158,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
-  intensidad: 2.51
-  grosorOutline: 1
-  cantidadZonasMuertas: 0.157
-  velocidadParpadeo: 226.1
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &1134846120 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
@@ -86998,12 +87592,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.5
-  grosorOutline: 0.33
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 0.5
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &1158714247
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -87586,6 +88182,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &1166180905 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -385765932603881883, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1166180907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1166180905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 0.9254902, g: 0.07450981, b: 0.101960786, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &1166450133
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88299,32 +88926,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
---- !u!114 &1176000829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336592}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!1 &1178544543 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8084473278975618178, guid: 3b133a61a8c3b9f40b0244f918119e6e, type: 3}
@@ -88342,12 +88943,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0, g: 2, b: 1.0917635, a: 1}
-  intensidad: 2.51
-  grosorOutline: 1
-  cantidadZonasMuertas: 0.157
-  velocidadParpadeo: 226.1
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &1178967623
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -91576,12 +92179,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 0.14509805, g: 0.15686275, b: 0.3372549, a: 1}
-  intensidad: 3
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &1222470659 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
@@ -95896,6 +96501,42 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
   m_PrefabInstance: {fileID: 1960816483}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1293417157 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -7705670468958693459, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1293417158 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4274124397704758187, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1293417159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1293417157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &1295004523
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96267,12 +96908,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.5
-  grosorOutline: 0.33
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 0.5
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &1301821686 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5237702863673346284, guid: 05cb04c3f7afccf4180f5d33dd1dbefe, type: 3}
@@ -96474,12 +97117,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 0, g: 1, b: 1, a: 1}
-  intensidad: 3
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 40.1
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &1302795551 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f3dd253c96dbae142a16a22432c80d0c, type: 3}
@@ -99166,12 +99811,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1350020882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99471,6 +100118,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6414746210936452670, guid: 4827b6c14479f6d4196f7d58e2fba286, type: 3}
   m_PrefabInstance: {fileID: 1114508895}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1357211756 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3219454903392260087, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1357211758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357211756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 905db1b5c8ac9bd4bac17f07ee394961, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &1357369105
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -100032,6 +100710,42 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4827b6c14479f6d4196f7d58e2fba286, type: 3}
+--- !u!1 &1368103224 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8128292223016770763, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1368103225 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1368103226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1368103224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &1368459809 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
@@ -102926,12 +103640,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1421278315
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112106,12 +112822,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1553128318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112422,12 +113140,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1, g: 0.1503219, b: 0, a: 1}
-  intensidad: 1.75
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 116
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &1556084872 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
@@ -112707,12 +113427,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1, g: 0.1503219, b: 0, a: 1}
-  intensidad: 1.75
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 116
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1001 &1560208025
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -113662,6 +114384,64 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
   m_PrefabInstance: {fileID: 1587769837}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1571453112 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1810932575234986274, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1571453113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571453112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0, g: 0, b: 0, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+--- !u!114 &1571453114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571453112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &1575167775
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -114148,417 +114928,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
   m_PrefabInstance: {fileID: 169451002}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1585336591
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -9118693366926993606, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: b291e72fd81cda745bd36c6e536eb449, type: 2}
-    - target: {fileID: -8694560373655629715, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 951.29
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 396.33
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 150.59
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.6416738
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.7669777
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -100.167
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -6589657386906749615, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: c50e561b2b47a034383c6ec3c38cdc26, type: 2}
-    - target: {fileID: -5920728977447384169, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: b4a976f3ba51eec4488fc3fa77e2e92e, type: 2}
-    - target: {fileID: -5757885980532043036, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: -5671923342667520029, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 42564a4115a78144fb4d2ebb72140a45, type: 2}
-    - target: {fileID: -5511410796571904593, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: -5186839664662590622, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: -4290045746927621109, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 7eb5735393643db43a9c3468eb739aff, type: 2}
-    - target: {fileID: -2036595649883248709, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: -1947504806407611137, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: -1619373599517562961, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: e68449ef40c1f3b4ba5d493462de5585, type: 2}
-    - target: {fileID: 919132149155446097, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Name
-      value: NaveFinal
-      objectReference: {fileID: 0}
-    - target: {fileID: 1101764779994837417, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 35781cfc64849ac46b4009f9772b924f, type: 2}
-    - target: {fileID: 1885289344585989766, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 130b4637365e3bc4084200559ae77406, type: 2}
-    - target: {fileID: 1978032375247127529, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 4b8c342e66e20c14e9028fe0ad590243, type: 2}
-    - target: {fileID: 2337196714574596666, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: fc156f1363def104089c1d13fc095382, type: 2}
-    - target: {fileID: 2666145200717739853, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 2977799957580456706, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 3844032977419048603, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 4167449723861175593, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 4204552745872690332, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 68582a15d5ee62545ab2038805c812d9, type: 2}
-    - target: {fileID: 4456378081905511105, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 5127834475426374871, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 6758084549641441436, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: b57e34f7eec4d644d8924748b692fa00, type: 2}
-    - target: {fileID: 6767464124551071056, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 665e6fb5cd132de448832c4ef841b958, type: 2}
-    - target: {fileID: 8068885481399679418, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 3efab0dfce733d446974e2635850c3da, type: 2}
-    - target: {fileID: 8956696273794343955, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    - target: {fileID: 9108850100130976223, guid: 897b483dce626474bb0200c887923935, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1606572544328987532, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1585336610}
-    - targetCorrespondingSourceObject: {fileID: -2777157071394848393, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1585336609}
-    - targetCorrespondingSourceObject: {fileID: -7715621639509951820, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1585336608}
-    - targetCorrespondingSourceObject: {fileID: -911581301745638370, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1585336607}
-    - targetCorrespondingSourceObject: {fileID: 3473300871506507329, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1585336606}
-    - targetCorrespondingSourceObject: {fileID: -2221214417826669221, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 658896354}
-    - targetCorrespondingSourceObject: {fileID: 8792118682054100069, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 385994505}
-    - targetCorrespondingSourceObject: {fileID: 5905201820650963627, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 137929961}
-    - targetCorrespondingSourceObject: {fileID: 6630359627813455829, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1844964703}
-    - targetCorrespondingSourceObject: {fileID: -4836818839904533337, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 123135063}
-    - targetCorrespondingSourceObject: {fileID: 4301841349254368976, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 50562235}
-    - targetCorrespondingSourceObject: {fileID: 3053190131287625101, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 802774630}
-    - targetCorrespondingSourceObject: {fileID: -4063280982587281109, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 484364976}
-    - targetCorrespondingSourceObject: {fileID: 396501452822871031, guid: 897b483dce626474bb0200c887923935, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1176000829}
-  m_SourcePrefab: {fileID: 100100000, guid: 897b483dce626474bb0200c887923935, type: 3}
---- !u!1 &1585336592 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 396501452822871031, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336593 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -4063280982587281109, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336594 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3053190131287625101, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336595 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4301841349254368976, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336596 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -4836818839904533337, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336597 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6630359627813455829, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336598 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5905201820650963627, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336599 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8792118682054100069, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336600 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -2221214417826669221, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336601 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3473300871506507329, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336602 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -911581301745638370, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336603 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -7715621639509951820, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336604 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -2777157071394848393, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1585336605 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1606572544328987532, guid: 897b483dce626474bb0200c887923935, type: 3}
-  m_PrefabInstance: {fileID: 1585336591}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1585336606
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336601}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
---- !u!114 &1585336607
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336602}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
---- !u!114 &1585336608
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336603}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
---- !u!114 &1585336609
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336604}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
---- !u!114 &1585336610
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336605}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!4 &1585355336 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
@@ -121096,12 +121465,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 0, g: 1, b: 1, a: 1}
-  intensidad: 3
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 40.1
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1 &1664253827
 GameObject:
   m_ObjectHideFlags: 0
@@ -122828,6 +123199,106 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 12d44c4dcafe2b94e84cc4fbb17cb27e, type: 3}
   m_PrefabInstance: {fileID: 848543651}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1684303380 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -3575822069440562721, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1684303381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684303380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+--- !u!114 &1684303382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684303380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 3eeaa346935632c4194e4a7cbca0a0f2, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
+  - indiceMaterial: 2
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 5c61e73b6d28f6b4cac8716a0159f28c, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
+--- !u!1 &1684834672 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -186462535628052124, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1684834673 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7055437169518503060, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1684834674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684834672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: efb76e4726f27ec4fba71e43fda19483, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!1001 &1684995428
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -123574,12 +124045,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.5
-  grosorOutline: 0.33
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 0.5
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!4 &1694735747 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
@@ -124377,12 +124850,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1705294368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126226,6 +126701,37 @@ MonoBehaviour:
     modificarSombras: 1
     shadowPower: 1
     shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
+    shadowSharpness: 0
+--- !u!1 &1733531009 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2896209775517506481, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+  m_PrefabInstance: {fileID: 1922831668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1733531011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733531009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 0.16470589, g: 0.17254902, b: 0.19215688, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 1
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
 --- !u!1001 &1735522886
 PrefabInstance:
@@ -134470,32 +134976,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4865889836085526990, guid: b69765f35a97e47459a59f29206940b4, type: 3}
   m_PrefabInstance: {fileID: 849136691}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1844964703
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585336597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
-    selfShadingSize: 0.5
-    edgeSize: 0.05
-    localizedShading: 1
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 0
-    shadowPower: 0
-    shadowColor: {r: 0, g: 0, b: 0, a: 0}
-    shadowSharpness: 0
 --- !u!198 &1845023917 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 7759731017824070096, guid: fa395f48f30edd24a89b561e66c37035, type: 3}
@@ -140080,6 +140560,385 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1001 &1922831668
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8900123607238129932, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 950.83
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 396.51
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 150.88
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.6087614
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7933534
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -105
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8595550868574150904, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.20944206
+      objectReference: {fileID: 0}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.64315814
+      objectReference: {fileID: 0}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.6524445
+      objectReference: {fileID: 0}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.34175685
+      objectReference: {fileID: 0}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -45.673
+      objectReference: {fileID: 0}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -166.231
+      objectReference: {fileID: 0}
+    - target: {fileID: -7997055348129334882, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -95
+      objectReference: {fileID: 0}
+    - target: {fileID: -7494242068073011628, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -6083654010429570570, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -6083654010429570570, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -5664439535792914228, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5664439535792914228, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -5664439535792914228, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -4683669308469848369, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -4683669308469848369, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -3994436727464408709, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -3892123835401401920, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -2741225272503371561, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.81
+      objectReference: {fileID: 0}
+    - target: {fileID: -2741225272503371561, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.255
+      objectReference: {fileID: 0}
+    - target: {fileID: -2741225272503371561, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.734
+      objectReference: {fileID: 0}
+    - target: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: -2490629663601008576, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2180550323264046965, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -2180550323264046965, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -2180550323264046965, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -2180550323264046965, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -1624462857607113674, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -611499275851677092, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -588779772015104198, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -588779772015104198, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -271391155205126742, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -271391155205126742, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: 490939697822461851, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 919132149155446097, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_Name
+      value: NaveFinal
+      objectReference: {fileID: 0}
+    - target: {fileID: 1853752070349723638, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 3592671624902865896, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 3711260996147657130, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3711260996147657130, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: 3711260996147657130, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 3711260996147657130, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 5334037119324981776, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -5495902117074765545, guid: ddc905dcde5d50640814121c8ad502b0, type: 3}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.18176709
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.013361963
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9077509
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.37784982
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -43.697
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 153.739
+      objectReference: {fileID: 0}
+    - target: {fileID: 5700068421082330267, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6136698512906446090, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 421759309250123084, guid: ddc905dcde5d50640814121c8ad502b0, type: 3}
+    - target: {fileID: 6714447801493756634, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 7071182760956848314, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 7907757386978690077, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3278312233573616325, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 730212274}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 238560948}
+    - targetCorrespondingSourceObject: {fileID: 8128292223016770763, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1368103226}
+    - targetCorrespondingSourceObject: {fileID: -5192281034274402202, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 590909002}
+    - targetCorrespondingSourceObject: {fileID: 6416597835732159994, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 678013208}
+    - targetCorrespondingSourceObject: {fileID: 6416597835732159994, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 678013207}
+    - targetCorrespondingSourceObject: {fileID: -4620488394884487368, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 250050492}
+    - targetCorrespondingSourceObject: {fileID: -385765932603881883, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1166180907}
+    - targetCorrespondingSourceObject: {fileID: -2896209775517506481, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1733531011}
+    - targetCorrespondingSourceObject: {fileID: -3575822069440562721, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1684303382}
+    - targetCorrespondingSourceObject: {fileID: -3575822069440562721, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1684303381}
+    - targetCorrespondingSourceObject: {fileID: -3585801068117093322, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 597668933}
+    - targetCorrespondingSourceObject: {fileID: -3585801068117093322, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 597668932}
+    - targetCorrespondingSourceObject: {fileID: 1897968116345473428, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 973597568}
+    - targetCorrespondingSourceObject: {fileID: 1897968116345473428, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 973597567}
+    - targetCorrespondingSourceObject: {fileID: -1624462857607113674, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 479082614}
+    - targetCorrespondingSourceObject: {fileID: 993631201529239896, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 317713707}
+    - targetCorrespondingSourceObject: {fileID: -8900123607238129932, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 389462189}
+    - targetCorrespondingSourceObject: {fileID: -8900123607238129932, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 389462188}
+    - targetCorrespondingSourceObject: {fileID: -8900123607238129932, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 389462193}
+    - targetCorrespondingSourceObject: {fileID: -8900123607238129932, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 389462192}
+    - targetCorrespondingSourceObject: {fileID: 3219454903392260087, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1357211758}
+    - targetCorrespondingSourceObject: {fileID: -7705670468958693459, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1293417159}
+    - targetCorrespondingSourceObject: {fileID: -186462535628052124, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1684834674}
+    - targetCorrespondingSourceObject: {fileID: -1810932575234986274, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1571453114}
+    - targetCorrespondingSourceObject: {fileID: -1810932575234986274, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1571453113}
+  m_SourcePrefab: {fileID: 100100000, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
 --- !u!1001 &1923549897
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141573,12 +142432,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1952492543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141912,12 +142773,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1953311911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142067,12 +142930,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &1954656435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146383,12 +147248,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 0
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.1
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &2018480479
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157920,12 +158787,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1.082353, g: 0.26666668, b: 0.21960786, a: 1}
-  intensidad: 0.5
-  grosorOutline: 0.33
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
+    intensidad: 1.5
+    grosorOutline: 0.5
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!1 &2101275257 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7689810977577511825, guid: f2087d0ce2d2d0a479abbdcd214ebeda, type: 3}
@@ -162235,12 +163104,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
-  indiceMaterial: 1
-  colorNeon: {r: 1, g: 0.1503219, b: 0, a: 1}
-  intensidad: 0
-  grosorOutline: 1
-  cantidadZonasMuertas: 0
-  velocidadParpadeo: 0
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    intensidad: 1.5
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
 --- !u!114 &7227197441525636254
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162865,4 +163736,4 @@ SceneRoots:
   - {fileID: 609466952}
   - {fileID: 1494131322}
   - {fileID: 1500248061}
-  - {fileID: 1585336591}
+  - {fileID: 1922831668}
