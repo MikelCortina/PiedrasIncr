@@ -72,6 +72,16 @@ public class Fisionador : MonoBehaviour
     [Tooltip("Velocidad a la que el objeto expulsado crece de 0 a 1")]
     public float velocidadCrecimientoExpulsado = 3f;
 
+    [Header("Físicas del Objeto Expulsado")]
+    [Tooltip("Activa esto si quieres que el objeto salga disparado al expulsarse.")]
+    public bool aplicarFuerzaFisica = false;
+    [Tooltip("La dirección hacia donde saldrá disparado (Local al Punto de Expulsión)")]
+    public Vector3 direccionExpulsion = Vector3.up;
+    [Tooltip("Fuerza con la que saldrá disparado (Impulso)")]
+    public float fuerzaExpulsion = 10f;
+    [Tooltip("Fuerza de rotación aleatoria que se le aplicará al salir")]
+    public float fuerzaRotacionRandom = 5f;
+
     // --- Variables de Estado Internas ---
     private int nivelActual = 0;
     private int piedrasActuales = 0;
@@ -201,7 +211,7 @@ public class Fisionador : MonoBehaviour
         if (niveles[nivelActual].prefabAExpulsar != null && puntoExpulsion != null)
         {
             GameObject expulsado = Instantiate(niveles[nivelActual].prefabAExpulsar, puntoExpulsion.position, puntoExpulsion.rotation);
-            StartCoroutine(RutinaCrecimiento(expulsado.transform));
+            StartCoroutine(RutinaCrecimientoYExpulsion(expulsado));
         }
 
         if (objetoSecundario != null)
@@ -246,11 +256,13 @@ public class Fisionador : MonoBehaviour
         }
     }
 
-    private IEnumerator RutinaCrecimiento(Transform objetivo)
+    private IEnumerator RutinaCrecimientoYExpulsion(GameObject objetoExpulsado)
     {
+        Transform objetivo = objetoExpulsado.transform;
         Vector3 escalaFinal = objetivo.localScale;
         objetivo.localScale = Vector3.zero;
 
+        // Fase 1: Crecimiento
         float t = 0f;
         while (t < 1f)
         {
@@ -264,6 +276,25 @@ public class Fisionador : MonoBehaviour
         if (objetivo != null)
         {
             objetivo.localScale = escalaFinal;
+
+            // Fase 2: Aplicar físicas (si está activado) una vez ha crecido del todo
+            if (aplicarFuerzaFisica)
+            {
+                Rigidbody rb = objetoExpulsado.GetComponent<Rigidbody>();
+                if (rb == null) rb = objetoExpulsado.AddComponent<Rigidbody>();
+
+                // Calculamos la dirección basándonos en la rotación del punto de expulsión
+                Vector3 direccionMundo = puntoExpulsion != null ? puntoExpulsion.TransformDirection(direccionExpulsion.normalized) : direccionExpulsion.normalized;
+
+                rb.AddForce(direccionMundo * fuerzaExpulsion, ForceMode.Impulse);
+
+                Vector3 torqueAleatorio = new Vector3(
+                    Random.Range(-fuerzaRotacionRandom, fuerzaRotacionRandom),
+                    Random.Range(-fuerzaRotacionRandom, fuerzaRotacionRandom),
+                    Random.Range(-fuerzaRotacionRandom, fuerzaRotacionRandom)
+                );
+                rb.AddTorque(torqueAleatorio, ForceMode.Impulse);
+            }
         }
     }
 }

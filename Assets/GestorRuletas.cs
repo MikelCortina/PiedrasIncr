@@ -11,6 +11,9 @@ public class GestorRuletasFPS : MonoBehaviour
     public float distanciaInteraccion = 3f;
     public float sensibilidadGiro = 1f;
 
+    [Tooltip("Sensibilidad para arrastrar palancas al mirar hacia abajo")]
+    public float sensibilidadArrastre = 100f;
+
     [Header("UI Mirilla")]
     public Image imagenMirilla;
     public Sprite mirillaPorDefecto;
@@ -24,8 +27,12 @@ public class GestorRuletasFPS : MonoBehaviour
     private Vector3 escalaObjetivoMirilla;
 
     private RuletaInteractiva ruletaActiva = null;
-    private RuletaInteractivaGasoil ruletaGasoilActiva = null; // NUEVA VARIABLE
+    private RuletaInteractivaGasoil ruletaGasoilActiva = null;
     private float anguloPantallaAnterior;
+
+    // --- NUEVAS VARIABLES PARA LA PALANCA ---
+    private PalancaTirador palancaActiva = null;
+    private float desplazamientoYAcumulado = 0f;
 
     void Start()
     {
@@ -47,18 +54,17 @@ public class GestorRuletasFPS : MonoBehaviour
         // =========================================================
         // 1. ¿DEBEMOS MOSTRAR LA MIRILLA INTERACTIVA?
         // =========================================================
-        if (ruletaActiva != null || ruletaGasoilActiva != null)
+        if (ruletaActiva != null || ruletaGasoilActiva != null || palancaActiva != null)
         {
-            // Si estamos agarrando CUALQUIER ruleta, forzamos el icono encendido
             mirandoInteractuable = true;
         }
         else if (impacto)
         {
-            // Si no estamos agarrando nada, miramos a ver qué tenemos delante
             if (hit.collider.GetComponent<RuletaInteractiva>() != null ||
-                hit.collider.GetComponent<RuletaInteractivaGasoil>() != null || // Añadido
+                hit.collider.GetComponent<RuletaInteractivaGasoil>() != null ||
                 hit.collider.GetComponent<BotonTuberia>() != null ||
-                hit.collider.GetComponentInParent<VentiladorPiedras>() != null)
+                hit.collider.GetComponentInParent<VentiladorPiedras>() != null ||
+                hit.collider.GetComponent<PalancaTirador>() != null)
             {
                 mirandoInteractuable = true;
             }
@@ -100,9 +106,9 @@ public class GestorRuletasFPS : MonoBehaviour
         {
             if (impacto)
             {
-                // Intentamos coger la ruleta que hayamos mirado
                 ruletaActiva = hit.collider.GetComponent<RuletaInteractiva>();
                 ruletaGasoilActiva = hit.collider.GetComponent<RuletaInteractivaGasoil>();
+                palancaActiva = hit.collider.GetComponent<PalancaTirador>();
 
                 if (ruletaActiva != null)
                 {
@@ -111,6 +117,12 @@ public class GestorRuletasFPS : MonoBehaviour
                 else if (ruletaGasoilActiva != null)
                 {
                     anguloPantallaAnterior = CalcularAnguloCircular(ruletaGasoilActiva.transform, centroPantalla);
+                }
+                else if (palancaActiva != null)
+                {
+                    // Reiniciamos el acumulador al enganchar la palanca
+                    desplazamientoYAcumulado = 0f;
+                    palancaActiva.IniciarArrastre();
                 }
                 else
                 {
@@ -133,13 +145,18 @@ public class GestorRuletasFPS : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            // Soltamos cualquier ruleta que estuviéramos agarrando
             ruletaActiva = null;
             ruletaGasoilActiva = null;
+
+            if (palancaActiva != null)
+            {
+                palancaActiva.SoltarArrastre();
+                palancaActiva = null;
+            }
         }
 
         // =========================================================
-        // 4. LÓGICA DE GIRO
+        // 4. LÓGICA DE GIRO (RULETAS) Y ARRASTRE (PALANCAS)
         // =========================================================
         if (ruletaActiva != null && Input.GetMouseButton(0))
         {
@@ -163,9 +180,19 @@ public class GestorRuletasFPS : MonoBehaviour
                 anguloPantallaAnterior = anguloActual;
             }
         }
+        else if (palancaActiva != null && Input.GetMouseButton(0))
+        {
+            // Usamos Input.GetAxis("Mouse Y") para detectar el movimiento de la mirada.
+            // Al mirar hacia abajo, Mouse Y es negativo, así que lo restamos para que sume al arrastre.
+            desplazamientoYAcumulado -= Input.GetAxis("Mouse Y") * sensibilidadArrastre;
+
+            // Limitamos a que no pueda empujar hacia arriba de la posición original
+            desplazamientoYAcumulado = Mathf.Max(0f, desplazamientoYAcumulado);
+
+            palancaActiva.ActualizarArrastre(desplazamientoYAcumulado);
+        }
     }
 
-    // Usamos 'Transform' en lugar de la clase directa para que sirva para cualquier tipo de ruleta
     float CalcularAnguloCircular(Transform transformRuleta, Vector2 mirilla)
     {
         Vector3 centroRuletaEnPantalla = camaraPrincipal.WorldToScreenPoint(transformRuleta.position);
