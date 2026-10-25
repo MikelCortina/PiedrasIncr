@@ -1,4 +1,4 @@
-﻿Shader "FlatKit/GradientSkybox" {
+﻿Shader "FlatKit/GradientSkybox_Stars" {
 
     Properties {
         _Color2 ("Top Color", Color) = (0.97, 0.67, 0.51, 0)
@@ -17,6 +17,13 @@
 
         [HideInInspector]
         _Direction ("Direction", Vector) = (0, 1, 0, 0)
+
+        // --- NUEVAS PROPIEDADES PARA LAS ESTRELLAS ---
+        [Space(20)]
+        [Header(Stars)]
+        [HDR] _StarColor ("Star Color (HDR for Bloom)", Color) = (1, 1, 1, 1)
+        _StarDensity ("Star Density", Range(0, 1)) = 0.1
+        _StarSize ("Star Size", Range(50, 1500)) = 500
     }
 
     CGINCLUDE
@@ -42,6 +49,16 @@
     half _Exponent;
     half _NoiseIntensity;
 
+    // Variables de las estrellas
+    half4 _StarColor;
+    half _StarDensity;
+    half _StarSize;
+
+    // Función matemática para generar ruido aleatorio en 3D
+    float rand3d(float3 p) {
+        return frac(sin(dot(p, float3(12.9898, 78.233, 45.164))) * 43758.5453);
+    }
+
     v2f vert (appdata v) {
         v2f o;
         UNITY_SETUP_INSTANCE_ID(v);
@@ -52,10 +69,29 @@
     }
 
     fixed4 frag (v2f i) : COLOR {
-        const half d = dot(normalize(i.texcoord), _Direction) * 0.5f + 0.5f;
+        float3 viewDir = normalize(i.texcoord);
+
+        // 1. Lógica original del gradiente del cielo
+        const half d = dot(viewDir, _Direction) * 0.5f + 0.5f;
         float t = pow(d, _Exponent);
         t += frac(sin(dot(t, float4(12.9898, 78.233, 45.164, 94.673))) * 43758.5453) * _NoiseIntensity;
-        return lerp(_Color1, _Color2, t) * _Intensity;
+        fixed4 skyColor = lerp(_Color1, _Color2, t) * _Intensity;
+
+        // 2. Lógica de las estrellas procedurales
+        // Dividimos el cielo en una cuadrícula virtual basada en _StarSize
+        float3 grid = floor(viewDir * _StarSize);
+        float randomVal = rand3d(grid);
+
+        // Ajustamos la densidad para que un valor de 0 a 1 sea intuitivo (máximo 10% del cielo cubierto para no cegar)
+        float threshold = 1.0 - (_StarDensity * 0.1); 
+
+        // smoothstep hace que algunas estrellas brillen mucho y otras queden tenues (más realista)
+        float starBrightness = smoothstep(threshold, 1.0, randomVal);
+
+        // 3. Sumamos las estrellas al color del cielo
+        fixed4 finalColor = skyColor + (starBrightness * _StarColor);
+
+        return finalColor;
     }
 
     ENDCG
@@ -75,5 +111,8 @@
         }
     }
 
+    // ADVERTENCIA SOBRE EL INSPECTOR:
+    // Si FlatKit oculta las nuevas variables de las estrellas en el inspector,
+    // ponle dos barras delante a la línea de abajo (// CustomEditor) para usar el inspector normal de Unity.
     CustomEditor "GradientSkyboxEditor"
 }

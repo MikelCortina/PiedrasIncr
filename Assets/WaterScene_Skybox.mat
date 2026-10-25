@@ -80,6 +80,8 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _StarDensity: 0.021
+    - _StarSize: 300
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
@@ -88,5 +90,6 @@ Material:
     - _Color2: {r: 0.14538093, g: 0.30971265, b: 0.31132078, a: 1}
     - _Direction: {r: 0.15242507, g: 0.98768836, b: -0.03519009, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _StarColor: {r: 4, g: 4, b: 4, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
