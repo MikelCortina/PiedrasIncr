@@ -60817,7 +60817,7 @@ MonoBehaviour:
   velocidadGiro: 10
   margenFijacion: 10
   cadenciaDisparo: 3
-  alcance: 773.4
+  alcance: 750
   grosorLaser: 2
   capaAsteroides:
     serializedVersion: 2
@@ -121140,13 +121140,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1613100068}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.000024331546, y: 0.17537722, z: 0.074759506}
+  m_LocalRotation: {x: -0.5313751, y: 5.3734798e-14, z: 0.000000046454243, w: 0.8471367}
+  m_LocalPosition: {x: -0.00017, y: 0.17538, z: 0.07476}
   m_LocalScale: {x: 0.31893703, y: 3.1304097, z: 0.2598815}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1866032346}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -64.197, y: 0, z: 0}
 --- !u!1001 &1613948274
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141950,21 +141950,21 @@ MonoBehaviour:
   monedasAportadas: 0
   nivel1:
     cadenciaDisparo: 1
-    alcance: 300
+    alcance: 750
     velocidadGiro: 10
     velocidadMaximaProyectil: 150
     piezasViejas: []
     piezasNuevas: []
   nivel2:
     cadenciaDisparo: 0.75
-    alcance: 350
+    alcance: 750
     velocidadGiro: 12
     velocidadMaximaProyectil: 185
     piezasViejas: []
     piezasNuevas: []
   nivel3:
     cadenciaDisparo: 0.5
-    alcance: 400
+    alcance: 750
     velocidadGiro: 15
     velocidadMaximaProyectil: 220
     piezasViejas: []

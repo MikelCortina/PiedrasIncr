@@ -619,8 +619,11 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         if (pieza != null)
         {
             float umbralCero = escalaOriginal.magnitude * 0.05f + 0.01f;
-            while (pieza != null && pieza.transform.localScale.magnitude > umbralCero)
+            // Añado un contador de seguridad para forzar la salida si se atasca
+            float tiempoSeguridad = 0f;
+            while (pieza != null && pieza.transform.localScale.magnitude > umbralCero && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, Vector3.zero, Time.deltaTime * velocidadDesaparicion);
                 yield return null;
             }
@@ -636,17 +639,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         {
             Vector3 escalaRebote = escalaFinal * (1f + intensidadReboteArma);
 
+            float tiempoSeguridad = 0f;
             float umbralRebote = escalaRebote.magnitude * 0.02f + 0.01f;
-            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaRebote) > umbralRebote)
+            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaRebote) > umbralRebote && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaRebote, Time.deltaTime * velocidadAparicion);
                 yield return null;
             }
             if (pieza != null) pieza.transform.localScale = escalaRebote;
 
+            tiempoSeguridad = 0f;
             float umbralFinalPieza = escalaFinal.magnitude * 0.02f + 0.01f;
-            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaFinal) > umbralFinalPieza)
+            while (pieza != null && Vector3.Distance(pieza.transform.localScale, escalaFinal) > umbralFinalPieza && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 pieza.transform.localScale = Vector3.Lerp(pieza.transform.localScale, escalaFinal, Time.deltaTime * velocidadReboteArma);
                 yield return null;
             }
@@ -678,17 +685,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
 
             Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
+            float tiempoSeguridad = 0f;
 
-            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
+            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadBloopAntena * 2f);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
 
+            tiempoSeguridad = 0f;
             float umbralAntena = escalaOriginalAntena.magnitude * 0.05f + 0.01f;
-            while (antenaVisual.localScale.magnitude > umbralAntena)
+            while (antenaVisual.localScale.magnitude > umbralAntena && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, Vector3.zero, Time.deltaTime * velocidadDesaparicion);
                 yield return null;
             }
@@ -708,7 +719,15 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
                 float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
-            while (piezasEnAnimacion > 0) yield return null;
+
+            float timeoutTotal = 0f;
+            while (piezasEnAnimacion > 0 && timeoutTotal < 3f)
+            {
+                timeoutTotal += Time.deltaTime;
+                yield return null;
+            }
+            // Forzamos el reset por si alguna corrutina falló
+            piezasEnAnimacion = 0;
         }
 
         // FASE 2.5: Antena renace y resetea su LED
@@ -721,17 +740,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
 
             Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
+            float tiempoSeguridad = 0f;
 
-            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
+            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadAparicion);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
 
-            float umbralFinalAntena = escalaOriginalAntena.magnitude * 0.02f + 0.01f;
-            while (Vector3.Distance(antenaVisual.localScale, escalaOriginalAntena) > umbralFinalAntena)
+            tiempoSeguridad = 0f;
+            float floatUmbralFinal = escalaOriginalAntena.magnitude * 0.02f + 0.01f;
+            while (Vector3.Distance(antenaVisual.localScale, escalaOriginalAntena) > floatUmbralFinal && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaOriginalAntena, Time.deltaTime * velocidadBloopAntena);
                 yield return null;
             }
@@ -741,7 +764,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         // FASE 3: Arma aparece en cascada
         if (partesArmaDesbloqueada != null && partesArmaDesbloqueada.Length > 0)
         {
-            if (partesArmaDesbloqueada[0] != null)
+            if (partesArmaDesbloqueada[0] != null && escalasOriginales.ContainsKey(partesArmaDesbloqueada[0]))
             {
                 partesArmaDesbloqueada[0].SetActive(true);
                 partesArmaDesbloqueada[0].transform.localScale = escalasOriginales[partesArmaDesbloqueada[0]];
@@ -762,10 +785,20 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
                 float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
-            while (piezasEnAnimacion > 0) yield return null;
+
+            float timeoutTotal = 0f;
+            while (piezasEnAnimacion > 0 && timeoutTotal < 3f)
+            {
+                timeoutTotal += Time.deltaTime;
+                yield return null;
+            }
+            piezasEnAnimacion = 0;
         }
 
         enTransicion = false;
+
+        // Cierre de seguridad: si algo falló, forzamos que el aspecto sea el correcto.
+        SincronizarAspecto(false);
     }
 
     private IEnumerator AnimarMejora(EstadisticasNivel nivelNuevo)
@@ -782,17 +815,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
 
             Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
+            float tiempoSeguridad = 0f;
 
-            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
+            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadBloopAntena * 2f);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
 
+            tiempoSeguridad = 0f;
             float umbralAntena = escalaOriginalAntena.magnitude * 0.05f + 0.01f;
-            while (antenaVisual.localScale.magnitude > umbralAntena)
+            while (antenaVisual.localScale.magnitude > umbralAntena && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, Vector3.zero, Time.deltaTime * velocidadDesaparicion);
                 yield return null;
             }
@@ -812,7 +849,14 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
                 float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
-            while (piezasEnAnimacion > 0) yield return null;
+
+            float timeoutTotal = 0f;
+            while (piezasEnAnimacion > 0 && timeoutTotal < 3f)
+            {
+                timeoutTotal += Time.deltaTime;
+                yield return null;
+            }
+            piezasEnAnimacion = 0;
         }
 
         // FASE 3: Antena renace
@@ -825,17 +869,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
 
             Vector3 escalaBloopAntena = escalaOriginalAntena * multiplicadorBloopAntena;
             float umbralBloopAntena = escalaBloopAntena.magnitude * 0.02f + 0.01f;
+            float tiempoSeguridad = 0f;
 
-            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena)
+            while (Vector3.Distance(antenaVisual.localScale, escalaBloopAntena) > umbralBloopAntena && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaBloopAntena, Time.deltaTime * velocidadAparicion);
                 yield return null;
             }
             antenaVisual.localScale = escalaBloopAntena;
 
+            tiempoSeguridad = 0f;
             float floatUmbralFinal = escalaOriginalAntena.magnitude * 0.02f + 0.01f;
-            while (Vector3.Distance(antenaVisual.localScale, escalaOriginalAntena) > floatUmbralFinal)
+            while (Vector3.Distance(antenaVisual.localScale, escalaOriginalAntena) > floatUmbralFinal && tiempoSeguridad < 2f)
             {
+                tiempoSeguridad += Time.deltaTime;
                 antenaVisual.localScale = Vector3.Lerp(antenaVisual.localScale, escalaOriginalAntena, Time.deltaTime * velocidadBloopAntena);
                 yield return null;
             }
@@ -859,9 +907,19 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
                 float tiempoEspera = Mathf.Lerp(0.01f, 0.2f, porcentajeCascada);
                 yield return new WaitForSeconds(tiempoEspera);
             }
-            while (piezasEnAnimacion > 0) yield return null;
+
+            float timeoutTotal = 0f;
+            while (piezasEnAnimacion > 0 && timeoutTotal < 3f)
+            {
+                timeoutTotal += Time.deltaTime;
+                yield return null;
+            }
+            piezasEnAnimacion = 0;
         }
 
         enTransicion = false;
+
+        // Cierre de seguridad.
+        SincronizarAspecto(false);
     }
 }
