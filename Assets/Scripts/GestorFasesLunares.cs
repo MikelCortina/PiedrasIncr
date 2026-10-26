@@ -389,4 +389,12 @@ public class GestorFasesLunares : MonoBehaviour
             lluviaMeteoritos.ActivarLluvia(fase.lluviaActiva);
         }
     }
+
+    public void DispararMisilDesdeCargador()
+    {
+        if (!enTransicion && fases != null && faseActual < fases.Length - 1)
+        {
+            StartCoroutine(RutinaLanzarMisilMortero());
+        }
+    }
 }
