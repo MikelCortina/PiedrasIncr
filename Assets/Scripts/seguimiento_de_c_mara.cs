@@ -228,4 +228,15 @@ public class CamaraPrimeraPersona : MonoBehaviour
     {
         return camaraBloqueadaPorUI;
     }
+
+    public void RestaurarTrasIntro(Vector3 posicion, Quaternion rotacion)
+    {
+        transform.localPosition = posicion;
+        transform.localRotation = rotacion;
+
+        posicionYOriginal = posicion.y;
+        temporizadorBobbing = 0f;
+        inclinacionZActual = 0f;
+        rotacionX = Mathf.DeltaAngle(0f, rotacion.eulerAngles.x);
+    }
 }
