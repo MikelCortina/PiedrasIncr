@@ -1469,11 +1469,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 710f473fc9be06c4b8c197df1e32fe31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &129773978 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2819592954905116740, guid: 97adb8a311e4f3c4587ce0050f46bfa0, type: 3}
-  m_PrefabInstance: {fileID: 1093734855}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &130895383
 GameObject:
   m_ObjectHideFlags: 0
@@ -6518,9 +6513,11 @@ MonoBehaviour:
   radioDeAgarre: 0.5
   fuerzaLanzamiento: 100
   puntoAgarre: {fileID: 594678036}
-  capaPiedra:
+  capaInteraccion:
     serializedVersion: 2
-    m_Bits: 5632
+    m_Bits: 0
+  puntoAgarreMisil: {fileID: 0}
+  velocidadRotacionMisilY: 180
   sonidoLanzamiento: {fileID: 8300000, guid: 146b09968489530408e41ce8a1412321, type: 3}
   volumenLanzamiento: 1
 --- !u!82 &584387205
@@ -6633,6 +6630,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   modeloMartillo: {fileID: 0}
+  inventarioEdificios: {fileID: 0}
   edificios:
   - nombre: Rampa
     tipo: 0
@@ -6693,6 +6691,7 @@ MonoBehaviour:
   velocidadCurvatura: 3
   curvaturaMaxima: 3
   modoConstruccion: 0
+  edificioApuntado: {fileID: 0}
 --- !u!114 &584387207
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22317,6 +22316,8 @@ MonoBehaviour:
   distanciaMaximaReal: 5
   elementosUIExtras: []
   velocidadPopUI: 15
+  velocidadRespiracion: 4
+  amplitudRespiracion: 0.08
   velocidadTransicion: 10
   velocidadRotacion: 150
   intensidadDelay: 15
@@ -22374,11 +22375,6 @@ MonoBehaviour:
     shadowPower: 0
     shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
---- !u!23 &917035634 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -4683669308469848369, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
-  m_PrefabInstance: {fileID: 2134075890}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &924720643
 GameObject:
   m_ObjectHideFlags: 0
@@ -22582,9 +22578,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43df3868a593d224180f801f1e157cb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maquinaErosion: {fileID: 1995621683}
   ruinasVisual: {fileID: 0}
+  partesRuinas: []
   maquinaDesbloqueada: {fileID: 0}
+  piezasMaquinaBase: []
+  maquinaErosion: {fileID: 1995621683}
+  piezasNivel2:
+    piezasViejas: []
+    piezasNuevas: []
+  piezasNivel3:
+    piezasViejas: []
+    piezasNuevas: []
   monedasNecesarias: 20
   monedasRecibidas: 0
   precioNivel2: 10
@@ -22598,14 +22602,28 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   sonidoMoneda: {fileID: 0}
   sonidoDesbloqueo: {fileID: 0}
-  objetosSoloDesbloqueada:
-  - {fileID: 129773978}
-  renderersProcesadora:
-  - {fileID: 917035634}
-  - {fileID: 1219950022}
-  - {fileID: 1368589852}
-  - {fileID: 1713383939}
-  materialBloqueado: {fileID: 2100000, guid: 1adf9321c1dc1014c917f5f849aa402e, type: 2}
+  sonidoMejora: {fileID: 0}
+  antenaVisual: {fileID: 0}
+  ledAntena: {fileID: 0}
+  colorInicio: {r: 1, g: 0, b: 0, a: 1}
+  colorFinal: {r: 0, g: 1, b: 0, a: 1}
+  intensidadInicio: 1
+  intensidadFinal: 5
+  textoPantallaAntena: {fileID: 0}
+  velocidadNumerosPantalla: 15
+  formatoNumeros: 0
+  multiplicadorBloopAntena: 1.15
+  velocidadBloopAntena: 15
+  multiplicadorBloopEstructura: 1.05
+  velocidadBloopEstructura: 12
+  fuerzaImpactoMoneda: 1500
+  rigidezAntena: 250
+  amortiguacionAntena: 15
+  velocidadDesaparicion: 10
+  velocidadAparicion: 15
+  porcentajeCascada: 0.5
+  velocidadReboteArma: 12
+  intensidadReboteArma: 0.15
 --- !u!1 &936726801
 GameObject:
   m_ObjectHideFlags: 0
@@ -23020,12 +23038,9 @@ MonoBehaviour:
   amortiguacionBalanceo: 3.5
   prefabVFXImpacto: {fileID: 67868443219145571, guid: 12bb6bc30d155b44b8e0f7b7308aae1b, type: 3}
   offsetSuperficieVFX: 0.08
-  rendererVisual: {fileID: 1992026857}
-  propiedadColor: _Color
+  controladorNeon: {fileID: 0}
   tiempoCooldown: 3
-  colorDescargado: {r: 1, g: 0.47450984, b: 0.992895, a: 1}
   intensidadDescargado: 1
-  colorListo: {r: 1, g: 0.47450984, b: 0.9739366, a: 1}
   intensidadListoMin: 1
   intensidadListoMax: 4
   velocidadOscilacion: 5
@@ -23042,6 +23057,8 @@ MonoBehaviour:
   psBurst: {fileID: 1647889297}
   prefabPiedra: {fileID: 6288764415059956693, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
   puntoSalidaPiedra: {fileID: 1782913426}
+  piedrasPorActivacion: 1
+  intervaloEntrePiedras: 0.12
   direccionDeTiro: {x: 0, y: 1, z: 1}
   direccionLocal: 1
   fuerzaLanzamiento: 75
@@ -30399,11 +30416,6 @@ MonoBehaviour:
     shadowPower: 0
     shadowColor: {r: 0, g: 0, b: 0, a: 0}
     shadowSharpness: 0
---- !u!23 &1219950022 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 882129737928793925, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
-  m_PrefabInstance: {fileID: 2134075890}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1223553833
 GameObject:
   m_ObjectHideFlags: 0
@@ -38598,11 +38610,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1986798280}
   m_CullTransparentMesh: 1
---- !u!23 &1992026857 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8508524983645767891, guid: 2e3726af24bc1a04f8e75d8591cd0ca4, type: 3}
-  m_PrefabInstance: {fileID: 1034210330}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1995621681 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 505016689cbf9bb4e9549ed63746d8a7, type: 3}
@@ -39457,6 +39464,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   teclaEquipar: 51
   teclaDisparo: 323
+  teclaAspirar: 324
+  distanciaMaximaAspiracion: 15
+  anguloAspiracion: 30
+  velocidadAspiracion: 25
+  distanciaRecoleccion: 0.5
+  velocidadRotacionMin: 400
+  velocidadRotacionMax: 1000
+  capaMonedas:
+    serializedVersion: 2
+    m_Bits: 0
   modeloArma: {fileID: 1614843567}
   puntoDisparo: {fileID: 567912684}
   prefabProyectil: {fileID: 7882763434476444921, guid: 2053c5e8ccfa4d5489282ea561c793dd, type: 3}
@@ -39491,6 +39508,7 @@ MonoBehaviour:
   velocidadCrecimiento: 6
   tiempoInmunidad: 2
   particulasDisparo: {fileID: 0}
+  particulasAspiradora: {fileID: 0}
   audioSource: {fileID: 584387205}
   sonidoEquipar: {fileID: 0}
   sonidoDisparo: {fileID: 8300000, guid: 6628ae0a1a19ba346a46f7fb5c8b99ad, type: 3}
@@ -39616,6 +39634,7 @@ MonoBehaviour:
     m_Bits: 8187
   distanciaInteraccion: 5
   sensibilidadGiro: 0.5
+  sensibilidadArrastre: 100
   imagenMirilla: {fileID: 0}
   mirillaPorDefecto: {fileID: 0}
   mirillaInteractiva: {fileID: 0}
@@ -44621,7 +44640,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2053682294}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &2078255370
+--- !u!1001 &2057986705
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -44631,19 +44650,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6288764415059956693, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
       propertyPath: m_Name
-      value: Meteorito 1
+      value: Meteorito 1 (1)
       objectReference: {fileID: 0}
     - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 882.966
+      value: 912.38745
       objectReference: {fileID: 0}
     - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 422.69
+      value: 409.65152
       objectReference: {fileID: 0}
     - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 34.88
+      value: 62.883427
       objectReference: {fileID: 0}
     - target: {fileID: 7791753073355930466, guid: a6045cc3e6011014099dad72ac3367e2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -45624,7 +45643,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8398146504121184851, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 12
+      value: 63.67
       objectReference: {fileID: 0}
     - target: {fileID: 8398146504121184851, guid: dadb5d8481fd28c49ab5e83b940d6491, type: 3}
       propertyPath: m_LocalRotation.w
@@ -45730,4 +45749,4 @@ SceneRoots:
   - {fileID: 33539615}
   - {fileID: 806948889}
   - {fileID: 1341320751}
-  - {fileID: 2078255370}
+  - {fileID: 2057986705}
