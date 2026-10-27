@@ -40,7 +40,7 @@ public class GeneradorPiedra : MonoBehaviour
         if (usarVariacionAleatoria)
         {
             // Usamos la posición actual como semilla única para que la variante sea consistente al regenerar
-            Random.InitState(gameObject.GetInstanceID());
+            Random.InitState(transform.position.GetHashCode());
             float varFuerza = Random.Range(-rangoVariacionFuerza, rangoVariacionFuerza);
             float varEscala = Random.Range(-rangoVariacionEscala, rangoVariacionEscala);
 
