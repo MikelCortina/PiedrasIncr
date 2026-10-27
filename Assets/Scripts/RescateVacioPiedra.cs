@@ -62,8 +62,18 @@ public class RescateVacioPiedra : MonoBehaviour
     [Header("Ascenso visible")]
     [Min(0.1f)] public float velocidadAscenso = 7f;
     [Min(0.1f)] public float velocidadVueltaAlBorde = 5f;
-    [Tooltip("Se acerca a una altura extra sobre el destino, luego desciende suavemente.")]
+    [Tooltip("Arco extra sobre el borde antes de estabilizarse. La roca sigue una curva, no un trayecto en tres tramos.")]
     [Min(0f)] public float alturaExtraTrayecto = 1f;
+
+    [Header("Campo gravitatorio - trayectoria curva")]
+    [Tooltip("Desvio lateral del recorrido hacia el borde; evita que el ascenso parezca una linea recta.")]
+    [Min(0f)] public float curvaturaLateral = 1.25f;
+
+    [Tooltip("Balanceo lateral visible mientras el campo atrae la piedra. Se desvanece al llegar.")]
+    [Range(0f, 1f)] public float amplitudOscilacionLateral = 0.30f;
+
+    [Tooltip("Ciclos por segundo del balanceo lateral durante el vuelo.")]
+    [Min(0f)] public float frecuenciaOscilacionLateral = 0.85f;
 
     [Header("Frenada natural al entrar en rescate")]
     [Tooltip("Tiempo que tarda en perder suavemente la velocidad de caída. No afecta a la física normal.")]
@@ -72,9 +82,9 @@ public class RescateVacioPiedra : MonoBehaviour
     [Min(0.1f)] public float velocidadMaximaDuranteFrenado = 12f;
 
     [Header("Deslizamiento suave durante el rescate")]
-    [Tooltip("Cuánto tarda el movimiento de levitación en acelerar y frenar cerca de cada punto.")]
+    [Tooltip("Intensidad del arranque y frenada suaves en la trayectoria. 0.35 = easing completo.")]
     [Min(0.05f)] public float suavizadoMovimiento = 0.35f;
-    [Tooltip("También hace la oscilación vertical mientras sube y regresa hacia el borde.")]
+    [Tooltip("Aplica balanceo lateral y vertical mientras la piedra sigue la trayectoria curva.")]
     public bool oscilarDuranteRegreso = true;
     [Tooltip("Tiempo para introducir la oscilación sin un salto al terminar la frenada.")]
     [Min(0.05f)] public float entradaSuaveOscilacion = 0.45f;
@@ -96,11 +106,9 @@ public class RescateVacioPiedra : MonoBehaviour
     // No impide la recogida manual ni la de los bots.
     public bool ProtegidaContraGolpes => estado != Estado.Normal;
     public bool EstaRescatandose => estado == Estado.Frenando ||
-                                   estado == Estado.Subiendo ||
-                                   estado == Estado.Volviendo ||
-                                   estado == Estado.Bajando;
+                                   estado == Estado.TrayectoriaCurva;
 
-    private enum Estado { Normal, Frenando, Subiendo, Volviendo, Bajando, Flotando }
+    private enum Estado { Normal, Frenando, TrayectoriaCurva, Flotando }
     private Estado estado = Estado.Normal;
 
     private Rigidbody rb;
@@ -119,7 +127,6 @@ public class RescateVacioPiedra : MonoBehaviour
     private float proximoIntentoRescate;
     // Solo se usan mientras el rescate tiene el control del Rigidbody.
     private Vector3 posicionBaseVuelo;
-    private Vector3 velocidadSuavizada;
     private Vector3 velocidadAlEmpezarFrenado;
     private Vector3 giroAlEmpezarFrenado;
     private float tiempoFrenando;
@@ -129,8 +136,13 @@ public class RescateVacioPiedra : MonoBehaviour
     // de agarre la hace hija de la mano, cedemos el control de inmediato.
     private Transform padreAntesRescate;
     private Vector3 destino;
-    private Vector3 cimaAscenso;
-    private Vector3 cimaSobreBorde;
+    // Control de la curva cubica Bezier del rescate, en coordenadas de mundo.
+    private Vector3 inicioCurva;
+    private Vector3 controlCurva1;
+    private Vector3 controlCurva2;
+    private Vector3 lateralCurva;
+    private float tiempoCurva;
+    private float duracionCurva;
     private Vector3 puntoBorde;
     private bool encontradoBorde;
 
@@ -262,30 +274,15 @@ public class RescateVacioPiedra : MonoBehaviour
 
             if (t >= 1f)
             {
-                // La frenada ha desplazado ligeramente la piedra: el
-                // ascenso empieza desde SU POSICIÓN REAL tras frenar.
-                float alturaRuta = Mathf.Max(
-                    posicionBaseVuelo.y, destino.y + alturaExtraTrayecto);
-                cimaAscenso = new Vector3(
-                    posicionBaseVuelo.x, alturaRuta, posicionBaseVuelo.z);
-                cimaSobreBorde = new Vector3(destino.x, alturaRuta, destino.z);
-                velocidadSuavizada = Vector3.zero;
-                tiempoDesdeFrenada = 0f;
-                tiempoOscilando = 0f;
-                estado = Estado.Subiendo;
+                // Iniciamos una unica curva desde la posicion alcanzada
+                // tras perder gradualmente la velocidad de la caida.
+                PrepararTrayectoriaCurva();
+                estado = Estado.TrayectoriaCurva;
             }
         }
-        else if (estado == Estado.Subiendo)
+        else if (estado == Estado.TrayectoriaCurva)
         {
-            MoverHacia(cimaAscenso, velocidadAscenso, Estado.Volviendo);
-        }
-        else if (estado == Estado.Volviendo)
-        {
-            MoverHacia(cimaSobreBorde, velocidadVueltaAlBorde, Estado.Bajando);
-        }
-        else if (estado == Estado.Bajando)
-        {
-            MoverHacia(destino, velocidadAscenso, Estado.Flotando);
+            RecorrerTrayectoriaCurva();
         }
         else if (estado == Estado.Flotando)
         {
@@ -294,51 +291,110 @@ public class RescateVacioPiedra : MonoBehaviour
         }
     }
 
-    private void MoverHacia(Vector3 objetivo, float velocidad, Estado siguienteEstado)
+    // Un unico recorrido curvo: asciende y se acerca al borde a la vez.
+    // No modifica ni la busqueda de terreno ni la fisica normal de las piedras.
+    private void PrepararTrayectoriaCurva()
+    {
+        inicioCurva = posicionBaseVuelo;
+        Vector3 desplazamiento = destino - inicioCurva;
+        Vector3 horizontal = Vector3.ProjectOnPlane(desplazamiento, Vector3.up);
+
+        // Perpendicular al camino: nos permite curvarlo y oscilar lateralmente.
+        lateralCurva = horizontal.sqrMagnitude > 0.0001f
+            ? Vector3.Cross(Vector3.up, horizontal.normalized).normalized
+            : Vector3.right;
+
+        float ascenso = Mathf.Max(0f, desplazamiento.y);
+        float desvio = Mathf.Min(curvaturaLateral,
+            Mathf.Max(0.4f, horizontal.magnitude * 0.4f));
+
+        // Dos puntos de control: sube, se arquea y llega desde arriba.
+        controlCurva1 = Vector3.Lerp(inicioCurva, destino, 0.25f)
+            + Vector3.up * (ascenso * 0.18f)
+            + lateralCurva * desvio;
+
+        controlCurva2 = Vector3.Lerp(inicioCurva, destino, 0.80f)
+            + Vector3.up * (ascenso * 0.20f + alturaExtraTrayecto)
+            + lateralCurva * (desvio * 0.60f);
+
+        // Estimamos la longitud para que las piedras lejanas no viajen
+        // a la misma velocidad aparente que las cercanas.
+        const int muestras = 24;
+        float longitud = 0f;
+        Vector3 anterior = inicioCurva;
+        for (int i = 1; i <= muestras; i++)
+        {
+            Vector3 actual = EvaluarBezier((float)i / muestras);
+            longitud += Vector3.Distance(anterior, actual);
+            anterior = actual;
+        }
+
+        float velocidadMedia = Mathf.Max(0.1f,
+            (velocidadAscenso + velocidadVueltaAlBorde) * 0.5f);
+        duracionCurva = Mathf.Max(0.6f, longitud / velocidadMedia);
+        tiempoCurva = 0f;
+        tiempoOscilando = 0f;
+        tiempoDesdeFrenada = 0f;
+    }
+
+    private Vector3 EvaluarBezier(float t)
+    {
+        float u = 1f - t;
+        return (u * u * u) * inicioCurva
+             + (3f * u * u * t) * controlCurva1
+             + (3f * u * t * t) * controlCurva2
+             + (t * t * t) * destino;
+    }
+
+    private void RecorrerTrayectoriaCurva()
     {
         float dt = Time.fixedDeltaTime;
+        tiempoCurva += dt;
         tiempoOscilando += dt;
         tiempoDesdeFrenada += dt;
 
-        // SmoothDamp acelera desde el reposo y desacelera al llegar,
-        // evitando los movimientos de velocidad constante y las paradas secas.
-        posicionBaseVuelo = Vector3.SmoothDamp(
-            posicionBaseVuelo, objetivo, ref velocidadSuavizada,
-            Mathf.Max(0.05f, suavizadoMovimiento),
-            Mathf.Max(0.1f, velocidad), dt);
+        float t = Mathf.Clamp01(tiempoCurva / duracionCurva);
 
-        if ((posicionBaseVuelo - objetivo).sqrMagnitude <= 0.0025f &&
-            velocidadSuavizada.sqrMagnitude <= 0.04f)
-        {
-            posicionBaseVuelo = objetivo;
-            velocidadSuavizada = Vector3.zero;
-            estado = siguienteEstado;
+        // La fuerza atrae suavemente al principio y se disipa al final.
+        // Conservamos el parametro de suavizado existente en el Inspector.
+        float intensidadSuavizado = Mathf.Clamp01(suavizadoMovimiento / 0.35f);
+        float progreso = Mathf.Lerp(t, Mathf.SmoothStep(0f, 1f, t),
+            intensidadSuavizado);
 
-            // La trayectoria se recorre sin colisiones para no engancharse
-            // al atravesar el borde. Una vez que la roca esta flotando sobre
-            // la plataforma, debe volver a ser detectable/interactuable.
-            // El Rigidbody sigue siendo kinematic y sin gravedad: NO cae.
-            if (siguienteEstado == Estado.Flotando)
-            {
-                rb.detectCollisions = true;
+        Vector3 posicion = EvaluarBezier(progreso);
 
-                if (mensajesDebug)
-                    Debug.Log(name +
-                        ": rescate terminado; colisiones reactivadas para permitir agarrarla.", this);
-            }
-        }
-
-        float oscilacion = 0f;
         if (oscilarDuranteRegreso)
         {
-            float intensidad = Mathf.SmoothStep(
-                0f, 1f,
+            // La oscilacion crece durante el viaje y desaparece en la llegada.
+            // Es lateral (bien visible) y tambien ligeramente vertical.
+            float envolvente = Mathf.Sin(progreso * Mathf.PI);
+            float entrada = Mathf.SmoothStep(0f, 1f,
                 Mathf.Clamp01(tiempoDesdeFrenada /
                     Mathf.Max(0.05f, entradaSuaveOscilacion)));
-            oscilacion = ObtenerOscilacion() * intensidad;
+
+            float lateral = Mathf.Sin(tiempoCurva * frecuenciaOscilacionLateral
+                * Mathf.PI * 2f) * amplitudOscilacionLateral;
+
+            posicion += lateralCurva * (lateral * envolvente * entrada);
+            posicion += Vector3.up * (ObtenerOscilacion() * envolvente * entrada);
         }
 
-        rb.MovePosition(posicionBaseVuelo + Vector3.up * oscilacion);
+        if (t >= 1f)
+        {
+            // La curva llega exactamente al destino, sin saltos por oscilacion.
+            rb.MovePosition(destino);
+            tiempoOscilando = 0f;
+            estado = Estado.Flotando;
+            rb.detectCollisions = true;
+
+            if (mensajesDebug)
+                Debug.Log(name +
+                    ": rescate curvo terminado; colisiones reactivadas para permitir agarrarla.", this);
+        }
+        else
+        {
+            rb.MovePosition(posicion);
+        }
     }
 
     private float ObtenerOscilacion()
@@ -438,7 +494,6 @@ public class RescateVacioPiedra : MonoBehaviour
         // El ascenso se preparará DESPUÉS del frenado, desde la
         // posición a la que realmente haya llegado la piedra.
         posicionBaseVuelo = rb.position;
-        velocidadSuavizada = Vector3.zero;
         tiempoFrenando = 0f;
         tiempoOscilando = 0f;
         tiempoDesdeFrenada = 0f;
@@ -470,7 +525,7 @@ public class RescateVacioPiedra : MonoBehaviour
         estado = Estado.Frenando;
 
         if (mensajesDebug)
-            Debug.Log(name + ": frenada progresiva; después levitará hacia el borde cercano.");
+            Debug.Log(name + ": frenada progresiva; despues comenzara la trayectoria gravitatoria curva.");
         return true;
     }
 
@@ -656,7 +711,22 @@ public class RescateVacioPiedra : MonoBehaviour
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(destino, 0.24f);
-            Gizmos.DrawLine(transform.position, destino);
+
+            if (estado == Estado.TrayectoriaCurva || estado == Estado.Flotando)
+            {
+                // Se ve en Scene la curva real calculada para esta piedra.
+                Vector3 anterior = inicioCurva;
+                for (int i = 1; i <= 24; i++)
+                {
+                    Vector3 siguiente = EvaluarBezier(i / 24f);
+                    Gizmos.DrawLine(anterior, siguiente);
+                    anterior = siguiente;
+                }
+            }
+            else
+            {
+                Gizmos.DrawLine(transform.position, destino);
+            }
         }
     }
 }

@@ -169,7 +169,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
     public int MonedasRestantes => NivelMaximo ? 0 : Mathf.Max(0, PrecioActual - monedasAportadas);
 
-    private readonly HashSet<int> proyectilesDelFrame = new HashSet<int>();
+    private readonly HashSet<EntityId> proyectilesDelFrame = new HashSet<EntityId>();
     private int frameRegistro = -1;
 
     // Diccionario de escalas: Guarda el tamaño de CUALQUIER pieza automáticamente
@@ -343,7 +343,7 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
             frameRegistro = Time.frameCount;
         }
 
-        if (!proyectilesDelFrame.Add(proyectil.GetInstanceID())) return;
+        if (!proyectilesDelFrame.Add(proyectil.GetEntityId())) return;
 
         int valor = Mathf.Max(1, moneda.valor);
         AportarPago(valor);
