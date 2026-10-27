@@ -1,4 +1,3 @@
-
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -11,6 +10,26 @@ public class CambioCamaraIntro : MonoBehaviour
     public SplineAnimate movimientoNave;
     public Transform puntoAparcamientoNave;
 
+    [Header("Vibración de la Nave (Compatible con Spline)")]
+    [Tooltip("Activa la vibración de la nave sumándola a la orientación del spline sin romperla")]
+    public bool vibrarNaveEnVuelo = true;
+    [Tooltip("Fuerza del temblor en grados para la nave")]
+    public float intensidadVibracionNave = 0.8f;
+    [Tooltip("Velocidad o frecuencia del temblor de la nave")]
+    public float velocidadVibracionNave = 25f;
+
+    [Header("Control de Velocidad en el Spline")]
+    [Tooltip("Activa esto para controlar las aceleraciones y frenadas con la curva sin saltos bruscos")]
+    public bool usarCurvaVelocidad = true;
+    [Tooltip("Tiempo base en segundos que tardaría en recorrer el spline a velocidad 1")]
+    public float duracionBaseRecorrido = 10f;
+    [Tooltip("Eje X (0 a 1) = Posición en el spline | Eje Y = Multiplicador de velocidad")]
+    public AnimationCurve curvaMultiplicadorVelocidad = AnimationCurve.Linear(0f, 1f, 1f, 1f);
+
+    [Header("Previsualización en Editor (0 a 1)")]
+    [Tooltip("Mueve este deslizador sin dar a Play para ver dónde está la nave en cada punto (0 a 1). No altera la cámara.")]
+    [Range(0f, 1f)] public float previsualizarPuntoSpline = 0f;
+
     [Header("Camaras")]
     public CinemachineCamera camaraExterior;
     public CinemachineCamera camaraInterior;
@@ -21,11 +40,26 @@ public class CambioCamaraIntro : MonoBehaviour
     public CinemachineBrain brainCamaraPrincipal;
     public Transform camaraPrincipal;
 
-    [Header("Camara interior")]
+    [Header("Puntos de Corte y Eventos en el Spline (0 a 1)")]
+    [Tooltip("Punto donde la camara exterior empieza a rotar para mirar a la nave")]
+    [Range(0f, 1f)] public float puntoInicioSeguimientoExterior = 0.2f;
+    [Tooltip("Velocidad con la que la camara exterior gira para centrar la nave")]
+    public float velocidadGiroExterior = 3f;
+
+    [Tooltip("0 = Inicio del spline, 1 = Final del spline")]
+    [Range(0f, 1f)] public float puntoCorteCamaraInterior = 0.5f;
+    [Tooltip("Punto donde empieza el fundido a negro y termina la intro")]
+    [Range(0f, 1f)] public float puntoFinIntroduccion = 0.99f;
+
+    [Header("Camara interior y Vibración")]
     public Transform pivoteCamaraCabina;
     public float sensibilidadRaton = 2f;
     public float limiteHorizontal = 45f;
     public float limiteVertical = 20f;
+    [Tooltip("Activa el temblor de cámara dentro de la cabina")]
+    public bool vibrarCamaraInterior = true;
+    public float intensidadVibracionCamara = 0.15f;
+    public float velocidadVibracionCamara = 30f;
 
     [Header("Jugador")]
     public Transform jugador;
@@ -49,18 +83,42 @@ public class CambioCamaraIntro : MonoBehaviour
     private Vector3 posicionInicialCamara;
     private Quaternion rotacionInicialCamara;
 
+    private Vector3 posicionFijaCamaraExterior;
+    private Quaternion rotacionFijaCamaraExterior;
+
     private bool[] controlesOriginalmenteActivos;
+    private CinemachineBlendDefinition transicionOriginal;
+
+    private float progresoPersonalizado = 0f;
+    private Quaternion rotacionBaseSpline;
+    private bool tieneRotacionBase;
+
+    private void OnValidate()
+    {
+        if (!Application.isPlaying && movimientoNave != null && movimientoNave.Container != null)
+        {
+            movimientoNave.NormalizedTime = previsualizarPuntoSpline;
+
+            Vector3 posicionPreview = movimientoNave.Container.EvaluatePosition(previsualizarPuntoSpline);
+            movimientoNave.transform.position = posicionPreview;
+
+            Vector3 tangente = movimientoNave.Container.EvaluateTangent(previsualizarPuntoSpline);
+            Vector3 arriba = movimientoNave.Container.EvaluateUpVector(previsualizarPuntoSpline);
+            if (tangente != Vector3.zero)
+            {
+                movimientoNave.transform.rotation = Quaternion.LookRotation(tangente, arriba);
+            }
+        }
+    }
 
     private void Awake()
     {
         if (camaraPrincipal == null && Camera.main != null)
             camaraPrincipal = Camera.main.transform;
 
-        if (brainCamaraPrincipal == null &&
-            camaraPrincipal != null)
+        if (brainCamaraPrincipal == null && camaraPrincipal != null)
         {
-            brainCamaraPrincipal =
-                camaraPrincipal.GetComponent<CinemachineBrain>();
+            brainCamaraPrincipal = camaraPrincipal.GetComponent<CinemachineBrain>();
         }
 
         if (camaraPrincipal != null)
@@ -69,14 +127,21 @@ public class CambioCamaraIntro : MonoBehaviour
             rotacionInicialCamara = camaraPrincipal.localRotation;
         }
 
-        // Activar Cinemachine solo para la introduccion
         if (brainCamaraPrincipal != null)
         {
             brainCamaraPrincipal.enabled = true;
+            transicionOriginal = brainCamaraPrincipal.DefaultBlend;
         }
 
         if (camaraExterior != null)
+        {
             camaraExterior.Priority = 30;
+            posicionFijaCamaraExterior = camaraExterior.transform.position;
+            rotacionFijaCamaraExterior = camaraExterior.transform.rotation;
+
+            camaraExterior.Follow = null;
+            camaraExterior.LookAt = null;
+        }
 
         if (camaraInterior != null)
             camaraInterior.Priority = 10;
@@ -93,11 +158,9 @@ public class CambioCamaraIntro : MonoBehaviour
             pantallaNegraIntro.blocksRaycasts = false;
         }
 
-        // Bloquear controles durante la introduccion.
         if (controlesJugador != null)
         {
-            controlesOriginalmenteActivos =
-                new bool[controlesJugador.Length];
+            controlesOriginalmenteActivos = new bool[controlesJugador.Length];
 
             for (int i = 0; i < controlesJugador.Length; i++)
             {
@@ -112,26 +175,77 @@ public class CambioCamaraIntro : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (usarCurvaVelocidad && movimientoNave != null)
+        {
+            movimientoNave.Pause();
+            progresoPersonalizado = 0f;
+            movimientoNave.NormalizedTime = 0f;
+        }
+    }
+
     private void Update()
     {
         if (finalizando || movimientoNave == null)
             return;
 
-        float progreso = movimientoNave.NormalizedTime;
-
-        // Mitad del vuelo: pasar a la cabina.
-        if (!cambioRealizado && progreso >= 0.5f)
+        if (tieneRotacionBase)
         {
+            movimientoNave.transform.rotation = rotacionBaseSpline;
+        }
+
+        float progreso;
+
+        if (usarCurvaVelocidad)
+        {
+            float multiplicador = Mathf.Max(0.01f, curvaMultiplicadorVelocidad.Evaluate(progresoPersonalizado));
+            float duracionSegura = Mathf.Max(0.1f, duracionBaseRecorrido);
+
+            progresoPersonalizado += (Time.deltaTime / duracionSegura) * multiplicador;
+            progresoPersonalizado = Mathf.Clamp01(progresoPersonalizado);
+
+            movimientoNave.NormalizedTime = progresoPersonalizado;
+            progreso = progresoPersonalizado;
+        }
+        else
+        {
+            progreso = movimientoNave.NormalizedTime;
+        }
+
+        previsualizarPuntoSpline = Mathf.Clamp01(progreso);
+
+        if (!cambioRealizado && camaraExterior != null)
+        {
+            camaraExterior.transform.position = posicionFijaCamaraExterior;
+
+            if (progreso < puntoInicioSeguimientoExterior)
+            {
+                camaraExterior.transform.rotation = rotacionFijaCamaraExterior;
+            }
+            else
+            {
+                RotarCamaraExteriorHaciaNave();
+            }
+        }
+
+        if (!cambioRealizado && progreso >= puntoCorteCamaraInterior)
+        {
+            cambioRealizado = true;
+
+            if (brainCamaraPrincipal != null)
+            {
+                brainCamaraPrincipal.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
+            }
+
             if (camaraInterior != null)
                 camaraInterior.Priority = 40;
-
-            cambioRealizado = true;
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
-        if (progreso >= 0.999f)
+        if (progreso >= puntoFinIntroduccion)
         {
             finalizando = true;
             StartCoroutine(FinalizarIntroduccion());
@@ -142,22 +256,63 @@ public class CambioCamaraIntro : MonoBehaviour
             MoverCamaraInterior();
     }
 
+    private void LateUpdate()
+    {
+        if (finalizando)
+            return;
+
+        // 1. Vibración de la Nave en vuelo
+        if (movimientoNave != null && vibrarNaveEnVuelo)
+        {
+            rotacionBaseSpline = movimientoNave.transform.rotation;
+            tieneRotacionBase = true;
+
+            float tNave = Time.time * velocidadVibracionNave;
+            float ruidoX = (Mathf.PerlinNoise(tNave, 0f) - 0.5f) * 2f * intensidadVibracionNave;
+            float ruidoY = (Mathf.PerlinNoise(0f, tNave) - 0.5f) * 2f * (intensidadVibracionNave * 0.5f);
+            float ruidoZ = (Mathf.PerlinNoise(tNave, tNave) - 0.5f) * 2f * intensidadVibracionNave;
+
+            movimientoNave.transform.rotation = rotacionBaseSpline * Quaternion.Euler(ruidoX, ruidoY, ruidoZ);
+        }
+
+        // 2. Vibración de la Cámara Interior (Solo actúa si ya estamos dentro de la cabina)
+        if (cambioRealizado && pivoteCamaraCabina != null && vibrarCamaraInterior)
+        {
+            float tCam = Time.time * velocidadVibracionCamara;
+            float camX = (Mathf.PerlinNoise(tCam, 50f) - 0.5f) * 2f * intensidadVibracionCamara;
+            float camY = (Mathf.PerlinNoise(50f, tCam) - 0.5f) * 2f * intensidadVibracionCamara;
+
+            // Se suma al cálculo del ratón que ya se aplicó en Update
+            pivoteCamaraCabina.localRotation *= Quaternion.Euler(camX, camY, 0f);
+        }
+    }
+
+    private void RotarCamaraExteriorHaciaNave()
+    {
+        Vector3 direccionHaciaNave = movimientoNave.transform.position - camaraExterior.transform.position;
+
+        if (direccionHaciaNave.sqrMagnitude > 0.0001f)
+        {
+            Quaternion rotacionObjetivo = Quaternion.LookRotation(direccionHaciaNave);
+
+            camaraExterior.transform.rotation = Quaternion.Slerp(
+                camaraExterior.transform.rotation,
+                rotacionObjetivo,
+                velocidadGiroExterior * Time.deltaTime
+            );
+        }
+    }
+
     private void MoverCamaraInterior()
     {
         if (pivoteCamaraCabina == null)
             return;
 
-        rotacionHorizontal +=
-            Input.GetAxis("Mouse X") * sensibilidadRaton;
+        rotacionHorizontal += Input.GetAxis("Mouse X") * sensibilidadRaton;
+        rotacionVertical -= Input.GetAxis("Mouse Y") * sensibilidadRaton;
 
-        rotacionVertical -=
-            Input.GetAxis("Mouse Y") * sensibilidadRaton;
-
-        rotacionHorizontal = Mathf.Clamp(
-            rotacionHorizontal, -limiteHorizontal, limiteHorizontal);
-
-        rotacionVertical = Mathf.Clamp(
-            rotacionVertical, -limiteVertical, limiteVertical);
+        rotacionHorizontal = Mathf.Clamp(rotacionHorizontal, -limiteHorizontal, limiteHorizontal);
+        rotacionVertical = Mathf.Clamp(rotacionVertical, -limiteVertical, limiteVertical);
 
         pivoteCamaraCabina.localRotation =
             rotacionInicialCabina *
@@ -168,40 +323,32 @@ public class CambioCamaraIntro : MonoBehaviour
     {
         float tiempoFundido = Mathf.Max(0f, duracionFundido);
 
-        // 1. Ocultar la escena.
         yield return Fundido(0f, 1f, tiempoFundido);
 
-        // DETENER LA NAVE Y SU ORIENTACION
         if (movimientoNave != null)
         {
-            OrientarNaveSpline orientador =
-                movimientoNave.GetComponent<OrientarNaveSpline>();
+            OrientarNaveSpline orientador = movimientoNave.GetComponent<OrientarNaveSpline>();
 
             if (orientador != null)
                 orientador.enabled = false;
 
             movimientoNave.enabled = false;
+            vibrarNaveEnVuelo = false;
+            vibrarCamaraInterior = false;
 
-            // COLOCAR LA NAVE EN SU APARCAMIENTO DEFINITIVO
             if (puntoAparcamientoNave != null)
             {
                 movimientoNave.transform.SetPositionAndRotation(
                     puntoAparcamientoNave.position,
                     puntoAparcamientoNave.rotation
                 );
-
-                Debug.Log("NAVE APARCADA CORRECTAMENTE");
             }
         }
 
-        // 4. Colocar al jugador en su punto de salida.
         if (jugador != null && puntoSalidaJugador != null)
         {
-            CharacterController controlador =
-                jugador.GetComponent<CharacterController>();
-
-            bool estabaActivo =
-                controlador != null && controlador.enabled;
+            CharacterController controlador = jugador.GetComponent<CharacterController>();
+            bool estabaActivo = controlador != null && controlador.enabled;
 
             if (controlador != null)
                 controlador.enabled = false;
@@ -231,15 +378,15 @@ public class CambioCamaraIntro : MonoBehaviour
                 controlador.enabled = estabaActivo;
         }
 
-        // 5. RECUPERAR LA CAMARA ORIGINAL DEL PLAYER
-
         if (brainCamaraPrincipal != null)
+        {
+            brainCamaraPrincipal.DefaultBlend = transicionOriginal;
             brainCamaraPrincipal.enabled = false;
+        }
 
         if (camaraPrincipal != null)
         {
-            CamaraPrimeraPersona camaraFPS =
-                camaraPrincipal.GetComponent<CamaraPrimeraPersona>();
+            CamaraPrimeraPersona camaraFPS = camaraPrincipal.GetComponent<CamaraPrimeraPersona>();
 
             if (camaraFPS != null)
             {
@@ -255,31 +402,22 @@ public class CambioCamaraIntro : MonoBehaviour
             }
         }
 
-        // 6. Mantener la pantalla negra hasta completar 2 segundos.
-        float espera = Mathf.Max(
-            0f, duracionPantallaNegra - 2f * tiempoFundido);
-
+        float espera = Mathf.Max(0f, duracionPantallaNegra - 2f * tiempoFundido);
         yield return new WaitForSeconds(espera);
 
-        // 7. Volver a mostrar el juego.
         yield return Fundido(1f, 0f, tiempoFundido);
 
-        // 8. Recuperar los controles originales.
-        if (controlesJugador != null &&
-            controlesOriginalmenteActivos != null)
+        if (controlesJugador != null && controlesOriginalmenteActivos != null)
         {
             for (int i = 0; i < controlesJugador.Length; i++)
             {
                 if (controlesJugador[i] != null)
-                    controlesJugador[i].enabled =
-                        controlesOriginalmenteActivos[i];
+                    controlesJugador[i].enabled = controlesOriginalmenteActivos[i];
             }
         }
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
-        Debug.Log("Introduccion terminada. Jugador y nave preparados.");
     }
 
     private IEnumerator Fundido(float desde, float hasta, float duracion)
@@ -298,10 +436,7 @@ public class CambioCamaraIntro : MonoBehaviour
         while (tiempo < duracion)
         {
             tiempo += Time.deltaTime;
-
-            pantallaNegraIntro.alpha = Mathf.Lerp(
-                desde, hasta, Mathf.Clamp01(tiempo / duracion));
-
+            pantallaNegraIntro.alpha = Mathf.Lerp(desde, hasta, Mathf.Clamp01(tiempo / duracion));
             yield return null;
         }
 
