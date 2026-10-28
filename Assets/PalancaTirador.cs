@@ -3,6 +3,12 @@ using UnityEngine.Events;
 
 public class PalancaTirador : MonoBehaviour
 {
+    public enum EspacioMovimiento
+    {
+        EjesLocalesDelObjeto, // El eje del propio tirador (gizmo en modo Local)
+        EjesDelPadre          // El eje del padre del tirador
+    }
+
     [Header("Configuración de Arrastre (Mirada)")]
     [Tooltip("Unidades imaginarias que hay que bajar la mirada para alcanzar el máximo del tirador")]
     public float distanciaArrastreMax = 150f;
@@ -13,16 +19,25 @@ public class PalancaTirador : MonoBehaviour
     [Tooltip("Segundos que tardarán las puertas en abrirse y el tirador en volver arriba a la vez")]
     public float tiempoDeAnimacion = 1.5f;
 
+    [Header("Comportamiento")]
+    [Tooltip("Si está bloqueada no se puede agarrar ni arrastrar (la mirilla tampoco la marca como interactiva)")]
+    [SerializeField] private bool bloqueada = false;
+    [Tooltip("Activado: tras bajarla se queda 'abierta' hasta que alguien llame a CerrarPuertasMecanismo (ej: CargadorMisil). " +
+             "Desactivado: al terminar la animación vuelve sola a reposo y se puede usar otra vez.")]
+    public bool esperarCierreManual = true;
+
     [Header("1. Movimiento del Tirador")]
     [Tooltip("Objeto que se desplazará físicamente (ej: el mango del tirador)")]
     public Transform objetoTirador;
-    [Tooltip("Eje local por el que se moverá el tirador (ej: 0, -1, 0 para abajo)")]
+    [Tooltip("En qué ejes se interpreta 'Eje Movimiento Tirador'. Local del objeto = el gizmo de Unity en modo Local con el tirador seleccionado.")]
+    public EspacioMovimiento espacioMovimiento = EspacioMovimiento.EjesLocalesDelObjeto;
+    [Tooltip("Eje por el que se moverá el tirador (ej: 0, -1, 0 para abajo)")]
     public Vector3 ejeMovimientoTirador = Vector3.down;
-    [Tooltip("Cantidad máxima de unidades reales que se moverá el tirador en Unity")]
+    [Tooltip("Cantidad máxima de unidades que se moverá el tirador (en unidades del padre del tirador)")]
     public float distanciaMaximaTirador = 0.5f;
 
-    [Header("2. Rotación de las Puertas")]
-    [Tooltip("Primer objeto a rotar (ej: Puerta Izquierda)")]
+    [Header("2. Rotación de las Puertas (Opcional)")]
+    [Tooltip("Primer objeto a rotar (ej: Puerta Izquierda). Puede quedarse vacío.")]
     public Transform objetoRotacion1;
     [Tooltip("Eje local de rotación para el primer objeto")]
     public Vector3 ejeRotacion1 = Vector3.up;
@@ -30,15 +45,15 @@ public class PalancaTirador : MonoBehaviour
     public float gradosARotar1 = 90f;
 
     [Space(10)]
-    [Tooltip("Segundo objeto a rotar (ej: Puerta Derecha)")]
+    [Tooltip("Segundo objeto a rotar (ej: Puerta Derecha). Puede quedarse vacío.")]
     public Transform objetoRotacion2;
     [Tooltip("Eje local de rotación para el segundo objeto")]
     public Vector3 ejeRotacion2 = Vector3.up;
     [Tooltip("Grados exactos que rotará al activarse (ej: -90)")]
     public float gradosARotar2 = -90f;
 
-    [Header("3. Feedback Visual (Neón)")]
-    [Tooltip("Controlador Neón que se encenderá al bajar la palanca y abrir las puertas")]
+    [Header("3. Feedback Visual (Neón, Opcional)")]
+    [Tooltip("Controlador Neón que se encenderá al bajar la palanca y abrir las puertas. Puede quedarse vacío.")]
     public ControladorNeon controladorNeon;
     [Tooltip("Intensidad mínima (progreso 0)")]
     public float intensidadNeonMinima = 0.5f;
@@ -51,6 +66,10 @@ public class PalancaTirador : MonoBehaviour
 
     // --- Variables Internas ---
     private Vector3 posOriginalTirador;
+
+    // Dirección del recorrido expresada en el espacio del padre (localPosition).
+    // Se calcula una sola vez para que otros scripts que roten el tirador (ej: vibración) no tuerzan el recorrido.
+    private Vector3 direccionMovimientoPadre;
 
     // Rotaciones base y objetivo
     private Quaternion rotacionOriginal1;
@@ -70,9 +89,15 @@ public class PalancaTirador : MonoBehaviour
     // 4 = Cerrando Puertas
     private int estado = 0;
 
+    public bool EstaBloqueada => bloqueada;
+
     private void Start()
     {
-        if (objetoTirador != null) posOriginalTirador = objetoTirador.localPosition;
+        if (objetoTirador != null)
+        {
+            posOriginalTirador = objetoTirador.localPosition;
+            direccionMovimientoPadre = CalcularDireccionMovimientoPadre(objetoTirador.localRotation);
+        }
 
         if (objetoRotacion1 != null)
         {
@@ -87,6 +112,17 @@ public class PalancaTirador : MonoBehaviour
         }
 
         if (controladorNeon != null) controladorNeon.intensidad = intensidadNeonMinima;
+    }
+
+    private Vector3 CalcularDireccionMovimientoPadre(Quaternion rotacionLocalTirador)
+    {
+        Vector3 eje = ejeMovimientoTirador.sqrMagnitude > 0.000001f ? ejeMovimientoTirador.normalized : Vector3.down;
+
+        // localPosition vive en el espacio del padre: para seguir el eje propio del tirador
+        // hay que girar el eje con la rotación local del tirador.
+        return espacioMovimiento == EspacioMovimiento.EjesLocalesDelObjeto
+            ? rotacionLocalTirador * eje
+            : eje;
     }
 
     private void Update()
@@ -109,7 +145,8 @@ public class PalancaTirador : MonoBehaviour
 
             if (progresoTirador == 0f && progresoPuertas == 1f)
             {
-                estado = 3; // Totalmente abierto
+                // Con cierre manual se queda abierta esperando (misil); si no, vuelve a reposo.
+                estado = esperarCierreManual ? 3 : 4;
             }
         }
         else if (estado == 3) // Abierto y esperando el misil
@@ -117,7 +154,7 @@ public class PalancaTirador : MonoBehaviour
             progresoTirador = 0f;
             progresoPuertas = 1f;
         }
-        else if (estado == 4) // Cerrando las puertas tras recibir el misil
+        else if (estado == 4) // Cerrando las puertas
         {
             progresoPuertas = Mathf.MoveTowards(progresoPuertas, 0f, Time.deltaTime * velocidadAnimacion);
             if (progresoPuertas == 0f)
@@ -129,8 +166,7 @@ public class PalancaTirador : MonoBehaviour
         // --- 1. APLICAR TRANSFORMACIÓN AL TIRADOR ---
         if (objetoTirador != null)
         {
-            Vector3 direccionOrientada = objetoTirador.localRotation * ejeMovimientoTirador.normalized;
-            objetoTirador.localPosition = posOriginalTirador + (direccionOrientada * distanciaMaximaTirador * progresoTirador);
+            objetoTirador.localPosition = posOriginalTirador + (direccionMovimientoPadre * distanciaMaximaTirador * progresoTirador);
         }
 
         // --- 2. APLICAR ROTACIÓN A LAS PUERTAS ---
@@ -152,8 +188,20 @@ public class PalancaTirador : MonoBehaviour
         }
     }
 
+    public void SetBloqueada(bool valor)
+    {
+        bloqueada = valor;
+
+        // Si se bloquea mientras la están arrastrando, la soltamos para que vuelva arriba.
+        if (bloqueada && estado == 1)
+            estado = 0;
+    }
+
     public void IniciarArrastre()
     {
+        if (bloqueada)
+            return;
+
         if (estado == 0 || estado == 1)
         {
             estado = 1;
@@ -194,6 +242,38 @@ public class PalancaTirador : MonoBehaviour
 
     public bool EstanPuertasAbiertas => (estado == 3);
 
-    // NUEVO: Propiedad para avisar al cargador de que ya está todo cerrado y reseteado
+    // Propiedad para avisar al cargador de que ya está todo cerrado y reseteado
     public bool EstanPuertasCerradas => (estado == 0);
+
+    // =========================================================
+    // GIZMO: dibuja el recorrido del tirador al seleccionarlo
+    // =========================================================
+    private void OnDrawGizmosSelected()
+    {
+        if (objetoTirador == null)
+            return;
+
+        Transform padre = objetoTirador.parent;
+
+        // En Play usamos los datos guardados en Start; en el editor, la pose actual.
+        Vector3 posicionLocal = Application.isPlaying ? posOriginalTirador : objetoTirador.localPosition;
+        Vector3 direccion = Application.isPlaying ? direccionMovimientoPadre : CalcularDireccionMovimientoPadre(objetoTirador.localRotation);
+        Vector3 finalLocal = posicionLocal + direccion * distanciaMaximaTirador;
+
+        Vector3 inicio = padre != null ? padre.TransformPoint(posicionLocal) : posicionLocal;
+        Vector3 fin = padre != null ? padre.TransformPoint(finalLocal) : finalLocal;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(inicio, fin);
+        Gizmos.DrawWireSphere(fin, HandleSize(fin) * 0.05f);
+    }
+
+    private static float HandleSize(Vector3 posicion)
+    {
+#if UNITY_EDITOR
+        return UnityEditor.HandleUtility.GetHandleSize(posicion);
+#else
+        return 0.1f;
+#endif
+    }
 }
