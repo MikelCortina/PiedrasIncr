@@ -64,6 +64,10 @@ public class InteriorNaveEspacial : MonoBehaviour
         // Pausa individual (ej: la manilla que pasa a controlar una palanca)
         [HideInInspector] public bool pausada = false;
         [HideInInspector] public float factorActividad = 1f; // 1 = vibra normal, 0 = en reposo
+
+        // Giro añadido desde fuera (ej: el volante girando con las curvas), que se suma a la vibración.
+        [HideInInspector] public float giroExtra = 0f;
+        [HideInInspector] public Vector3 ejeGiroExtra = Vector3.forward;
     }
 
     void Start()
@@ -97,6 +101,20 @@ public class InteriorNaveEspacial : MonoBehaviour
             return false;
 
         marcador.pausada = pausar;
+        return true;
+    }
+
+    // Suma un giro (en grados, sobre un eje local) a la aguja cuyo Transform coincida, encima de su vibración.
+    // Así otro script puede girarla sin pisar su rotación. Devuelve false si no está en la lista.
+    public bool EstablecerGiroExtra(Transform objeto, float grados, Vector3 eje)
+    {
+        AgujaMarcador marcador = BuscarAguja(objeto);
+
+        if (marcador == null)
+            return false;
+
+        marcador.giroExtra = grados;
+        marcador.ejeGiroExtra = eje;
         return true;
     }
 
@@ -222,7 +240,10 @@ public class InteriorNaveEspacial : MonoBehaviour
             // Al pausar, el ángulo se lleva suavemente a 0 (rotación original exacta).
             float anguloAplicado = Mathf.LerpAngle(0f, anguloActual, marcador.factorActividad);
 
-            marcador.aguja.localRotation = marcador.rotacionBase * Quaternion.AngleAxis(anguloAplicado, marcador.ejeGiro);
+            marcador.aguja.localRotation =
+                marcador.rotacionBase *
+                Quaternion.AngleAxis(marcador.giroExtra, marcador.ejeGiroExtra) *
+                Quaternion.AngleAxis(anguloAplicado, marcador.ejeGiro);
         }
     }
 }

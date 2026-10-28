@@ -22,6 +22,38 @@ public class CambioCamaraIntro : MonoBehaviour
     [Tooltip("Velocidad o frecuencia del temblor de la nave")]
     public float velocidadVibracionNave = 25f;
 
+    [Header("Alabeo en Curvas")]
+    [Tooltip("Inclina la nave sobre su eje de alabeo hacia el lado al que gira el spline")]
+    public bool alabearEnCurvas = true;
+    [Tooltip("Eje local sobre el que se inclina la nave (Z = morro)")]
+    public Vector3 ejeAlabeo = Vector3.forward;
+    [Tooltip("Grados de inclinación por cada grado de giro que tiene la curva en la ventana de anticipación")]
+    public float intensidadAlabeo = 1f;
+    [Tooltip("Inclinación máxima en grados")]
+    [Range(0f, 60f)] public float alabeoMaximo = 15f;
+    [Tooltip("Cuánto spline (0 a 1) se mira antes y después de la nave para medir la curva. Más alto = anticipa antes y suaviza más")]
+    [Range(0.001f, 0.1f)] public float anticipacionAlabeo = 0.02f;
+    [Tooltip("Rapidez con la que la nave entra y sale de la inclinación")]
+    public float suavidadAlabeo = 3f;
+    [Tooltip("Actívalo si la nave se inclina hacia fuera de la curva en lugar de hacia dentro")]
+    public bool invertirAlabeo = false;
+    [Tooltip("La inclinación crece con la velocidad de la nave: al máximo de la curva de velocidad se inclina del todo y cerca de velocidad 0 casi nada")]
+    public bool alabeoSegunVelocidad = true;
+
+    [Header("Volante")]
+    [Tooltip("Objeto del volante. Puede estar en la lista de agujas de 'Interior Nave': su giro se suma a la vibración sin pisarla")]
+    public Transform volante;
+    [Tooltip("Eje local sobre el que gira el volante")]
+    public Vector3 ejeGiroVolante = Vector3.forward;
+    [Tooltip("Grados que gira el volante por cada grado de giro de la curva en la ventana de anticipación (usa la misma ventana que el alabeo)")]
+    public float intensidadVolante = 3f;
+    [Tooltip("Giro máximo del volante hacia cada lado, en grados")]
+    [Range(0f, 360f)] public float giroMaximoVolante = 90f;
+    [Tooltip("Rapidez con la que el volante sigue a la curva y vuelve al centro")]
+    public float suavidadVolante = 4f;
+    [Tooltip("Actívalo si el volante gira hacia el lado contrario de la curva")]
+    public bool invertirVolante = false;
+
     [Header("Interior de la Nave")]
     [Tooltip("Script del interior: la intro controla la vibración de sus agujas y apaga sus neones de alarma al bajar la palanca")]
     public InteriorNaveEspacial interiorNave;
@@ -61,8 +93,8 @@ public class CambioCamaraIntro : MonoBehaviour
     [Range(0f, 1f)] public float alphaFinalImagenes = 0f;
     [Tooltip("Eje X = tiempo normalizado del fundido | Eje Y = progreso del fundido (0 = alpha original, 1 = alpha final)")]
     public AnimationCurve curvaFundidoImagenes = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    [Tooltip("Porcentaje del fundido (0 a 1) en el que la nave empieza a recorrer el spline")]
-    [Range(0f, 1f)] public float porcentajeInicioNave = 0.5f;
+    [Tooltip("Segundos que espera la nave, una vez terminado el fundido de las imágenes, antes de empezar a recorrer el spline (0 = justo al terminar)")]
+    [Min(0f)] public float retrasoInicioNaveTrasFundido = 0f;
     [Tooltip("Desactiva los GameObjects de las imágenes al terminar el fundido")]
     public bool desactivarImagenesAlTerminar = true;
 
@@ -112,6 +144,24 @@ public class CambioCamaraIntro : MonoBehaviour
     public AnimationCurve curvaApagadoLuces = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     [Tooltip("Segundos a oscuras antes de empezar el fundido a negro y el cambio al jugador")]
     public float esperaTrasApagarLuces = 0.5f;
+    [Tooltip("Sistema de partículas (ej: propulsores) que se detiene al bajar la palanca. Incluye a sus hijos.")]
+    public ParticleSystem particulasApagarConNave;
+    [Tooltip("Activado: las partículas desaparecen al instante. Desactivado: dejan de emitir y las que ya existen se desvanecen solas")]
+    public bool limpiarParticulasAlApagar = false;
+
+    [Header("Cara Frontal de la Nave")]
+    [Tooltip("Pieza frontal que se abre al apagar la nave. El cambio de plano espera a que termine de abrirse, y al cambiar a la cámara del jugador vuelve a su pose inicial.")]
+    public Transform caraFrontal;
+    [Tooltip("Desplazamiento total, en los ejes locales de la pieza tal y como está al empezar (ej: 0, 0, 1 = un metro hacia su frente)")]
+    public Vector3 desplazamientoCaraFrontal = new Vector3(0f, 0f, 1f);
+    [Tooltip("Velocidad del desplazamiento en unidades por segundo (0 = instantáneo)")]
+    public float velocidadMovimientoCaraFrontal = 1f;
+    [Tooltip("Grados que rota sobre su eje X local (negativo = hacia el otro lado)")]
+    public float gradosRotacionCaraFrontalX = 45f;
+    [Tooltip("Velocidad de la rotación en grados por segundo (0 = instantáneo)")]
+    public float velocidadRotacionCaraFrontal = 30f;
+    [Tooltip("Segundos desde que se baja la palanca hasta que empieza a abrirse (0 = a la vez que se apagan las luces)")]
+    public float retrasoAperturaCaraFrontal = 0f;
 
     [Header("Camara interior y Vibración")]
     public Transform pivoteCamaraCabina;
@@ -168,6 +218,17 @@ public class CambioCamaraIntro : MonoBehaviour
     private bool palancaDesbloqueada;
     private bool palancaActivada;
     private Transform manillaPausada;
+
+    private float alabeoActual;
+    private float velocidadMaximaCurva = 1f;
+
+    // Giro de la curva en grados (positivo = a la derecha) que comparten el alabeo y el volante.
+    private float giroCurvaActual;
+    private float giroVolanteActual;
+    private Quaternion rotacionBaseVolante;
+
+    private Vector3 posicionInicialCaraFrontal;
+    private Quaternion rotacionInicialCaraFrontal;
 
     private void OnValidate()
     {
@@ -291,8 +352,8 @@ public class CambioCamaraIntro : MonoBehaviour
     {
         if (movimientoNave != null)
         {
-            // La nave espera quieta al inicio del spline hasta que el fundido
-            // de las imágenes alcance porcentajeInicioNave.
+            // La nave espera quieta al inicio del spline hasta que termine el fundido
+            // de las imágenes y pase retrasoInicioNaveTrasFundido.
             movimientoNave.Pause();
             progresoPersonalizado = 0f;
             movimientoNave.NormalizedTime = 0f;
@@ -303,6 +364,17 @@ public class CambioCamaraIntro : MonoBehaviour
         velocidadPicoNave = 0f;
         factorVibracionActual = 1f;
         AplicarVibracionAgujas();
+
+        velocidadMaximaCurva = CalcularVelocidadMaximaCurva();
+
+        if (volante != null)
+            rotacionBaseVolante = volante.localRotation;
+
+        if (caraFrontal != null)
+        {
+            posicionInicialCaraFrontal = caraFrontal.localPosition;
+            rotacionInicialCaraFrontal = caraFrontal.localRotation;
+        }
 
         if (palancaSalida != null)
         {
@@ -390,6 +462,11 @@ public class CambioCamaraIntro : MonoBehaviour
             palancaSalida.SetBloqueada(false);
         }
 
+        // Curva, alabeo y volante se calculan aquí (antes del Update de InteriorNaveEspacial,
+        // que es quien aplica el giro del volante si vibra) para que no vayan un frame tarde.
+        ActualizarAlabeo();
+        ActualizarVolante();
+
         AplicarVibracionAgujas();
 
         if (cambioRealizado)
@@ -401,22 +478,34 @@ public class CambioCamaraIntro : MonoBehaviour
         if (finalizando)
             return;
 
-        // 1. Vibración de la Nave en vuelo (y opcionalmente antes de despegar)
+        // 1. Rotación final de la nave: orientación del spline + alabeo en curvas + vibración
         bool puedeVibrar = naveIniciada || vibrarNaveAntesDeDespegar;
+        bool vibraNave = vibrarNaveEnVuelo && puedeVibrar;
 
-        if (movimientoNave != null && vibrarNaveEnVuelo && puedeVibrar)
+        if (movimientoNave != null && (vibraNave || alabearEnCurvas))
         {
+            // Guardamos la rotación pura del spline; Update la restaura cada frame para que
+            // el alabeo y la vibración no se acumulen.
             rotacionBaseSpline = movimientoNave.transform.rotation;
             tieneRotacionBase = true;
 
-            float intensidadNave = intensidadVibracionNave * FactorConMinimo(porcentajeMinimoVibracionNave);
+            Quaternion ruido = Quaternion.identity;
 
-            float tNave = Time.time * velocidadVibracionNave;
-            float ruidoX = (Mathf.PerlinNoise(tNave, 0f) - 0.5f) * 2f * intensidadNave;
-            float ruidoY = (Mathf.PerlinNoise(0f, tNave) - 0.5f) * 2f * (intensidadNave * 0.5f);
-            float ruidoZ = (Mathf.PerlinNoise(tNave, tNave) - 0.5f) * 2f * intensidadNave;
+            if (vibraNave)
+            {
+                float intensidadNave = intensidadVibracionNave * FactorConMinimo(porcentajeMinimoVibracionNave);
 
-            movimientoNave.transform.rotation = rotacionBaseSpline * Quaternion.Euler(ruidoX, ruidoY, ruidoZ);
+                float tNave = Time.time * velocidadVibracionNave;
+                float ruidoX = (Mathf.PerlinNoise(tNave, 0f) - 0.5f) * 2f * intensidadNave;
+                float ruidoY = (Mathf.PerlinNoise(0f, tNave) - 0.5f) * 2f * (intensidadNave * 0.5f);
+                float ruidoZ = (Mathf.PerlinNoise(tNave, tNave) - 0.5f) * 2f * intensidadNave;
+
+                ruido = Quaternion.Euler(ruidoX, ruidoY, ruidoZ);
+            }
+
+            Quaternion alabeo = Quaternion.AngleAxis(alabeoActual, ejeAlabeo);
+
+            movimientoNave.transform.rotation = rotacionBaseSpline * alabeo * ruido;
         }
 
         // 2. Vibración de la Cámara Interior (Solo actúa si ya estamos dentro de la cabina)
@@ -450,6 +539,95 @@ public class CambioCamaraIntro : MonoBehaviour
 
         movimientoNave.NormalizedTime = progresoPersonalizado;
         return progresoPersonalizado;
+    }
+
+    // Mide cuánto gira el spline alrededor de la nave (en horizontal) y calcula la inclinación,
+    // suavizada para que entre y salga de las curvas sin tirones. Parada o sin despegar, vuelve a 0.
+    private void ActualizarAlabeo()
+    {
+        float alabeoObjetivo = 0f;
+        giroCurvaActual = 0f;
+
+        bool enVuelo = naveIniciada && !esperandoPalanca;
+
+        if (enVuelo && movimientoNave != null && movimientoNave.Container != null)
+        {
+            SplineContainer ruta = movimientoNave.Container;
+            float t = Mathf.Clamp01(movimientoNave.NormalizedTime);
+
+            Vector3 tangenteAntes = ruta.EvaluateTangent(Mathf.Clamp01(t - anticipacionAlabeo));
+            Vector3 tangenteDespues = ruta.EvaluateTangent(Mathf.Clamp01(t + anticipacionAlabeo));
+
+            tangenteAntes.y = 0f;
+            tangenteDespues.y = 0f;
+
+            if (tangenteAntes.sqrMagnitude > 0.0001f && tangenteDespues.sqrMagnitude > 0.0001f)
+            {
+                // Positivo = la curva gira a la derecha vista desde arriba.
+                giroCurvaActual = Vector3.SignedAngle(tangenteAntes, tangenteDespues, Vector3.up);
+
+                if (alabearEnCurvas)
+                {
+                    // Girar a la derecha baja el ala derecha, que es una rotación negativa sobre +Z.
+                    alabeoObjetivo = Mathf.Clamp(-giroCurvaActual * intensidadAlabeo, -alabeoMaximo, alabeoMaximo);
+
+                    if (invertirAlabeo)
+                        alabeoObjetivo = -alabeoObjetivo;
+
+                    // Escalamos después del límite: el máximo solo se alcanza a la velocidad punta.
+                    alabeoObjetivo *= FactorVelocidadAlabeo(t);
+                }
+            }
+        }
+
+        float suavizado = 1f - Mathf.Exp(-Mathf.Max(0f, suavidadAlabeo) * Time.deltaTime);
+        alabeoActual = Mathf.Lerp(alabeoActual, alabeoObjetivo, suavizado);
+    }
+
+    // Gira el volante según la curva (no depende de la velocidad: una curva cerrada pide mucho volante).
+    // Si el volante es una aguja de InteriorNaveEspacial, le pasamos el giro para que lo sume a su vibración;
+    // si no, lo giramos aquí directamente.
+    private void ActualizarVolante()
+    {
+        if (volante == null)
+            return;
+
+        float giroObjetivo = Mathf.Clamp(-giroCurvaActual * intensidadVolante, -giroMaximoVolante, giroMaximoVolante);
+
+        if (invertirVolante)
+            giroObjetivo = -giroObjetivo;
+
+        float suavizado = 1f - Mathf.Exp(-Mathf.Max(0f, suavidadVolante) * Time.deltaTime);
+        giroVolanteActual = Mathf.Lerp(giroVolanteActual, giroObjetivo, suavizado);
+
+        bool giradoPorInterior = interiorNave != null &&
+                                 interiorNave.EstablecerGiroExtra(volante, giroVolanteActual, ejeGiroVolante);
+
+        if (!giradoPorInterior)
+            volante.localRotation = rotacionBaseVolante * Quaternion.AngleAxis(giroVolanteActual, ejeGiroVolante);
+    }
+
+    // 0 a 1 según la velocidad actual respecto a la máxima de la curva de velocidad.
+    // Sin curva, SplineAnimate avanza a velocidad constante y el alabeo no se escala.
+    private float FactorVelocidadAlabeo(float progreso)
+    {
+        if (!alabeoSegunVelocidad || !usarCurvaVelocidad)
+            return 1f;
+
+        float velocidadActual = Mathf.Max(0.01f, curvaMultiplicadorVelocidad.Evaluate(progreso));
+        return Mathf.Clamp01(velocidadActual / velocidadMaximaCurva);
+    }
+
+    // Muestrea la curva para conocer su multiplicador más alto (la velocidad punta de la nave).
+    private float CalcularVelocidadMaximaCurva()
+    {
+        const int muestras = 64;
+        float maximo = 0.01f;
+
+        for (int i = 0; i <= muestras; i++)
+            maximo = Mathf.Max(maximo, curvaMultiplicadorVelocidad.Evaluate(i / (float)muestras));
+
+        return maximo;
     }
 
     // =====================================================
@@ -518,13 +696,73 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private IEnumerator SecuenciaSalidaPalanca()
     {
+        ApagarParticulasNave();
+
+        // La cara frontal se abre en paralelo al apagado de luces; el cambio de plano espera a ambos.
+        Coroutine apertura = caraFrontal != null ? StartCoroutine(AbrirCaraFrontal()) : null;
+
         yield return ApagarLucesInteriores();
+
+        if (apertura != null)
+            yield return apertura;
 
         if (esperaTrasApagarLuces > 0f)
             yield return new WaitForSeconds(esperaTrasApagarLuces);
 
         finalizando = true;
         yield return FinalizarIntroduccion();
+    }
+
+    private IEnumerator AbrirCaraFrontal()
+    {
+        if (retrasoAperturaCaraFrontal > 0f)
+            yield return new WaitForSeconds(retrasoAperturaCaraFrontal);
+
+        // El desplazamiento se interpreta en los ejes locales de la pieza tal y como estaba al empezar,
+        // así la rotación en X no tuerce el recorrido.
+        Vector3 posicionDestino = posicionInicialCaraFrontal + rotacionInicialCaraFrontal * desplazamientoCaraFrontal;
+        float anguloActual = 0f;
+
+        while (true)
+        {
+            Vector3 posicion = velocidadMovimientoCaraFrontal > 0f
+                ? Vector3.MoveTowards(caraFrontal.localPosition, posicionDestino, velocidadMovimientoCaraFrontal * Time.deltaTime)
+                : posicionDestino;
+
+            anguloActual = velocidadRotacionCaraFrontal > 0f
+                ? Mathf.MoveTowards(anguloActual, gradosRotacionCaraFrontalX, velocidadRotacionCaraFrontal * Time.deltaTime)
+                : gradosRotacionCaraFrontalX;
+
+            caraFrontal.localPosition = posicion;
+            caraFrontal.localRotation = rotacionInicialCaraFrontal * Quaternion.AngleAxis(anguloActual, Vector3.right);
+
+            if (posicion == posicionDestino && Mathf.Approximately(anguloActual, gradosRotacionCaraFrontalX))
+                yield break;
+
+            yield return null;
+        }
+    }
+
+    private void RestaurarCaraFrontal()
+    {
+        if (caraFrontal == null)
+            return;
+
+        caraFrontal.localPosition = posicionInicialCaraFrontal;
+        caraFrontal.localRotation = rotacionInicialCaraFrontal;
+    }
+
+    private void ApagarParticulasNave()
+    {
+        if (particulasApagarConNave == null)
+            return;
+
+        particulasApagarConNave.Stop(
+            true,
+            limpiarParticulasAlApagar
+                ? ParticleSystemStopBehavior.StopEmittingAndClear
+                : ParticleSystemStopBehavior.StopEmitting
+        );
     }
 
     private IEnumerator ApagarLucesInteriores()
@@ -652,37 +890,31 @@ public class CambioCamaraIntro : MonoBehaviour
     {
         bool hayImagenes = imagenesIntro != null && imagenesIntro.Count > 0;
 
-        if (!hayImagenes || duracionFundidoImagenes <= 0f)
+        if (hayImagenes && duracionFundidoImagenes > 0f)
         {
-            AplicarProgresoImagenes(1f);
-            TerminarImagenes();
-            IniciarNave();
-            yield break;
-        }
+            if (retrasoInicioImagenes > 0f)
+                yield return new WaitForSeconds(retrasoInicioImagenes);
 
-        if (retrasoInicioImagenes > 0f)
-            yield return new WaitForSeconds(retrasoInicioImagenes);
+            float tiempo = 0f;
 
-        if (porcentajeInicioNave <= 0f)
-            IniciarNave();
+            while (tiempo < duracionFundidoImagenes)
+            {
+                tiempo += Time.deltaTime;
 
-        float tiempo = 0f;
+                float t = Mathf.Clamp01(tiempo / duracionFundidoImagenes);
+                AplicarProgresoImagenes(curvaFundidoImagenes.Evaluate(t));
 
-        while (tiempo < duracionFundidoImagenes)
-        {
-            tiempo += Time.deltaTime;
-
-            float t = Mathf.Clamp01(tiempo / duracionFundidoImagenes);
-            AplicarProgresoImagenes(curvaFundidoImagenes.Evaluate(t));
-
-            if (!naveIniciada && t >= porcentajeInicioNave)
-                IniciarNave();
-
-            yield return null;
+                yield return null;
+            }
         }
 
         AplicarProgresoImagenes(1f);
         TerminarImagenes();
+
+        // Sin imágenes el fundido "termina" al instante, así que el retraso cuenta desde el inicio.
+        if (retrasoInicioNaveTrasFundido > 0f)
+            yield return new WaitForSeconds(retrasoInicioNaveTrasFundido);
+
         IniciarNave();
     }
 
@@ -837,6 +1069,9 @@ public class CambioCamaraIntro : MonoBehaviour
                 );
             }
         }
+
+        // Con la pantalla en negro, la cara frontal vuelve a como estaba antes de abrirse.
+        RestaurarCaraFrontal();
 
         if (jugador != null && puntoSalidaJugador != null)
         {
