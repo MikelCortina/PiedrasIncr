@@ -11,7 +11,7 @@ public class CameraShake : MonoBehaviour
         else Destroy(this);
     }
 
-    // Método público para llamar al temblor desde cualquier script
+    // MÃ©todo pÃºblico para llamar al temblor desde cualquier script
     public void Temblar(float duracion, float magnitud)
     {
         StartCoroutine(RutinaShake(duracion, magnitud));
@@ -34,7 +34,7 @@ public class CameraShake : MonoBehaviour
             yield return null;
         }
 
-        // Devolvemos la cámara exactamente a su sitio original
+        // Devolvemos la cÃ¡mara exactamente a su sitio original
         transform.localPosition = posicionOriginal;
     }
 }

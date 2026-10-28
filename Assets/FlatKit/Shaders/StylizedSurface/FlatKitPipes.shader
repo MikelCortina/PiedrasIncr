@@ -122,9 +122,9 @@ Shader "FlatKit/Stylized Surface"
     	// #define FLAT_KIT_DOTS_INSTANCING_ON // Uncomment to enable DOTS instancing
     	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 
-        // --- INYECCI”N DE DEFORMACI”N DE TUBERÕA ---
-        // --- INYECCI”N DE DEFORMACI”N DE TUBERÕA ---
-      // --- INYECCI”N DE DEFORMACI”N DE TUBERÕA MEJORADA ---
+        // --- INYECCI√ìN DE DEFORMACI√ìN DE TUBER√çA ---
+        // --- INYECCI√ìN DE DEFORMACI√ìN DE TUBER√çA ---
+      // --- INYECCI√ìN DE DEFORMACI√ìN DE TUBER√çA MEJORADA ---
         float _Panner;
         float _BulgeWidth;
         float _BudgePower;
@@ -426,7 +426,7 @@ Shader "FlatKit/Stylized Surface"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
 
             Varyings MyShadowPassVertex(Attributes v) {
-                // El ShadowCaster en tu versiÛn usa 'positionOS' y 'normalOS'
+                // El ShadowCaster en tu versi√≥n usa 'positionOS' y 'normalOS'
                 APPLY_PIPE_DEFORMATION(v.positionOS, v.normalOS, v.texcoord.y)
                 return ShadowPassVertex(v);
             }
@@ -529,7 +529,7 @@ Shader "FlatKit/Stylized Surface"
             #include "LibraryUrp/StylizedInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
 
-            // DepthOnly usa 'position' y no trae normales, asÌ que seguimos inyectando el struct custom que funcionaba bien
+            // DepthOnly usa 'position' y no trae normales, as√≠ que seguimos inyectando el struct custom que funcionaba bien
             struct CustomDepthAttributes {
                 float4 position : POSITION;
                 float3 normal   : NORMAL;    

@@ -1,13 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// CAMBIOS: se aÒaden las propiedades publicas "CurrentYaw" y "CurrentPitch"
+/// CAMBIOS: se a√±aden las propiedades publicas "CurrentYaw" y "CurrentPitch"
 /// para que otros scripts (como PaperPlaneController) puedan leer el giro
 /// horizontal y vertical actual de esta camara, y usarlos para inclinar el
 /// avion tanto en Z (roll, por yaw de camara) como en X (pitch, por pitch de
 /// camara). 
 /// 
-/// AHORA LA C¡MARA SE MUEVE SIEMPRE Y EL CURSOR EST¡ OCULTO (Sin click derecho).
+/// AHORA LA C√ÅMARA SE MUEVE SIEMPRE Y EL CURSOR EST√Å OCULTO (Sin click derecho).
 /// </summary>
 public class ThirdPersonSwordCamera : MonoBehaviour
 {
@@ -21,7 +21,7 @@ public class ThirdPersonSwordCamera : MonoBehaviour
     [SerializeField] private float distanciaMaxima = 12f;
     [SerializeField] private float velocidadZoom = 3f;
 
-    [Header("RotaciÛn")]
+    [Header("Rotaci√≥n")]
     [SerializeField] private float sensibilidadHorizontal = 180f;
     [SerializeField] private float sensibilidadVertical = 100f;
     [SerializeField] private float anguloMinimo = -20f;
@@ -59,7 +59,7 @@ public class ThirdPersonSwordCamera : MonoBehaviour
     private void Update()
     {
         // Se ha eliminado el requisito de pulsar el click derecho.
-        // Ahora la c·mara lee el ratÛn en todos los frames.
+        // Ahora la c√°mara lee el rat√≥n en todos los frames.
 
         yaw += Input.GetAxis("Mouse X") * sensibilidadHorizontal * Time.deltaTime;
 

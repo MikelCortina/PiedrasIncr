@@ -9,11 +9,11 @@ public class Fisionador : MonoBehaviour
     {
         [Tooltip("Cantidad de piedras necesarias en este nivel para fisionar")]
         public int piedrasNecesarias = 5;
-        [Tooltip("El objeto que ser· expulsado al completar este nivel")]
+        [Tooltip("El objeto que ser√° expulsado al completar este nivel")]
         public GameObject prefabAExpulsar;
     }
 
-    [Header("ConfiguraciÛn de Niveles")]
+    [Header("Configuraci√≥n de Niveles")]
     [Tooltip("Lista de niveles. Cada nivel pide X piedras para expulsar su prefab.")]
     public NivelFision[] niveles;
 
@@ -21,65 +21,65 @@ public class Fisionador : MonoBehaviour
     public string tagPiedra = "Piedra";
 
     [Header("Pantalla LED (Contador de Piedras)")]
-    [Tooltip("Texto TextMeshPro donde se mostrar· cu·ntas piedras faltan")]
+    [Tooltip("Texto TextMeshPro donde se mostrar√° cu√°ntas piedras faltan")]
     public TMP_Text textoPantalla;
-    [Tooltip("Texto TextMeshPro donde se mostrar· el estado actual de la m·quina")]
+    [Tooltip("Texto TextMeshPro donde se mostrar√° el estado actual de la m√°quina")]
     public TMP_Text textoEstado;
-    [Tooltip("Formato del texto. Pon '0' para n˙meros normales, '00' si quieres que el 5 se vea como 05.")]
+    [Tooltip("Formato del texto. Pon '0' para n√∫meros normales, '00' si quieres que el 5 se vea como 05.")]
     public string formatoNumeros = "0";
 
-    [Header("AnimaciÛn de Trabajo (Shape Key y NeÛn)")]
-    [Tooltip("El modelo que se deformar· mientras haya piedras dentro")]
+    [Header("Animaci√≥n de Trabajo (Shape Key y Ne√≥n)")]
+    [Tooltip("El modelo que se deformar√° mientras haya piedras dentro")]
     public SkinnedMeshRenderer skinnedMeshRenderer;
-    [Tooltip("Õndice del Blend Shape (0 suele ser el primero)")]
+    [Tooltip("√çndice del Blend Shape (0 suele ser el primero)")]
     public int indiceBlendShape = 0;
     [Tooltip("Velocidad a la que el Shape Key va de 0 a 100 y viceversa")]
     public float velocidadShapeKey = 150f;
 
     [Space(5)]
-    [Tooltip("El controlador de neÛn que latir· al mismo ritmo que el Shape Key")]
+    [Tooltip("El controlador de ne√≥n que latir√° al mismo ritmo que el Shape Key")]
     public ControladorNeon controladorNeon;
-    [Tooltip("Intensidad del neÛn cuando la m·quina est· en reposo o descargada (Shape Key = 0)")]
+    [Tooltip("Intensidad del ne√≥n cuando la m√°quina est√° en reposo o descargada (Shape Key = 0)")]
     public float intensidadNeonDescargado = 0.5f;
-    [Tooltip("Intensidad del neÛn en el punto m·ximo del latido (Shape Key = 100)")]
+    [Tooltip("Intensidad del ne√≥n en el punto m√°ximo del latido (Shape Key = 100)")]
     public float intensidadNeonCargado = 3f;
 
-    [Header("Efectos de Burst (PartÌculas)")]
-    [Tooltip("Sistema principal que explotar· con varias partÌculas al alcanzar el m·ximo (100)")]
+    [Header("Efectos de Burst (Part√≠culas)")]
+    [Tooltip("Sistema principal que explotar√° con varias part√≠culas al alcanzar el m√°ximo (100)")]
     public ParticleSystem particulasBurst;
-    [Tooltip("Cantidad de partÌculas emitidas en la cima del latido para el sistema principal")]
+    [Tooltip("Cantidad de part√≠culas emitidas en la cima del latido para el sistema principal")]
     public int cantidadParticulasPorBurst = 30;
 
     [Space(5)]
-    [Tooltip("Lista de sistemas que emitir·n 1 sola partÌcula al alcanzar el TOPE (100 / 1)")]
+    [Tooltip("Lista de sistemas que emitir√°n 1 sola part√≠cula al alcanzar el TOPE (100 / 1)")]
     public ParticleSystem[] particulasBurstAlMaximo;
-    [Tooltip("Lista de sistemas que emitir·n 1 sola partÌcula al volver al REPOSO (0)")]
+    [Tooltip("Lista de sistemas que emitir√°n 1 sola part√≠cula al volver al REPOSO (0)")]
     public ParticleSystem[] particulasBurstAlCero;
 
     [Header("Objeto Secundario (Movimiento)")]
-    [Tooltip("El objeto que se mover· al completar un nivel")]
+    [Tooltip("El objeto que se mover√° al completar un nivel")]
     public Transform objetoSecundario;
-    [Tooltip("Eje y direcciÛn hacia donde se mover· (Ej: 0, 1, 0 para arriba)")]
+    [Tooltip("Eje y direcci√≥n hacia donde se mover√° (Ej: 0, 1, 0 para arriba)")]
     public Vector3 ejeMovimiento = Vector3.up;
-    [Tooltip("Cu·nta distancia recorrer· en ese eje por cada nivel completado")]
+    [Tooltip("Cu√°nta distancia recorrer√° en ese eje por cada nivel completado")]
     public float distanciaMovimientoPorNivel = 1.5f;
-    [Tooltip("Velocidad visual a la que se desplaza hacia su nueva posiciÛn")]
+    [Tooltip("Velocidad visual a la que se desplaza hacia su nueva posici√≥n")]
     public float velocidadMovimientoSecundario = 5f;
 
-    [Header("ExpulsiÛn (FisiÛn)")]
-    [Tooltip("Punto desde el cual nacer· el prefab expulsado")]
+    [Header("Expulsi√≥n (Fisi√≥n)")]
+    [Tooltip("Punto desde el cual nacer√° el prefab expulsado")]
     public Transform puntoExpulsion;
     [Tooltip("Velocidad a la que el objeto expulsado crece de 0 a 1")]
     public float velocidadCrecimientoExpulsado = 3f;
 
-    [Header("FÌsicas del Objeto Expulsado")]
+    [Header("F√≠sicas del Objeto Expulsado")]
     [Tooltip("Activa esto si quieres que el objeto salga disparado al expulsarse.")]
     public bool aplicarFuerzaFisica = false;
-    [Tooltip("La direcciÛn hacia donde saldr· disparado (Local al Punto de ExpulsiÛn)")]
+    [Tooltip("La direcci√≥n hacia donde saldr√° disparado (Local al Punto de Expulsi√≥n)")]
     public Vector3 direccionExpulsion = Vector3.up;
-    [Tooltip("Fuerza con la que saldr· disparado (Impulso)")]
+    [Tooltip("Fuerza con la que saldr√° disparado (Impulso)")]
     public float fuerzaExpulsion = 10f;
-    [Tooltip("Fuerza de rotaciÛn aleatoria que se le aplicar· al salir")]
+    [Tooltip("Fuerza de rotaci√≥n aleatoria que se le aplicar√° al salir")]
     public float fuerzaRotacionRandom = 5f;
 
     // --- Variables de Estado Internas ---
@@ -110,7 +110,7 @@ public class Fisionador : MonoBehaviour
             );
         }
 
-        // AnimaciÛn del Shape Key y el NeÛn (El "motor" trabajando)
+        // Animaci√≥n del Shape Key y el Ne√≥n (El "motor" trabajando)
         if (piedrasActuales > 0 && nivelActual < niveles.Length)
         {
             if (subiendoShape)
@@ -143,7 +143,7 @@ public class Fisionador : MonoBehaviour
         }
         else if (progresoShape > 0f)
         {
-            // Si no hay piedras, la m·quina se desinfla suavemente hasta descansar en 0
+            // Si no hay piedras, la m√°quina se desinfla suavemente hasta descansar en 0
             float progresoAnterior = progresoShape;
             progresoShape = Mathf.MoveTowards(progresoShape, 0f, Time.deltaTime * velocidadShapeKey);
 
@@ -155,7 +155,7 @@ public class Fisionador : MonoBehaviour
             }
         }
 
-        // Aplicamos el progreso al modelo y al neÛn
+        // Aplicamos el progreso al modelo y al ne√≥n
         if (skinnedMeshRenderer != null)
         {
             skinnedMeshRenderer.SetBlendShapeWeight(indiceBlendShape, progresoShape);
@@ -163,7 +163,7 @@ public class Fisionador : MonoBehaviour
 
         if (controladorNeon != null)
         {
-            // El Blend Shape va de 0 a 100, asÌ que lo dividimos entre 100 para tener un valor de 0 a 1
+            // El Blend Shape va de 0 a 100, as√≠ que lo dividimos entre 100 para tener un valor de 0 a 1
             float factor = progresoShape / 100f;
             controladorNeon.intensidad = Mathf.Lerp(intensidadNeonDescargado, intensidadNeonCargado, factor);
         }
@@ -277,13 +277,13 @@ public class Fisionador : MonoBehaviour
         {
             objetivo.localScale = escalaFinal;
 
-            // Fase 2: Aplicar fÌsicas (si est· activado) una vez ha crecido del todo
+            // Fase 2: Aplicar f√≠sicas (si est√° activado) una vez ha crecido del todo
             if (aplicarFuerzaFisica)
             {
                 Rigidbody rb = objetoExpulsado.GetComponent<Rigidbody>();
                 if (rb == null) rb = objetoExpulsado.AddComponent<Rigidbody>();
 
-                // Calculamos la direcciÛn bas·ndonos en la rotaciÛn del punto de expulsiÛn
+                // Calculamos la direcci√≥n bas√°ndonos en la rotaci√≥n del punto de expulsi√≥n
                 Vector3 direccionMundo = puntoExpulsion != null ? puntoExpulsion.TransformDirection(direccionExpulsion.normalized) : direccionExpulsion.normalized;
 
                 rb.AddForce(direccionMundo * fuerzaExpulsion, ForceMode.Impulse);

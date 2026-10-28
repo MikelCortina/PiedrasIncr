@@ -4,10 +4,10 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class DebugInfoPiedra : MonoBehaviour
 {
-    [Header("ActivaciÛn")]
+    [Header("Activaci√≥n")]
     public bool debugActivo = true;
 
-    [Tooltip("Distancia a la que aparece la informaciÛn.")]
+    [Tooltip("Distancia a la que aparece la informaci√≥n.")]
     public float distanciaMostrar = 4f;
 
 
@@ -18,12 +18,12 @@ public class DebugInfoPiedra : MonoBehaviour
     public float alturaTexto = 1.2f;
 
 
-    [Header("ActualizaciÛn")]
+    [Header("Actualizaci√≥n")]
     public float intervaloActualizacion = 0.15f;
 
 
     [Header("Movimiento")]
-    [Tooltip("Por debajo de esta velocidad consideramos que la piedra est· quieta.")]
+    [Tooltip("Por debajo de esta velocidad consideramos que la piedra est√° quieta.")]
     public float velocidadConsideradaQuieta = 0.15f;
 
 
@@ -128,7 +128,7 @@ public class DebugInfoPiedra : MonoBehaviour
 
 
         // =============================================
-        // POSICI”N SOBRE LA PIEDRA
+        // POSICI√ìN SOBRE LA PIEDRA
         // =============================================
 
         if (textoDebug != null)
@@ -140,7 +140,7 @@ public class DebugInfoPiedra : MonoBehaviour
 
 
         // =============================================
-        // MIRAR HACIA LA C¡MARA
+        // MIRAR HACIA LA C√ÅMARA
         // =============================================
 
         ActualizarRotacionTexto();
@@ -169,7 +169,7 @@ public class DebugInfoPiedra : MonoBehaviour
 
 
     // =====================================================
-    // INFORMACI”N
+    // INFORMACI√ìN
     // =====================================================
 
     private void ActualizarInformacion(

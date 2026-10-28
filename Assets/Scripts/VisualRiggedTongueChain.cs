@@ -3,7 +3,7 @@ using UnityEngine;
 public class VisualRiggedTongueChain : MonoBehaviour
 {
     [Header("Huesos de la lengua")]
-    [Tooltip("OrdÈnalos desde la espada hasta la rana.")]
+    [Tooltip("Ord√©nalos desde la espada hasta la rana.")]
     [SerializeField] private Transform[] huesosLengua;
 
     [Header("Anclas")]
@@ -14,12 +14,12 @@ public class VisualRiggedTongueChain : MonoBehaviour
     [SerializeField] private Rigidbody rigidbodyRana;
 
     [Header("Longitud")]
-    [Tooltip("Si es 0, se calcula autom·ticamente.")]
+    [Tooltip("Si es 0, se calcula autom√°ticamente.")]
     [SerializeField] private float longitudSegmento = 0f;
 
     [SerializeField] private float multiplicadorLongitud = 1f;
 
-    [Header("SimulaciÛn Verlet")]
+    [Header("Simulaci√≥n Verlet")]
     [SerializeField]
     private Vector3 gravedad =
         new Vector3(0f, -0.5f, 0f);
@@ -45,7 +45,7 @@ public class VisualRiggedTongueChain : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float suavizadoCurvatura = 0.25f;
 
-    [Header("Curva cuando la rana est· cerca")]
+    [Header("Curva cuando la rana est√° cerca")]
     [SerializeField] private bool usarCurvaCercania = true;
 
     [Tooltip("Distancia a partir de la cual se activa la curva estable.")]
@@ -59,7 +59,7 @@ public class VisualRiggedTongueChain : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float amortiguacionCercania = 0.80f;
 
-    [Header("CompresiÛn")]
+    [Header("Compresi√≥n")]
     [SerializeField] private bool permitirCompresion = true;
 
     [Range(0f, 1f)]
@@ -77,7 +77,7 @@ public class VisualRiggedTongueChain : MonoBehaviour
     [Header("Influencia de la rana")]
     [SerializeField] private float influenciaVelocidadRana = 0.01f;
 
-    [Header("TensiÛn sobre la rana")]
+    [Header("Tensi√≥n sobre la rana")]
     [SerializeField] private bool arrastrarRana = true;
 
     [SerializeField] private float rigidezCadena = 60f;
@@ -88,7 +88,7 @@ public class VisualRiggedTongueChain : MonoBehaviour
 
     [SerializeField] private float holguraCadena = 0f;
 
-    [Header("LÌmite de longitud")]
+    [Header("L√≠mite de longitud")]
     [SerializeField] private bool limitarLongitudTotal = true;
 
     [SerializeField] private float margenLongitudMaxima = 0f;
@@ -222,7 +222,7 @@ public class VisualRiggedTongueChain : MonoBehaviour
             if (huesosLengua[i] == null)
             {
                 Debug.LogError(
-                    $"El hueso {i} est· vacÌo.",
+                    $"El hueso {i} est√° vac√≠o.",
                     this
                 );
 

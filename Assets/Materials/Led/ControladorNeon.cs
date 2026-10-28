@@ -5,9 +5,9 @@ using UnityEngine;
 public class AjustesNeonSlot
 {
     [Tooltip("Nombre para organizarte en el inspector")]
-    public string nombre = "Pieza NeÛn";
+    public string nombre = "Pieza Ne√≥n";
 
-    [Tooltip("Õndice del material en el MeshRenderer (0 es el primero)")]
+    [Tooltip("√çndice del material en el MeshRenderer (0 es el primero)")]
     public int indiceMaterial = 0;
 
     [Space(5)]
@@ -26,11 +26,11 @@ public class AjustesNeonSlot
     [Tooltip("Cantidad base de zonas muertas (partes apagadas)")]
     public float cantidadZonasMuertas = 0f;
 
-    [Tooltip("Velocidad base del parpadeo del neÛn")]
+    [Tooltip("Velocidad base del parpadeo del ne√≥n")]
     public float velocidadParpadeo = 0f;
 
     [Header("Efecto de Fallo (Glitch)")]
-    [Tooltip("Si es mayor que 0, las zonas muertas cambiar·n aleatoriamente de posiciÛn y cantidad, simulando un tubo roto o fallando.")]
+    [Tooltip("Si es mayor que 0, las zonas muertas cambiar√°n aleatoriamente de posici√≥n y cantidad, simulando un tubo roto o fallando.")]
     [Range(0f, 1f)]
     public float inestabilidadFallo = 0f;
 
@@ -45,13 +45,13 @@ public class AjustesNeonSlot
 public class ControladorNeon : MonoBehaviour
 {
     [Header("Ajustes por Material")]
-    [Tooltip("AÒade aquÌ tantos slots como materiales quieras controlar individualmente")]
+    [Tooltip("A√±ade aqu√≠ tantos slots como materiales quieras controlar individualmente")]
     public AjustesNeonSlot[] ajustesPorSlot = new AjustesNeonSlot[] { new AjustesNeonSlot() };
 
     // =================================================================================
     // PROPIEDADES DE COMPATIBILIDAD
-    // Para que tus scripts (Ruleta, ArmaLanzadora) puedan seguir control·ndolo globalmente
-    // sin que den errores de cÛdigo.
+    // Para que tus scripts (Ruleta, ArmaLanzadora) puedan seguir control√°ndolo globalmente
+    // sin que den errores de c√≥digo.
     // =================================================================================
     public Color colorNeon
     {
@@ -78,7 +78,7 @@ public class ControladorNeon : MonoBehaviour
         {
             new AjustesNeonSlot()
             {
-                nombre = "Pieza NeÛn",
+                nombre = "Pieza Ne√≥n",
                 indiceMaterial = 0,
                 colorNeon = new Color(236.19f/255f, 226.255f/255f, 1f),
                 intensidad = 1.5f,
@@ -93,7 +93,7 @@ public class ControladorNeon : MonoBehaviour
     private Renderer meshRenderer;
     private MaterialPropertyBlock propertyBlock;
 
-    // IDs CL¡SICOS (Shader original)
+    // IDs CL√ÅSICOS (Shader original)
     private static readonly int idMainColor = Shader.PropertyToID("_MainColor");
     private static readonly int idIntensity = Shader.PropertyToID("_Intensity");
     private static readonly int idDeadZoneAmount = Shader.PropertyToID("_DeadZoneAmount");
@@ -120,7 +120,7 @@ public class ControladorNeon : MonoBehaviour
         if (meshRenderer.sharedMaterials == null || meshRenderer.sharedMaterials.Length == 0) return;
         if (ajustesPorSlot == null || ajustesPorSlot.Length == 0) return;
 
-        // Recorremos la lista para aplicar las propiedades especÌficas de cada Ìndice
+        // Recorremos la lista para aplicar las propiedades espec√≠ficas de cada √≠ndice
         for (int i = 0; i < ajustesPorSlot.Length; i++)
         {
             AjustesNeonSlot ajuste = ajustesPorSlot[i];
@@ -131,29 +131,29 @@ public class ControladorNeon : MonoBehaviour
             meshRenderer.GetPropertyBlock(propertyBlock, index);
 
             // =========================================================
-            // L”GICA DE INESTABILIDAD (GLITCH / FALLO DE NE”N)
+            // L√ìGICA DE INESTABILIDAD (GLITCH / FALLO DE NE√ìN)
             // =========================================================
             float cantidadZonasFinal = ajuste.cantidadZonasMuertas;
             float offsetZonasFinal = 0f;
 
             if (ajuste.inestabilidadFallo > 0f && Application.isPlaying)
             {
-                // El temporizador avanza m·s r·pido cuanta m·s velocidad de parpadeo tenga
+                // El temporizador avanza m√°s r√°pido cuanta m√°s velocidad de parpadeo tenga
                 float velocidadCambio = Mathf.Max(1f, ajuste.velocidadParpadeo);
                 ajuste.temporizadorFallo -= Time.deltaTime * velocidadCambio;
 
                 if (ajuste.temporizadorFallo <= 0f)
                 {
-                    // Cada vez que el temporizador llega a 0, cambiamos la posiciÛn y la cantidad de las zonas muertas
+                    // Cada vez que el temporizador llega a 0, cambiamos la posici√≥n y la cantidad de las zonas muertas
 
-                    // 1. Variar la cantidad de zonas muertas bas·ndonos en la inestabilidad
+                    // 1. Variar la cantidad de zonas muertas bas√°ndonos en la inestabilidad
                     float variacionMaxima = ajuste.inestabilidadFallo;
                     ajuste.cantidadZonasActual = Mathf.Clamp01(ajuste.cantidadZonasMuertas + Random.Range(-variacionMaxima, variacionMaxima));
 
-                    // 2. Cambiar la posiciÛn (offset) aleatoriamente por todo el tubo
+                    // 2. Cambiar la posici√≥n (offset) aleatoriamente por todo el tubo
                     ajuste.offsetZonasActual = Random.Range(0f, 100f);
 
-                    // 3. Reiniciar el temporizador (saltos aleatorios r·pidos)
+                    // 3. Reiniciar el temporizador (saltos aleatorios r√°pidos)
                     ajuste.temporizadorFallo = Random.Range(0.05f, 0.3f);
                 }
 

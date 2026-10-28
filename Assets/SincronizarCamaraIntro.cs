@@ -15,7 +15,7 @@ public class SincronizarCamaraIntro : MonoBehaviour
 
         float progresoNave = movimientoNave.NormalizedTime;
 
-        // La c·mara completa su ruta en los
+        // La c√°mara completa su ruta en los
         // primeros 10 segundos del vuelo de 20.
         dollyCamara.CameraPosition =
             Mathf.Clamp01(progresoNave);

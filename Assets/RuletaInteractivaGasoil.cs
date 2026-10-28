@@ -3,35 +3,35 @@ using UnityEngine;
 public class RuletaInteractivaGasoil : MonoBehaviour
 {
     [Header("Ajustes de Giro de la Ruleta")]
-    [Tooltip("¡ngulo objetivo para activar el mecanismo (Ej: 720 grados = 2 vueltas completas)")]
+    [Tooltip("√Ångulo objetivo para activar el mecanismo (Ej: 720 grados = 2 vueltas completas)")]
     public float anguloObjetivo = 720f;
-    [Tooltip("Eje local sobre el cual girar· la ruleta (Normalmente Vector3.forward, Vector3.up o Vector3.right)")]
+    [Tooltip("Eje local sobre el cual girar√° la ruleta (Normalmente Vector3.forward, Vector3.up o Vector3.right)")]
     public Vector3 ejeGiroLocal = Vector3.forward;
 
     [Min(1f)]
     [Tooltip("Velocidad lineal a la que la ruleta se desenrosca (grados por segundo)")]
     public float velocidadRetorno = 300f;
 
-    [Header("SensaciÛn FÌsica (Game Feel)")]
-    [Tooltip("Multiplicador de velocidad cuando est· a punto de llegar al objetivo (0.15 = muy dura, 1 = suave siempre)")]
+    [Header("Sensaci√≥n F√≠sica (Game Feel)")]
+    [Tooltip("Multiplicador de velocidad cuando est√° a punto de llegar al objetivo (0.15 = muy dura, 1 = suave siempre)")]
     [Range(0.01f, 1f)] public float suavidadFinal = 0.15f;
 
-    [Header("Segundo Objeto (ActivaciÛn)")]
-    [Tooltip("El objeto que rotar· al alcanzar el objetivo")]
+    [Header("Segundo Objeto (Activaci√≥n)")]
+    [Tooltip("El objeto que rotar√° al alcanzar el objetivo")]
     public Transform objetoSecundario;
-    [Tooltip("RotaciÛn final que tomar· el objeto secundario al activarse")]
+    [Tooltip("Rotaci√≥n final que tomar√° el objeto secundario al activarse")]
     public Vector3 rotacionObjetivoSecundario = new Vector3(-90f, 0f, 0f);
-    [Tooltip("Cantidad a bajar en el eje Y (ej: -0.5) cuando la v·lvula 'suelta el aire' y el LED se descarga")]
+    [Tooltip("Cantidad a bajar en el eje Y (ej: -0.5) cuando la v√°lvula 'suelta el aire' y el LED se descarga")]
     public float bajadaEjeYSecundario = -0.5f;
 
-    [Header("Efectos al Completar (ExplosiÛn/Vaciado)")]
+    [Header("Efectos al Completar (Explosi√≥n/Vaciado)")]
     [Tooltip("Tiempo en segundos que tarda el LED en apagarse (vaciarse) al llegar a 720 antes de iniciar el retorno")]
     public float tiempoDescarga = 1.5f;
-    [Tooltip("PartÌculas que saltan en el momento exacto en el que la ruleta llega a su objetivo (720)")]
+    [Tooltip("Part√≠culas que saltan en el momento exacto en el que la ruleta llega a su objetivo (720)")]
     public ParticleSystem[] particulasExplosion;
 
-    [Header("Sistema de LED / NeÛn")]
-    [Tooltip("Controlador de neÛn del LED asociado a esta ruleta (opcional)")]
+    [Header("Sistema de LED / Ne√≥n")]
+    [Tooltip("Controlador de ne√≥n del LED asociado a esta ruleta (opcional)")]
     public ControladorNeon ledControlador;
 
     [Header("1. Estado Inicial (Enfriado)")]
@@ -39,7 +39,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
     public float intensidadInicio = 1f;
     public float parpadeoInicio = 2f;
 
-    [Header("2. Estado Final (Punto M·ximo / Cargado)")]
+    [Header("2. Estado Final (Punto M√°ximo / Cargado)")]
     [ColorUsage(true, true)] public Color colorLedEncendido = Color.green;
     public float intensidadFin = 5f;
     public float parpadeoFin = 25f;
@@ -48,17 +48,17 @@ public class RuletaInteractivaGasoil : MonoBehaviour
     private float gradosAcumuladosGiro = 0f;
     private Quaternion rotacionOrigen;
 
-    // Variables para el objeto secundario (Tapa / V·lvula)
+    // Variables para el objeto secundario (Tapa / V√°lvula)
     private Quaternion rotacionOrigenSecundario;
     private Vector3 posicionOrigenSecundario;
 
-    // M·quina de estados
+    // M√°quina de estados
     private enum EstadoRuleta { Girando, Vaciando, Retornando, Completado }
     private EstadoRuleta estadoActual = EstadoRuleta.Girando;
 
     private bool estaSiendoGirada = false;
 
-    // SincronizaciÛn del tiempo de retorno
+    // Sincronizaci√≥n del tiempo de retorno
     private float progresoSecundario = 0f;
 
     // Progreso del efecto de "Vaciado" (Descarga del LED y bajada del eje Y)
@@ -93,7 +93,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
                 ActualizarLed(progresoGiro);
             }
 
-            // Aseguramos que el objeto secundario estÈ cerrado
+            // Aseguramos que el objeto secundario est√© cerrado
             if (objetoSecundario != null)
             {
                 float tiempoDeRetornoTotal = anguloObjetivo / velocidadRetorno;
@@ -106,11 +106,11 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         }
 
         // -------------------------------------------------------------
-        // ESTADO 2: VACIANDO (LlegÛ a 720, tira partÌculas, luz se apaga y baja el objeto)
+        // ESTADO 2: VACIANDO (Lleg√≥ a 720, tira part√≠culas, luz se apaga y baja el objeto)
         // -------------------------------------------------------------
         else if (estadoActual == EstadoRuleta.Vaciando)
         {
-            // El LED y el eje Y se "vacÌan" seg˙n el tiempo establecido
+            // El LED y el eje Y se "vac√≠an" seg√∫n el tiempo establecido
             if (tiempoDescarga <= 0.01f) tiempoDescarga = 0.01f;
             progresoVaciado -= Time.deltaTime / tiempoDescarga;
 
@@ -135,7 +135,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         }
 
         // -------------------------------------------------------------
-        // ESTADO 3: RETORNANDO (Se abren simult·neamente la ruleta y la rotaciÛn del secundario)
+        // ESTADO 3: RETORNANDO (Se abren simult√°neamente la ruleta y la rotaci√≥n del secundario)
         // -------------------------------------------------------------
         else if (estadoActual == EstadoRuleta.Retornando)
         {
@@ -149,7 +149,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
             gradosAcumuladosGiro = Mathf.MoveTowards(gradosAcumuladosGiro, 0f, velocidadRetorno * Time.deltaTime);
             transform.localRotation = rotacionOrigen * Quaternion.AngleAxis(gradosAcumuladosGiro, ejeGiroLocal);
 
-            // C. El objeto secundario se ROTA abriÈndose
+            // C. El objeto secundario se ROTA abri√©ndose
             if (objetoSecundario != null)
             {
                 float tiempoDeRetornoTotal = anguloObjetivo / velocidadRetorno;
@@ -161,22 +161,22 @@ public class RuletaInteractivaGasoil : MonoBehaviour
                 objetoSecundario.localRotation = Quaternion.Slerp(rotacionOrigenSecundario, rotacionDeseada, progresoSecundario);
             }
 
-            // Si la ruleta ya volviÛ a cero por completo y el objeto recuperÛ su altura, el ciclo terminÛ.
+            // Si la ruleta ya volvi√≥ a cero por completo y el objeto recuper√≥ su altura, el ciclo termin√≥.
             if (gradosAcumuladosGiro <= 0f)
             {
                 gradosAcumuladosGiro = 0f;
 
-                // °BLOQUEO PERMANENTE! 
-                // A partir de aquÌ no hace nada m·s y se queda en su rotaciÛn final.
+                // ¬°BLOQUEO PERMANENTE! 
+                // A partir de aqu√≠ no hace nada m√°s y se queda en su rotaci√≥n final.
                 estadoActual = EstadoRuleta.Completado;
             }
         }
 
-        // Restablecemos el flag de interacciÛn manual para el siguiente frame
+        // Restablecemos el flag de interacci√≥n manual para el siguiente frame
         estaSiendoGirada = false;
     }
 
-    // MÈtodo llamado desde GestorRuletasFPS
+    // M√©todo llamado desde GestorRuletasFPS
     public void ModificarDesdeGiroVisual(float deltaGiro)
     {
         // Si no estamos en la fase normal de giro, ignoramos el input del jugador por completo
@@ -184,7 +184,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
 
         estaSiendoGirada = true;
 
-        // TENSI”N
+        // TENSI√ìN
         float progresoActual = Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo);
         float multiplicadorTension = Mathf.Lerp(1f, suavidadFinal, progresoActual);
 
@@ -197,17 +197,17 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         gradosAcumuladosGiro += deltaGiro;
         if (gradosAcumuladosGiro < 0f) gradosAcumuladosGiro = 0f;
 
-        // COMPROBAR ACTIVACI”N (Alcanzar los 720 grados)
+        // COMPROBAR ACTIVACI√ìN (Alcanzar los 720 grados)
         if (gradosAcumuladosGiro >= anguloObjetivo)
         {
             gradosAcumuladosGiro = anguloObjetivo;
-            estaSiendoGirada = false; // Forzamos el soltado visual de la interacciÛn
+            estaSiendoGirada = false; // Forzamos el soltado visual de la interacci√≥n
 
             // Activamos la fase de vaciado
             estadoActual = EstadoRuleta.Vaciando;
             progresoVaciado = 1f; // Reseteamos el progreso del vaciado para que empiece desde 100%
 
-            // Disparamos partÌculas de explosiÛn
+            // Disparamos part√≠culas de explosi√≥n
             if (particulasExplosion != null && particulasExplosion.Length > 0)
             {
                 foreach (ParticleSystem ps in particulasExplosion)
@@ -221,10 +221,10 @@ public class RuletaInteractivaGasoil : MonoBehaviour
             }
         }
 
-        // Aplicamos rotaciÛn fÌsica de la ruleta manual
+        // Aplicamos rotaci√≥n f√≠sica de la ruleta manual
         transform.localRotation = rotacionOrigen * Quaternion.AngleAxis(gradosAcumuladosGiro, ejeGiroLocal);
 
-        // LED acompaÒa al giro manual
+        // LED acompa√±a al giro manual
         float progresoLed = Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo);
         ActualizarLed(progresoLed);
     }

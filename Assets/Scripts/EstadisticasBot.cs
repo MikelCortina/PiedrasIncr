@@ -3,10 +3,10 @@ using UnityEngine;
 public class EstadisticasBot : MonoBehaviour
 {
     // =====================================================
-    // ESTADÕSTICAS
+    // ESTAD√çSTICAS
     // =====================================================
 
-    [Header("EstadÌsticas")]
+    [Header("Estad√≠sticas")]
 
     [SerializeField]
     private int piedrasRecogidas = 0;

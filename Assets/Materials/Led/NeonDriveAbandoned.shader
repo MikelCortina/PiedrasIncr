@@ -42,7 +42,7 @@ Shader "Custom/NeonDriveAbandoned"
                 UNITY_VERTEX_INPUT_INSTANCE_ID // Para pasar el ID al fragment shader
             };
 
-            // Declaración de variables preparadas para Material Property Blocks
+            // DeclaraciÃ³n de variables preparadas para Material Property Blocks
             UNITY_INSTANCING_BUFFER_START(Props)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _MainColor)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Intensity)
@@ -53,7 +53,7 @@ Shader "Custom/NeonDriveAbandoned"
                 UNITY_DEFINE_INSTANCED_PROP(float, _BarDirection)
             UNITY_INSTANCING_BUFFER_END(Props)
 
-            // Función de ruido pseudoaleatorio para generar imperfecciones
+            // FunciÃ³n de ruido pseudoaleatorio para generar imperfecciones
             float random(float2 st) 
             {
                 return frac(sin(dot(st.xy, float2(12.9898,78.233))) * 43758.5453123);
@@ -77,7 +77,7 @@ Shader "Custom/NeonDriveAbandoned"
                 // Configura el ID en el fragment shader
                 UNITY_SETUP_INSTANCE_ID(i);
 
-                // Leemos las propiedades desde el búfer de instanciamiento
+                // Leemos las propiedades desde el bÃºfer de instanciamiento
                 float4 mainColor = UNITY_ACCESS_INSTANCED_PROP(Props, _MainColor);
                 float intensity = UNITY_ACCESS_INSTANCED_PROP(Props, _Intensity);
                 float flickerSpeed = UNITY_ACCESS_INSTANCED_PROP(Props, _FlickerSpeed);
@@ -86,12 +86,12 @@ Shader "Custom/NeonDriveAbandoned"
                 float deadZoneAmount = UNITY_ACCESS_INSTANCED_PROP(Props, _DeadZoneAmount);
                 float barDirection = UNITY_ACCESS_INSTANCED_PROP(Props, _BarDirection);
 
-                // 1. LÓGICA DE PARPADEO (Tubo de gas inestable)
+                // 1. LÃ“GICA DE PARPADEO (Tubo de gas inestable)
                 float t = _Time.y * flickerSpeed;
                 float noiseFlicker = random(float2(floor(t), 0.0));
                 float flicker = lerp(1.0, step(0.5, noiseFlicker), flickerAmount);
 
-                // 2. LÓGICA DE ZONAS MUERTAS (LEDs fundidos o tubos quemados)
+                // 2. LÃ“GICA DE ZONAS MUERTAS (LEDs fundidos o tubos quemados)
                 float axis = lerp(i.uv.x, i.uv.y, barDirection);
                 float currentSegment = floor(axis * segments);
                 float isDead = step(1.0 - deadZoneAmount, random(float2(currentSegment, 1.0)));

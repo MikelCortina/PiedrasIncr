@@ -7,7 +7,7 @@ public class DianaBloop : MonoBehaviour
     public Transform modeloVisual;
     public Transform modeloSalidaVisual;
 
-    [Header("AnimaciÛn BanderÌn (Sway / Corner Flag)")]
+    [Header("Animaci√≥n Bander√≠n (Sway / Corner Flag)")]
     public Transform modeloBanderin;
     public float inclinacionBanderin = 45f;
     public float velocidadBalanceo = 20f;
@@ -17,8 +17,8 @@ public class DianaBloop : MonoBehaviour
     public GameObject prefabVFXImpacto;
     public float offsetSuperficieVFX = 0.08f;
 
-    [Header("Sistema de Cooldown y NeÛn")]
-    [Tooltip("El controlador de neÛn que cambiar· de intensidad")]
+    [Header("Sistema de Cooldown y Ne√≥n")]
+    [Tooltip("El controlador de ne√≥n que cambiar√° de intensidad")]
     public ControladorNeon controladorNeon;
     public float tiempoCooldown = 2.5f;
 
@@ -28,10 +28,10 @@ public class DianaBloop : MonoBehaviour
     public float velocidadOscilacion = 3f;
 
     // ====================================================================
-    // SISTEMA DE PARTÕCULAS CON INVERSI”N Y EXPLOSI”N
+    // SISTEMA DE PART√çCULAS CON INVERSI√ìN Y EXPLOSI√ìN
     // ====================================================================
-    [Header("Sistema de PartÌculas (Carga y Listo)")]
-    [Tooltip("Sistema principal que succiona energÌa y luego la expulsa.")]
+    [Header("Sistema de Part√≠culas (Carga y Listo)")]
+    [Tooltip("Sistema principal que succiona energ√≠a y luego la expulsa.")]
     public ParticleSystem psCargando;
     public float tasaEmisionCargandoMin = 5f;
     public float tasaEmisionCargandoMax = 40f;
@@ -41,7 +41,7 @@ public class DianaBloop : MonoBehaviour
     public float startSpeedFinMin = -9.0f;
     public float startSpeedFinMax = -3.0f;
 
-    [Tooltip("Multiplicador de velocidad para dar el efecto de latigazo/explosiÛn")]
+    [Tooltip("Multiplicador de velocidad para dar el efecto de latigazo/explosi√≥n")]
     public float factorAceleracionExplosion = 4.5f;
     public float tiempoCorteEmision = 0.15f;
     public int cantidadBurstImpacto = 100;
@@ -58,7 +58,7 @@ public class DianaBloop : MonoBehaviour
     [Min(1)] public int piedrasPorActivacion = 1;
     [Min(0f)] public float intervaloEntrePiedras = 0.12f;
 
-    [Header("--- DIRECCI”N CONCRETA ---")]
+    [Header("--- DIRECCI√ìN CONCRETA ---")]
     public Vector3 direccionDeTiro = new Vector3(0f, 1f, 0f);
     public bool direccionLocal = true;
 
@@ -94,7 +94,7 @@ public class DianaBloop : MonoBehaviour
     private Coroutine corrutinaBloopSalida;
     private Coroutine corrutinaBanderin;
 
-    // Forzamos a que coja las escalas justo antes del primer update (despuÈs de que el padre lo encienda y estire)
+    // Forzamos a que coja las escalas justo antes del primer update (despu√©s de que el padre lo encienda y estire)
     private void InicializarTardio()
     {
         if (inicializado) return;
@@ -113,12 +113,12 @@ public class DianaBloop : MonoBehaviour
         // Estado inicial (Listo para ser golpeado)
         if (psBurst != null) psBurst.Stop();
 
-        // No iniciar la oscilaciÛn del neÛn aquÌ si est· escal·ndose.
+        // No iniciar la oscilaci√≥n del ne√≥n aqu√≠ si est√° escal√°ndose.
     }
 
     private void OnEnable()
     {
-        // Al encenderse, activamos las partÌculas y la luz asegur·ndonos de que ya tiene escala
+        // Al encenderse, activamos las part√≠culas y la luz asegur√°ndonos de que ya tiene escala
         if (controladorNeon != null)
         {
             if (corrutinaOscilacion != null) StopCoroutine(corrutinaOscilacion);
@@ -388,7 +388,7 @@ public class DianaBloop : MonoBehaviour
 
     private IEnumerator RutinaBloopPrincipal(Transform objetivo, Vector3 escalaBase, bool ejeAleatorio)
     {
-        if (escalaBase.magnitude < 0.1f) yield break; // Seguridad para no escalar si est· oculto
+        if (escalaBase.magnitude < 0.1f) yield break; // Seguridad para no escalar si est√° oculto
 
         float t = 0f;
         float chafar = aplastamiento;

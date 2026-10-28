@@ -14,7 +14,7 @@ public class SwordWallCollision : MonoBehaviour
     [SerializeField] private float multiplicadorRebote = 1f;
     [SerializeField] private float velocidadMinimaRebote = 0.1f;
 
-    [Header("Depuraci髇")]
+    [Header("Depuraci贸n")]
     [SerializeField] private bool mostrarMensajes = true;
 
     private Rigidbody rb;
@@ -135,7 +135,7 @@ public class SwordWallCollision : MonoBehaviour
             rb.useGravity = false;
         }
 
-        // Creamos una uni髇 fija en la posici髇 actual.
+        // Creamos una uni贸n fija en la posici贸n actual.
         FixedJoint union = gameObject.AddComponent<FixedJoint>();
 
         // Si la pared tiene Rigidbody, queda unido a ella.
@@ -174,7 +174,7 @@ public class SwordWallCollision : MonoBehaviour
 
         /*
          * La normal puede apuntar en el sentido incorrecto
-         * dependiendo de la orientaci髇 de la colisi髇.
+         * dependiendo de la orientaci贸n de la colisi贸n.
          */
         Vector3 normalRebote =
             ObtenerNormalDeRebote(

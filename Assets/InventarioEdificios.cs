@@ -26,7 +26,7 @@ public class InventarioEdificios : MonoBehaviour
             unidades = Mathf.Max(0, unidades);
         }
 
-        public bool Añadir()
+        public bool AÃ±adir()
         {
             if (unidades >= maximoEnMochila) return false;
             unidades++;
@@ -130,7 +130,7 @@ public class InventarioEdificios : MonoBehaviour
             return false;
         }
 
-        a.Añadir();
+        a.AÃ±adir();
         mensaje = "Comprado: " + tipo + " (" + a.Unidades + "/" + a.maximoEnMochila + ")";
         InventarioCambiado?.Invoke();
         return true;

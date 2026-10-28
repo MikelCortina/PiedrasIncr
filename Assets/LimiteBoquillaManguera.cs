@@ -57,7 +57,7 @@ public class LimiteBoquillaManguera : MonoBehaviour
         union.projectionMode = JointProjectionMode.PositionAndRotation;
         union.projectionDistance = 0.05f;
 
-        Debug.Log("Longitud m·xima de manguera: " + longitudMaxima);
+        Debug.Log("Longitud m√°xima de manguera: " + longitudMaxima);
     }
 
     void FixedUpdate()

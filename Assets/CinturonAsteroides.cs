@@ -40,20 +40,20 @@ public class CinturonAsteroides : MonoBehaviour
     public Transform objetivoOrbita;
     public GameObject[] prefabsAsteroides;
 
-    [Header("Rotaci髇 del Objetivo Central")]
+    [Header("Rotaci贸n del Objetivo Central")]
     public Vector3 ejeRotacionObjetivo = Vector3.up;
     public float velocidadRotacionObjetivo = 15f;
     [HideInInspector] public bool rotacionPausada = false;
 
-    [Header("Orientaci髇 Din醡ica")]
+    [Header("Orientaci贸n Din谩mica")]
     public Transform jugador;
     public string tagJugador = "Player";
     public float inclinacionX = 15f;
 
-    [Header("Generaci髇 (Solo si no usa Gestor)")]
+    [Header("Generaci贸n (Solo si no usa Gestor)")]
     public int cantidadInicialAsteroides = 200;
 
-    [Header("Transici髇 de Forma")]
+    [Header("Transici贸n de Forma")]
     public float velocidadTransicionForma = 2f;
 
     private FormaAnillo formaObjetivo;
@@ -64,26 +64,26 @@ public class CinturonAsteroides : MonoBehaviour
     [HideInInspector] public float grosorAltura = 5f;
     private Vector3 escalaBaseHumo = Vector3.one;
 
-    [Header("Fracci髇 de Ca韉a (Drop Zone)")]
+    [Header("Fracci贸n de Ca铆da (Drop Zone)")]
     [Range(0f, 360f)] public float anguloCentroCaida = 180f;
     [Range(10f, 360f)] public float aperturaCaida = 90f;
 
-    [Header("Movimiento y Variaci髇")]
+    [Header("Movimiento y Variaci贸n")]
     public Vector2 rangoVelocidadOrbita = new Vector2(20f, 40f);
     public Vector2 rangoVelocidadRotacionLocal = new Vector2(10f, 50f);
     public Vector2 rangoEscala = new Vector2(500f, 500f);
 
-    [Header("F韘ica de Explosi髇 (Global)")]
+    [Header("F铆sica de Explosi贸n (Global)")]
     public float fuerzaExplosionMin = 40f;
     public float fuerzaExplosionMax = 100f;
     public float rigidezResorteAsteroides = 25f;
     public float amortiguacionAsteroides = 5f;
 
-    [Header("F韘ica de Explosi髇 (Impactos Locales)")]
+    [Header("F铆sica de Explosi贸n (Impactos Locales)")]
     public float radioImpactoLocal = 15f;
     public float fuerzaImpactoLocal = 60f;
 
-    [Header("F韘ica de Explosi髇 (Humo Visual)")]
+    [Header("F铆sica de Explosi贸n (Humo Visual)")]
     public ParticleSystem particulasAnilloHumo;
     public float fuerzaExplosionHumo = 3f;
     public float rigidezResorteHumo = 25f;
@@ -97,7 +97,7 @@ public class CinturonAsteroides : MonoBehaviour
     private ParticleSystem.Particle[] particulasHumoBuffer;
     private AsteroideOrbital[] arrayAsteroides;
 
-    // --- NUEVO: Control de autoreparaci髇 ---
+    // --- NUEVO: Control de autoreparaci贸n ---
     private float temporizadorReparacion = 0f;
     private float intervaloReparacion = 1f; // Comprueba si faltan asteroides cada segundo
 
@@ -120,7 +120,7 @@ public class CinturonAsteroides : MonoBehaviour
 
         if (arrayAsteroides == null || arrayAsteroides.Length == 0)
         {
-            // Inicializa formaObjetivo para que la autoreparaci髇 sepa la cantidad meta
+            // Inicializa formaObjetivo para que la autoreparaci贸n sepa la cantidad meta
             formaObjetivo = new FormaAnillo { cantidadAsteroides = cantidadInicialAsteroides, radioInterior = radioInterior, radioExterior = radioExterior, elevacionCinturon = elevacionCinturon, grosorAltura = grosorAltura };
             AjustarCantidadAsteroides(cantidadInicialAsteroides);
         }
@@ -156,7 +156,7 @@ public class CinturonAsteroides : MonoBehaviour
         }
     }
 
-    // --- NUEVO: M閠odo extra韉o para crear un solo asteroide y animarlo ---
+    // --- NUEVO: M茅todo extra铆do para crear un solo asteroide y animarlo ---
     private void CrearNuevoAsteroide(int indice, bool animarEscala)
     {
         GameObject prefabAleatorio = prefabsAsteroides[UnityEngine.Random.Range(0, prefabsAsteroides.Length)];
@@ -165,7 +165,7 @@ public class CinturonAsteroides : MonoBehaviour
 
         float escalaRandom = UnityEngine.Random.Range(rangoEscala.x, rangoEscala.y);
 
-        // Si necesitamos animar la escala (es una reparaci髇 o un cambio de fase), empieza en 0
+        // Si necesitamos animar la escala (es una reparaci贸n o un cambio de fase), empieza en 0
         if (animarEscala)
         {
             nuevoAsteroide.transform.localScale = Vector3.zero;
@@ -194,7 +194,7 @@ public class CinturonAsteroides : MonoBehaviour
 
         if (UnityEngine.Random.value > 0.5f) arrayAsteroides[indice].velocidadOrbita *= -1f;
 
-        // Lo colocamos en su posici髇 inicial inmediatamente para que no nazca en 0,0,0
+        // Lo colocamos en su posici贸n inicial inmediatamente para que no nazca en 0,0,0
         ObtenerMatrizCinturon(out Vector3 centroGlobal, out Quaternion rotacionGlobal);
         float radioBaseCalculado = Mathf.Lerp(radioInterior, radioExterior, fRadio);
         float alturaBaseY = grosorAltura * fAltura;
@@ -211,7 +211,7 @@ public class CinturonAsteroides : MonoBehaviour
 
             tiempo += Time.deltaTime;
             float progreso = tiempo / duracion;
-            // Usamos SmoothStep para un crecimiento m醩 org醤ico (r醦ido al principio, lento al final)
+            // Usamos SmoothStep para un crecimiento m谩s org谩nico (r谩pido al principio, lento al final)
             float valorSuavizado = Mathf.SmoothStep(0f, 1f, progreso);
 
             asteroide.localScale = Vector3.Lerp(Vector3.zero, escalaFinal, valorSuavizado);
@@ -228,7 +228,7 @@ public class CinturonAsteroides : MonoBehaviour
 
         bool arrayModificado = false;
 
-        // Comprobamos si hay alg鷑 asteroide destruido en la lista actual
+        // Comprobamos si hay alg煤n asteroide destruido en la lista actual
         for (int i = 0; i < arrayAsteroides.Length; i++)
         {
             if (arrayAsteroides[i].transformAsteroide == null)
@@ -261,7 +261,7 @@ public class CinturonAsteroides : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        // --- NUEVO: L骻ica de autoreparaci髇 (no se hace cada frame por rendimiento) ---
+        // --- NUEVO: L贸gica de autoreparaci贸n (no se hace cada frame por rendimiento) ---
         temporizadorReparacion += dt;
         if (temporizadorReparacion >= intervaloReparacion)
         {

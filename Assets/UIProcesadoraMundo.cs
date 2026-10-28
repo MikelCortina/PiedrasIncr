@@ -22,10 +22,10 @@ public class UIProcesadoraMundo : MonoBehaviour
 
 
     // =====================================================
-    // POSICIÓN
+    // POSICIÃ“N
     // =====================================================
 
-    [Header("Posición del cartel")]
+    [Header("PosiciÃ³n del cartel")]
 
     [Tooltip(
         "Empty colocado encima de la procesadora."
@@ -40,7 +40,7 @@ public class UIProcesadoraMundo : MonoBehaviour
 
 
     // =====================================================
-    // ORIENTACIÓN
+    // ORIENTACIÃ“N
     // =====================================================
 
     [Header("Mirar al jugador")]
@@ -57,27 +57,27 @@ public class UIProcesadoraMundo : MonoBehaviour
     [Header("Visibilidad")]
 
     [Tooltip(
-        "Distancia desde la que aparece automáticamente."
+        "Distancia desde la que aparece automÃ¡ticamente."
     )]
     public float distanciaMostrar = 5f;
 
 
     [Tooltip(
-        "Tiempo que permanece visible después de una moneda, " +
+        "Tiempo que permanece visible despuÃ©s de una moneda, " +
         "desbloqueo o mejora."
     )]
     public float tiempoVisibleTrasEvento = 3f;
 
 
     [Tooltip(
-        "Velocidad de aparición y desaparición."
+        "Velocidad de apariciÃ³n y desapariciÃ³n."
     )]
     public float velocidadFade = 5f;
 
 
     [Tooltip(
-        "CanvasGroup del cartel. Si se deja vacío, " +
-        "se busca o crea automáticamente."
+        "CanvasGroup del cartel. Si se deja vacÃ­o, " +
+        "se busca o crea automÃ¡ticamente."
     )]
     public CanvasGroup canvasGroup;
 
@@ -126,7 +126,7 @@ public class UIProcesadoraMundo : MonoBehaviour
     private void Update()
     {
         // =================================================
-        // POSICIÓN
+        // POSICIÃ“N
         // =================================================
 
         if (seguirPuntoUI)
@@ -438,7 +438,7 @@ public class UIProcesadoraMundo : MonoBehaviour
 
 
         // =================================================
-        // INSTANTÁNEO AL INICIAR
+        // INSTANTÃNEO AL INICIAR
         // =================================================
 
         if (instantaneo)
@@ -578,7 +578,7 @@ public class UIProcesadoraMundo : MonoBehaviour
             if (nivel >= 3)
             {
                 textoProgreso.text =
-                    "NIVEL MÁXIMO";
+                    "NIVEL MÃXIMO";
             }
             else
             {

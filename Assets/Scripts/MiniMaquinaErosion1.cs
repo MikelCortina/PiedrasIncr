@@ -5,37 +5,37 @@ using UnityEngine;
 public class MiniMaquinaErosion : MonoBehaviour
 {
     // =====================================================
-    // ESTRUCTURAS DE ABSORCI”N
+    // ESTRUCTURAS DE ABSORCI√ìN
     // =====================================================
     [System.Serializable]
     public class TuberiaAbsorcion
     {
         public Transform puntoAbsorcion;
 
-        [Header("OrientaciÛn del Cono")]
-        [Tooltip("DirecciÛn hacia la que apunta el cono localmente (ej: 0,0,1 es Forward, 0,-1,0 es Abajo).")]
+        [Header("Orientaci√≥n del Cono")]
+        [Tooltip("Direcci√≥n hacia la que apunta el cono localmente (ej: 0,0,1 es Forward, 0,-1,0 es Abajo).")]
         public Vector3 direccionAbsorcionLocal = new Vector3(0f, 0f, 1f);
 
-        [Header("Zona de AcciÛn (CÛnica)")]
-        [Tooltip("La distancia m·xima a la que la m·quina detecta piedras (Largo del cono).")]
+        [Header("Zona de Acci√≥n (C√≥nica)")]
+        [Tooltip("La distancia m√°xima a la que la m√°quina detecta piedras (Largo del cono).")]
         public float distanciaAbsorcion = 5f;
 
         [Range(0, 180)]
-        [Tooltip("La apertura del ·ngulo del cono de detecciÛn.")]
+        [Tooltip("La apertura del √°ngulo del cono de detecci√≥n.")]
         public float anguloCono = 45f;
 
         [Header("Fuerzas de Torbellino")]
-        [Tooltip("Velocidad constante a la que la piedra es atraÌda hacia el punto central.")]
+        [Tooltip("Velocidad constante a la que la piedra es atra√≠da hacia el punto central.")]
         public float velocidadSuccion = 3f;
 
         [Tooltip("Velocidad INICIAL a la que la piedra orbita en los bordes del cono.")]
         public float velocidadOrbita = 15f;
 
-        [Tooltip("Multiplicador de velocidad al acercarse al centro (Ej: 4 = girar· 4 veces m·s r·pido justo antes de entrar).")]
+        [Tooltip("Multiplicador de velocidad al acercarse al centro (Ej: 4 = girar√° 4 veces m√°s r√°pido justo antes de entrar).")]
         public float multiplicadorAceleracionCentro = 4f;
 
         [Range(0.1f, 1f)]
-        [Tooltip("Amplitud de la Ûrbita respecto al tamaÒo del cono. (0.5 = orbitan a la mitad de distancia de la pared para no rozar el suelo).")]
+        [Tooltip("Amplitud de la √≥rbita respecto al tama√±o del cono. (0.5 = orbitan a la mitad de distancia de la pared para no rozar el suelo).")]
         public float amplitudOrbita = 0.5f;
     }
 
@@ -49,23 +49,23 @@ public class MiniMaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // REQUISITOS DE ENTRADA Y ABSORCI”N
+    // REQUISITOS DE ENTRADA Y ABSORCI√ìN
     // =====================================================
 
-    [Header("ConfiguraciÛn de AbsorciÛn")]
+    [Header("Configuraci√≥n de Absorci√≥n")]
     public TuberiaAbsorcion[] tuberiasAbajo = new TuberiaAbsorcion[1];
     public LayerMask capaPiedras;
     [Tooltip("Distancia al centro a la que la piedra se considera 'tragada' por completo (Escala 0)")]
     public float distanciaConsumo = 0.5f;
 
     [Header("Requisitos de Entrada")]
-    [Tooltip("Si es verdadero, rechazar· las piedras que ya estÈn pulidas al 100%.")]
+    [Tooltip("Si es verdadero, rechazar√° las piedras que ya est√©n pulidas al 100%.")]
     public bool rechazarPiedrasCompletadas = true;
 
-    [Tooltip("Si es verdadero, una piedra NO podr· volver a procesarse en ESTA misma m·quina. Obliga a construir cadenas de montaje.")]
+    [Tooltip("Si es verdadero, una piedra NO podr√° volver a procesarse en ESTA misma m√°quina. Obliga a construir cadenas de montaje.")]
     public bool evitarProcesadoRepetido = true;
 
-    [Tooltip("El porcentaje EXTRA de pulido que se le aÒadir· a CADA piedra que pase por la m·quina.")]
+    [Tooltip("El porcentaje EXTRA de pulido que se le a√±adir√° a CADA piedra que pase por la m√°quina.")]
     [Range(0f, 100f)]
     public float porcentajeExtraAProcesar = 10f;
 
@@ -96,7 +96,7 @@ public class MiniMaquinaErosion : MonoBehaviour
     [Range(0f, 90f)]
     public float anguloDispersionSalida = 15f;
 
-    [Tooltip("Tiempo que tarda la piedra en volver a su tamaÒo original al ser expulsada")]
+    [Tooltip("Tiempo que tarda la piedra en volver a su tama√±o original al ser expulsada")]
     public float tiempoCrecimiento = 0.2f;
 
 
@@ -105,22 +105,22 @@ public class MiniMaquinaErosion : MonoBehaviour
     // =====================================================
 
     [Header("Procesamiento Interno")]
-    [Tooltip("Tiempo en segundos que tarda la piedra en cruzar la m·quina.")]
+    [Tooltip("Tiempo en segundos que tarda la piedra en cruzar la m√°quina.")]
     public float tiempoProcesamiento = 3f;
 
 
     // =====================================================
-    // EFECTOS Y ANIMACI”N
+    // EFECTOS Y ANIMACI√ìN
     // =====================================================
 
-    [Header("Efectos Visuales (PartÌculas)")]
+    [Header("Efectos Visuales (Part√≠culas)")]
     public ParticleSystem[] particulasTrabajando;
     public ParticleSystem[] particulasExpulsion;
 
-    [Header("AnimaciÛn de RotaciÛn (Eje Z)")]
+    [Header("Animaci√≥n de Rotaci√≥n (Eje Z)")]
     public List<Transform> objetosGiratorios = new List<Transform>();
 
-    [Tooltip("Rango de velocidad (X = MÌnimo, Y = M·ximo). Se elegir· un valor aleatorio al empezar.")]
+    [Tooltip("Rango de velocidad (X = M√≠nimo, Y = M√°ximo). Se elegir√° un valor aleatorio al empezar.")]
     public List<Vector2> rangosVelocidadGiroZ = new List<Vector2>();
 
     private List<float> velocidadesActualesZ = new List<float>();
@@ -133,7 +133,7 @@ public class MiniMaquinaErosion : MonoBehaviour
     private Dictionary<Rigidbody, float> piedrasEnProceso = new Dictionary<Rigidbody, float>();
     private Dictionary<Rigidbody, DatosPiedra> piedrasEnSuccion = new Dictionary<Rigidbody, DatosPiedra>();
 
-    // AquÌ recordamos quÈ piedras ya han pasado por esta m·quina para no dejarlas entrar de nuevo
+    // Aqu√≠ recordamos qu√© piedras ya han pasado por esta m√°quina para no dejarlas entrar de nuevo
     private HashSet<Rigidbody> historialPiedras = new HashSet<Rigidbody>();
 
     private float[] emisionesOriginales;
@@ -153,7 +153,7 @@ public class MiniMaquinaErosion : MonoBehaviour
             velocidadesActualesZ.Add(velocidadElegida);
         }
 
-        // Configurar partÌculas
+        // Configurar part√≠culas
         if (particulasTrabajando == null)
         {
             emisionesOriginales = new float[0];
@@ -194,7 +194,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // L”GICA DE ABSORCI”N C”NICA Y ”RBITA CON OFFSET
+    // L√ìGICA DE ABSORCI√ìN C√ìNICA Y √ìRBITA CON OFFSET
     // =====================================================
 
     void DetectarPiedrasNuevas()
@@ -221,7 +221,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
                     if (angulo <= tuberia.anguloCono / 2f)
                     {
-                        // EXPULSI”N INMEDIATA SI YA PAS” POR ESTA M¡QUINA
+                        // EXPULSI√ìN INMEDIATA SI YA PAS√ì POR ESTA M√ÅQUINA
                         if (evitarProcesadoRepetido && historialPiedras.Contains(rb))
                         {
                             RechazarPiedra(rb);
@@ -359,7 +359,7 @@ public class MiniMaquinaErosion : MonoBehaviour
         if (rb == null) return false;
         if (piedrasEnProceso.ContainsKey(rb)) return false;
 
-        // ComprobaciÛn de seguridad por si el Bot o Trigger intenta meterla directamente
+        // Comprobaci√≥n de seguridad por si el Bot o Trigger intenta meterla directamente
         if (evitarProcesadoRepetido && historialPiedras.Contains(rb)) return false;
 
         DeformacionPiedra deformacion = ObtenerDeformacion(rb);
@@ -392,7 +392,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // OBTENER DEFORMACI”N
+    // OBTENER DEFORMACI√ìN
     // =====================================================
 
     private DeformacionPiedra ObtenerDeformacion(Rigidbody rb)
@@ -408,7 +408,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // RECHAZAR Y PARTÕCULAS
+    // RECHAZAR Y PART√çCULAS
     // =====================================================
 
     private Vector3 ObtenerDireccionConAngulo(Vector3 direccionBase, float anguloApertura)
@@ -494,7 +494,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
         if (!piedrasEnProceso.ContainsKey(rb)) piedrasEnProceso.Add(rb, porcentajeInicial);
 
-        // REGISTRAMOS LA PIEDRA EN LA MEMORIA DE LA M¡QUINA
+        // REGISTRAMOS LA PIEDRA EN LA MEMORIA DE LA M√ÅQUINA
         if (evitarProcesadoRepetido)
         {
             historialPiedras.Add(rb);
@@ -502,7 +502,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
         ActualizarEmisionParticulas();
 
-        // Apagar fÌsicas y mallas
+        // Apagar f√≠sicas y mallas
         rb.isKinematic = true;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -554,7 +554,7 @@ public class MiniMaquinaErosion : MonoBehaviour
         }
 
         // =================================================
-        // EXPULSI”N DE LA PIEDRA
+        // EXPULSI√ìN DE LA PIEDRA
         // =================================================
 
         if (puntoSalida != null) rb.position = puntoSalida.position;
@@ -575,7 +575,7 @@ public class MiniMaquinaErosion : MonoBehaviour
             rb.AddForce(direccionFinal * fuerzaAleatoria, ForceMode.Impulse);
         }
 
-        // Llamamos a la animaciÛn de crecer el tamaÒo
+        // Llamamos a la animaci√≥n de crecer el tama√±o
         StartCoroutine(CrecerPiedra(rb.transform, escalaOriginal));
 
         piedrasEnProceso.Remove(rb);
@@ -620,7 +620,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Cono de AbsorciÛn y Ruta de ”rbita
+        // Cono de Absorci√≥n y Ruta de √ìrbita
         for (int i = 0; i < tuberiasAbajo.Length; i++)
         {
             TuberiaAbsorcion tuberia = tuberiasAbajo[i];
@@ -628,11 +628,11 @@ public class MiniMaquinaErosion : MonoBehaviour
             {
                 Vector3 direccionConoMundo = tuberia.puntoAbsorcion.TransformDirection(tuberia.direccionAbsorcionLocal.normalized);
 
-                // Dibujar el ·rea de detecciÛn m·xima (Verde)
+                // Dibujar el √°rea de detecci√≥n m√°xima (Verde)
                 Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
                 DibujarConoDeteccion(tuberia.puntoAbsorcion.position, direccionConoMundo, tuberia.distanciaAbsorcion, tuberia.anguloCono);
 
-                // Dibujar el ·rea de Ûrbita ideal (Amarillo)
+                // Dibujar el √°rea de √≥rbita ideal (Amarillo)
                 Gizmos.color = new Color(1f, 0.9f, 0f, 0.6f);
 
                 float anguloMitadExterior = (tuberia.anguloCono / 2f) * Mathf.Deg2Rad;
@@ -705,8 +705,8 @@ public class MiniMaquinaErosion : MonoBehaviour
 
     private void DibujarConoGizmo(Vector3 origen, Vector3 direccionCentral, float fuerza, float angulo)
     {
-        float tamaÒoVisual = Mathf.Clamp(fuerza * 0.15f, 0.5f, 7f);
-        Vector3 finCentral = origen + (direccionCentral * tamaÒoVisual);
+        float tama√±oVisual = Mathf.Clamp(fuerza * 0.15f, 0.5f, 7f);
+        Vector3 finCentral = origen + (direccionCentral * tama√±oVisual);
         Gizmos.DrawLine(origen, finCentral);
 
         if (angulo <= 0f) return;
@@ -717,10 +717,10 @@ public class MiniMaquinaErosion : MonoBehaviour
 
         Vector3 ejeY = Vector3.Cross(direccionCentral, ejeX).normalized;
 
-        Vector3 p1 = origen + (Quaternion.AngleAxis(angulo, ejeX) * direccionCentral * tamaÒoVisual);
-        Vector3 p2 = origen + (Quaternion.AngleAxis(-angulo, ejeX) * direccionCentral * tamaÒoVisual);
-        Vector3 p3 = origen + (Quaternion.AngleAxis(angulo, ejeY) * direccionCentral * tamaÒoVisual);
-        Vector3 p4 = origen + (Quaternion.AngleAxis(-angulo, ejeY) * direccionCentral * tamaÒoVisual);
+        Vector3 p1 = origen + (Quaternion.AngleAxis(angulo, ejeX) * direccionCentral * tama√±oVisual);
+        Vector3 p2 = origen + (Quaternion.AngleAxis(-angulo, ejeX) * direccionCentral * tama√±oVisual);
+        Vector3 p3 = origen + (Quaternion.AngleAxis(angulo, ejeY) * direccionCentral * tama√±oVisual);
+        Vector3 p4 = origen + (Quaternion.AngleAxis(-angulo, ejeY) * direccionCentral * tama√±oVisual);
 
         Gizmos.DrawLine(origen, p1);
         Gizmos.DrawLine(origen, p2);

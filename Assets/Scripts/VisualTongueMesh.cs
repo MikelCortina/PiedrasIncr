@@ -9,7 +9,7 @@ public class VisualTongueMesh : MonoBehaviour
     [Header("Referencia a la cadena")]
     [SerializeField] private VisualSphereChain cadena;
 
-    [Header("Resolución de la malla")]
+    [Header("ResoluciÃ³n de la malla")]
     [SerializeField] private int muestrasPorSegmento = 5;
 
     [SerializeField] private int ladosPorAnillo = 10;
@@ -117,7 +117,7 @@ public class VisualTongueMesh : MonoBehaviour
             }
         }
 
-        // Añadir el último punto exactamente.
+        // AÃ±adir el Ãºltimo punto exactamente.
         puntosResultado.Add(
             puntos[puntos.Length - 1]
         );
@@ -487,8 +487,8 @@ public class VisualTongueMesh : MonoBehaviour
                 ? Vector3.zero
                 : Vector3.zero;
 
-        // Las tapas no necesitan un vértice central
-        // adicional si se reutiliza el primer vértice
+        // Las tapas no necesitan un vÃ©rtice central
+        // adicional si se reutiliza el primer vÃ©rtice
         // del anillo como referencia.
         for (int lado = 0;
              lado < lados;

@@ -14,11 +14,11 @@ public class SwordSpinDetector : MonoBehaviour
     [SerializeField] private Transform ejeGiroFilo;
     [SerializeField] private Transform ejeGiroCara;
 
-    [Header("Detección")]
+    [Header("DetecciÃ³n")]
     [SerializeField] private float velocidadAngularMinima = 0.5f;
     [SerializeField] private float margenDiferencia = 0.1f;
 
-    [Header("Depuración")]
+    [Header("DepuraciÃ³n")]
     [SerializeField] private bool mostrarRayos = true;
     [SerializeField] private bool mostrarMensajes = true;
 
@@ -81,14 +81,14 @@ public class SwordSpinDetector : MonoBehaviour
 
         VelocidadAngular = velocidadAngular.magnitude;
 
-        // Si gira demasiado despacio, no consideramos que esté girando.
+        // Si gira demasiado despacio, no consideramos que estÃ© girando.
         if (VelocidadAngular < velocidadAngularMinima)
         {
             CambiarTipoDeGiro(TipoGiro.Ninguno);
             return;
         }
 
-        // Dirección del eje real de rotación.
+        // DirecciÃ³n del eje real de rotaciÃ³n.
         Vector3 ejeGiroActual =
             velocidadAngular.normalized;
 
@@ -159,17 +159,17 @@ public class SwordSpinDetector : MonoBehaviour
         {
             case TipoGiro.SobreElFilo:
                 mensaje =
-                    "La espada está girando sobre el FILO.";
+                    "La espada estÃ¡ girando sobre el FILO.";
                 break;
 
             case TipoGiro.SobreLaCara:
                 mensaje =
-                    "La espada está girando sobre la CARA.";
+                    "La espada estÃ¡ girando sobre la CARA.";
                 break;
 
             default:
                 mensaje =
-                    "La espada no está girando claramente sobre el filo ni sobre la cara.";
+                    "La espada no estÃ¡ girando claramente sobre el filo ni sobre la cara.";
                 break;
         }
 

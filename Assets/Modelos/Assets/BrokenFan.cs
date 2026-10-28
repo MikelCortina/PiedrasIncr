@@ -5,25 +5,25 @@ public class BrokenFan : MonoBehaviour
 {
     public enum Axis { X, Y, Z }
 
-    [Header("ConfiguraciÛn de RotaciÛn")]
-    [Tooltip("El eje sobre el que girar· el ventilador.")]
+    [Header("Configuraci√≥n de Rotaci√≥n")]
+    [Tooltip("El eje sobre el que girar√° el ventilador.")]
     public Axis ejeDeRotacion = Axis.Y;
 
-    [Tooltip("Velocidad m·xima de giro.")]
+    [Tooltip("Velocidad m√°xima de giro.")]
     public float velocidadMaxima = 500f;
 
     [Tooltip("Rapidez con la que acelera y frena (simula la inercia).")]
     public float inercia = 2f;
 
-    [Header("Intervalos de AverÌa (Tiempos aleatorios)")]
-    [Tooltip("Tiempo mÌnimo que funcionar· bien antes de fallar.")]
+    [Header("Intervalos de Aver√≠a (Tiempos aleatorios)")]
+    [Tooltip("Tiempo m√≠nimo que funcionar√° bien antes de fallar.")]
     public float tiempoMinimoGirando = 2f;
-    [Tooltip("Tiempo m·ximo que funcionar· bien antes de fallar.")]
+    [Tooltip("Tiempo m√°ximo que funcionar√° bien antes de fallar.")]
     public float tiempoMaximoGirando = 6f;
 
-    [Tooltip("Tiempo mÌnimo que estar· 'atascado' o sin fuerza.")]
+    [Tooltip("Tiempo m√≠nimo que estar√° 'atascado' o sin fuerza.")]
     public float tiempoMinimoParado = 0.5f;
-    [Tooltip("Tiempo m·ximo que estar· 'atascado' o sin fuerza.")]
+    [Tooltip("Tiempo m√°ximo que estar√° 'atascado' o sin fuerza.")]
     public float tiempoMaximoParado = 2f;
 
     private float velocidadActual = 0f;
@@ -37,10 +37,10 @@ public class BrokenFan : MonoBehaviour
 
     void Update()
     {
-        // TransiciÛn suave entre velocidades usando Lerp para simular inercia real
+        // Transici√≥n suave entre velocidades usando Lerp para simular inercia real
         velocidadActual = Mathf.Lerp(velocidadActual, velocidadObjetivo, Time.deltaTime * inercia);
 
-        // Determinamos el vector de rotaciÛn seg˙n el eje elegido
+        // Determinamos el vector de rotaci√≥n seg√∫n el eje elegido
         Vector3 vectorDeRotacion = Vector3.zero;
         switch (ejeDeRotacion)
         {
@@ -49,7 +49,7 @@ public class BrokenFan : MonoBehaviour
             case Axis.Z: vectorDeRotacion = Vector3.forward; break;
         }
 
-        // Aplicamos la rotaciÛn
+        // Aplicamos la rotaci√≥n
         transform.Rotate(vectorDeRotacion * velocidadActual * Time.deltaTime);
     }
 

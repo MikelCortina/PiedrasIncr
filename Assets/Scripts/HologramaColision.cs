@@ -3,12 +3,12 @@ using UnityEngine;
 
 public class HologramaColision : MonoBehaviour
 {
-    [Header("Capa de Obst·culos")]
+    [Header("Capa de Obst√°culos")]
     public LayerMask capaObstaculos;
 
     [HideInInspector] public GameObject rampaAIgnorar = null;
 
-    // Lista de todo lo que estamos tocando fÌsicamente
+    // Lista de todo lo que estamos tocando f√≠sicamente
     private List<Collider> objetosChocando = new List<Collider>();
 
     public bool HayColision
@@ -27,18 +27,18 @@ public class HologramaColision : MonoBehaviour
                     continue;
                 }
 
-                // Si tocamos algo m·s que NO sea la rampa permitida, encendemos la alarma roja
+                // Si tocamos algo m√°s que NO sea la rampa permitida, encendemos la alarma roja
                 return true;
             }
 
-            // Si la lista est· vacÌa (o solo contiene la rampa permitida), podemos construir (verde)
+            // Si la lista est√° vac√≠a (o solo contiene la rampa permitida), podemos construir (verde)
             return false;
         }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // Metemos en la lista TODO lo de la capa obst·culos que toquemos
+        // Metemos en la lista TODO lo de la capa obst√°culos que toquemos
         if (((1 << other.gameObject.layer) & capaObstaculos) != 0)
         {
             if (!objetosChocando.Contains(other))

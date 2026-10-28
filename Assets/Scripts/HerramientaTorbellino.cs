@@ -6,7 +6,7 @@ public struct PiezaGiratoria
 {
     [Tooltip("La parte del modelo que va a girar")]
     public Transform objeto;
-    [Tooltip("Velocidad m·xima en el eje Z para esta pieza en concreto")]
+    [Tooltip("Velocidad m√°xima en el eje Z para esta pieza en concreto")]
     public float velocidadMaximaZ;
 }
 
@@ -16,7 +16,7 @@ public class HerramientaTorbellino : MonoBehaviour
     public bool equipada = false;
     public GameObject modeloHerramienta;
 
-    [Header("AnimaciÛn del Modelo (Sway & Bobbing)")]
+    [Header("Animaci√≥n del Modelo (Sway & Bobbing)")]
     public float intensidadSway = 0.02f;
     public float limiteSway = 0.06f;
     public float intensidadInclinacion = 2f;
@@ -25,14 +25,14 @@ public class HerramientaTorbellino : MonoBehaviour
     public float suavidadAnimacion = 8f;
 
     [Header("Efectos Visuales (Giro con Inercia)")]
-    [Tooltip("Lista de piezas del modelo que girar·n, cada una con su propia velocidad")]
+    [Tooltip("Lista de piezas del modelo que girar√°n, cada una con su propia velocidad")]
     public PiezaGiratoria[] piezasGiratorias;
     public float aceleracionGiro = 5f;
     public float desaceleracionGiro = 2f;
     private float intensidadGiroActual = 0f;
 
     [Header("Efectos Visuales (Neones)")]
-    [Tooltip("Arrastra aquÌ las piezas de la herramienta que tengan el script ControladorNeon")]
+    [Tooltip("Arrastra aqu√≠ las piezas de la herramienta que tengan el script ControladorNeon")]
     public ControladorNeon[] neonesHerramienta;
 
     [ColorUsage(true, true)]
@@ -47,10 +47,10 @@ public class HerramientaTorbellino : MonoBehaviour
     [Range(0f, 10f)]
     public float intensidadNeonFinal = 3f;
 
-    [Tooltip("Velocidad de parpadeo extra que se sumar· a los neones al disparar aire")]
+    [Tooltip("Velocidad de parpadeo extra que se sumar√° a los neones al disparar aire")]
     public float aumentoParpadeoActivo = 15f;
 
-    [Tooltip("Velocidad a la que el neÛn hace la transiciÛn de encendido a apagado (20 es r·pido)")]
+    [Tooltip("Velocidad a la que el ne√≥n hace la transici√≥n de encendido a apagado (20 es r√°pido)")]
     public float velocidadTransicionNeon = 20f;
     private float transicionNeonActual = 0f;
 
@@ -61,17 +61,17 @@ public class HerramientaTorbellino : MonoBehaviour
     public LayerMask capaSuelo;
     public float alcanceMaximo = 100f;
 
-    [Tooltip("Sistema de partÌculas que aparecer· en el punto donde toca el tornado (Se mueve y rota)")]
+    [Tooltip("Sistema de part√≠culas que aparecer√° en el punto donde toca el tornado (Se mueve y rota)")]
     public ParticleSystem particulasTorbellino;
 
-    [Tooltip("Sistemas de partÌculas que se activan al usar la herramienta pero NO cambian su posiciÛn ni rotaciÛn")]
+    [Tooltip("Sistemas de part√≠culas que se activan al usar la herramienta pero NO cambian su posici√≥n ni rotaci√≥n")]
     public ParticleSystem[] particulasEstaticas;
 
-    [Header("VisualizaciÛn del ¡rea")]
+    [Header("Visualizaci√≥n del √Årea")]
     public LineRenderer circuloAreaVisual;
     public int segmentosCirculo = 50;
 
-    [Header("FÌsicas Estables del VÛrtice")]
+    [Header("F√≠sicas Estables del V√≥rtice")]
     public float radioAtraccion = 15f;
     public float radioOjoTornado = 3f;
     public float velocidadRotacion = 25f;
@@ -87,7 +87,7 @@ public class HerramientaTorbellino : MonoBehaviour
     [SerializeField, Range(1, 3)]
     private int nivelRadio = 1;
 
-    [Header("Radio de AtracciÛn")]
+    [Header("Radio de Atracci√≥n")]
     public float radioAtraccionNivel1 = 8f;
     public float radioAtraccionNivel2 = 12f;
     public float radioAtraccionNivel3 = 18f;
@@ -233,7 +233,7 @@ public class HerramientaTorbellino : MonoBehaviour
                 modeloHerramienta.transform.localRotation = rotacionInicialModelo;
                 temporizadorBobbing = 0f;
                 intensidadGiroActual = 0f;
-                transicionNeonActual = 0f; // Reseteamos la transiciÛn de la luz
+                transicionNeonActual = 0f; // Reseteamos la transici√≥n de la luz
                 ManejarNeones();
 
                 if (particulasEstaticas != null)
@@ -357,7 +357,7 @@ public class HerramientaTorbellino : MonoBehaviour
     }
 
     // ========================================================
-    // L”GICA DE NEONES: Lerp r·pido separado del giro fÌsico
+    // L√ìGICA DE NEONES: Lerp r√°pido separado del giro f√≠sico
     // ========================================================
     void ManejarNeones()
     {
@@ -366,7 +366,7 @@ public class HerramientaTorbellino : MonoBehaviour
         bool disparando = torbellinoActivo && Input.GetMouseButton(0);
         float transicionObjetivo = disparando ? 1f : 0f;
 
-        // Lerp r·pido (efecto filamento encendiÈndose/apag·ndose)
+        // Lerp r√°pido (efecto filamento encendi√©ndose/apag√°ndose)
         transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
 
         Color colorActualizado = Color.Lerp(colorNeonInicio, colorNeonFinal, transicionNeonActual);

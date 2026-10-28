@@ -9,55 +9,55 @@ public class PalancaTirador : MonoBehaviour
         EjesDelPadre          // El eje del padre del tirador
     }
 
-    [Header("Configuración de Arrastre (Mirada)")]
-    [Tooltip("Unidades imaginarias que hay que bajar la mirada para alcanzar el máximo del tirador")]
+    [Header("ConfiguraciÃ³n de Arrastre (Mirada)")]
+    [Tooltip("Unidades imaginarias que hay que bajar la mirada para alcanzar el mÃ¡ximo del tirador")]
     public float distanciaArrastreMax = 150f;
     [Tooltip("Suavizado al soltar la palanca si te arrepientes antes de llegar al final")]
     public float velocidadRetorno = 5f;
 
-    [Header("Sincronización de Animaciones")]
-    [Tooltip("Segundos que tardarán las puertas en abrirse y el tirador en volver arriba a la vez")]
+    [Header("SincronizaciÃ³n de Animaciones")]
+    [Tooltip("Segundos que tardarÃ¡n las puertas en abrirse y el tirador en volver arriba a la vez")]
     public float tiempoDeAnimacion = 1.5f;
 
     [Header("Comportamiento")]
-    [Tooltip("Si está bloqueada no se puede agarrar ni arrastrar (la mirilla tampoco la marca como interactiva)")]
+    [Tooltip("Si estÃ¡ bloqueada no se puede agarrar ni arrastrar (la mirilla tampoco la marca como interactiva)")]
     [SerializeField] private bool bloqueada = false;
     [Tooltip("Activado: tras bajarla se queda 'abierta' hasta que alguien llame a CerrarPuertasMecanismo (ej: CargadorMisil). " +
-             "Desactivado: al terminar la animación vuelve sola a reposo y se puede usar otra vez.")]
+             "Desactivado: al terminar la animaciÃ³n vuelve sola a reposo y se puede usar otra vez.")]
     public bool esperarCierreManual = true;
 
     [Header("1. Movimiento del Tirador")]
-    [Tooltip("Objeto que se desplazará físicamente (ej: el mango del tirador)")]
+    [Tooltip("Objeto que se desplazarÃ¡ fÃ­sicamente (ej: el mango del tirador)")]
     public Transform objetoTirador;
-    [Tooltip("En qué ejes se interpreta 'Eje Movimiento Tirador'. Local del objeto = el gizmo de Unity en modo Local con el tirador seleccionado.")]
+    [Tooltip("En quÃ© ejes se interpreta 'Eje Movimiento Tirador'. Local del objeto = el gizmo de Unity en modo Local con el tirador seleccionado.")]
     public EspacioMovimiento espacioMovimiento = EspacioMovimiento.EjesLocalesDelObjeto;
-    [Tooltip("Eje por el que se moverá el tirador (ej: 0, -1, 0 para abajo)")]
+    [Tooltip("Eje por el que se moverÃ¡ el tirador (ej: 0, -1, 0 para abajo)")]
     public Vector3 ejeMovimientoTirador = Vector3.down;
-    [Tooltip("Cantidad máxima de unidades que se moverá el tirador (en unidades del padre del tirador)")]
+    [Tooltip("Cantidad mÃ¡xima de unidades que se moverÃ¡ el tirador (en unidades del padre del tirador)")]
     public float distanciaMaximaTirador = 0.5f;
 
-    [Header("2. Rotación de las Puertas (Opcional)")]
-    [Tooltip("Primer objeto a rotar (ej: Puerta Izquierda). Puede quedarse vacío.")]
+    [Header("2. RotaciÃ³n de las Puertas (Opcional)")]
+    [Tooltip("Primer objeto a rotar (ej: Puerta Izquierda). Puede quedarse vacÃ­o.")]
     public Transform objetoRotacion1;
-    [Tooltip("Eje local de rotación para el primer objeto")]
+    [Tooltip("Eje local de rotaciÃ³n para el primer objeto")]
     public Vector3 ejeRotacion1 = Vector3.up;
-    [Tooltip("Grados exactos que rotará al activarse (ej: 90)")]
+    [Tooltip("Grados exactos que rotarÃ¡ al activarse (ej: 90)")]
     public float gradosARotar1 = 90f;
 
     [Space(10)]
-    [Tooltip("Segundo objeto a rotar (ej: Puerta Derecha). Puede quedarse vacío.")]
+    [Tooltip("Segundo objeto a rotar (ej: Puerta Derecha). Puede quedarse vacÃ­o.")]
     public Transform objetoRotacion2;
-    [Tooltip("Eje local de rotación para el segundo objeto")]
+    [Tooltip("Eje local de rotaciÃ³n para el segundo objeto")]
     public Vector3 ejeRotacion2 = Vector3.up;
-    [Tooltip("Grados exactos que rotará al activarse (ej: -90)")]
+    [Tooltip("Grados exactos que rotarÃ¡ al activarse (ej: -90)")]
     public float gradosARotar2 = -90f;
 
-    [Header("3. Feedback Visual (Neón, Opcional)")]
-    [Tooltip("Controlador Neón que se encenderá al bajar la palanca y abrir las puertas. Puede quedarse vacío.")]
+    [Header("3. Feedback Visual (NeÃ³n, Opcional)")]
+    [Tooltip("Controlador NeÃ³n que se encenderÃ¡ al bajar la palanca y abrir las puertas. Puede quedarse vacÃ­o.")]
     public ControladorNeon controladorNeon;
-    [Tooltip("Intensidad mínima (progreso 0)")]
+    [Tooltip("Intensidad mÃ­nima (progreso 0)")]
     public float intensidadNeonMinima = 0.5f;
-    [Tooltip("Intensidad máxima (progreso 1)")]
+    [Tooltip("Intensidad mÃ¡xima (progreso 1)")]
     public float intensidadNeonMaxima = 3f;
 
     [Header("Eventos Opcionales")]
@@ -67,8 +67,8 @@ public class PalancaTirador : MonoBehaviour
     // --- Variables Internas ---
     private Vector3 posOriginalTirador;
 
-    // Dirección del recorrido expresada en el espacio del padre (localPosition).
-    // Se calcula una sola vez para que otros scripts que roten el tirador (ej: vibración) no tuerzan el recorrido.
+    // DirecciÃ³n del recorrido expresada en el espacio del padre (localPosition).
+    // Se calcula una sola vez para que otros scripts que roten el tirador (ej: vibraciÃ³n) no tuerzan el recorrido.
     private Vector3 direccionMovimientoPadre;
 
     // Rotaciones base y objetivo
@@ -84,7 +84,7 @@ public class PalancaTirador : MonoBehaviour
     // ESTADOS DE LA MAQUINA:
     // 0 = Reposo
     // 1 = Arrastrando (Usuario controlando)
-    // 2 = Retornando Tirador y Abriendo Puertas (Animación sincronizada)
+    // 2 = Retornando Tirador y Abriendo Puertas (AnimaciÃ³n sincronizada)
     // 3 = Abierto (Esperando Misil)
     // 4 = Cerrando Puertas
     private int estado = 0;
@@ -119,7 +119,7 @@ public class PalancaTirador : MonoBehaviour
         Vector3 eje = ejeMovimientoTirador.sqrMagnitude > 0.000001f ? ejeMovimientoTirador.normalized : Vector3.down;
 
         // localPosition vive en el espacio del padre: para seguir el eje propio del tirador
-        // hay que girar el eje con la rotación local del tirador.
+        // hay que girar el eje con la rotaciÃ³n local del tirador.
         return espacioMovimiento == EspacioMovimiento.EjesLocalesDelObjeto
             ? rotacionLocalTirador * eje
             : eje;
@@ -138,7 +138,7 @@ public class PalancaTirador : MonoBehaviour
         {
             progresoPuertas = 0f;
         }
-        else if (estado == 2) // Animación Simultánea: Tirador sube y Puertas abren
+        else if (estado == 2) // AnimaciÃ³n SimultÃ¡nea: Tirador sube y Puertas abren
         {
             progresoTirador = Mathf.MoveTowards(progresoTirador, 0f, Time.deltaTime * velocidadAnimacion);
             progresoPuertas = Mathf.MoveTowards(progresoPuertas, 1f, Time.deltaTime * velocidadAnimacion);
@@ -163,13 +163,13 @@ public class PalancaTirador : MonoBehaviour
             }
         }
 
-        // --- 1. APLICAR TRANSFORMACIÓN AL TIRADOR ---
+        // --- 1. APLICAR TRANSFORMACIÃ“N AL TIRADOR ---
         if (objetoTirador != null)
         {
             objetoTirador.localPosition = posOriginalTirador + (direccionMovimientoPadre * distanciaMaximaTirador * progresoTirador);
         }
 
-        // --- 2. APLICAR ROTACIÓN A LAS PUERTAS ---
+        // --- 2. APLICAR ROTACIÃ“N A LAS PUERTAS ---
         if (objetoRotacion1 != null)
         {
             objetoRotacion1.localRotation = Quaternion.Slerp(rotacionOriginal1, rotacionObjetivo1, progresoPuertas);
@@ -180,7 +180,7 @@ public class PalancaTirador : MonoBehaviour
             objetoRotacion2.localRotation = Quaternion.Slerp(rotacionOriginal2, rotacionObjetivo2, progresoPuertas);
         }
 
-        // --- 3. APLICAR LUZ AL NEÓN ---
+        // --- 3. APLICAR LUZ AL NEÃ“N ---
         if (controladorNeon != null)
         {
             float factorNeon = Mathf.Max(progresoTirador, progresoPuertas);
@@ -192,7 +192,7 @@ public class PalancaTirador : MonoBehaviour
     {
         bloqueada = valor;
 
-        // Si se bloquea mientras la están arrastrando, la soltamos para que vuelva arriba.
+        // Si se bloquea mientras la estÃ¡n arrastrando, la soltamos para que vuelva arriba.
         if (bloqueada && estado == 1)
             estado = 0;
     }
@@ -242,7 +242,7 @@ public class PalancaTirador : MonoBehaviour
 
     public bool EstanPuertasAbiertas => (estado == 3);
 
-    // Propiedad para avisar al cargador de que ya está todo cerrado y reseteado
+    // Propiedad para avisar al cargador de que ya estÃ¡ todo cerrado y reseteado
     public bool EstanPuertasCerradas => (estado == 0);
 
     // =========================================================

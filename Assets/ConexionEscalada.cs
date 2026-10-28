@@ -38,10 +38,10 @@ public class ConexionEscalada : MonoBehaviour
     public Transform puntoSuperiorNavMesh;
 
 
-    [Header("TransiciÛn superior")]
+    [Header("Transici√≥n superior")]
 
     [Tooltip(
-        "PosiciÛn del ROOT del Bot cuando est· vertical en la pared, " +
+        "Posici√≥n del ROOT del Bot cuando est√° vertical en la pared, " +
         "justo antes de pasar al suelo superior. Necesario para poder " +
         "bajar incluso si el Bot nunca ha subido antes por esta pared."
     )]
@@ -52,11 +52,11 @@ public class ConexionEscalada : MonoBehaviour
     // NORMAL
     // =====================================================
 
-    [Header("OrientaciÛn de la pared")]
+    [Header("Orientaci√≥n de la pared")]
 
     [Tooltip(
         "Opcional. Su eje azul Z debe apuntar HACIA FUERA de la pared, " +
-        "hacia el nivel inferior. Si queda vacÌo se calcula autom·ticamente."
+        "hacia el nivel inferior. Si queda vac√≠o se calcula autom√°ticamente."
     )]
     public Transform referenciaNormalPared;
 

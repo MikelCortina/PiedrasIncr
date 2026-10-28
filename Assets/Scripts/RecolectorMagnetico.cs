@@ -5,31 +5,31 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class RecolectorMagnetico : MonoBehaviour
 {
-    [Header("Ajustes del Im·n")]
+    [Header("Ajustes del Im√°n")]
     public float radioAtraccion = 5f;
     public float velocidadAtraccion = 15f;
     public float distanciaRecoleccion = 1.5f;
 
     [Header("Recogida manual - Clic izquierdo")]
-    [Tooltip("Anchura aproximada de la mira para facilitar seleccionar monedas pequeÒas")]
+    [Tooltip("Anchura aproximada de la mira para facilitar seleccionar monedas peque√±as")]
     [Min(0.01f)] public float radioApuntadoMoneda = 0.12f;
 
-    [Header("Desbloqueo del Im·n")]
+    [Header("Desbloqueo del Im√°n")]
     [SerializeField] private bool imanDesbloqueado = false;
     public bool ImanDesbloqueado => imanDesbloqueado;
 
-    [Header("Mejora - Alcance del Im·n")]
+    [Header("Mejora - Alcance del Im√°n")]
     [SerializeField, Range(1, 3)] private int nivelAlcance = 1;
     public float alcanceNivel1 = 5f;
     public float alcanceNivel2 = 8f;
     public float alcanceNivel3 = 12f;
     public int NivelAlcance => nivelAlcance;
 
-    [Header("ProtecciÛn de CreaciÛn")]
-    [Tooltip("Tiempo mÌnimo desde que se crea la moneda para ser atraÌda por el im·n")]
+    [Header("Protecci√≥n de Creaci√≥n")]
+    [Tooltip("Tiempo m√≠nimo desde que se crea la moneda para ser atra√≠da por el im√°n")]
     public float tiempoInmunidadCreacion = 1.5f;
 
-    [Header("Torque MagnÈtico")]
+    [Header("Torque Magn√©tico")]
     public float velocidadRotacionVuelo = 720f;
 
     [Header("Filtros")]
@@ -72,20 +72,20 @@ public class RecolectorMagnetico : MonoBehaviour
 
     private void Update()
     {
-        // Nuevo: recogida manual de una moneda apuntada, con o sin im·n.
+        // Nuevo: recogida manual de una moneda apuntada, con o sin im√°n.
         // Una herramienta equipada conserva el uso normal de clic izquierdo.
         if (Input.GetMouseButtonDown(0))
             IntentarRecogerMonedaConClick();
 
         if (!imanDesbloqueado)
         {
-            // Conserva el comportamiento autom·tico anterior para OTROS
+            // Conserva el comportamiento autom√°tico anterior para OTROS
             // recolectables; las monedas ahora requieren clic izquierdo.
             RecogerOtrosRecolectablesEnContacto();
             return;
         }
 
-        // Todo el funcionamiento original del im·n permanece igual.
+        // Todo el funcionamiento original del im√°n permanece igual.
         Collider[] objetosCercanos = Physics.OverlapSphere(
             transform.position, radioAtraccion, capaRecolectables);
 
@@ -135,7 +135,7 @@ public class RecolectorMagnetico : MonoBehaviour
         }
     }
 
-    // SistemaPatada tambiÈn lo llama: el resultado se memoriza durante el frame
+    // SistemaPatada tambi√©n lo llama: el resultado se memoriza durante el frame
     // para que no haya doble cobro ni se dispare una patada al recoger la moneda.
     public bool IntentarRecogerMonedaConClick()
     {
@@ -152,7 +152,7 @@ public class RecolectorMagnetico : MonoBehaviour
             return false;
 
         Camera cam = Camera.main;
-        // Lanzamos el rayo un poco m·s lejos para asegurar, luego filtramos por distancia
+        // Lanzamos el rayo un poco m√°s lejos para asegurar, luego filtramos por distancia
         float distanciaRayo = Mathf.Max(2f, distanciaRecoleccion + 2f);
         Ray rayo = new Ray(cam.transform.position, cam.transform.forward);
 
@@ -160,7 +160,7 @@ public class RecolectorMagnetico : MonoBehaviour
             rayo, radioApuntadoMoneda, distanciaRayo,
             ~0, QueryTriggerInteraction.Collide);
 
-        // Ordenamos los impactos del m·s cercano al m·s lejano
+        // Ordenamos los impactos del m√°s cercano al m√°s lejano
         Array.Sort(impactos, (a, b) => a.distance.CompareTo(b.distance));
 
         foreach (RaycastHit impacto in impactos)
@@ -175,11 +175,11 @@ public class RecolectorMagnetico : MonoBehaviour
             if (moneda == null && col.attachedRigidbody != null)
                 moneda = col.attachedRigidbody.GetComponentInChildren<Moneda>();
 
-            // LA SOLUCI”N EST¡ AQUÕ: 
+            // LA SOLUCI√ìN EST√Å AQU√ç: 
             // Si el rayo choca con el suelo/pared, lo ignoramos (continue) en lugar de abortar (return false)
             if (moneda == null) continue;
 
-            // Medimos la distancia real desde la c·mara hasta la moneda
+            // Medimos la distancia real desde la c√°mara hasta la moneda
             if (impacto.distance > distanciaRecoleccion)
                 continue;
 
@@ -206,7 +206,7 @@ public class RecolectorMagnetico : MonoBehaviour
                 : col.gameObject;
             if (!objetoReal.CompareTag(tagRecolectable)) continue;
 
-            // Las monedas se recogen por clic; el resto sigue autom·tico.
+            // Las monedas se recogen por clic; el resto sigue autom√°tico.
             if (objetoReal.GetComponentInChildren<Moneda>() != null ||
                 objetoReal.GetComponentInParent<Moneda>() != null)
                 continue;
@@ -250,14 +250,14 @@ public class RecolectorMagnetico : MonoBehaviour
 
     private System.Collections.IEnumerator AnimarVolteretaYDestruir(GameObject obj)
     {
-        // 1. Desactivar colliders y fÌsicas para que no interfiera m·s
+        // 1. Desactivar colliders y f√≠sicas para que no interfiera m√°s
         Rigidbody rb = obj.GetComponent<Rigidbody>();
         if (rb != null) rb.isKinematic = true;
 
         Collider[] colliders = obj.GetComponentsInChildren<Collider>();
         foreach (Collider c in colliders) c.enabled = false;
 
-        // 2. Par·metros de la animaciÛn
+        // 2. Par√°metros de la animaci√≥n
         float duracion = 0.4f; // 400ms de saltito
         float tiempoPasado = 0f;
 
@@ -266,7 +266,7 @@ public class RecolectorMagnetico : MonoBehaviour
         Vector3 escalaInicial = obj.transform.localScale;
         Quaternion rotacionInicial = obj.transform.rotation;
 
-        // 3. C·lculo del giro aleatorio: entre 180 y 360, y luego 50% de probabilidad de ser negativo
+        // 3. C√°lculo del giro aleatorio: entre 180 y 360, y luego 50% de probabilidad de ser negativo
         float giroX = UnityEngine.Random.Range(180f, 360f);
         if (UnityEngine.Random.value > 0.5f)
         {
@@ -280,13 +280,13 @@ public class RecolectorMagnetico : MonoBehaviour
             tiempoPasado += Time.deltaTime;
             float t = tiempoPasado / duracion;
 
-            // Curva de salto tipo par·bola (f·cil con Seno)
+            // Curva de salto tipo par√°bola (f√°cil con Seno)
             float alturaSeno = Mathf.Sin(t * Mathf.PI);
 
-            // Interpolar posiciÛn (sube y baja un poquito mientras encoge)
+            // Interpolar posici√≥n (sube y baja un poquito mientras encoge)
             obj.transform.position = Vector3.Lerp(posInicial, posObjetivo, t) + (Vector3.up * alturaSeno * 0.5f);
 
-            // Interpolar rotaciÛn forzando las vueltas completas (sin que Unity tome el camino corto)
+            // Interpolar rotaci√≥n forzando las vueltas completas (sin que Unity tome el camino corto)
             float anguloActual = Mathf.Lerp(0f, giroX, t);
             obj.transform.rotation = rotacionInicial * Quaternion.Euler(anguloActual, 0f, 0f);
 
@@ -308,7 +308,7 @@ public class RecolectorMagnetico : MonoBehaviour
         if (nivelAlcance >= 3) return false;
         nivelAlcance++;
         AplicarNivelAlcance();
-        Debug.Log("Im·n mejorado a nivel " + nivelAlcance +
+        Debug.Log("Im√°n mejorado a nivel " + nivelAlcance +
                   " | Radio: " + radioAtraccion);
         return true;
     }
@@ -334,7 +334,7 @@ public class RecolectorMagnetico : MonoBehaviour
     public void DesbloquearIman()
     {
         imanDesbloqueado = true;
-        Debug.Log("°Im·n desbloqueado!");
+        Debug.Log("¬°Im√°n desbloqueado!");
     }
 
     public bool EstaImanDesbloqueado() => imanDesbloqueado;

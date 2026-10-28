@@ -2,15 +2,15 @@ using UnityEngine;
 
 public class RespiracionNeon : MonoBehaviour
 {
-    [Header("Referencia al NeÛn")]
-    [Tooltip("Arrastra aquÌ el script ControladorNeon que va a 'respirar'")]
+    [Header("Referencia al Ne√≥n")]
+    [Tooltip("Arrastra aqu√≠ el script ControladorNeon que va a 'respirar'")]
     public ControladorNeon controladorNeon;
 
-    [Header("Ajustes de RespiraciÛn")]
-    [Tooltip("Intensidad m·s baja (Equivalente a Intensidad Listo Min)")]
+    [Header("Ajustes de Respiraci√≥n")]
+    [Tooltip("Intensidad m√°s baja (Equivalente a Intensidad Listo Min)")]
     public float intensidadMinima = 0.5f;
 
-    [Tooltip("Intensidad m·s alta (Equivalente a Intensidad Listo Max)")]
+    [Tooltip("Intensidad m√°s alta (Equivalente a Intensidad Listo Max)")]
     public float intensidadMaxima = 1.5f;
 
     [Tooltip("Velocidad a la que respira (Equivalente a Velocidad Oscilacion)")]
@@ -26,7 +26,7 @@ public class RespiracionNeon : MonoBehaviour
             // Calcula la intensidad exacta en este fotograma
             float intensidadActual = Mathf.Lerp(intensidadMinima, intensidadMaxima, onda);
 
-            // Se la inyecta directamente a tu controlador de neÛn
+            // Se la inyecta directamente a tu controlador de ne√≥n
             controladorNeon.intensidad = intensidadActual;
         }
     }

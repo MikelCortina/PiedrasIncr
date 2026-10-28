@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class DetectorAgujero : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el objeto principal que tiene el script AgujeroSimple")]
+    [Tooltip("Arrastra aquÃ­ el objeto principal que tiene el script AgujeroSimple")]
     public AgujeroSimple agujeroPrincipal;
 
     private void OnTriggerEnter(Collider otro)

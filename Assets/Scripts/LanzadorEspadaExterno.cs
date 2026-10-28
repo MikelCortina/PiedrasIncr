@@ -10,17 +10,17 @@ public class LanzadorEspadaExterno : MonoBehaviour
     [Tooltip("El GameObject que tiene el componente SwordPhysicsController.")]
     [SerializeField] private SwordPhysicsController espada;
 
-    [Header("Par·metros de lanzamiento")]
+    [Header("Par√°metros de lanzamiento")]
     [SerializeField] private Vector3 direccionLanzamiento = Vector3.forward;
     [SerializeField] private float fuerzaLanzamiento = 50f;
 
-    [Tooltip("Si est· activo, usa la posiciÛn de este transform como punto de lanzamiento. " +
-             "Si no, usa la posiciÛn actual de la espada.")]
+    [Tooltip("Si est√° activo, usa la posici√≥n de este transform como punto de lanzamiento. " +
+             "Si no, usa la posici√≥n actual de la espada.")]
     [SerializeField] private bool usarPuntoPersonalizado = false;
 
     [SerializeField] private Transform puntoDeLanzamiento;
 
-    [Tooltip("Si est· activo, aplica torque para que gire al lanzar.")]
+    [Tooltip("Si est√° activo, aplica torque para que gire al lanzar.")]
     [SerializeField] private bool aplicarTorque = true;
 
     [SerializeField] private float torqueMagnitud = 35f;
@@ -44,7 +44,7 @@ public class LanzadorEspadaExterno : MonoBehaviour
     }
 
     /// <summary>
-    /// Lanza la espada en la direcciÛn y desde el punto configurados en el inspector.
+    /// Lanza la espada en la direcci√≥n y desde el punto configurados en el inspector.
     /// </summary>
     public void Lanzar()
     {
@@ -58,7 +58,7 @@ public class LanzadorEspadaExterno : MonoBehaviour
 
         if (direccion.sqrMagnitude < 0.001f)
         {
-            Debug.LogWarning("LanzadorEspadaExterno: direcciÛn de lanzamiento demasiado pequeÒa.", this);
+            Debug.LogWarning("LanzadorEspadaExterno: direcci√≥n de lanzamiento demasiado peque√±a.", this);
             return;
         }
 
@@ -88,7 +88,7 @@ public class LanzadorEspadaExterno : MonoBehaviour
     }
 
     /// <summary>
-    /// VersiÛn sobrecargada para llamarla desde cÛdigo con par·metros concretos.
+    /// Versi√≥n sobrecargada para llamarla desde c√≥digo con par√°metros concretos.
     /// </summary>
     public void Lanzar(Vector3 direccion, Vector3 puntoMundo, float fuerza, bool conTorque = true, float torque = 35f)
     {
@@ -102,7 +102,7 @@ public class LanzadorEspadaExterno : MonoBehaviour
 
         if (dir.sqrMagnitude < 0.001f)
         {
-            Debug.LogWarning("LanzadorEspadaExterno: direcciÛn de lanzamiento demasiado pequeÒa.", this);
+            Debug.LogWarning("LanzadorEspadaExterno: direcci√≥n de lanzamiento demasiado peque√±a.", this);
             return;
         }
 

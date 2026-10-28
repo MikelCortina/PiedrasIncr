@@ -48,8 +48,8 @@ public class ConfiguracionBot : MonoBehaviour
 
 
     [Tooltip(
-        "En modo Autom·tico, una piedra con esta pureza " +
-        "o superior ir· directamente al agujero."
+        "En modo Autom√°tico, una piedra con esta pureza " +
+        "o superior ir√° directamente al agujero."
     )]
     [Range(0f, 100f)]
     public float purezaDirectaAgujero =
@@ -115,7 +115,7 @@ public class ConfiguracionBot : MonoBehaviour
 
     [Tooltip(
         "Si supera esta velocidad el Bot considera " +
-        "que la piedra todavÌa est· moviÈndose."
+        "que la piedra todav√≠a est√° movi√©ndose."
     )]
     public float velocidadMaximaPiedra = 1f;
 
@@ -223,7 +223,7 @@ public class ConfiguracionBot : MonoBehaviour
 
 
     // =====================================================
-    // PUREZA MÕNIMA
+    // PUREZA M√çNIMA
     // =====================================================
 
     public void SetPurezaMinima(
@@ -237,8 +237,8 @@ public class ConfiguracionBot : MonoBehaviour
             );
 
 
-        // Si cruzamos el m·ximo,
-        // hacemos que el m·ximo acompaÒe al mÌnimo.
+        // Si cruzamos el m√°ximo,
+        // hacemos que el m√°ximo acompa√±e al m√≠nimo.
         if (purezaMinima > purezaMaxima)
         {
             purezaMaxima =
@@ -248,7 +248,7 @@ public class ConfiguracionBot : MonoBehaviour
 
 
     // =====================================================
-    // PUREZA M¡XIMA
+    // PUREZA M√ÅXIMA
     // =====================================================
 
     public void SetPurezaMaxima(
@@ -262,8 +262,8 @@ public class ConfiguracionBot : MonoBehaviour
             );
 
 
-        // Si cruzamos el mÌnimo,
-        // hacemos que el mÌnimo acompaÒe al m·ximo.
+        // Si cruzamos el m√≠nimo,
+        // hacemos que el m√≠nimo acompa√±e al m√°ximo.
         if (purezaMaxima < purezaMinima)
         {
             purezaMinima =

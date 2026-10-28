@@ -7,15 +7,15 @@ public class AgarreLanzamiento : MonoBehaviour
     public float distanciaAgarre = 4f;
     public float radioDeAgarre = 0.5f;
     public float fuerzaLanzamiento = 15f;
-    [Tooltip("Punto donde flotar· la piedra normal")]
+    [Tooltip("Punto donde flotar√° la piedra normal")]
     public Transform puntoAgarre;
 
     public LayerMask capaInteraccion;
 
     [Header("Ajustes Especiales: Misil")]
-    [Tooltip("Punto de agarre exclusivo para el misil (para que no te tape la cara). Si lo dejas vacÌo, usar· el normal.")]
+    [Tooltip("Punto de agarre exclusivo para el misil (para que no te tape la cara). Si lo dejas vac√≠o, usar√° el normal.")]
     public Transform puntoAgarreMisil;
-    [Tooltip("Velocidad a la que el misil girar· sobre su propio eje Y de forma constante mientras lo tengas agarrado")]
+    [Tooltip("Velocidad a la que el misil girar√° sobre su propio eje Y de forma constante mientras lo tengas agarrado")]
     public float velocidadRotacionMisilY = 180f;
 
     [Header("Sonidos")]
@@ -49,12 +49,12 @@ public class AgarreLanzamiento : MonoBehaviour
         {
             if (objetoSostenido.CompareTag("Misil"))
             {
-                // Comprobamos si est· en la zona Y si la m·quina tiene las puertas abiertas
+                // Comprobamos si est√° en la zona Y si la m√°quina tiene las puertas abiertas
                 if (estaEnZonaCargaMisil && cargadorActual != null && cargadorActual.PuedeRecibirMisil())
                 {
                     CargarMisilEnMaquina();
                 }
-                // Si la puerta est· cerrada, ignoramos el soltar click (sigue agarrado)
+                // Si la puerta est√° cerrada, ignoramos el soltar click (sigue agarrado)
             }
             else
             {
@@ -127,7 +127,7 @@ public class AgarreLanzamiento : MonoBehaviour
         objetoSostenido.interpolation = RigidbodyInterpolation.None;
         objetoSostenido.detectCollisions = false;
 
-        // Reiniciamos el ·ngulo de giro al recogerlo para que no dÈ un salto brusco
+        // Reiniciamos el √°ngulo de giro al recogerlo para que no d√© un salto brusco
         anguloGiroMisil = 0f;
     }
 
@@ -141,17 +141,17 @@ public class AgarreLanzamiento : MonoBehaviour
 
         if (destinoAgarre == null) return;
 
-        // 1. InterpolaciÛn de la PosiciÛn
+        // 1. Interpolaci√≥n de la Posici√≥n
         objetoSostenido.transform.position = Vector3.Lerp(
             objetoSostenido.transform.position, destinoAgarre.position, 15f * Time.deltaTime);
 
-        // 2. InterpolaciÛn de la RotaciÛn
+        // 2. Interpolaci√≥n de la Rotaci√≥n
         if (esMisil)
         {
-            // Sumamos el giro en funciÛn de la velocidad configurable (mantenido entre 0 y 360 grados)
+            // Sumamos el giro en funci√≥n de la velocidad configurable (mantenido entre 0 y 360 grados)
             anguloGiroMisil = (anguloGiroMisil + velocidadRotacionMisilY * Time.deltaTime) % 360f;
 
-            // Calculamos la rotaciÛn base del punto de agarre + nuestro giro local en Y
+            // Calculamos la rotaci√≥n base del punto de agarre + nuestro giro local en Y
             Quaternion rotacionDeseada = destinoAgarre.rotation * Quaternion.Euler(0f, anguloGiroMisil, 0f);
 
             objetoSostenido.transform.rotation = Quaternion.Lerp(
@@ -159,7 +159,7 @@ public class AgarreLanzamiento : MonoBehaviour
         }
         else
         {
-            // RotaciÛn normal para la piedra (se queda quieta respecto a la c·mara)
+            // Rotaci√≥n normal para la piedra (se queda quieta respecto a la c√°mara)
             objetoSostenido.transform.rotation = Quaternion.Lerp(
                 objetoSostenido.transform.rotation, destinoAgarre.rotation, 15f * Time.deltaTime);
         }

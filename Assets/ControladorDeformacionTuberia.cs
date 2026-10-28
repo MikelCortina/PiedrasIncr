@@ -1,16 +1,16 @@
 using UnityEngine;
 
 [System.Serializable]
-public class ConfiguracionDeformacion // <-- SOLUCIÓN: Cambiado de struct a class
+public class ConfiguracionDeformacion // <-- SOLUCIÃ“N: Cambiado de struct a class
 {
-    [Tooltip("El índice del material en el Mesh Renderer (0, 1, 2...)")]
+    [Tooltip("El Ã­ndice del material en el Mesh Renderer (0, 1, 2...)")]
     public int indiceMaterial = 0;
 
-    [Tooltip("Controla el avance de la panza por la tubería.")]
+    [Tooltip("Controla el avance de la panza por la tuberÃ­a.")]
     [Range(-0.5f, 1.5f)]
     public float panner = -0.2f;
 
-    [Tooltip("Lo estrecha que es la anilla. Mayor valor = anillo más fino.")]
+    [Tooltip("Lo estrecha que es la anilla. Mayor valor = anillo mÃ¡s fino.")]
     public float bulgeWidth = 15f;
 
     [Tooltip("La fuerza con la que la malla sale hacia afuera.")]
@@ -43,7 +43,7 @@ public class ControladorDeformacionTuberia : MonoBehaviour
 
     void Update()
     {
-        // Solo actualizamos en Play si otro script está moviendo el panner
+        // Solo actualizamos en Play si otro script estÃ¡ moviendo el panner
         if (Application.isPlaying)
         {
             AplicarPropiedades();
@@ -69,21 +69,21 @@ public class ControladorDeformacionTuberia : MonoBehaviour
             Material matBase = render.sharedMaterials[config.indiceMaterial];
             if (matBase == null) continue;
 
-            // 1. Obtenemos el bloque ACTUAL de este índice específico para no borrar lo que hace VariacionAlbedo
+            // 1. Obtenemos el bloque ACTUAL de este Ã­ndice especÃ­fico para no borrar lo que hace VariacionAlbedo
             render.GetPropertyBlock(propBlock, config.indiceMaterial);
 
-            // 2. Inyectamos nuestros 3 valores de deformación
+            // 2. Inyectamos nuestros 3 valores de deformaciÃ³n
             propBlock.SetFloat(PannerId, config.panner);
             propBlock.SetFloat(BulgeWidthId, config.bulgeWidth);
             propBlock.SetFloat(BudgePowerId, config.budgePower);
 
-            // 3. Aplicamos el bloque de vuelta al MISMO índice
+            // 3. Aplicamos el bloque de vuelta al MISMO Ã­ndice
             render.SetPropertyBlock(propBlock, config.indiceMaterial);
         }
     }
 
     /// <summary>
-    /// Función para que tu script del meteorito (MaquinaPiedras) actualice el panner
+    /// FunciÃ³n para que tu script del meteorito (MaquinaPiedras) actualice el panner
     /// </summary>
     public void SetPannerGlobal(float progreso)
     {

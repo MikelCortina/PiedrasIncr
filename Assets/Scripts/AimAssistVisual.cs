@@ -8,29 +8,29 @@ public class AimAssistVisual : MonoBehaviour
     public RectTransform mirilla;
     public Camera camaraPrincipal;
 
-    [Header("Ajustes del Escáner")]
+    [Header("Ajustes del EscÃ¡ner")]
     [Tooltip("Tecla que hay que mantener pulsada para activar el visor y mostrar la mirilla de escaneo.")]
-    public KeyCode teclaEscanear = KeyCode.Mouse1; // Por defecto: Clic Derecho del ratón
+    public KeyCode teclaEscanear = KeyCode.Mouse1; // Por defecto: Clic Derecho del ratÃ³n
     public string tagPiedra = "Piedra";
     public float distanciaMaximaReal = 15f;
 
     [Header("Elementos de UI (Canvas)")]
-    [Tooltip("Arrastra aquí otros paneles, iconos o textos del Canvas que quieras que aparezcan al escanear.")]
+    [Tooltip("Arrastra aquÃ­ otros paneles, iconos o textos del Canvas que quieras que aparezcan al escanear.")]
     public RectTransform[] elementosUIExtras;
     [Tooltip("Velocidad a la que se inflan (pop in) y desinflan (pop out) los elementos del Canvas.")]
     public float velocidadPopUI = 15f;
 
-    [Header("Efecto de Respiración (Latido)")]
-    [Tooltip("Qué tan rápido respira la mirilla cuando apunta a un objetivo.")]
+    [Header("Efecto de RespiraciÃ³n (Latido)")]
+    [Tooltip("QuÃ© tan rÃ¡pido respira la mirilla cuando apunta a un objetivo.")]
     public float velocidadRespiracion = 4f;
-    [Tooltip("Cuánto crece/se encoge en cada latido (0.1 = 10% de su tamaño).")]
+    [Tooltip("CuÃ¡nto crece/se encoge en cada latido (0.1 = 10% de su tamaÃ±o).")]
     public float amplitudRespiracion = 0.08f;
 
-    [Header("Movimiento y Animación")]
+    [Header("Movimiento y AnimaciÃ³n")]
     public float velocidadTransicion = 10f;
     public float velocidadRotacion = 150f;
 
-    [Header("Efecto de Delay (Sway de Cámara)")]
+    [Header("Efecto de Delay (Sway de CÃ¡mara)")]
     public float intensidadDelay = 15f;
     public float velocidadRecuperacion = 15f;
 
@@ -87,18 +87,18 @@ public class AimAssistVisual : MonoBehaviour
 
     void Update()
     {
-        // Comprobamos si estamos en modo construcción
+        // Comprobamos si estamos en modo construcciÃ³n
         bool enModoConstruccion = SistemaConstruccion.Instancia != null && SistemaConstruccion.Instancia.modoConstruccion;
 
-        // Comprobamos si el jugador MANTIENE PULSADA la tecla de escaneo (y NO está construyendo)
+        // Comprobamos si el jugador MANTIENE PULSADA la tecla de escaneo (y NO estÃ¡ construyendo)
         escaneandoActivo = !enModoConstruccion && Input.GetKey(teclaEscanear);
 
-        // Variables maestras para decidir qué hacer con la mirilla al final del frame
+        // Variables maestras para decidir quÃ© hacer con la mirilla al final del frame
         bool mostrarMirilla = escaneandoActivo;
         Vector3 escalaObjetivoMirilla = escalaOriginalMirilla;
 
         // ==========================================
-        // LÓGICA DE ESCANEO Y APUNTADO
+        // LÃ“GICA DE ESCANEO Y APUNTADO
         // ==========================================
         if (escaneandoActivo || enModoConstruccion)
         {
@@ -106,7 +106,7 @@ public class AimAssistVisual : MonoBehaviour
 
             if (enModoConstruccion)
             {
-                // En modo construcción, el objetivo es la estructura apuntada (si la hay)
+                // En modo construcciÃ³n, el objetivo es la estructura apuntada (si la hay)
                 if (SistemaConstruccion.Instancia != null && SistemaConstruccion.Instancia.edificioApuntado != null)
                 {
                     objetivoActual = SistemaConstruccion.Instancia.edificioApuntado.transform;
@@ -118,7 +118,7 @@ public class AimAssistVisual : MonoBehaviour
             }
             else
             {
-                // En modo escáner, buscamos la piedra
+                // En modo escÃ¡ner, buscamos la piedra
                 BuscarPiedraMasCentrada();
             }
 
@@ -131,7 +131,7 @@ public class AimAssistVisual : MonoBehaviour
                     // Al apuntar a un edificio, usamos SU PIVOTE (transform.position) y forzamos la mirilla grande
                     centroObjetivo = objetivoActual.position;
                     mostrarMirilla = true;
-                    escalaObjetivoMirilla = escalaOriginalMirilla * 1.5f; // Un 50% más grande para abrazar la estructura
+                    escalaObjetivoMirilla = escalaOriginalMirilla * 1.5f; // Un 50% mÃ¡s grande para abrazar la estructura
                 }
                 else
                 {
@@ -165,23 +165,23 @@ public class AimAssistVisual : MonoBehaviour
         }
         else
         {
-            // Si suelta la tecla o sale de construcción, limpiamos el objetivo actual
+            // Si suelta la tecla o sale de construcciÃ³n, limpiamos el objetivo actual
             objetivoActual = null;
-            DevolverMirillaAlCentro(); // Para que vuelva al centro mientras se hace pequeña
+            DevolverMirillaAlCentro(); // Para que vuelva al centro mientras se hace pequeÃ±a
         }
 
         // ==========================================
-        // ANIMACIÓN "POP" DE LA MIRILLA Y LOS EXTRAS
+        // ANIMACIÃ“N "POP" DE LA MIRILLA Y LOS EXTRAS
         // ==========================================
 
-        // 1. Añadimos la respiración orgánica a la mirilla si está enfocando un objetivo
+        // 1. AÃ±adimos la respiraciÃ³n orgÃ¡nica a la mirilla si estÃ¡ enfocando un objetivo
         if (mostrarMirilla && objetivoActual != null)
         {
             float pulso = Mathf.Sin(Time.time * velocidadRespiracion) * amplitudRespiracion;
-            escalaObjetivoMirilla *= (1f + pulso); // Multiplicamos por (1 ± amplitud)
+            escalaObjetivoMirilla *= (1f + pulso); // Multiplicamos por (1 Â± amplitud)
         }
 
-        // 2. Aplicamos la animación final a la mirilla con su tamaño (y respiración)
+        // 2. Aplicamos la animaciÃ³n final a la mirilla con su tamaÃ±o (y respiraciÃ³n)
         AnimarElementoUIPersonalizado(mirilla, escalaObjetivoMirilla, mostrarMirilla);
 
         // 3. Los elementos extra (el Canvas general) se muestran tanto si escaneamos como si construimos
@@ -192,7 +192,7 @@ public class AimAssistVisual : MonoBehaviour
     }
 
     // ==========================================
-    // MÉTODO PARA INFLAR/DESINFLAR UI
+    // MÃ‰TODO PARA INFLAR/DESINFLAR UI
     // ==========================================
     void AnimarElementoUIPersonalizado(RectTransform elemento, Vector3 escalaObjetivoConcreta, bool mostrar)
     {
@@ -200,16 +200,16 @@ public class AimAssistVisual : MonoBehaviour
 
         Vector3 escalaFinal = mostrar ? escalaObjetivoConcreta : Vector3.zero;
 
-        // Si queremos mostrarlo y está apagado, lo encendemos de inmediato
+        // Si queremos mostrarlo y estÃ¡ apagado, lo encendemos de inmediato
         if (mostrar && !elemento.gameObject.activeSelf)
         {
             elemento.gameObject.SetActive(true);
         }
 
-        // Interpolamos el tamaño para crear el efecto "Pop" y absorber la respiración suavemente
+        // Interpolamos el tamaÃ±o para crear el efecto "Pop" y absorber la respiraciÃ³n suavemente
         elemento.localScale = Vector3.Lerp(elemento.localScale, escalaFinal, Time.deltaTime * velocidadPopUI);
 
-        // Si ya es minúsculo (invisible) y no queremos mostrarlo, lo apagamos para ahorrar rendimiento
+        // Si ya es minÃºsculo (invisible) y no queremos mostrarlo, lo apagamos para ahorrar rendimiento
         if (!mostrar && elemento.localScale.sqrMagnitude < 0.001f && elemento.gameObject.activeSelf)
         {
             elemento.localScale = Vector3.zero;
@@ -280,7 +280,7 @@ public class AimAssistVisual : MonoBehaviour
         objetivoActual = mejorObjetivo;
     }
 
-    // Dibujamos el panel HUD en pantalla con la información de la piedra escaneada
+    // Dibujamos el panel HUD en pantalla con la informaciÃ³n de la piedra escaneada
     void OnGUI()
     {
         // Solo mostramos la interfaz si estamos manteniendo pulsada la tecla Y apuntando a una piedra
@@ -301,11 +301,11 @@ public class AimAssistVisual : MonoBehaviour
         string textoInfo = string.Format("Desgaste a Esfera: {0:0.0}%", porcentajeDesgasteActual);
         if (porcentajeDesgasteActual >= 95f)
         {
-            textoInfo += "\n<color=green>¡Núcleo Alcanzado (Listo)!</color>";
+            textoInfo += "\n<color=green>Â¡NÃºcleo Alcanzado (Listo)!</color>";
         }
         else
         {
-            textoInfo += "\n<color=orange>Falta Erosión</color>";
+            textoInfo += "\n<color=orange>Falta ErosiÃ³n</color>";
         }
 
         estilo.richText = true;

@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PhysicalSwordGrip : MonoBehaviour
 {
-    [Header("Manos f韘icas")]
+    [Header("Manos f铆sicas")]
     [SerializeField] private Rigidbody manoDerecha;
     [SerializeField] private Rigidbody manoIzquierda;
 
@@ -15,7 +15,7 @@ public class PhysicalSwordGrip : MonoBehaviour
     [SerializeField] private Transform gripDerechoMano;
     [SerializeField] private Transform gripIzquierdoMano;
 
-    [Header("Configuraci髇")]
+    [Header("Configuraci贸n")]
     [SerializeField] private bool conectarAlComenzar = true;
     [SerializeField] private bool ignorarColisionConLasManos = true;
 
@@ -90,13 +90,13 @@ public class PhysicalSwordGrip : MonoBehaviour
         joint.autoConfigureConnectedAnchor =
             false;
 
-        // Posici髇 del punto de agarre respecto a la mano.
+        // Posici贸n del punto de agarre respecto a la mano.
         joint.anchor =
             mano.transform.InverseTransformPoint(
                 gripMano.position
             );
 
-        // Posici髇 del punto de agarre respecto a la espada.
+        // Posici贸n del punto de agarre respecto a la espada.
         joint.connectedAnchor =
             rbEspada.transform.InverseTransformPoint(
                 gripEspada.position
@@ -112,7 +112,7 @@ public class PhysicalSwordGrip : MonoBehaviour
         joint.zMotion =
             ConfigurableJointMotion.Locked;
 
-        // Bloquear la rotaci髇.
+        // Bloquear la rotaci贸n.
         joint.angularXMotion =
             ConfigurableJointMotion.Locked;
 

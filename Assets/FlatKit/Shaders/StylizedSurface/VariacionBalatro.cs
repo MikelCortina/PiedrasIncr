@@ -3,7 +3,7 @@ using UnityEngine;
 [System.Serializable]
 public struct ConfiguracionBalatro
 {
-    [Tooltip("El índice del material en el Mesh Renderer (0, 1, 2...)")]
+    [Tooltip("El Ã­ndice del material en el Mesh Renderer (0, 1, 2...)")]
     public int indiceMaterial;
 
     [Header("Colores Procedurales Balatro")]
@@ -31,7 +31,7 @@ public struct ConfiguracionBalatro
 [RequireComponent(typeof(Renderer))]
 public class VariacionBalatro : MonoBehaviour
 {
-    [Header("Configuración Balatro por Material")]
+    [Header("ConfiguraciÃ³n Balatro por Material")]
     public ConfiguracionBalatro[] configuraciones;
 
     private Renderer render;
@@ -67,7 +67,7 @@ public class VariacionBalatro : MonoBehaviour
             // 1. Obtener el bloque actual del material
             render.GetPropertyBlock(propBlock, config.indiceMaterial);
 
-            // 2. Inyectar las variables específicas de Balatro
+            // 2. Inyectar las variables especÃ­ficas de Balatro
             propBlock.SetColor("_BalatroColor1", config.color1);
             propBlock.SetColor("_BalatroColor2", config.color2);
             propBlock.SetColor("_BalatroColor3", config.color3);
@@ -86,7 +86,7 @@ public class VariacionBalatro : MonoBehaviour
     // ==========================================
 
     /// <summary>
-    /// Cambia la velocidad de animación de todos los materiales configurados en tiempo real.
+    /// Cambia la velocidad de animaciÃ³n de todos los materiales configurados en tiempo real.
     /// </summary>
     public void SetGlobalSpeed(float nuevaVelocidad)
     {

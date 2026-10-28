@@ -14,10 +14,10 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // INFORMACI”N
+    // INFORMACI√ìN
     // =====================================================
 
-    [Header("InformaciÛn")]
+    [Header("Informaci√≥n")]
 
     public TMP_Text textoNombre;
 
@@ -25,10 +25,10 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // ESTADÕSTICAS
+    // ESTAD√çSTICAS
     // =====================================================
 
-    [Header("EstadÌsticas")]
+    [Header("Estad√≠sticas")]
 
     public TMP_Text textoPiedrasRecogidas;
 
@@ -74,8 +74,8 @@ public class MenuBotUI : MonoBehaviour
     [Header("Control del jugador")]
 
     [Tooltip(
-        "Arrastra aquÌ el script del jugador que controla " +
-        "la c·mara/mirada con el ratÛn."
+        "Arrastra aqu√≠ el script del jugador que controla " +
+        "la c√°mara/mirada con el rat√≥n."
     )]
     public MonoBehaviour controladorMiradaJugador;
 
@@ -128,8 +128,8 @@ public class MenuBotUI : MonoBehaviour
 
 
     [Tooltip(
-        "En modo Autom·tico, las piedras con esta pureza " +
-        "o superior ir·n directamente al agujero."
+        "En modo Autom√°tico, las piedras con esta pureza " +
+        "o superior ir√°n directamente al agujero."
     )]
     public Slider sliderPurezaAgujero;
 
@@ -169,7 +169,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // BOT”N TRABAJAR
+        // BOT√ìN TRABAJAR
         // =================================================
 
         if (botonTrabajar != null)
@@ -181,7 +181,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // BOT”N PAUSA
+        // BOT√ìN PAUSA
         // =================================================
 
         if (botonPausa != null)
@@ -193,7 +193,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // BOT”N PARKING
+        // BOT√ìN PARKING
         // =================================================
 
         if (botonParking != null)
@@ -205,7 +205,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // BOT”N CERRAR
+        // BOT√ìN CERRAR
         // =================================================
 
         if (botonCerrar != null)
@@ -266,7 +266,7 @@ public class MenuBotUI : MonoBehaviour
             dropdownPrioridad.AddOptions(
                 new List<string>
                 {
-                    "M·s cercana",
+                    "M√°s cercana",
                     "Mayor pureza",
                     "Menor pureza",
                     "Aleatoria"
@@ -283,7 +283,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA MÕNIMA
+        // PUREZA M√çNIMA
         // =================================================
 
         if (sliderPurezaMin != null)
@@ -309,7 +309,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA M¡XIMA
+        // PUREZA M√ÅXIMA
         // =================================================
 
         if (sliderPurezaMax != null)
@@ -348,7 +348,7 @@ public class MenuBotUI : MonoBehaviour
                 {
                     "Agujero",
                     "Procesadora",
-"Autom·tico",
+"Autom√°tico",
 "Zona Piedras"
                 }
             );
@@ -425,7 +425,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // ABRIR MEN⁄
+    // ABRIR MEN√ö
     // =====================================================
 
     public void AbrirMenu(
@@ -488,7 +488,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // BLOQUEAR C¡MARA
+        // BLOQUEAR C√ÅMARA
         // =================================================
 
         if (controladorMiradaJugador != null)
@@ -567,7 +567,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA MÕNIMA
+        // PUREZA M√çNIMA
         // =================================================
 
         if (sliderPurezaMin != null)
@@ -580,7 +580,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA M¡XIMA
+        // PUREZA M√ÅXIMA
         // =================================================
 
         if (sliderPurezaMax != null)
@@ -639,7 +639,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // CERRAR MEN⁄
+    // CERRAR MEN√ö
     // =====================================================
 
     public void CerrarMenu()
@@ -680,7 +680,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // DEVOLVER CONTROL DE C¡MARA
+        // DEVOLVER CONTROL DE C√ÅMARA
         // =================================================
 
         if (controladorMiradaJugador != null)
@@ -826,7 +826,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // PUREZA MÕNIMA
+    // PUREZA M√çNIMA
     // =====================================================
 
     private void CambiarPurezaMinima(
@@ -864,7 +864,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // PUREZA M¡XIMA
+    // PUREZA M√ÅXIMA
     // =====================================================
 
     private void CambiarPurezaMaxima(
@@ -960,7 +960,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // VISIBILIDAD DESTINO AUTOM¡TICO
+    // VISIBILIDAD DESTINO AUTOM√ÅTICO
     // =====================================================
 
     private void ActualizarVisibilidadDestino()
@@ -1033,13 +1033,13 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA MÕNIMA
+        // PUREZA M√çNIMA
         // =================================================
 
         if (textoPurezaMin != null)
         {
             textoPurezaMin.text =
-                "Pureza mÌnima: " +
+                "Pureza m√≠nima: " +
                 botActual
                     .purezaMinima
                     .ToString("0") +
@@ -1048,13 +1048,13 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA M¡XIMA
+        // PUREZA M√ÅXIMA
         // =================================================
 
         if (textoPurezaMax != null)
         {
             textoPurezaMax.text =
-                "Pureza m·xima: " +
+                "Pureza m√°xima: " +
                 botActual
                     .purezaMaxima
                     .ToString("0") +
@@ -1063,7 +1063,7 @@ public class MenuBotUI : MonoBehaviour
 
 
         // =================================================
-        // PUREZA AUTOM¡TICA
+        // PUREZA AUTOM√ÅTICA
         // =================================================
 
         if (textoPurezaAgujero != null)
@@ -1079,7 +1079,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // ACTUALIZAR ESTADÕSTICAS
+    // ACTUALIZAR ESTAD√çSTICAS
     // =====================================================
 
     private void ActualizarEstadisticas()
@@ -1291,7 +1291,7 @@ public class MenuBotUI : MonoBehaviour
 
 
     // =====================================================
-    // PONER TEXTO BOT”N
+    // PONER TEXTO BOT√ìN
     // =====================================================
 
     private void PonerTextoBoton(

@@ -34,39 +34,39 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
-    // ANTICIPACI”N NAVMESH
+    // ANTICIPACI√ìN NAVMESH
     // =====================================================
 
-    [Header("AnticipaciÛn de giro NavMesh")]
+    [Header("Anticipaci√≥n de giro NavMesh")]
 
     [Tooltip(
         "NavMeshAgent del Bot. " +
-        "Si est· vacÌo se busca autom·ticamente en los padres."
+        "Si est√° vac√≠o se busca autom√°ticamente en los padres."
     )]
     public NavMeshAgent agente;
 
 
     [Tooltip(
-        "Permite anticipar hacia dÛnde quiere girar el NavMesh."
+        "Permite anticipar hacia d√≥nde quiere girar el NavMesh."
     )]
     public bool usarAnticipacionNavMesh = true;
 
 
     [Tooltip(
-        "Velocidad mÌnima del desiredVelocity para considerar " +
-        "que existe una direcciÛn de movimiento v·lida."
+        "Velocidad m√≠nima del desiredVelocity para considerar " +
+        "que existe una direcci√≥n de movimiento v√°lida."
     )]
     public float umbralVelocidadDeseada = 0.05f;
 
 
     [Tooltip(
-        "Suavizado del ·ngulo de giro deseado."
+        "Suavizado del √°ngulo de giro deseado."
     )]
     public float suavizadoAnguloDeseado = 12f;
 
 
     [Tooltip(
-        "Por debajo de este ·ngulo consideramos que va pr·cticamente recto."
+        "Por debajo de este √°ngulo consideramos que va pr√°cticamente recto."
     )]
     public float umbralAnguloRecto = 3f;
 
@@ -78,7 +78,7 @@ public class GestorPatasArana : MonoBehaviour
     [Header("Superficie de apoyo")]
 
     [Tooltip(
-        "Normal que se envÌa a las seis patas. " +
+        "Normal que se env√≠a a las seis patas. " +
         "Vector3.up mantiene el comportamiento normal de suelo."
     )]
     [SerializeField]
@@ -102,13 +102,13 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
-    // TRANSICI”N DE SUPERFICIE
+    // TRANSICI√ìN DE SUPERFICIE
     // =====================================================
 
-    [Header("TransiciÛn de superficie")]
+    [Header("Transici√≥n de superficie")]
 
     [Tooltip(
-        "Indica si las seis patas est·n cambiando progresivamente " +
+        "Indica si las seis patas est√°n cambiando progresivamente " +
         "de una normal de apoyo a otra."
     )]
     [SerializeField]
@@ -116,21 +116,21 @@ public class GestorPatasArana : MonoBehaviour
 
 
     [Tooltip(
-        "Normal desde la que comenzÛ la transiciÛn actual."
+        "Normal desde la que comenz√≥ la transici√≥n actual."
     )]
     [SerializeField]
     private Vector3 normalInicioTransicion = Vector3.up;
 
 
     [Tooltip(
-        "Normal final hacia la que se est·n adaptando las patas."
+        "Normal final hacia la que se est√°n adaptando las patas."
     )]
     [SerializeField]
     private Vector3 normalObjetivoTransicion = Vector3.up;
 
 
     [Tooltip(
-        "Progreso de la transiciÛn actual. 0 = inicio, 1 = terminada."
+        "Progreso de la transici√≥n actual. 0 = inicio, 1 = terminada."
     )]
     [SerializeField]
     [Range(0f, 1f)]
@@ -141,8 +141,8 @@ public class GestorPatasArana : MonoBehaviour
 
     private float tiempoTransicionSuperficie = 0f;
 
-    // TransiciÛn de coronaciÛn: las delanteras ya est·n en el suelo;
-    // medias y traseras cambian despuÈs, en ese orden.
+    // Transici√≥n de coronaci√≥n: las delanteras ya est√°n en el suelo;
+    // medias y traseras cambian despu√©s, en ese orden.
     private bool transicionSueloPorGrupos = false;
 
 
@@ -307,7 +307,7 @@ public class GestorPatasArana : MonoBehaviour
             nuevaNormal.normalized;
 
 
-        // Si pr·cticamente ya estamos en esa superficie,
+        // Si pr√°cticamente ya estamos en esa superficie,
         // fijamos el resultado directamente.
         if (Vector3.Angle(
                 NormalSuperficieActual,
@@ -360,7 +360,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // Se llama SOLO cuando las patas delanteras ya han tomado apoyo
-    // sobre el suelo superior. No modifica la transiciÛn suelo->pared.
+    // sobre el suelo superior. No modifica la transici√≥n suelo->pared.
     public void IniciarTransicionASueloPorGrupos(float duracion)
     {
         transicionSueloPorGrupos = true;
@@ -410,7 +410,7 @@ public class GestorPatasArana : MonoBehaviour
         if (transicionSueloPorGrupos)
         {
             // Las delanteras ya han plantado los pies en el suelo.
-            // El resto cambia progresivamente: medias antes, traseras despuÈs.
+            // El resto cambia progresivamente: medias antes, traseras despu√©s.
             float tMedias = Mathf.SmoothStep(0f, 1f,
                 Mathf.InverseLerp(0.12f, 0.72f, t));
             float tTraseras = Mathf.SmoothStep(0f, 1f,
@@ -429,7 +429,7 @@ public class GestorPatasArana : MonoBehaviour
             if (pataBR != null) pataBR.EstablecerNormalSuperficie(normalTrasera);
 
             // Normal de lectura general. NO llamar a EstablecerNormalSuperficie
-            // aquÌ: pondrÌa las seis patas en la misma orientaciÛn.
+            // aqu√≠: pondr√≠a las seis patas en la misma orientaci√≥n.
             normalSuperficieActual = normalInterpolada.normalized;
         }
         else if (normalInterpolada.sqrMagnitude > 0.0001f)
@@ -474,14 +474,14 @@ public class GestorPatasArana : MonoBehaviour
     private void Update()
     {
         // =================================================
-        // TRANSICI”N PROGRESIVA DE LA NORMAL DE APOYO
+        // TRANSICI√ìN PROGRESIVA DE LA NORMAL DE APOYO
         // =================================================
 
         ActualizarTransicionSuperficie();
 
 
         // =================================================
-        // PRIMERO CALCULAMOS HACIA D”NDE QUIERE GIRAR
+        // PRIMERO CALCULAMOS HACIA D√ìNDE QUIERE GIRAR
         // =================================================
 
         ActualizarIntencionGiroNavMesh();
@@ -503,7 +503,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
         // =================================================
-        // SI ALGUNA PATA EST¡ EN EL AIRE
+        // SI ALGUNA PATA EST√Å EN EL AIRE
         // ESPERAMOS
         // =================================================
 
@@ -633,7 +633,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
-    // INTENCI”N DE GIRO DEL NAVMESH
+    // INTENCI√ìN DE GIRO DEL NAVMESH
     // =====================================================
 
     private void ActualizarIntencionGiroNavMesh()
@@ -644,7 +644,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
         // =================================================
-        // øTENEMOS UNA DIRECCI”N V¡LIDA?
+        // ¬øTENEMOS UNA DIRECCI√ìN V√ÅLIDA?
         // =================================================
 
         if (usarAnticipacionNavMesh &&
@@ -684,7 +684,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
                     // =========================================
-                    // ¡NGULO QUE TODAVÕA LE FALTA POR GIRAR
+                    // √ÅNGULO QUE TODAV√çA LE FALTA POR GIRAR
                     // =========================================
 
                     anguloObjetivo =
@@ -718,7 +718,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
         // =================================================
-        // PEQUE—OS CAMBIOS = RECTA
+        // PEQUE√ëOS CAMBIOS = RECTA
         // =================================================
 
         if (Mathf.Abs(
@@ -801,7 +801,7 @@ public class GestorPatasArana : MonoBehaviour
                 name +
                 " | Giro futuro NavMesh: " +
                 anguloDeseadoSuavizado.ToString("0.0") +
-                "∞ | Intensidad: " +
+                "¬∞ | Intensidad: " +
                 intensidadMovimiento.ToString("0.00")
             );
         }
@@ -809,7 +809,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
-    // ENVIAR INTENCI”N A UNA PATA
+    // ENVIAR INTENCI√ìN A UNA PATA
     // =====================================================
 
     private void EnviarIntencion(
@@ -827,7 +827,7 @@ public class GestorPatasArana : MonoBehaviour
 
 
     // =====================================================
-    // øALGUNA PATA EST¡ MOVI…NDOSE?
+    // ¬øALGUNA PATA EST√Å MOVI√âNDOSE?
     // =====================================================
 
     private bool AlgunaPataEstaMoviendose()

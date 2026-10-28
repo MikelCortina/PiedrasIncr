@@ -58,7 +58,7 @@ public class GestorEquipamiento : MonoBehaviour
             else
             {
                 Debug.Log(
-                    "El Arma de la Luna todavía no está desbloqueada."
+                    "El Arma de la Luna todavÃ­a no estÃ¡ desbloqueada."
                 );
             }
         }
@@ -79,14 +79,14 @@ public class GestorEquipamiento : MonoBehaviour
             else
             {
                 Debug.Log(
-                    "El Torbellino todavía no está desbloqueado."
+                    "El Torbellino todavÃ­a no estÃ¡ desbloqueado."
                 );
             }
         }
 
 
         // =========================
-        // MARTILLO / CONSTRUCCIÓN
+        // MARTILLO / CONSTRUCCIÃ“N
         // =========================
 
         if (Input.GetKeyDown(teclaConstruccion))
@@ -100,7 +100,7 @@ public class GestorEquipamiento : MonoBehaviour
             else
             {
                 Debug.Log(
-                    "El Martillo todavía no está desbloqueado."
+                    "El Martillo todavÃ­a no estÃ¡ desbloqueado."
                 );
             }
         }
@@ -121,7 +121,7 @@ public class GestorEquipamiento : MonoBehaviour
 
 
         // Si pulsamos la tecla de la herramienta
-        // que ya tenemos equipada, volvemos a manos vacías.
+        // que ya tenemos equipada, volvemos a manos vacÃ­as.
         if (equipamientoActual == nuevoEquipamiento)
         {
             equipamientoActual =
@@ -167,7 +167,7 @@ public class GestorEquipamiento : MonoBehaviour
 
 
         // =========================
-        // CONSTRUCCIÓN
+        // CONSTRUCCIÃ“N
         // =========================
 
         if (sistemaConstruccion != null)
@@ -205,7 +205,7 @@ public class GestorEquipamiento : MonoBehaviour
         armaLanzadoraDesbloqueada = true;
 
         Debug.Log(
-            "¡Arma de la Luna desbloqueada!"
+            "Â¡Arma de la Luna desbloqueada!"
         );
     }
 
@@ -225,7 +225,7 @@ public class GestorEquipamiento : MonoBehaviour
         torbellinoDesbloqueado = true;
 
         Debug.Log(
-            "¡Torbellino desbloqueado!"
+            "Â¡Torbellino desbloqueado!"
         );
     }
 
@@ -245,7 +245,7 @@ public class GestorEquipamiento : MonoBehaviour
         martilloDesbloqueado = true;
 
         Debug.Log(
-            "¡Martillo y modo construcción desbloqueados!"
+            "Â¡Martillo y modo construcciÃ³n desbloqueados!"
         );
     }
 

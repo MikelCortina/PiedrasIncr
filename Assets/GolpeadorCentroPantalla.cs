@@ -5,7 +5,7 @@ public class GolpeadorCentroPantalla : MonoBehaviour
     [Header("Controles")]
     public KeyCode teclaGolpe = KeyCode.Mouse0; // Clic izquierdo
 
-    [Header("ConfiguraciÛn del Raycast")]
+    [Header("Configuraci√≥n del Raycast")]
     public float distanciaMaxima = 100f;
     [Tooltip("Capas con las que puede interactuar")]
     public LayerMask capasInteractuables = ~0; // Todo por defecto
@@ -30,7 +30,7 @@ public class GolpeadorCentroPantalla : MonoBehaviour
     {
         if (cam == null) return;
 
-        // Genera un rayo desde el centro matem·tico del viewport (0.5, 0.5)
+        // Genera un rayo desde el centro matem√°tico del viewport (0.5, 0.5)
         Ray rayo = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
 
         if (Physics.Raycast(rayo, out RaycastHit hit, distanciaMaxima, capasInteractuables))
@@ -40,7 +40,7 @@ public class GolpeadorCentroPantalla : MonoBehaviour
 
             if (diana != null)
             {
-                // Pasa el punto exacto de la colisiÛn para ubicar el VFX
+                // Pasa el punto exacto de la colisi√≥n para ubicar el VFX
                 diana.RecibirImpacto(hit.point);
             }
         }

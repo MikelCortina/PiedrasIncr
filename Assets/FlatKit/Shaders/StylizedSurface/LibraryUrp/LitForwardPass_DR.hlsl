@@ -252,17 +252,17 @@ half4 StylizedPassFragment(Varyings input) : SV_Target
     #if defined(BALATRO_DISTORTION)
         float t = _Time.y * _DistortionSpeed;
         
-        // Generar un patrón de ondas cruzadas
+        // Generar un patrÃ³n de ondas cruzadas
         float pattern = sin(input.uv.x * _DistortionScale + t) + 
                         cos(input.uv.y * _DistortionScale - t * 0.8);
                         
-        // Añadir una segunda capa para hacer el remolino más complejo
+        // AÃ±adir una segunda capa para hacer el remolino mÃ¡s complejo
         pattern += sin((input.uv.x - input.uv.y) * _DistortionScale * 0.5 + t * 1.2);
         
         // Normalizar el valor a un rango aproximado de 0 a 1
         pattern = (pattern * 0.25) + 0.5;
 
-        // Mezclar los 3 colores en base al patrón generado
+        // Mezclar los 3 colores en base al patrÃ³n generado
         half3 balatroColor = lerp(_BalatroColor1.rgb, _BalatroColor2.rgb, smoothstep(0.0, 0.5, pattern));
         balatroColor = lerp(balatroColor, _BalatroColor3.rgb, smoothstep(0.5, 1.0, pattern));
         

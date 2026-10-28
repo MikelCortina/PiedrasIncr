@@ -3,7 +3,7 @@ using UnityEngine;
 public class VisualSphereChain : MonoBehaviour
 {
     [Header("Esferas de la cadena")]
-    [Tooltip("Ordénalas desde la espada hasta la rana.")]
+    [Tooltip("OrdÃ©nalas desde la espada hasta la rana.")]
     [SerializeField] private Transform[] esferas;
 
     [Header("Anclas visuales")]
@@ -20,7 +20,7 @@ public class VisualSphereChain : MonoBehaviour
     [Tooltip("Distancia entre esferas. Usa un valor bajo para una lengua corta.")]
     [SerializeField] private float longitudSegmento = 0.12f;
 
-    [Header("Simulación visual")]
+    [Header("SimulaciÃ³n visual")]
     [SerializeField] private Vector3 gravedad =
         new Vector3(0f, -0.5f, 0f);
 
@@ -38,25 +38,25 @@ public class VisualSphereChain : MonoBehaviour
     [Tooltip("Influencia visual de la velocidad de la rana.")]
     [SerializeField] private float influenciaVelocidadRana = 0.02f;
 
-    [Header("Arrastre físico de la rana")]
+    [Header("Arrastre fÃ­sico de la rana")]
     [SerializeField] private bool arrastrarRana = true;
 
     [Tooltip("Fuerza del resorte que tira de la rana.")]
     [SerializeField] private float rigidezCadena = 120f;
 
-    [Tooltip("Amortiguación para evitar vibraciones.")]
+    [Tooltip("AmortiguaciÃ³n para evitar vibraciones.")]
     [SerializeField] private float amortiguacionTension = 50f;
 
-    [Tooltip("Límite máximo de la fuerza aplicada a la rana.")]
+    [Tooltip("LÃ­mite mÃ¡ximo de la fuerza aplicada a la rana.")]
     [SerializeField] private float fuerzaMaximaArrastre = 600f;
 
     [Tooltip("Margen antes de empezar a tirar de la rana.")]
     [SerializeField] private float holguraCadena = 0.01f;
 
-    [Header("Orientación visual")]
+    [Header("OrientaciÃ³n visual")]
     [SerializeField] private bool orientarEsferas = true;
 
-    [Header("Limpiar componentes físicos antiguos")]
+    [Header("Limpiar componentes fÃ­sicos antiguos")]
     [SerializeField] private bool desactivarRigidbodies = true;
 
     [SerializeField] private bool desactivarColliders = true;
@@ -165,7 +165,7 @@ public class VisualSphereChain : MonoBehaviour
             if (esferas[i] == null)
             {
                 Debug.LogError(
-                    $"La esfera del índice {i} está vacía.",
+                    $"La esfera del Ã­ndice {i} estÃ¡ vacÃ­a.",
                     this
                 );
 
@@ -196,7 +196,7 @@ public class VisualSphereChain : MonoBehaviour
         posicionesAnteriores[0] =
             posiciones[0];
 
-        // Último extremo: rana.
+        // Ãšltimo extremo: rana.
         int ultimoIndice =
             posiciones.Length - 1;
 
@@ -277,7 +277,7 @@ public class VisualSphereChain : MonoBehaviour
             posiciones[0];
 
         /*
-         * Integración Verlet de las esferas intermedias.
+         * IntegraciÃ³n Verlet de las esferas intermedias.
          */
         for (int i = 1;
              i < ultimoIndice;
@@ -302,7 +302,7 @@ public class VisualSphereChain : MonoBehaviour
         }
 
         /*
-         * La última esfera sigue visualmente a la rana.
+         * La Ãºltima esfera sigue visualmente a la rana.
          */
         Vector3 posicionRana =
             anclaRana.position;
@@ -404,7 +404,7 @@ public class VisualSphereChain : MonoBehaviour
             siguiente == posiciones.Length - 1;
 
         /*
-         * La primera esfera está fijada a la espada.
+         * La primera esfera estÃ¡ fijada a la espada.
          */
         if (esPrimerSegmento)
         {
@@ -417,7 +417,7 @@ public class VisualSphereChain : MonoBehaviour
         }
 
         /*
-         * La última esfera está fijada a la rana.
+         * La Ãºltima esfera estÃ¡ fijada a la rana.
          */
         if (esUltimoSegmento)
         {
@@ -430,7 +430,7 @@ public class VisualSphereChain : MonoBehaviour
         }
 
         /*
-         * Corrección de los segmentos intermedios.
+         * CorrecciÃ³n de los segmentos intermedios.
          */
         Vector3 correccion =
             direccion *
@@ -475,7 +475,7 @@ public class VisualSphereChain : MonoBehaviour
             return;
 
         /*
-         * Longitud máxima aproximada de la lengua.
+         * Longitud mÃ¡xima aproximada de la lengua.
          */
         float longitudCadena =
             longitudSegmento *
@@ -490,7 +490,7 @@ public class VisualSphereChain : MonoBehaviour
             distanciaPermitida;
 
         /*
-         * Si la lengua no está estirada,
+         * Si la lengua no estÃ¡ estirada,
          * no aplicamos fuerza.
          */
         if (extension <= 0f)
@@ -511,14 +511,14 @@ public class VisualSphereChain : MonoBehaviour
             );
 
         /*
-         * Fuerza elástica.
+         * Fuerza elÃ¡stica.
          */
         float fuerzaResorte =
             extension *
             rigidezCadena;
 
         /*
-         * Calculamos una amortiguación crítica
+         * Calculamos una amortiguaciÃ³n crÃ­tica
          * aproximada para evitar vibraciones.
          */
         float amortiguacionCritica =
@@ -640,7 +640,7 @@ public class VisualSphereChain : MonoBehaviour
         }
 
         /*
-         * La cadena ya no utiliza joints físicos.
+         * La cadena ya no utiliza joints fÃ­sicos.
          */
         Joint[] joints =
             esfera.GetComponents<Joint>();

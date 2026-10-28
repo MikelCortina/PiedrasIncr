@@ -12,9 +12,9 @@ public class LevelManager : MonoBehaviour
     private bool isLevelFinished = false;
 
     [Header("Interfaz de Victoria")]
-    [Tooltip("El Panel de UI que contiene el mensaje de victoria y el botón")]
+    [Tooltip("El Panel de UI que contiene el mensaje de victoria y el botÃ³n")]
     public GameObject finishPanel;
-    [Tooltip("El texto donde se mostrará el tiempo final")]
+    [Tooltip("El texto donde se mostrarÃ¡ el tiempo final")]
     public TextMeshProUGUI timeText;
 
     private void Awake()
@@ -39,7 +39,7 @@ public class LevelManager : MonoBehaviour
     {
         isLevelActive = true;
         currentTime = 0f;
-        Debug.Log("¡Nivel Iniciado!");
+        Debug.Log("Â¡Nivel Iniciado!");
     }
 
     public void EndLevel()
@@ -54,11 +54,11 @@ public class LevelManager : MonoBehaviour
         if (finishPanel != null) finishPanel.SetActive(true);
         if (timeText != null) timeText.text = $"TIEMPO FINAL\n{currentTime:F2} s";
 
-        // 2. Liberar el cursor para poder pulsar el botón de reinicio
+        // 2. Liberar el cursor para poder pulsar el botÃ³n de reinicio
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // 3. Apagar el script del avión para que no vuelva a bloquear el ratón
+        // 3. Apagar el script del aviÃ³n para que no vuelva a bloquear el ratÃ³n
         PaperPlaneController plane = FindObjectOfType<PaperPlaneController>();
         if (plane != null) plane.enabled = false;
 
@@ -66,7 +66,7 @@ public class LevelManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    // Este método lo conectaremos al botón de la UI
+    // Este mÃ©todo lo conectaremos al botÃ³n de la UI
     public void RestartLevel()
     {
         // Restauramos el tiempo a la normalidad antes de recargar

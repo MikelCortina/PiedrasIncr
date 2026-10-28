@@ -15,18 +15,18 @@ public class GestorBots : MonoBehaviour
 
 
     // =====================================================
-    // CONFIGURACIÓN
+    // CONFIGURACIÃ“N
     // =====================================================
 
-    [Header("Configuración")]
+    [Header("ConfiguraciÃ³n")]
 
-    [Tooltip("Prefijo utilizado para nombrar automáticamente los Bots.")]
+    [Tooltip("Prefijo utilizado para nombrar automÃ¡ticamente los Bots.")]
     public string prefijoNombre =
         "BOT-";
 
 
     [Tooltip(
-        "Número de dígitos. Con 2 tendremos BOT-01, BOT-02..."
+        "NÃºmero de dÃ­gitos. Con 2 tendremos BOT-01, BOT-02..."
     )]
     [Range(1, 4)]
     public int cantidadDigitos =

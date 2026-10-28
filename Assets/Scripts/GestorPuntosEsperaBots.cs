@@ -17,7 +17,7 @@ public class GestorPuntosEsperaBots : MonoBehaviour
     [Header("Gizmos")]
     public float radioGizmo = 0.45f;
 
-    [Tooltip("Distancia m·xima para considerar que una plaza est· sobre NavMesh.")]
+    [Tooltip("Distancia m√°xima para considerar que una plaza est√° sobre NavMesh.")]
     public float distanciaComprobacionNavMesh = 0.75f;
 
     public bool mostrarNombres = true;
@@ -105,7 +105,7 @@ public class GestorPuntosEsperaBots : MonoBehaviour
 
 
             // La plaza tiene que estar realmente
-            // cerca de un NavMesh v·lido.
+            // cerca de un NavMesh v√°lido.
             if (!NavMesh.SamplePosition(
                     plaza.position,
                     out NavMeshHit hit,
@@ -116,8 +116,8 @@ public class GestorPuntosEsperaBots : MonoBehaviour
             }
 
 
-            // Asignamos la plaza libre m·s cercana
-            // a la posiciÛn actual del Bot.
+            // Asignamos la plaza libre m√°s cercana
+            // a la posici√≥n actual del Bot.
             float distancia =
                 (bot.transform.position -
                  hit.position).sqrMagnitude;
@@ -154,13 +154,13 @@ public class GestorPuntosEsperaBots : MonoBehaviour
 
 
         // =================================================
-        // RESERVA AT”MICA
+        // RESERVA AT√ìMICA
         // =================================================
         //
         // Primero marcamos la plaza como ocupada.
-        // DespuÈs la asociamos al Bot.
+        // Despu√©s la asociamos al Bot.
         //
-        // El siguiente Bot ya no podr· cogerla.
+        // El siguiente Bot ya no podr√° cogerla.
         // =================================================
 
         plazasReservadas.Add(
@@ -312,7 +312,7 @@ public class GestorPuntosEsperaBots : MonoBehaviour
 
 
         // Seguridad adicional:
-        // reconstruimos el HashSet con las reservas v·lidas.
+        // reconstruimos el HashSet con las reservas v√°lidas.
         plazasReservadas.Clear();
 
 
@@ -375,7 +375,7 @@ public class GestorPuntosEsperaBots : MonoBehaviour
             }
             else
             {
-                // Verde = libre y v·lida.
+                // Verde = libre y v√°lida.
                 Gizmos.color =
                     Color.green;
             }

@@ -9,7 +9,7 @@ public class PurezaAleatoriaPrueba : MonoBehaviour
 
 
     [Header("Purezas posibles")]
-    [Tooltip("Cada piedra elegirá aleatoriamente uno de estos porcentajes.")]
+    [Tooltip("Cada piedra elegirÃ¡ aleatoriamente uno de estos porcentajes.")]
     public float[] purezasPosibles =
     {
         10f,
@@ -24,7 +24,7 @@ public class PurezaAleatoriaPrueba : MonoBehaviour
     [Tooltip("Cantidad de pulido aplicada en cada paso.")]
     public float pasoPulido = 0.005f;
 
-    [Tooltip("Máximo de pasos de seguridad.")]
+    [Tooltip("MÃ¡ximo de pasos de seguridad.")]
     public int maxPasos = 1000;
 
 
@@ -106,7 +106,7 @@ public class PurezaAleatoriaPrueba : MonoBehaviour
             pasos++;
 
 
-            // Dejamos respirar al frame cada cierto número
+            // Dejamos respirar al frame cada cierto nÃºmero
             // de iteraciones para no meter todo de golpe.
             if (pasos % 20 == 0)
             {

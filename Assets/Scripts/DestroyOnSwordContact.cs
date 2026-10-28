@@ -4,10 +4,10 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class DestroyOnSwordContact : MonoBehaviour
 {
-    [Header("Destrucción del objeto original")]
+    [Header("DestrucciÃ³n del objeto original")]
     [SerializeField] private float retrasoDestruccion = 0f;
 
-    [Header("Sonido de destrucción")]
+    [Header("Sonido de destrucciÃ³n")]
     [SerializeField] private AudioClip sonidoDestruccion;
 
     [Range(0f, 1f)]
@@ -20,14 +20,14 @@ public class DestroyOnSwordContact : MonoBehaviour
 
     [SerializeField] private float distanciaMaximaSonido = 20f;
 
-    [Header("Fragmentos de la explosión")]
-    [Tooltip("Añade aquí los prefabs que pueden salir disparados.")]
+    [Header("Fragmentos de la explosiÃ³n")]
+    [Tooltip("AÃ±ade aquÃ­ los prefabs que pueden salir disparados.")]
     [SerializeField]
     private List<GameObject> objetosLanzables = new List<GameObject>();
 
     [SerializeField] private int numeroDeFragmentos = 8;
 
-    [Header("Fuerza de la explosión")]
+    [Header("Fuerza de la explosiÃ³n")]
     [SerializeField] private float fuerzaMinima = 5f;
 
     [SerializeField] private float fuerzaMaxima = 15f;
@@ -36,12 +36,12 @@ public class DestroyOnSwordContact : MonoBehaviour
 
     [SerializeField] private float distanciaInicialAleatoria = 0.1f;
 
-    [Header("Rotación de los fragmentos")]
+    [Header("RotaciÃ³n de los fragmentos")]
     [SerializeField] private float torqueMinimo = 2f;
 
     [SerializeField] private float torqueMaximo = 8f;
 
-    [Header("Desaparición de fragmentos")]
+    [Header("DesapariciÃ³n de fragmentos")]
     [SerializeField] private float tiempoHastaDesaparecer = 2f;
 
     private bool yaFueGolpeado;
@@ -54,7 +54,7 @@ public class DestroyOnSwordContact : MonoBehaviour
             return;
         }
 
-        // Buscamos si lo que atravesó el trigger es la espada / avión
+        // Buscamos si lo que atravesÃ³ el trigger es la espada / aviÃ³n
         PaperPlaneController avion = other.GetComponentInParent<PaperPlaneController>();
 
         if (avion == null)
@@ -64,8 +64,8 @@ public class DestroyOnSwordContact : MonoBehaviour
 
         yaFueGolpeado = true;
 
-        // Como los triggers no tienen Array de contactos, calculamos el punto más cercano 
-        // de este collider al centro del avión para aproximar el lugar del impacto
+        // Como los triggers no tienen Array de contactos, calculamos el punto mÃ¡s cercano 
+        // de este collider al centro del aviÃ³n para aproximar el lugar del impacto
         Vector3 puntoDeImpacto = other.ClosestPoint(transform.position);
 
         CrearExplosionDeFragmentos(puntoDeImpacto);
@@ -171,7 +171,7 @@ public class DestroyOnSwordContact : MonoBehaviour
 
         rbFragmento.AddTorque(torqueAleatorio * intensidadTorque, ForceMode.Impulse);
 
-        // Si existe tu script FragmentoDesaparece se lo añade para destruirlo después
+        // Si existe tu script FragmentoDesaparece se lo aÃ±ade para destruirlo despuÃ©s
         FragmentoDesaparece fragmentoDesaparece = fragmento.GetComponent<FragmentoDesaparece>();
 
         if (fragmentoDesaparece == null)
@@ -179,8 +179,8 @@ public class DestroyOnSwordContact : MonoBehaviour
             fragmentoDesaparece = fragmento.AddComponent<FragmentoDesaparece>();
         }
 
-        // Comentado para evitar errores si tu script no tiene este método público exacto.
-        // Asegúrate de que el método IniciarDesaparicion exista en tu FragmentoDesaparece.
+        // Comentado para evitar errores si tu script no tiene este mÃ©todo pÃºblico exacto.
+        // AsegÃºrate de que el mÃ©todo IniciarDesaparicion exista en tu FragmentoDesaparece.
         fragmentoDesaparece.IniciarDesaparicion(tiempoHastaDesaparecer);
     }
 }

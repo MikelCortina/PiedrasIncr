@@ -3,13 +3,13 @@ using UnityEngine;
 public class BucleNeonParticulas : MonoBehaviour
 {
     [Header("Tiempos del Bucle")]
-    [Tooltip("Tiempo en segundos que tarda en subir desde el color inicial al m·ximo")]
+    [Tooltip("Tiempo en segundos que tarda en subir desde el color inicial al m√°ximo")]
     public float tiempoCarga = 3f;
     [Tooltip("Tiempo en segundos que tarda en volver suavemente al estado inicial")]
     public float tiempoDescarga = 1.5f;
 
     [Header("Neones a Controlar")]
-    [Tooltip("Arrastra aquÌ los objetos con el script ControladorNeon")]
+    [Tooltip("Arrastra aqu√≠ los objetos con el script ControladorNeon")]
     public ControladorNeon[] neones;
 
     [Header("1. Estado Inicial (Enfriado)")]
@@ -17,13 +17,13 @@ public class BucleNeonParticulas : MonoBehaviour
     public float intensidadInicio = 1f;
     public float parpadeoInicio = 2f;
 
-    [Header("2. Estado Final (Punto M·ximo)")]
+    [Header("2. Estado Final (Punto M√°ximo)")]
     [ColorUsage(true, true)] public Color colorFin = Color.red;
     public float intensidadFin = 5f;
     public float parpadeoFin = 25f;
 
     [Header("Efectos")]
-    [Tooltip("Lista de sistemas de partÌculas que saltar·n justo cuando el bucle llegue al lÌmite")]
+    [Tooltip("Lista de sistemas de part√≠culas que saltar√°n justo cuando el bucle llegue al l√≠mite")]
     public ParticleSystem[] particulasExplosion;
 
     private float progresoActual = 0f;
@@ -31,7 +31,7 @@ public class BucleNeonParticulas : MonoBehaviour
 
     void Update()
     {
-        // Evitamos errores de divisiÛn por cero si dejas los tiempos a 0 en el Inspector
+        // Evitamos errores de divisi√≥n por cero si dejas los tiempos a 0 en el Inspector
         if (tiempoCarga <= 0.01f) tiempoCarga = 0.01f;
         if (tiempoDescarga <= 0.01f) tiempoDescarga = 0.01f;
 
@@ -40,13 +40,13 @@ public class BucleNeonParticulas : MonoBehaviour
         {
             progresoActual += Time.deltaTime / tiempoCarga;
 
-            // Comprobamos si ha llegado al m·ximo (100%)
+            // Comprobamos si ha llegado al m√°ximo (100%)
             if (progresoActual >= 1f)
             {
                 progresoActual = 1f;
-                subiendo = false; // Cambiamos la direcciÛn para que empiece a bajar
+                subiendo = false; // Cambiamos la direcci√≥n para que empiece a bajar
 
-                // Disparamos TODAS las partÌculas de la lista exactamente al tocar el lÌmite
+                // Disparamos TODAS las part√≠culas de la lista exactamente al tocar el l√≠mite
                 if (particulasExplosion != null && particulasExplosion.Length > 0)
                 {
                     foreach (ParticleSystem ps in particulasExplosion)
@@ -65,7 +65,7 @@ public class BucleNeonParticulas : MonoBehaviour
         {
             progresoActual -= Time.deltaTime / tiempoDescarga;
 
-            // Comprobamos si ha llegado al mÌnimo (0%)
+            // Comprobamos si ha llegado al m√≠nimo (0%)
             if (progresoActual <= 0f)
             {
                 progresoActual = 0f;

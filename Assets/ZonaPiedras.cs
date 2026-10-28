@@ -1,26 +1,26 @@
 using UnityEngine;
 
 /// <summary>
-/// Área física donde las arañas almacenan piedras sin consumirlas.
+/// Ãrea fÃ­sica donde las araÃ±as almacenan piedras sin consumirlas.
 /// Coloca el objeto en el suelo; el BoxCollider debe ser Is Trigger.
-/// PuntoLlegadaBot debe estar situado sobre NavMesh, fuera del montón.
+/// PuntoLlegadaBot debe estar situado sobre NavMesh, fuera del montÃ³n.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(BoxCollider))]
 public class ZonaPiedras : MonoBehaviour
 {
-    [Header("Llegada de las arañas")]
-    [Tooltip("Punto accesible sobre NavMesh. Si se deja vacío, se usa el centro de esta zona.")]
+    [Header("Llegada de las araÃ±as")]
+    [Tooltip("Punto accesible sobre NavMesh. Si se deja vacÃ­o, se usa el centro de esta zona.")]
     public Transform puntoLlegadaBot;
 
-    [Header("Depósito de piedras")]
+    [Header("DepÃ³sito de piedras")]
     [Tooltip("BoxCollider que define el espacio horizontal de almacenamiento; marcar Is Trigger.")]
     public BoxCollider volumen;
 
     [Tooltip("Margen desde los bordes del BoxCollider para que las piedras no caigan fuera.")]
     [Min(0f)] public float margenBordes = 0.25f;
 
-    [Tooltip("Altura sobre la cara superior del volumen a la que termina el lanzamiento, antes de caer con física.")]
+    [Tooltip("Altura sobre la cara superior del volumen a la que termina el lanzamiento, antes de caer con fÃ­sica.")]
     [Min(0f)] public float alturaSuelta = 0.35f;
 
     public Transform PuntoLlegada => puntoLlegadaBot != null ? puntoLlegadaBot : transform;
@@ -37,7 +37,7 @@ public class ZonaPiedras : MonoBehaviour
         if (volumen == null) volumen = GetComponent<BoxCollider>();
         if (volumen == null) return transform.position + Vector3.up * alturaSuelta;
 
-        // Punto aleatorio dentro de la caja, respetando su rotación/escala.
+        // Punto aleatorio dentro de la caja, respetando su rotaciÃ³n/escala.
         float halfX = Mathf.Max(0f, volumen.size.x * 0.5f - margenBordes);
         float halfZ = Mathf.Max(0f, volumen.size.z * 0.5f - margenBordes);
         Vector3 local = volumen.center + new Vector3(

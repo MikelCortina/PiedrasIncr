@@ -66,8 +66,8 @@ public static class PlanificadorConexionesArana
         int n = nodos.Count;
         if (n <= 2) return false;
 
-        // Aristas de navegación normal (solo si el NavMesh las conecta).
-        // Las demás aristas son las conexiones físicas de escalada.
+        // Aristas de navegaciÃ³n normal (solo si el NavMesh las conecta).
+        // Las demÃ¡s aristas son las conexiones fÃ­sicas de escalada.
         float[,] coste = new float[n, n];
         bool[,] enlaceEscalada = new bool[n, n];
         for (int a = 0; a < n; a++)
@@ -101,8 +101,8 @@ public static class PlanificadorConexionesArana
         {
             ConexionEscalada conexion = nodos[a].conexion;
             float longitud = Vector3.Distance(nodos[a].posicion, nodos[a + 1].posicion);
-            // Una pequeña penalización evita que elija escalar si existe
-            // una ruta de suelo prácticamente equivalente.
+            // Una pequeÃ±a penalizaciÃ³n evita que elija escalar si existe
+            // una ruta de suelo prÃ¡cticamente equivalente.
             float costeCruce = longitud + 0.75f;
             coste[a, a + 1] = costeCruce;
             enlaceEscalada[a, a + 1] = true;
@@ -113,7 +113,7 @@ public static class PlanificadorConexionesArana
             }
         }
 
-        // Dijkstra: normalmente habrá pocos puntos de escalada por mapa.
+        // Dijkstra: normalmente habrÃ¡ pocos puntos de escalada por mapa.
         float[] distanciaMinima = new float[n];
         int[] previo = new int[n];
         bool[] visitado = new bool[n];

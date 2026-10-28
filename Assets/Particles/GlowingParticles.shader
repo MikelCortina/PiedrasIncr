@@ -25,7 +25,7 @@ Shader "Custom/GlowingParticles"
             "IgnoreProjector" = "True"
         }
 
-        // Configuraci髇 t韕ica para part韈ulas (transparentes, sin escribir en el ZBuffer, se ven por ambos lados)
+        // Configuraci贸n t铆pica para part铆culas (transparentes, sin escribir en el ZBuffer, se ven por ambos lados)
         Blend [_SrcBlend] [_DstBlend]
         ZWrite Off
         Cull Off 
@@ -44,7 +44,7 @@ Shader "Custom/GlowingParticles"
             {
                 float4 positionOS : POSITION;
                 float2 uv         : TEXCOORD0;
-                float4 color      : COLOR; // Coge el color del m骴ulo "Color over Lifetime" del Particle System
+                float4 color      : COLOR; // Coge el color del m贸dulo "Color over Lifetime" del Particle System
             };
 
             struct Varyings
@@ -66,25 +66,25 @@ Shader "Custom/GlowingParticles"
             Varyings vert(Attributes input)
             {
                 Varyings output;
-                // Transforma la posici髇 del modelo a la pantalla
+                // Transforma la posici贸n del modelo a la pantalla
                 output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 
-                // Pasa el color de los v閞tices (el que configuras en el sistema de part韈ulas)
+                // Pasa el color de los v茅rtices (el que configuras en el sistema de part铆culas)
                 output.color = input.color;
                 return output;
             }
 
             half4 frag(Varyings input) : SV_Target
             {
-                // 1. Leemos la textura de la part韈ula
+                // 1. Leemos la textura de la part铆cula
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
                 
                 // 2. Mezclamos la Textura * El color del Particle System * Nuestro Color HDR del material
                 half4 finalColor = texColor * input.color * _BaseColor;
                 
                 // 3. Multiplicamos SOLO los canales RGB (color) por la intensidad.
-                // El canal Alpha (transparencia) lo dejamos intacto para que no se vuelva un cuadrado s髄ido.
+                // El canal Alpha (transparencia) lo dejamos intacto para que no se vuelva un cuadrado s贸lido.
                 finalColor.rgb *= _Intensity; 
                 
                 return finalColor;

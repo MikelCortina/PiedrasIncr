@@ -8,7 +8,7 @@ using UnityEngine;
 /// Construye y mejora una DianaBloop disparando monedas a una zona de pago.
 /// Compatible con el pago por Cartera desde un boton de tienda.
 /// La moneda disparada ya se cobro al salir del arma: no se cobra otra vez.
-/// Incluye todos los elementos visuales de mejora, LEDs, render textures y Sway FÌsico.
+/// Incluye todos los elementos visuales de mejora, LEDs, render textures y Sway F√≠sico.
 /// </summary>
 public class ConstruccionDianaBloopMonedas : MonoBehaviour
 {
@@ -18,15 +18,15 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         [Min(0.05f)] public float tiempoCooldown = 2.5f;
         [Range(1, 3)] public int piedrasPorActivacion = 1;
 
-        [Header("EvoluciÛn Visual (Mejora)")]
-        [Tooltip("Piezas que se encoger·n y desaparecer·n al alcanzar este nivel.")]
+        [Header("Evoluci√≥n Visual (Mejora)")]
+        [Tooltip("Piezas que se encoger√°n y desaparecer√°n al alcanzar este nivel.")]
         public GameObject[] piezasViejas;
-        [Tooltip("Piezas que brotar·n y aparecer·n al alcanzar este nivel.")]
+        [Tooltip("Piezas que brotar√°n y aparecer√°n al alcanzar este nivel.")]
         public GameObject[] piezasNuevas;
     }
 
-    [Header("Referencias de la construcciÛn base")]
-    [Tooltip("Lista de piezas que forman las ruinas. Se encoger·n en cascada al completarse la construcciÛn.")]
+    [Header("Referencias de la construcci√≥n base")]
+    [Tooltip("Lista de piezas que forman las ruinas. Se encoger√°n en cascada al completarse la construcci√≥n.")]
     public GameObject[] partesRuinas;
 
     [Tooltip("Lista de piezas que forman la diana inicial (Nivel 1).")]
@@ -57,9 +57,9 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     [Header("Pantalla LED Antena (Render Texture)")]
     [Tooltip("El texto TextMeshPro que muestra el contador.")]
     public TMP_Text textoPantallaAntena;
-    [Tooltip("Velocidad a la que bajan los n˙meros visualmente.")]
+    [Tooltip("Velocidad a la que bajan los n√∫meros visualmente.")]
     public float velocidadNumerosPantalla = 15f;
-    [Tooltip("Formato del texto. Pon '0' para n˙meros normales, '00' si quieres que el 5 se vea como 05.")]
+    [Tooltip("Formato del texto. Pon '0' para n√∫meros normales, '00' si quieres que el 5 se vea como 05.")]
     public string formatoNumeros = "0";
 
     private float valorMostradoEnPantalla = 0f;
@@ -75,7 +75,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     [SerializeField, Range(1, 3)] private int nivelActual = 1;
     [SerializeField, Min(0)] private int monedasAportadas = 0;
 
-    [Header("EstadÌsticas por nivel")]
+    [Header("Estad√≠sticas por nivel")]
     public EstadisticasNivel nivel1 = new EstadisticasNivel
     {
         tiempoCooldown = 2.5f,
@@ -107,33 +107,33 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     public AudioClip sonidoMejora;
 
     [Header("Game Feel: Bloop de Antena")]
-    [Tooltip("Cu·nto crece la antena al recibir una moneda (1.15 = 15% m·s grande).")]
+    [Tooltip("Cu√°nto crece la antena al recibir una moneda (1.15 = 15% m√°s grande).")]
     public float multiplicadorBloopAntena = 1.15f;
-    [Tooltip("Velocidad a la que la antena recupera su tamaÒo original tras el bloop.")]
+    [Tooltip("Velocidad a la que la antena recupera su tama√±o original tras el bloop.")]
     public float velocidadBloopAntena = 15f;
 
     [Header("Game Feel: Bloop de Estructura")]
-    [Tooltip("Cu·nto crece el cuerpo al recibir una moneda. Usa valores bajos para simular peso (ej: 1.05).")]
+    [Tooltip("Cu√°nto crece el cuerpo al recibir una moneda. Usa valores bajos para simular peso (ej: 1.05).")]
     public float multiplicadorBloopEstructura = 1.05f;
-    [Tooltip("Velocidad a la que el cuerpo recupera su tamaÒo original.")]
+    [Tooltip("Velocidad a la que el cuerpo recupera su tama√±o original.")]
     public float velocidadBloopEstructura = 12f;
 
-    [Header("Game Feel: Sway FÌsico de Antena")]
-    [Tooltip("Fuerza del golpe. Se sumar· como velocidad pura, permitiendo m˙ltiples impactos solapados.")]
+    [Header("Game Feel: Sway F√≠sico de Antena")]
+    [Tooltip("Fuerza del golpe. Se sumar√° como velocidad pura, permitiendo m√∫ltiples impactos solapados.")]
     public float fuerzaImpactoMoneda = 1500f;
     [Tooltip("Rigidez del muelle. Valores altos = intenta volver al centro con mucha fuerza.")]
     public float rigidezAntena = 250f;
-    [Tooltip("FricciÛn. Valores bajos = la antena se quedar· rebotando m·s tiempo (efecto muelle loco).")]
+    [Tooltip("Fricci√≥n. Valores bajos = la antena se quedar√° rebotando m√°s tiempo (efecto muelle loco).")]
     public float amortiguacionAntena = 15f;
 
-    // VARIABLES DEL SISTEMA FÕSICO DEL MUELLE
+    // VARIABLES DEL SISTEMA F√çSICO DEL MUELLE
     private Vector2 velocidadSwayAntena;
     private Vector2 swayActualAntena;
 
-    [Header("AnimaciÛn de ConstrucciÛn y Mejora")]
+    [Header("Animaci√≥n de Construcci√≥n y Mejora")]
     public float velocidadDesaparicion = 10f;
     public float velocidadAparicion = 15f;
-    [Tooltip("Tiempo (0.1 a 1) para solapar las animaciones. 0.1 = R·faga inmediata. 1.0 = Escalonado.")]
+    [Tooltip("Tiempo (0.1 a 1) para solapar las animaciones. 0.1 = R√°faga inmediata. 1.0 = Escalonado.")]
     [Range(0.1f, 1f)] public float porcentajeCascada = 0.5f;
 
     [Header("Rebote del Arma al Construir")]
@@ -163,7 +163,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     private readonly HashSet<EntityId> proyectilesDelFrame = new HashSet<EntityId>();
     private int frameRegistro = -1;
 
-    // Diccionario de escalas: Guarda el tamaÒo de CUALQUIER pieza autom·ticamente
+    // Diccionario de escalas: Guarda el tama√±o de CUALQUIER pieza autom√°ticamente
     private Dictionary<GameObject, Vector3> escalasOriginales = new Dictionary<GameObject, Vector3>();
 
     private Coroutine corrutinaBloopAntena;
@@ -313,7 +313,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         }
 
         // ==========================================
-        // 2. FÕSICAS ADITIVAS DE MUELLE (SWAY)
+        // 2. F√çSICAS ADITIVAS DE MUELLE (SWAY)
         // ==========================================
         if (antenaVisual != null && antenaVisual.gameObject.activeSelf && !enTransicion)
         {
@@ -363,7 +363,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
             if (corrutinaBloopEstructura != null) StopCoroutine(corrutinaBloopEstructura);
             corrutinaBloopEstructura = StartCoroutine(HacerBloopEstructura());
 
-            // 3. IMPACTO FÕSICO Sway
+            // 3. IMPACTO F√çSICO Sway
             AplicarGolpeFisicoAntena();
         }
 
@@ -445,7 +445,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
                 velocidadSwayAntena = Vector2.zero;
             }
 
-            // Si est· construida, activamos todas las partes base del arma
+            // Si est√° construida, activamos todas las partes base del arma
             foreach (var p in partesArmaDesbloqueada)
             {
                 if (p)
@@ -518,7 +518,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         if (textoProgreso != null)
         {
             if (!construida) textoProgreso.text = "CONSTRUIR DIANA BLOOP\n" + monedasAportadas + " / " + PrecioActual + " MONEDAS";
-            else if (NivelMaximo) textoProgreso.text = "DIANA BLOOP\nNIVEL M¡XIMO (3)";
+            else if (NivelMaximo) textoProgreso.text = "DIANA BLOOP\nNIVEL M√ÅXIMO (3)";
             else textoProgreso.text = "DIANA BLOOP NIVEL " + nivelActual + "\nMEJORA: " + monedasAportadas + " / " + PrecioActual + " MONEDAS";
         }
         ProgresoActualizado?.Invoke();
@@ -537,7 +537,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     }
 
     // =========================================================================
-    // CORRUTINAS DE ANIMACI”N (GAME FEEL)
+    // CORRUTINAS DE ANIMACI√ìN (GAME FEEL)
     // =========================================================================
 
     private IEnumerator HacerBloopAntena()
@@ -619,7 +619,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         if (pieza != null)
         {
             float umbralCero = escalaOriginal.magnitude * 0.05f + 0.01f;
-            // AÒado un contador de seguridad para forzar la salida si se atasca
+            // A√±ado un contador de seguridad para forzar la salida si se atasca
             float tiempoSeguridad = 0f;
             while (pieza != null && pieza.transform.localScale.magnitude > umbralCero && tiempoSeguridad < 2f)
             {
@@ -726,7 +726,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
                 timeoutTotal += Time.deltaTime;
                 yield return null;
             }
-            // Forzamos el reset por si alguna corrutina fallÛ
+            // Forzamos el reset por si alguna corrutina fall√≥
             piezasEnAnimacion = 0;
         }
 
@@ -797,7 +797,7 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
 
         enTransicion = false;
 
-        // Cierre de seguridad: si algo fallÛ, forzamos que el aspecto sea el correcto.
+        // Cierre de seguridad: si algo fall√≥, forzamos que el aspecto sea el correcto.
         SincronizarAspecto(false);
     }
 

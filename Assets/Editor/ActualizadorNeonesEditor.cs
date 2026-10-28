@@ -3,7 +3,7 @@ using UnityEditor;
 
 public class ActualizadorNeonesEditor
 {
-    // Esto creará un nuevo botón en la barra superior de Unity
+    // Esto crearÃ¡ un nuevo botÃ³n en la barra superior de Unity
     [MenuItem("Herramientas/Actualizar Todos los Neones a Valores por Defecto")]
     public static void ActualizarTodosLosNeones()
     {
@@ -47,17 +47,17 @@ public class ActualizadorNeonesEditor
         // Guardamos los assets modificados en el disco
         AssetDatabase.SaveAssets();
 
-        Debug.Log($"<b>¡Actualización completada!</b> Se sobrescribieron los valores de {contadorEscena} neones en la Escena y {contadorPrefabs} en los Prefabs.");
+        Debug.Log($"<b>Â¡ActualizaciÃ³n completada!</b> Se sobrescribieron los valores de {contadorEscena} neones en la Escena y {contadorPrefabs} en los Prefabs.");
     }
 
     private static void AplicarValores(ControladorNeon neon)
     {
-        // Forzamos la creación del nuevo array con los valores exactos que querías
+        // Forzamos la creaciÃ³n del nuevo array con los valores exactos que querÃ­as
         neon.ajustesPorSlot = new AjustesNeonSlot[]
         {
             new AjustesNeonSlot()
             {
-                nombre = "Pieza Neón",
+                nombre = "Pieza NeÃ³n",
                 indiceMaterial = 0,
                 colorNeon = new Color(236.19f/255f, 226.255f/255f, 1f), // Tu color azulado exacto
                 intensidad = 1.5f,
@@ -67,7 +67,7 @@ public class ActualizadorNeonesEditor
             }
         };
 
-        // Le decimos a Unity que este objeto específico ha cambiado
+        // Le decimos a Unity que este objeto especÃ­fico ha cambiado
         EditorUtility.SetDirty(neon);
     }
 }

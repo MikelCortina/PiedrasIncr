@@ -24,8 +24,8 @@ public class RegistroPiedraGlobal : MonoBehaviour
         // Seguridad extra.
         //
         // Cuando empieza la escena, todos los Awake
-        // ya deberían haberse ejecutado, así que
-        // GestorPiedras ya debería existir.
+        // ya deberÃ­an haberse ejecutado, asÃ­ que
+        // GestorPiedras ya deberÃ­a existir.
         IntentarRegistrar();
     }
 

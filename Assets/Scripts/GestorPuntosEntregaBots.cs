@@ -4,11 +4,11 @@ using UnityEngine;
 public class GestorPuntosEntregaBots : MonoBehaviour
 {
     [Header("Puntos alrededor del agujero")]
-    [Tooltip("AÒade aquÌ los puntos donde pueden colocarse los Bots para entregar piedras.")]
+    [Tooltip("A√±ade aqu√≠ los puntos donde pueden colocarse los Bots para entregar piedras.")]
     public List<Transform> puntosEntrega = new List<Transform>();
 
 
-    // Cada Bot puede tener reservado un ˙nico punto.
+    // Cada Bot puede tener reservado un √∫nico punto.
     private readonly Dictionary<BotRecolector, Transform> reservas =
         new Dictionary<BotRecolector, Transform>();
 
@@ -95,7 +95,7 @@ public class GestorPuntosEntregaBots : MonoBehaviour
 
 
     // =====================================================
-    // COMPROBAR SI EST¡ OCUPADO
+    // COMPROBAR SI EST√Å OCUPADO
     // =====================================================
 
     private bool EstaPuntoReservado(Transform punto)

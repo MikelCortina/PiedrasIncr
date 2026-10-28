@@ -4,10 +4,10 @@ using UnityEngine.AI;
 public class DetectorEscalada : MonoBehaviour
 {
     // =====================================================
-    // DETECCIÓN
+    // DETECCIÃ“N
     // =====================================================
 
-    [Header("Detección de pared")]
+    [Header("DetecciÃ³n de pared")]
 
     public LayerMask capaEscalable;
 
@@ -24,7 +24,7 @@ public class DetectorEscalada : MonoBehaviour
 
     [Tooltip(
         "Distancia REAL desde el raycast hasta la pared " +
-        "a la que consideramos que el bot ya está preparado."
+        "a la que consideramos que el bot ya estÃ¡ preparado."
     )]
     public float distanciaPararAntePared = 0.60f;
 
@@ -43,7 +43,7 @@ public class DetectorEscalada : MonoBehaviour
 
 
     // =====================================================
-    // INFORMACIÓN
+    // INFORMACIÃ“N
     // =====================================================
 
     public bool HayParedEscalable
@@ -153,7 +153,7 @@ public class DetectorEscalada : MonoBehaviour
             //
             // Vector3.Distance(transform.position, hit.point)
             //
-            // Eso incluía también la diferencia vertical.
+            // Eso incluÃ­a tambiÃ©n la diferencia vertical.
             //
             // Ahora usamos la distancia REAL del raycast.
             // =============================================
@@ -310,7 +310,7 @@ public class DetectorEscalada : MonoBehaviour
 
 
         // =============================================
-        // MARCAR DISTANCIA DE ACTIVACIÓN
+        // MARCAR DISTANCIA DE ACTIVACIÃ“N
         // =============================================
 
         Gizmos.color =

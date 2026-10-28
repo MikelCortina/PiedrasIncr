@@ -34,7 +34,7 @@ public class SistemaConstruccion : MonoBehaviour
         [Header("Ajustes de Offset")]
         [Tooltip("Desplazamiento extra (Ej: subirlo un poco en Y)")]
         public Vector3 offsetPosicion;
-        [Tooltip("RotaciÛn extra (Ej: girarlo 90 grados por defecto)")]
+        [Tooltip("Rotaci√≥n extra (Ej: girarlo 90 grados por defecto)")]
         public Vector3 offsetRotacion;
     }
 
@@ -42,12 +42,12 @@ public class SistemaConstruccion : MonoBehaviour
     public GameObject modeloMartillo;
 
     [Header("Tienda / inventario")]
-    [Tooltip("AÒade InventarioEdificios en este mismo GameObject, o arr·stralo aquÌ.")]
+    [Tooltip("A√±ade InventarioEdificios en este mismo GameObject, o arr√°stralo aqu√≠.")]
     public InventarioEdificios inventarioEdificios;
     private bool tiendaEdificiosAbierta = false;
 
 
-    [Header("Cat·logo de Edificios")]
+    [Header("Cat√°logo de Edificios")]
     public InfoEdificio[] edificios;
     private int indiceEdificioActual = 0;
     private int indiceVarianteActual = 0;
@@ -60,7 +60,7 @@ public class SistemaConstruccion : MonoBehaviour
     public LayerMask capaConectores;
     public LayerMask capaEdificios;
 
-    [Header("Estilo de Contornos (Holograma y DestrucciÛn)")]
+    [Header("Estilo de Contornos (Holograma y Destrucci√≥n)")]
     public Color colorOutlineValido = Color.green;
     public float grosorOutlineValido = 2f;
     [Space(5)]
@@ -70,15 +70,15 @@ public class SistemaConstruccion : MonoBehaviour
     public Color colorOutlineDestruccion = Color.red;
     public float grosorOutlineDestruccion = 4f;
 
-    [Header("Ajustes de ConstrucciÛn")]
+    [Header("Ajustes de Construcci√≥n")]
     public KeyCode teclaConstruccion = KeyCode.B;
     public KeyCode teclaCambiarTipo = KeyCode.Tab;
     public float velocidadRotacion = 10f;
     public float distanciaMaximaConstruccion = 15f;
     public float tiempoEsperaConstruccion = 0.5f;
 
-    [Header("Ajustes de Curvatura Din·mica (Eje X)")]
-    [Tooltip("MantÈn esta tecla para acceder a la geometrÌa y curvar la rampa lateralmente (Puedes usar rueda del ratÛn)")]
+    [Header("Ajustes de Curvatura Din√°mica (Eje X)")]
+    [Tooltip("Mant√©n esta tecla para acceder a la geometr√≠a y curvar la rampa lateralmente (Puedes usar rueda del rat√≥n)")]
     public KeyCode teclaCurvar = KeyCode.Space;
     public float velocidadCurvatura = 3f;
     public float curvaturaMaxima = 3f;
@@ -114,7 +114,7 @@ public class SistemaConstruccion : MonoBehaviour
 
     void Update()
     {
-        // La tienda tiene prioridad: no cambiar piezas, rotar ni construir detr·s de la UI.
+        // La tienda tiene prioridad: no cambiar piezas, rotar ni construir detr√°s de la UI.
         if (tiendaEdificiosAbierta) return;
 
         if (modoConstruccion && Input.GetKeyDown(teclaCambiarTipo))
@@ -154,20 +154,20 @@ public class SistemaConstruccion : MonoBehaviour
             else if (hologramaActual != null)
             {
                 // ==========================================
-                // L”GICA DE CURVATURA DIN¡MICA (SOLO RAMPAS)
+                // L√ìGICA DE CURVATURA DIN√ÅMICA (SOLO RAMPAS)
                 // ==========================================
                 if (edificios[indiceEdificioActual].tipo == TipoEdificio.Rampa)
                 {
                     ManejarCurvaturaRampa();
                 }
 
-                // 1. Calculamos la posiciÛn y rotaciÛn base (Im·n o Suelo)
+                // 1. Calculamos la posici√≥n y rotaci√≥n base (Im√°n o Suelo)
                 ManejarPosicionamientoYMagnetismo();
 
-                // 2. Calculamos la rotaciÛn manual (Clic derecho)
+                // 2. Calculamos la rotaci√≥n manual (Clic derecho)
                 ManejarRotacionLibre();
 
-                // 3. APLICAMOS EL OFFSET (PosiciÛn y RotaciÛn extra desde el Inspector)
+                // 3. APLICAMOS EL OFFSET (Posici√≥n y Rotaci√≥n extra desde el Inspector)
                 if (hologramaActual.activeSelf)
                 {
                     InfoEdificio actual = edificios[indiceEdificioActual];
@@ -203,12 +203,12 @@ public class SistemaConstruccion : MonoBehaviour
         if (modoConstruccion)
         {
             if (cooldownHolograma <= 0f) CrearHolograma();
-            Debug.Log("Modo construcciÛn ACTIVADO");
+            Debug.Log("Modo construcci√≥n ACTIVADO");
         }
         else
         {
             DestruirHolograma();
-            Debug.Log("Modo construcciÛn DESACTIVADO");
+            Debug.Log("Modo construcci√≥n DESACTIVADO");
         }
     }
 
@@ -240,7 +240,7 @@ public class SistemaConstruccion : MonoBehaviour
         posicionSueloBloqueada = null;
         timerBloqueoSlot = 0f;
 
-        // Si es una rampa, preparamos las cachÈs de los vÈrtices para curvarla
+        // Si es una rampa, preparamos las cach√©s de los v√©rtices para curvarla
         if (edificioActual.tipo == TipoEdificio.Rampa)
         {
             curvaturaActual = 0f;
@@ -264,7 +264,7 @@ public class SistemaConstruccion : MonoBehaviour
     }
 
     // ========================================================
-    // DEFORMADOR MATEM¡TICO DE RAMPAS (EJE X)
+    // DEFORMADOR MATEM√ÅTICO DE RAMPAS (EJE X)
     // ========================================================
     void InicializarCurvaturaHolograma()
     {
@@ -366,7 +366,7 @@ public class SistemaConstruccion : MonoBehaviour
                 Vector3 vRoot = rootTransform.InverseTransformPoint(vMundo);
 
                 // CAMBIO CLAVE: Cambiado de vRoot.z - hologramaMinZ (Entrada) a hologramaMaxZ - vRoot.z (Salida)
-                // de modo que en el extremo de Salida (MaxZ) "t" sea 0 (fijo) y en la Entrada (MinZ) "t" sea 1 (m·ximo movimiento).
+                // de modo que en el extremo de Salida (MaxZ) "t" sea 0 (fijo) y en la Entrada (MinZ) "t" sea 1 (m√°ximo movimiento).
                 float t = (hologramaMaxZ - vRoot.z) / lengthZ;
                 vRoot.x += curvaturaActual * (t * t);
 
@@ -382,18 +382,18 @@ public class SistemaConstruccion : MonoBehaviour
         {
             if (cache.transform == null) continue;
 
-            // Mismo c·lculo inverso para que el conector de salida sea el est·tico (T=0)
+            // Mismo c√°lculo inverso para que el conector de salida sea el est√°tico (T=0)
             float tVal = (hologramaMaxZ - cache.originalRootPos.z) / lengthZ;
             Vector3 nuevaPosRoot = cache.originalRootPos;
             nuevaPosRoot.x += curvaturaActual * (tVal * tVal);
 
             cache.transform.position = rootTransform.TransformPoint(nuevaPosRoot);
 
-            // Derivada de la par·bola invertida para que la rotaciÛn tambiÈn se anule en el extremo est·tico (Salida, t=0).
+            // Derivada de la par√°bola invertida para que la rotaci√≥n tambi√©n se anule en el extremo est√°tico (Salida, t=0).
             float slopeExtra = (2f * curvaturaActual * tVal) / lengthZ;
             float anguloExtra = Mathf.Atan(slopeExtra) * Mathf.Rad2Deg;
 
-            // Se calcula y aplica la rotaciÛn dinamica desde la Salida fija hacia la Entrada curvada.
+            // Se calcula y aplica la rotaci√≥n dinamica desde la Salida fija hacia la Entrada curvada.
             Quaternion rotacionDinamicaRoot = Quaternion.Euler(0, anguloExtra, 0) * cache.originalRootRot;
             cache.transform.rotation = rootTransform.rotation * rotacionDinamicaRoot;
         }
@@ -416,7 +416,7 @@ public class SistemaConstruccion : MonoBehaviour
                 Vector3 vMundo = mfTransform.TransformPoint(verts[j]);
                 Vector3 vRoot = rootTransform.InverseTransformPoint(vMundo);
 
-                // Aplicar el mismo c·lculo inverso para la malla del objeto real.
+                // Aplicar el mismo c√°lculo inverso para la malla del objeto real.
                 float t = (hologramaMaxZ - vRoot.z) / lengthZ;
                 vRoot.x += curvaturaActual * (t * t);
 
@@ -443,7 +443,7 @@ public class SistemaConstruccion : MonoBehaviour
                 t.CompareTag("ConectorParedEntrada") || t.name.Contains("PuntoConexion"))
             {
                 Vector3 origPosRoot = rootTransform.InverseTransformPoint(t.position);
-                // Mismo c·lculo inverso para los conectores reales.
+                // Mismo c√°lculo inverso para los conectores reales.
                 float tVal = (hologramaMaxZ - origPosRoot.z) / lengthZ;
 
                 origPosRoot.x += curvaturaActual * (tVal * tVal);

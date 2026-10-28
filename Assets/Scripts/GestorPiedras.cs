@@ -41,7 +41,7 @@ public class GestorPiedras : MonoBehaviour
             Instancia != this)
         {
             Debug.LogWarning(
-                "Hay m·s de un GestorPiedras en la escena."
+                "Hay m√°s de un GestorPiedras en la escena."
             );
 
             return;
@@ -125,7 +125,7 @@ public class GestorPiedras : MonoBehaviour
 
 
             // =============================================
-            // øEST¡ RESERVADA?
+            // ¬øEST√Å RESERVADA?
             // =============================================
 
             if (reservas.TryGetValue(
@@ -177,7 +177,7 @@ public class GestorPiedras : MonoBehaviour
 
 
         // =============================================
-        // YA EST¡ RESERVADA
+        // YA EST√Å RESERVADA
         // =============================================
 
         if (reservas.TryGetValue(
@@ -351,7 +351,7 @@ public class GestorPiedras : MonoBehaviour
 
 
     // =====================================================
-    // COMPATIBILIDAD CON C”DIGO ANTERIOR
+    // COMPATIBILIDAD CON C√ìDIGO ANTERIOR
     // =====================================================
 
     public List<Rigidbody> ObtenerPiedrasOrdenadas(

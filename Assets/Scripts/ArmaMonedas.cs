@@ -9,17 +9,17 @@ public class ArmaLanzadora : MonoBehaviour
     public KeyCode teclaAspirar = KeyCode.Mouse1;
 
     [Header("Ajustes de Aspiradora")]
-    [Tooltip("Distancia m·xima desde la cual el arma puede atrapar monedas")]
+    [Tooltip("Distancia m√°xima desde la cual el arma puede atrapar monedas")]
     public float distanciaMaximaAspiracion = 15f;
-    [Tooltip("¡ngulo de apertura del cono de succiÛn (Menor = m·s cerrado y preciso)")]
+    [Tooltip("√Ångulo de apertura del cono de succi√≥n (Menor = m√°s cerrado y preciso)")]
     [Range(10f, 90f)] public float anguloAspiracion = 30f;
     public float velocidadAspiracion = 25f;
-    [Tooltip("Distancia al caÒÛn a la que la moneda se considera absorbida y desaparece")]
+    [Tooltip("Distancia al ca√±√≥n a la que la moneda se considera absorbida y desaparece")]
     public float distanciaRecoleccion = 0.5f;
 
-    [Tooltip("Giro mÌnimo que dan las monedas mientras son aspiradas")]
+    [Tooltip("Giro m√≠nimo que dan las monedas mientras son aspiradas")]
     public float velocidadRotacionMin = 400f;
-    [Tooltip("Giro m·ximo que dan las monedas mientras son aspiradas")]
+    [Tooltip("Giro m√°ximo que dan las monedas mientras son aspiradas")]
     public float velocidadRotacionMax = 1000f;
 
     public LayerMask capaMonedas;
@@ -30,10 +30,10 @@ public class ArmaLanzadora : MonoBehaviour
         public GameObject objeto;
         public Vector3 escalaInicial;
         public float distanciaInicial;
-        public float velocidadRotacion; // Cada moneda tendr· su propia velocidad de giro
+        public float velocidadRotacion; // Cada moneda tendr√° su propia velocidad de giro
     }
 
-    // Lista de monedas que est·n siendo absorbidas
+    // Lista de monedas que est√°n siendo absorbidas
     private List<DatosAspiracion> monedasAspiradas = new List<DatosAspiracion>();
 
     [Header("Referencias")]
@@ -44,16 +44,16 @@ public class ArmaLanzadora : MonoBehaviour
     [Header("Efectos Visuales (Giro con Inercia)")]
     public Transform objetoGiratorio;
     public float velocidadGiroZ = 500f;
-    [Tooltip("QuÈ tan r·pido alcanza la velocidad m·xima al disparar")]
+    [Tooltip("Qu√© tan r√°pido alcanza la velocidad m√°xima al disparar")]
     public float aceleracionGiro = 5f;
-    [Tooltip("QuÈ tan r·pido frena al soltar el gatillo (valores bajos = m·s inercia)")]
+    [Tooltip("Qu√© tan r√°pido frena al soltar el gatillo (valores bajos = m√°s inercia)")]
     public float desaceleracionGiro = 2f;
 
     // ========================================================
-    // SISTEMA DE NEONES R¡PIDOS
+    // SISTEMA DE NEONES R√ÅPIDOS
     // ========================================================
     [Header("Efectos Visuales (Neones)")]
-    [Tooltip("Arrastra aquÌ las piezas del arma que tengan el script ControladorNeon")]
+    [Tooltip("Arrastra aqu√≠ las piezas del arma que tengan el script ControladorNeon")]
     public ControladorNeon[] neonesArma;
 
     [ColorUsage(true, true)]
@@ -68,10 +68,10 @@ public class ArmaLanzadora : MonoBehaviour
     [Range(0f, 10f)]
     public float intensidadNeonFinal = 3f;
 
-    [Tooltip("Velocidad de parpadeo extra que se sumar· a los neones al disparar")]
+    [Tooltip("Velocidad de parpadeo extra que se sumar√° a los neones al disparar")]
     public float aumentoParpadeoActivo = 15f;
 
-    [Tooltip("Velocidad a la que el neÛn hace la transiciÛn de encendido a apagado (20 es r·pido)")]
+    [Tooltip("Velocidad a la que el ne√≥n hace la transici√≥n de encendido a apagado (20 es r√°pido)")]
     public float velocidadTransicionNeon = 20f;
 
     private float transicionNeonActual = 0f;
@@ -79,13 +79,13 @@ public class ArmaLanzadora : MonoBehaviour
     private float[] parpadeosBaseNeones;
     // ========================================================
 
-    [Header("EconomÌa")]
+    [Header("Econom√≠a")]
     public Cartera cartera;
 
     [Min(1)]
     public int costePorDisparo = 1;
 
-    [Header("AnimaciÛn del Modelo (Sway & Bobbing)")]
+    [Header("Animaci√≥n del Modelo (Sway & Bobbing)")]
     public float intensidadSway = 0.02f;
     public float limiteSway = 0.06f;
     public float intensidadInclinacion = 2f;
@@ -93,7 +93,7 @@ public class ArmaLanzadora : MonoBehaviour
     public float intensidadBobbing = 0.015f;
     public float suavidadAnimacion = 8f;
 
-    [Header("AnimaciÛn (Blend Shape)")]
+    [Header("Animaci√≥n (Blend Shape)")]
     public SkinnedMeshRenderer mallaArma;
     public int indiceBlendShape = 1;
     public float pesoMaximoBlendShape = 100f;
@@ -104,7 +104,7 @@ public class ArmaLanzadora : MonoBehaviour
     public float cadenciaDisparo = 0.2f;
     public float vidaProyectil = 10f;
 
-    [Header("DispersiÛn")]
+    [Header("Dispersi√≥n")]
     public float anguloDispersion = 5f;
 
     [Header("Crecimiento del Proyectil")]
@@ -117,7 +117,7 @@ public class ArmaLanzadora : MonoBehaviour
     [Header("Game Feel (Efectos)")]
     public ParticleSystem particulasDisparo;
 
-    [Tooltip("Sistema de partÌculas exacto del sistema de Torbellino para la aspiradora")]
+    [Tooltip("Sistema de part√≠culas exacto del sistema de Torbellino para la aspiradora")]
     public ParticleSystem particulasAspiradora;
 
     public AudioSource audioSource;
@@ -134,7 +134,7 @@ public class ArmaLanzadora : MonoBehaviour
     private float retrocesoActual = 0f;
     private float pesoActualBlend = 0f;
 
-    // --- VARIABLES DE ANIMACI”N ---
+    // --- VARIABLES DE ANIMACI√ìN ---
     private Vector3 posicionInicialModelo;
     private Quaternion rotacionInicialModelo;
     private float temporizadorBobbing = 0f;
@@ -237,20 +237,20 @@ public class ArmaLanzadora : MonoBehaviour
 
         if (aspirando)
         {
-            // PartÌculas de aspirado activo
+            // Part√≠culas de aspirado activo
             if (particulasAspiradora != null && !particulasAspiradora.isPlaying)
             {
                 particulasAspiradora.Play(true);
             }
 
-            // 1. DetecciÛn por Cono Frontal (para larga y media distancia)
+            // 1. Detecci√≥n por Cono Frontal (para larga y media distancia)
             Collider[] objetosCercanos = Physics.OverlapSphere(puntoDisparo.position, distanciaMaximaAspiracion, capaMonedas);
 
             foreach (Collider col in objetosCercanos)
             {
                 GameObject objetoReal = col.attachedRigidbody != null ? col.attachedRigidbody.gameObject : col.gameObject;
 
-                // Verificamos que sea una moneda v·lida y que no estÈ ya en la lista
+                // Verificamos que sea una moneda v√°lida y que no est√© ya en la lista
                 bool yaEstaAspirada = false;
                 foreach (var m in monedasAspiradas)
                 {
@@ -267,8 +267,8 @@ public class ArmaLanzadora : MonoBehaviour
                     float distanciaAlCanon = Vector3.Distance(puntoDisparo.position, objetoReal.transform.position);
                     float angulo = Vector3.Angle(puntoDisparo.forward, direccionHaciaMoneda);
 
-                    // CONDICI”N DE ATRACCI”N: 
-                    // O est· dentro del cono frontal, o est· muy cerca de ti (a menos de 3 metros, ej: bajo tus pies)
+                    // CONDICI√ìN DE ATRACCI√ìN: 
+                    // O est√° dentro del cono frontal, o est√° muy cerca de ti (a menos de 3 metros, ej: bajo tus pies)
                     bool estaEnCono = (angulo <= anguloAspiracion);
                     bool estaMuyCerca = (distanciaAlCanon <= 3.0f);
 
@@ -278,7 +278,7 @@ public class ArmaLanzadora : MonoBehaviour
                         CrecimientoProyectil crec = objetoReal.GetComponent<CrecimientoProyectil>();
                         if (crec != null) Destroy(crec);
 
-                        // Desactivar fÌsicas de la moneda
+                        // Desactivar f√≠sicas de la moneda
                         Rigidbody rb = objetoReal.GetComponent<Rigidbody>();
                         if (rb != null) rb.isKinematic = true;
 
@@ -291,7 +291,7 @@ public class ArmaLanzadora : MonoBehaviour
                         {
                             objeto = objetoReal,
                             escalaInicial = objetoReal.transform.localScale,
-                            distanciaInicial = Mathf.Max(distanciaAlCanon, 0.5f), // Evitamos divisiÛn por cero
+                            distanciaInicial = Mathf.Max(distanciaAlCanon, 0.5f), // Evitamos divisi√≥n por cero
                             velocidadRotacion = giroAleatorio
                         });
                     }
@@ -300,11 +300,11 @@ public class ArmaLanzadora : MonoBehaviour
         }
         else
         {
-            // APAGADO INSTANT¡NEO AL SOLTAR EL CLIC
+            // APAGADO INSTANT√ÅNEO AL SOLTAR EL CLIC
             ControlarEmisionParticulasAspiradora(false);
         }
 
-        // 2. Mover las monedas aspiradas hacia el caÒÛn del arma
+        // 2. Mover las monedas aspiradas hacia el ca√±√≥n del arma
         for (int i = monedasAspiradas.Count - 1; i >= 0; i--)
         {
             DatosAspiracion datos = monedasAspiradas[i];
@@ -331,7 +331,7 @@ public class ArmaLanzadora : MonoBehaviour
                 continue;
             }
 
-            // Mover hacia el caÒÛn suavemente
+            // Mover hacia el ca√±√≥n suavemente
             obj.transform.position = Vector3.MoveTowards(
                 obj.transform.position, puntoDisparo.position,
                 velocidadAspiracion * Time.deltaTime);
@@ -342,13 +342,13 @@ public class ArmaLanzadora : MonoBehaviour
             obj.transform.Rotate(ejeGiro.normalized * datos.velocidadRotacion * Time.deltaTime, Space.World);
 
             // ========================================================
-            // REDUCCI”N LINEAL SEGURA
+            // REDUCCI√ìN LINEAL SEGURA
             // ========================================================
             float distActual = Vector3.Distance(puntoDisparo.position, obj.transform.position);
 
             float t = (datos.distanciaInicial > 0.01f) ? Mathf.Clamp01(distActual / datos.distanciaInicial) : 0f;
 
-            // Aseguramos que nunca empiece en tamaÒo 0 absoluto si se aspira muy cerca
+            // Aseguramos que nunca empiece en tama√±o 0 absoluto si se aspira muy cerca
             obj.transform.localScale = Vector3.Lerp(Vector3.zero, datos.escalaInicial, t);
 
             if (distActual <= distanciaRecoleccion + 0.05f || obj.transform.position == puntoDisparo.position)
@@ -359,7 +359,7 @@ public class ArmaLanzadora : MonoBehaviour
         }
     }
 
-    // MÈtodo modificado para corte seco y limpio al instante
+    // M√©todo modificado para corte seco y limpio al instante
     void ControlarEmisionParticulasAspiradora(bool activar)
     {
         if (particulasAspiradora != null)
@@ -370,7 +370,7 @@ public class ArmaLanzadora : MonoBehaviour
             }
             else
             {
-                // Detiene la emisiÛn y limpia las partÌculas activas de golpe
+                // Detiene la emisi√≥n y limpia las part√≠culas activas de golpe
                 particulasAspiradora.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
         }

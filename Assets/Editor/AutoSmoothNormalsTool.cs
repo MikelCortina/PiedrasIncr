@@ -13,7 +13,7 @@ public class AutoSmoothNormalsTool : EditorWindow
     private const string CARPETA_ORIGINAL = "Assets/Meshes_Sin_Smooth";
     private const string CARPETA_SUAVIZADA = "Assets/Smoothed_Meshes";
 
-    // Caché de seguridad para no generar dos veces la misma malla en la misma ejecución
+    // CachÃ© de seguridad para no generar dos veces la misma malla en la misma ejecuciÃ³n
     private Dictionary<Mesh, Mesh> cacheMallasProcesadas = new Dictionary<Mesh, Mesh>();
 
     [MenuItem("Tools/FlatKit/Auto Smooth Normals Project-Wide")]
@@ -27,7 +27,7 @@ public class AutoSmoothNormalsTool : EditorWindow
         GUILayout.Label("Suavizado de Normales Inteligente (Escena + Proyecto)", EditorStyles.boldLabel);
         GUILayout.Space(10);
 
-        GUILayout.Label("Añade aquí los materiales de FlatKit que usan Outline:");
+        GUILayout.Label("AÃ±ade aquÃ­ los materiales de FlatKit que usan Outline:");
 
         ScriptableObject target = this;
         SerializedObject so = new SerializedObject(target);
@@ -45,7 +45,7 @@ public class AutoSmoothNormalsTool : EditorWindow
         {
             if (materialesObjetivo.Count == 0)
             {
-                EditorUtility.DisplayDialog("Error", "Debes añadir al menos un material a la lista.", "OK");
+                EditorUtility.DisplayDialog("Error", "Debes aÃ±adir al menos un material a la lista.", "OK");
                 return;
             }
             EjecutarProcesamientoMasivo();
@@ -85,7 +85,7 @@ public class AutoSmoothNormalsTool : EditorWindow
 
         EditorUtility.DisplayDialog("Proceso Completado",
             $"Se han actualizado {objetosModificados} objetos/prefabs en total.\n\n" +
-            $"Las mallas únicas se han guardado de forma segura, reemplazando las antiguas si cambiaron.", "Genial");
+            $"Las mallas Ãºnicas se han guardado de forma segura, reemplazando las antiguas si cambiaron.", "Genial");
     }
 
     private int FiltrarYProcesarRenderers(Renderer[] renderers)
@@ -123,12 +123,12 @@ public class AutoSmoothNormalsTool : EditorWindow
 
             if (mallaOriginal == null) continue;
 
-            // SISTEMA DE SEGURIDAD 1: Si la malla ya está guardada en nuestra carpeta de suavizadas, la ignoramos para procesar.
+            // SISTEMA DE SEGURIDAD 1: Si la malla ya estÃ¡ guardada en nuestra carpeta de suavizadas, la ignoramos para procesar.
             // PERO la usaremos si no hay cambios.
             string pathMallaOriginal = AssetDatabase.GetAssetPath(mallaOriginal);
             if (pathMallaOriginal.Contains(CARPETA_SUAVIZADA)) continue;
 
-            // Conseguir la malla suavizada (de caché, de disco, o generándola nueva/reemplazando)
+            // Conseguir la malla suavizada (de cachÃ©, de disco, o generÃ¡ndola nueva/reemplazando)
             Mesh mallaSuavizada = ObtenerOGenerarMallaSegura(mallaOriginal, pathMallaOriginal);
 
             // Reasignar al objeto si es necesario
@@ -158,25 +158,25 @@ public class AutoSmoothNormalsTool : EditorWindow
 
     private Mesh ObtenerOGenerarMallaSegura(Mesh mallaOriginal, string originalPath)
     {
-        // SISTEMA DE SEGURIDAD 2: ¿Ya la hemos procesado en el bucle actual? Usamos la memoria RAM.
+        // SISTEMA DE SEGURIDAD 2: Â¿Ya la hemos procesado en el bucle actual? Usamos la memoria RAM.
         if (cacheMallasProcesadas.ContainsKey(mallaOriginal))
         {
             return cacheMallasProcesadas[mallaOriginal];
         }
 
-        // Creamos un nombre hiper-específico (NombreArchivoFBX_NombreMalla)
+        // Creamos un nombre hiper-especÃ­fico (NombreArchivoFBX_NombreMalla)
         string nombreArchivoOriginal = Path.GetFileNameWithoutExtension(originalPath);
         string nombreMallaLimpio = mallaOriginal.name.Replace(":", "_").Replace("/", "_");
         string nombreUnico = $"{nombreArchivoOriginal}_{nombreMallaLimpio}";
 
         string rutaEsperadaSuavizada = $"{CARPETA_SUAVIZADA}/{nombreUnico}_Smoothed.asset";
 
-        // SISTEMA DE SEGURIDAD 3: ¿Ya existe en el disco duro?
+        // SISTEMA DE SEGURIDAD 3: Â¿Ya existe en el disco duro?
         Mesh mallaExistenteEnDisco = AssetDatabase.LoadAssetAtPath<Mesh>(rutaEsperadaSuavizada);
 
         if (mallaExistenteEnDisco != null)
         {
-            // NUEVO: Comprobar si la malla original ha cambiado (comparando número de vértices)
+            // NUEVO: Comprobar si la malla original ha cambiado (comparando nÃºmero de vÃ©rtices)
             if (mallaOriginal.vertexCount == mallaExistenteEnDisco.vertexCount)
             {
                 // Suponemos que es la misma. Devuelve la existente.
@@ -185,7 +185,7 @@ public class AutoSmoothNormalsTool : EditorWindow
             }
             else
             {
-                // Han cambiado los vértices. La malla original ha sido editada. 
+                // Han cambiado los vÃ©rtices. La malla original ha sido editada. 
                 // Sobrescribimos el asset existente.
                 Debug.Log($"Actualizando malla suavizada: {nombreUnico}");
 
@@ -205,7 +205,7 @@ public class AutoSmoothNormalsTool : EditorWindow
             }
         }
 
-        // Si llegamos aquí, la malla NUNCA se ha suavizado. Procedemos a hacer el Backup y procesarla.
+        // Si llegamos aquÃ­, la malla NUNCA se ha suavizado. Procedemos a hacer el Backup y procesarla.
 
         // 1. Guardar el Backup (Solo si el archivo original no estaba ya en la carpeta de backups)
         if (!originalPath.Contains(CARPETA_ORIGINAL))
@@ -225,14 +225,14 @@ public class AutoSmoothNormalsTool : EditorWindow
         string rutaFinal = AssetDatabase.GenerateUniqueAssetPath(rutaEsperadaSuavizada);
         AssetDatabase.CreateAsset(mallaNuevaCreada, rutaFinal);
 
-        // Guardar en la caché por si otro objeto pide la misma malla en 2 segundos
+        // Guardar en la cachÃ© por si otro objeto pide la misma malla en 2 segundos
         cacheMallasProcesadas[mallaOriginal] = mallaNuevaCreada;
 
         return mallaNuevaCreada;
     }
 
     // =========================================================================
-    // LÓGICA DE SUAVIZADO (EQUIVALENTE AL BOTÓN DE FLATKIT)
+    // LÃ“GICA DE SUAVIZADO (EQUIVALENTE AL BOTÃ“N DE FLATKIT)
     // =========================================================================
     private Mesh SuavizarNormalesMatematicamente(Mesh meshOriginal)
     {
@@ -266,7 +266,7 @@ public class AutoSmoothNormalsTool : EditorWindow
             uvs2.Add(new Vector4(smoothedNormal.x, smoothedNormal.y, smoothedNormal.z, 0));
         }
 
-        // Flatkit lee el UV2 o UV3 dependiendo de la configuración. Rellenamos ambos por seguridad.
+        // Flatkit lee el UV2 o UV3 dependiendo de la configuraciÃ³n. Rellenamos ambos por seguridad.
         smoothedMesh.SetUVs(2, uvs2);
         smoothedMesh.SetUVs(1, uvs2);
 

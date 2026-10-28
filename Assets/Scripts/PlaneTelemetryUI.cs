@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlaneTelemetryUI : MonoBehaviour
 {
-    [Header("ConfiguraciÛn de UI")]
+    [Header("Configuraci√≥n de UI")]
     public bool mostrarTelemetria = true;
     public int tamanoFuente = 20;
     public Color colorTexto = Color.green;
@@ -10,7 +10,7 @@ public class PlaneTelemetryUI : MonoBehaviour
     [Header("Suavizado y Refresco")]
     [Tooltip("Veces por segundo que se actualiza el texto en pantalla (para que sea legible)")]
     public float refrescosPorSegundo = 10f;
-    [Tooltip("Fuerza del suavizado de los datos (menor = m·s estable, mayor = m·s sensible)")]
+    [Tooltip("Fuerza del suavizado de los datos (menor = m√°s estable, mayor = m√°s sensible)")]
     public float suavizadoLectura = 2f;
 
     private Vector3 lastPosition;
@@ -25,18 +25,18 @@ public class PlaneTelemetryUI : MonoBehaviour
     private float displayAccVert;
     private Vector3 displayDir;
 
-    // Historial para aceleraciÛn interna
+    // Historial para aceleraci√≥n interna
     private float ultimaVelTotal;
     private float ultimaVelHoriz;
     private float ultimaVelVert;
 
-    // Variables para controlar cu·ndo se actualiza el texto
+    // Variables para controlar cu√°ndo se actualiza el texto
     private string textoEnPantalla = "";
     private float timerRefresco = 0f;
 
     private void Start()
     {
-        // Al empezar, tomamos la posiciÛn inicial para evitar picos raros en el frame 1
+        // Al empezar, tomamos la posici√≥n inicial para evitar picos raros en el frame 1
         lastPosition = transform.position;
     }
 
@@ -45,7 +45,7 @@ public class PlaneTelemetryUI : MonoBehaviour
         float dt = Time.deltaTime;
         if (dt <= 0) return;
 
-        // 1. Calcular velocidad cruda (PosiciÛn actual - PosiciÛn anterior)
+        // 1. Calcular velocidad cruda (Posici√≥n actual - Posici√≥n anterior)
         Vector3 velCruda = (transform.position - lastPosition) / dt;
         lastPosition = transform.position;
 
@@ -53,12 +53,12 @@ public class PlaneTelemetryUI : MonoBehaviour
         float velHorizCruda = new Vector3(velCruda.x, 0, velCruda.z).magnitude;
         float velVertCruda = velCruda.y;
 
-        // 2. Calcular aceleraciÛn cruda
+        // 2. Calcular aceleraci√≥n cruda
         float accTotalCruda = (velTotalCruda - ultimaVelTotal) / dt;
         float accHorizCruda = (velHorizCruda - ultimaVelHoriz) / dt;
         float accVertCruda = (velVertCruda - ultimaVelVert) / dt;
 
-        // 3. SUAVIZADO: Evita los picos causados por la rotaciÛn de la espada
+        // 3. SUAVIZADO: Evita los picos causados por la rotaci√≥n de la espada
         displayVelTotal = Mathf.Lerp(displayVelTotal, velTotalCruda, dt * suavizadoLectura);
         displayVelHoriz = Mathf.Lerp(displayVelHoriz, velHorizCruda, dt * suavizadoLectura);
         displayVelVert = Mathf.Lerp(displayVelVert, velVertCruda, dt * suavizadoLectura);
@@ -89,16 +89,16 @@ public class PlaneTelemetryUI : MonoBehaviour
     private void GenerarTexto()
     {
         // Usamos :F1 para mostrar solo 1 decimal (ej: 45.2 m/s), eliminando el caos visual
-        textoEnPantalla = "--- TELEMETRÕA DEL AVI”N ---\n\n" +
+        textoEnPantalla = "--- TELEMETR√çA DEL AVI√ìN ---\n\n" +
                           $"[VELOCIDAD]\n" +
                           $"Total: {displayVelTotal:F1} m/s\n" +
                           $"Horizontal (XZ): {displayVelHoriz:F1} m/s\n" +
                           $"Vertical (Y): {displayVelVert:F1} m/s\n" +
                           $"Dir: (X: {displayDir.x:F1}, Y: {displayDir.y:F1}, Z: {displayDir.z:F1})\n\n" +
-                          $"[ACELERACI”N]\n" +
-                          $"Total: {displayAccTotal:F1} m/s≤\n" +
-                          $"Horizontal (XZ): {displayAccHoriz:F1} m/s≤\n" +
-                          $"Vertical (Y): {displayAccVert:F1} m/s≤";
+                          $"[ACELERACI√ìN]\n" +
+                          $"Total: {displayAccTotal:F1} m/s¬≤\n" +
+                          $"Horizontal (XZ): {displayAccHoriz:F1} m/s¬≤\n" +
+                          $"Vertical (Y): {displayAccVert:F1} m/s¬≤";
     }
 
     private void OnGUI()

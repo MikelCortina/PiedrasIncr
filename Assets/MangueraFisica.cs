@@ -127,7 +127,7 @@ public class MangueraFisica : MonoBehaviour
             {
                 float t = (float)i / segmentos;
 
-                // Línea entre el surtidor y la nave.
+                // LÃ­nea entre el surtidor y la nave.
                 Vector3 objetivo = Vector3.Lerp(
                     puntoFijo.position,
                     boquilla.position,
@@ -164,7 +164,7 @@ public class MangueraFisica : MonoBehaviour
             distanciaActual + combaVisible
         );
 
-        // Sale rápido al tirar; se recoge más despacio.
+        // Sale rÃ¡pido al tirar; se recoge mÃ¡s despacio.
         float velocidadCarrete = longitudObjetivo > longitudDesplegada
             ? velocidadSalida
             : velocidadRecogida;
@@ -182,7 +182,7 @@ public class MangueraFisica : MonoBehaviour
             Mathf.Max(longitudDesplegada, distanciaActual)
         );
 
-        // Actualizamos el tamaño de los segmentos.
+        // Actualizamos el tamaÃ±o de los segmentos.
         longitudSegmento = longitudDesplegada / segmentos;
 
         // Simulacion Verlet: gravedad e inercia.

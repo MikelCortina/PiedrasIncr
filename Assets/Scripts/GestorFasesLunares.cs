@@ -11,17 +11,17 @@ public class GestorFasesLunares : MonoBehaviour
         [Header("Fase")]
         public string nombreFase;
 
-        [Tooltip("El objeto raÌz de esta fase (el que contiene todo)")]
+        [Tooltip("El objeto ra√≠z de esta fase (el que contiene todo)")]
         public GameObject visualFase;
 
         public Transform puntoImpactoMisil;
 
-        // --- NUEVO: Lista de objetos especÌficos a vibrar ---
-        [Header("VibraciÛn")]
-        [Tooltip("Arrastra aquÌ SOLAMENTE las mallas/modelos 3D de esta luna que deben temblar, para no afectar a la raÌz ni a las partÌculas.")]
+        // --- NUEVO: Lista de objetos espec√≠ficos a vibrar ---
+        [Header("Vibraci√≥n")]
+        [Tooltip("Arrastra aqu√≠ SOLAMENTE las mallas/modelos 3D de esta luna que deben temblar, para no afectar a la ra√≠z ni a las part√≠culas.")]
         public Transform[] objetosVibracion;
 
-        [Header("Forma del CinturÛn")]
+        [Header("Forma del Cintur√≥n")]
         public CinturonAsteroides.FormaAnillo formaCinturon = new CinturonAsteroides.FormaAnillo
         {
             cantidadAsteroides = 200,
@@ -44,7 +44,7 @@ public class GestorFasesLunares : MonoBehaviour
     [Header("Fases")]
     public FaseLunar[] fases;
 
-    [Header("Meteoritos y CinturÛn")]
+    [Header("Meteoritos y Cintur√≥n")]
     public LluviaMeteoritos lluviaMeteoritos;
     public CinturonAsteroides cinturonAsteroides;
 
@@ -60,7 +60,7 @@ public class GestorFasesLunares : MonoBehaviour
     public AudioClip sonidoLanzamientoMisil;
     public AudioClip sonidoImpactoMisil;
 
-    [Header("VibraciÛn de Impacto en la Luna")]
+    [Header("Vibraci√≥n de Impacto en la Luna")]
     public float duracionVibracionLuna = 0.25f;
     public float magnitudVibracionLuna = 0.5f;
 
@@ -69,7 +69,7 @@ public class GestorFasesLunares : MonoBehaviour
     public KeyCode teclaResetFase = KeyCode.R;
     public float retrasoCambioModelo = 0.25f;
 
-    [Header("AlineaciÛn de la Luna")]
+    [Header("Alineaci√≥n de la Luna")]
     public KeyCode teclaAlinearLuna = KeyCode.L;
     public Vector3 rotacionFijada = Vector3.zero;
 
@@ -119,7 +119,7 @@ public class GestorFasesLunares : MonoBehaviour
             }
             else
             {
-                Debug.Log("La Luna ya est· en su fase m·xima.");
+                Debug.Log("La Luna ya est√° en su fase m√°xima.");
             }
         }
 
@@ -149,7 +149,7 @@ public class GestorFasesLunares : MonoBehaviour
 
         AplicarFaseActual();
 
-        Debug.Log("SimulaciÛn reseteada. Volviendo a la fase: " + fases[faseActual].nombreFase);
+        Debug.Log("Simulaci√≥n reseteada. Volviendo a la fase: " + fases[faseActual].nombreFase);
         OnFaseCambiada?.Invoke(faseActual);
     }
 
@@ -221,7 +221,7 @@ public class GestorFasesLunares : MonoBehaviour
             }
         }
 
-        // --- SOLUCI”N ACTUALIZADA: Guardamos las posiciones originales de TODOS los objetos a vibrar ---
+        // --- SOLUCI√ìN ACTUALIZADA: Guardamos las posiciones originales de TODOS los objetos a vibrar ---
         Transform[] objetosAVibrar = fases[faseActual].objetosVibracion;
         Vector3[] posicionesGuardadas = new Vector3[0];
         Quaternion[] rotacionesGuardadas = new Quaternion[0];
@@ -247,7 +247,7 @@ public class GestorFasesLunares : MonoBehaviour
         yield return StartCoroutine(RutinaAvanzarFase(corrutinaVibracion, objetosAVibrar, posicionesGuardadas, rotacionesGuardadas));
     }
 
-    // --- NUEVO: Corrutina que hace vibrar listas de objetos al unÌsono ---
+    // --- NUEVO: Corrutina que hace vibrar listas de objetos al un√≠sono ---
     private IEnumerator RutinaVibrarObjetos(Transform[] objetos, Vector3[] posOriginales, Quaternion[] rotOriginales, float duracion, float magnitud)
     {
         float tiempoTranscurrido = 0f;
@@ -255,7 +255,7 @@ public class GestorFasesLunares : MonoBehaviour
         while (tiempoTranscurrido < duracion)
         {
             // Calculamos un solo desfase (offset) global para este fotograma
-            // AsÌ todos los objetos se mueven en la misma direcciÛn sin separarse
+            // As√≠ todos los objetos se mueven en la misma direcci√≥n sin separarse
             float x = UnityEngine.Random.Range(-1f, 1f) * magnitud;
             float y = UnityEngine.Random.Range(-1f, 1f) * magnitud;
             float z = UnityEngine.Random.Range(-1f, 1f) * magnitud;
@@ -321,7 +321,7 @@ public class GestorFasesLunares : MonoBehaviour
 
         yield return new WaitForSeconds(retrasoCambioModelo);
 
-        // --- SEGURIDAD: Paramos la vibraciÛn y restauramos todos los objetos que temblaban ---
+        // --- SEGURIDAD: Paramos la vibraci√≥n y restauramos todos los objetos que temblaban ---
         if (vibracion != null) StopCoroutine(vibracion);
 
         if (objetosVibrando != null)
@@ -336,7 +336,7 @@ public class GestorFasesLunares : MonoBehaviour
             }
         }
 
-        // Como visualFase (la raÌz) ya no tiembla, leer su rotaciÛn es 100% seguro y limpio
+        // Como visualFase (la ra√≠z) ya no tiembla, leer su rotaci√≥n es 100% seguro y limpio
         Quaternion rotacionLimpia = Quaternion.identity;
         if (fases[faseActual].visualFase != null)
         {

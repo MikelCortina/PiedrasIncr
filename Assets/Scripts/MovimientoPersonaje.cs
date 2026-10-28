@@ -24,8 +24,8 @@ public class MovimientoPersonaje : MonoBehaviour
     private Vector3 puntoSueloDetectado;
     private Collider colliderSueloDetectado;
 
-    // Ascenso: el rescate anima la posición y bloquea WASD.
-    // Levitación: WASD libre horizontal, pero sin gravedad ni cinta.
+    // Ascenso: el rescate anima la posiciÃ³n y bloquea WASD.
+    // LevitaciÃ³n: WASD libre horizontal, pero sin gravedad ni cinta.
     private bool modoRescate = false;
     private bool permitirMovimientoEnRescate = false;
 
@@ -63,7 +63,7 @@ public class MovimientoPersonaje : MonoBehaviour
 
             if (permitirMovimientoEnRescate)
             {
-                // La levitación conserva la altura. WASD permite volver al mapa.
+                // La levitaciÃ³n conserva la altura. WASD permite volver al mapa.
                 Vector3 horizontal = Vector3.ProjectOnPlane(direccion, Vector3.up) * velocidad;
                 controller.Move(horizontal * Time.deltaTime);
             }
@@ -72,7 +72,7 @@ public class MovimientoPersonaje : MonoBehaviour
             return;
         }
 
-        // Se conserva el sistema original de detección de rampa y cinta.
+        // Se conserva el sistema original de detecciÃ³n de rampa y cinta.
         DetectarSueloYCinta();
         if (tocandoSueloExtra)
         {
@@ -137,7 +137,7 @@ public class MovimientoPersonaje : MonoBehaviour
         ApagarPasos();
     }
 
-    // Llamado al terminar la subida: ahora WASD sí puede mover al jugador.
+    // Llamado al terminar la subida: ahora WASD sÃ­ puede mover al jugador.
     public void ComenzarLevitacionRescate()
     {
         modoRescate = true;

@@ -3,7 +3,7 @@ using UnityEngine;
 [System.Serializable]
 public struct ConfiguracionMaterial
 {
-    [Tooltip("El índice del material en el Mesh Renderer (0, 1, 2...)")]
+    [Tooltip("El Ã­ndice del material en el Mesh Renderer (0, 1, 2...)")]
     public int indiceMaterial;
 
     [Header("Albedo")]
@@ -84,7 +84,7 @@ public class VariacionAlbedo : MonoBehaviour
 
             render.GetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
             propBlock.SetColor("_BaseColor", nuevoColor);
-            propBlock.SetColor("_Color", nuevoColor); // Por si usa el shader viejo estándar
+            propBlock.SetColor("_Color", nuevoColor); // Por si usa el shader viejo estÃ¡ndar
             render.SetPropertyBlock(propBlock, configuraciones[i].indiceMaterial);
         }
     }
@@ -158,7 +158,7 @@ public class VariacionAlbedo : MonoBehaviour
     }
 
     // ==========================================
-    // APLICACIÓN INICIAL DEL MATERIAL
+    // APLICACIÃ“N INICIAL DEL MATERIAL
     // ==========================================
     private void AplicarMaterial()
     {

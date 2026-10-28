@@ -113,7 +113,7 @@ public class AgarrarManguera : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        // Desactivar el limite fisico mientras est· conectada.
+        // Desactivar el limite fisico mientras est√° conectada.
         ConfigurableJoint union =
             GetComponent<ConfigurableJoint>();
 

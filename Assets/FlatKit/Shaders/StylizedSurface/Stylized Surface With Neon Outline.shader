@@ -357,7 +357,7 @@ Shader "FlatKit/Stylized Surface With Neon Outline"
                     float currentSegment = floor(axis * _NeonSegments);
                     float isDead = step(1.0 - _NeonDeadZoneAmount, random(float2(currentSegment, 1.0)));
                     
-                    // L”GICA DE MEZCLA
+                    // L√ìGICA DE MEZCLA
                     // isDead = 1.0 (Apagado/Roto) -> state = 0.05
                     // isDead = 0.0 (Vivo/Encendido) -> state = 1.0
                     float state = lerp(1.0, 0.05, isDead);
@@ -365,8 +365,8 @@ Shader "FlatKit/Stylized Surface With Neon Outline"
                     // Calculamos la luz del neon
                     half3 neonGlow = _NeonColor.rgb * _NeonIntensity * flicker;
 
-                    // Interpolamos. Si est· fundido, muestra el Color Original de FlatKit.
-                    // Si est· encendido, muestra el Glow a tope.
+                    // Interpolamos. Si est√° fundido, muestra el Color Original de FlatKit.
+                    // Si est√° encendido, muestra el Glow a tope.
                     color.rgb = lerp(color.rgb, neonGlow, state);
 
                 #endif

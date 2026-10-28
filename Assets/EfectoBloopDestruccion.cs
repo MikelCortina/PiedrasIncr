@@ -12,8 +12,8 @@ public class EfectoBloopDestruccion : MonoBehaviour
     {
         escalaInicial = transform.localScale;
 
-        // Apagamos los colisionadores de inmediato para liberar el espacio de construcciÛn.
-        // AsÌ el holograma no chocar· con este objeto mientras se encoge.
+        // Apagamos los colisionadores de inmediato para liberar el espacio de construcci√≥n.
+        // As√≠ el holograma no chocar√° con este objeto mientras se encoge.
         Collider[] colliders = GetComponentsInChildren<Collider>();
         foreach (Collider col in colliders)
         {
@@ -32,19 +32,19 @@ public class EfectoBloopDestruccion : MonoBehaviour
             tiempo += Time.deltaTime;
             float t = tiempo / duracion;
 
-            // FÛrmula matem·tica 'Ease In Back':
-            // Se infla un poquitito antes de absorberse por completo hacia el tamaÒo 0.
+            // F√≥rmula matem√°tica 'Ease In Back':
+            // Se infla un poquitito antes de absorberse por completo hacia el tama√±o 0.
             float c1 = 1.70158f;
             float c3 = c1 + 1f;
             float progreso = c3 * t * t * t - c1 * t * t;
 
-            // Como queremos ir al revÈs (de 1 a 0), restamos el progreso
+            // Como queremos ir al rev√©s (de 1 a 0), restamos el progreso
             transform.localScale = escalaInicial * (1f - progreso);
 
             yield return null;
         }
 
-        // Al terminar la animaciÛn, ahora sÌ destruimos el objeto real de la escena
+        // Al terminar la animaci√≥n, ahora s√≠ destruimos el objeto real de la escena
         Destroy(gameObject);
     }
 }

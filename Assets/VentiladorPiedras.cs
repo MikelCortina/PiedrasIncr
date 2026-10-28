@@ -3,13 +3,13 @@ using UnityEngine;
 
 public class VentiladorPiedras : MonoBehaviour
 {
-    [Header("¡rea de Viento (Caja Cuadrada)")]
+    [Header("√Årea de Viento (Caja Cuadrada)")]
     public Vector3 dimensionesCorriente = new Vector3(4f, 4f, 15f);
     public Vector3 offsetCorriente = new Vector3(0f, 0f, 7.5f);
 
-    [Header("Fuerza y FÌsicas")]
+    [Header("Fuerza y F√≠sicas")]
     public float fuerzaViento = 40f;
-    [Tooltip("PequeÒa fuerza global hacia arriba para romper la fricciÛn del suelo")]
+    [Tooltip("Peque√±a fuerza global hacia arriba para romper la fricci√≥n del suelo")]
     public float fuerzaLevantamiento = 0.2f;
 
     [Tooltip("Capa de las piedras a detectar")]
@@ -19,18 +19,18 @@ public class VentiladorPiedras : MonoBehaviour
     [Tooltip("Eje LOCAL por el que sale el viento. Ej: X=(1,0,0) | Y=(0,1,0) | Z=(0,0,1)")]
     public Vector3 ejeViento = new Vector3(0, 0, 1);
 
-    [Header("AnimaciÛn de Aspas")]
+    [Header("Animaci√≥n de Aspas")]
     public Transform aspasVentilador;
     public Vector3 ejeRotacionAspas = new Vector3(1f, 0f, 0f);
     public float velocidadRotacionAspas = 1000f;
-    [Tooltip("Inercia al cambiar de direcciÛn. Cuanto menor sea, m·s tardar· en frenar y girar al revÈs.")]
+    [Tooltip("Inercia al cambiar de direcci√≥n. Cuanto menor sea, m√°s tardar√° en frenar y girar al rev√©s.")]
     public float aceleracionAspas = 2f;
-    [Tooltip("Marca esto si las aspas giran al revÈs de lo que deberÌan visualmente")]
+    [Tooltip("Marca esto si las aspas giran al rev√©s de lo que deber√≠an visualmente")]
     public bool invertirGiroVisual = false;
 
     private float velocidadActualAspas = 0f;
 
-    [Header("BotÛn de InteracciÛn (InversiÛn)")]
+    [Header("Bot√≥n de Interacci√≥n (Inversi√≥n)")]
     public Transform botonFisico;
     public float distanciaHundido = 0.15f;
     public float velocidadAnimacionBoton = 10f;
@@ -70,14 +70,14 @@ public class VentiladorPiedras : MonoBehaviour
     {
         if (aspasVentilador != null)
         {
-            // Calculamos hacia dÛnde deberÌa estar girando y a quÈ velocidad
+            // Calculamos hacia d√≥nde deber√≠a estar girando y a qu√© velocidad
             float multiplicadorVisual = invertirGiroVisual ? -1f : 1f;
             float velocidadObjetivo = velocidadRotacionAspas * (empujando ? 1f : -1f) * multiplicadorVisual;
 
-            // InterpolaciÛn suave (Inercia) para frenar y cambiar de direcciÛn
+            // Interpolaci√≥n suave (Inercia) para frenar y cambiar de direcci√≥n
             velocidadActualAspas = Mathf.Lerp(velocidadActualAspas, velocidadObjetivo, Time.deltaTime * aceleracionAspas);
 
-            // Aplicamos la rotaciÛn con la velocidad inercial
+            // Aplicamos la rotaci√≥n con la velocidad inercial
             aspasVentilador.Rotate(ejeRotacionAspas.normalized * (velocidadActualAspas * Time.deltaTime), Space.Self);
         }
     }

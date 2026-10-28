@@ -3,7 +3,7 @@ using UnityEngine;
 public class InteriorNaveEspacial : MonoBehaviour
 {
     [Header("=== ALARMA DE NEONES ===")]
-    [Tooltip("Lista de luces de neÛn que parpadear·n simulando alarma")]
+    [Tooltip("Lista de luces de ne√≥n que parpadear√°n simulando alarma")]
     public ControladorNeon[] neonesAlarma;
 
     [Tooltip("Velocidad a la que la luz oscila de apagado a encendido")]
@@ -11,20 +11,20 @@ public class InteriorNaveEspacial : MonoBehaviour
     public float intensidadMinima = 0f;
     public float intensidadMaxima = 1.5f;
 
-    [Tooltip("Multiplicador global de la intensidad de la alarma (1 = valores del Inspector, 0 = apagada). Lo controla la intro si est· asignado.")]
+    [Tooltip("Multiplicador global de la intensidad de la alarma (1 = valores del Inspector, 0 = apagada). Lo controla la intro si est√° asignado.")]
     [Range(0f, 1f)] public float multiplicadorLucesAlarma = 1f;
 
     [Header("=== MARCADORES ESTROPEADOS ===")]
     [Tooltip("Lista de objetos (agujas) que van a rebotar/temblar")]
     public AgujaMarcador[] agujasMarcadores = new AgujaMarcador[3];
 
-    [Tooltip("Multiplicador global de la vibraciÛn de las agujas (1 = valores del Inspector, 0 = quietas). Lo controla la intro si est· asignado.")]
+    [Tooltip("Multiplicador global de la vibraci√≥n de las agujas (1 = valores del Inspector, 0 = quietas). Lo controla la intro si est√° asignado.")]
     [Range(0f, 1f)] public float multiplicadorVibracionAgujas = 1f;
 
-    [Tooltip("EnergÌa de la nave para las agujas (1 = encendida, 0 = apagada). Frena las de rotaciÛn continua y aquieta las de temblor. Lo controla la intro al bajar la palanca.")]
+    [Tooltip("Energ√≠a de la nave para las agujas (1 = encendida, 0 = apagada). Frena las de rotaci√≥n continua y aquieta las de temblor. Lo controla la intro al bajar la palanca.")]
     [Range(0f, 1f)] public float multiplicadorEnergiaAgujas = 1f;
 
-    [Tooltip("Segundos que tarda una aguja pausada en volver suavemente a su rotaciÛn original")]
+    [Tooltip("Segundos que tarda una aguja pausada en volver suavemente a su rotaci√≥n original")]
     public float duracionVueltaReposo = 0.3f;
 
     // =========================================================
@@ -43,19 +43,19 @@ public class InteriorNaveEspacial : MonoBehaviour
         public Vector3 ejeGiro = Vector3.forward;
 
         [Header("Modo de Movimiento")]
-        [Tooltip("Si est· marcado, la aguja dar· vueltas en bucle. Si no, rebotar· entre los ·ngulos mÌnimo y m·ximo.")]
+        [Tooltip("Si est√° marcado, la aguja dar√° vueltas en bucle. Si no, rebotar√° entre los √°ngulos m√≠nimo y m√°ximo.")]
         public bool rotacionContinua = false;
 
-        [Tooltip("Velocidad de movimiento. (En rotaciÛn continua son los grados que avanza por segundo)")]
+        [Tooltip("Velocidad de movimiento. (En rotaci√≥n continua son los grados que avanza por segundo)")]
         public float velocidadTemblor = 15f;
 
-        [Tooltip("El ·ngulo mÌnimo donde se atasca. (NO se usa si RotaciÛn Continua est· activada)")]
+        [Tooltip("El √°ngulo m√≠nimo donde se atasca. (NO se usa si Rotaci√≥n Continua est√° activada)")]
         public float anguloMinimo = -2f;
 
-        [Tooltip("El ·ngulo m·ximo al que rebota. (NO se usa si RotaciÛn Continua est· activada)")]
+        [Tooltip("El √°ngulo m√°ximo al que rebota. (NO se usa si Rotaci√≥n Continua est√° activada)")]
         public float anguloMaximo = 5f;
 
-        // Variables ocultas para que el script calcule la posiciÛn internamente
+        // Variables ocultas para que el script calcule la posici√≥n internamente
         [HideInInspector] public Quaternion rotacionBase;
         [HideInInspector] public float progresoGiro = 0f;
         [HideInInspector] public bool direccionIda = true;
@@ -68,7 +68,7 @@ public class InteriorNaveEspacial : MonoBehaviour
 
     void Start()
     {
-        // Guardamos la rotaciÛn original de todas las agujas para no desfasarlas
+        // Guardamos la rotaci√≥n original de todas las agujas para no desfasarlas
         for (int i = 0; i < agujasMarcadores.Length; i++)
         {
             if (agujasMarcadores[i].aguja != null)
@@ -88,7 +88,7 @@ public class InteriorNaveEspacial : MonoBehaviour
     // PAUSA DE AGUJAS INDIVIDUALES
     // =========================================================
 
-    // Pausa o reanuda la aguja cuyo Transform coincida. Devuelve false si no est· en la lista.
+    // Pausa o reanuda la aguja cuyo Transform coincida. Devuelve false si no est√° en la lista.
     public bool PausarAguja(Transform objeto, bool pausar)
     {
         AgujaMarcador marcador = BuscarAguja(objeto);
@@ -100,7 +100,7 @@ public class InteriorNaveEspacial : MonoBehaviour
         return true;
     }
 
-    // True si la aguja no est· en la lista o si ya ha vuelto del todo a su rotaciÛn original.
+    // True si la aguja no est√° en la lista o si ya ha vuelto del todo a su rotaci√≥n original.
     public bool AgujaEnReposo(Transform objeto)
     {
         AgujaMarcador marcador = BuscarAguja(objeto);
@@ -153,7 +153,7 @@ public class InteriorNaveEspacial : MonoBehaviour
     {
         if (agujasMarcadores == null || agujasMarcadores.Length == 0) return;
 
-        // La energÌa se suma a la reducciÛn por velocidad: con la nave apagada todo se detiene.
+        // La energ√≠a se suma a la reducci√≥n por velocidad: con la nave apagada todo se detiene.
         float factorGlobal = Mathf.Clamp01(multiplicadorVibracionAgujas) * Mathf.Clamp01(multiplicadorEnergiaAgujas);
         float velocidadReposo = 1f / Mathf.Max(0.01f, duracionVueltaReposo);
 
@@ -163,8 +163,8 @@ public class InteriorNaveEspacial : MonoBehaviour
 
             if (marcador.aguja == null) continue;
 
-            // Una aguja pausada que ya est· en reposo deja de escribir su rotaciÛn,
-            // asÌ otro script (ej: PalancaTirador) puede controlar el objeto sin interferencias.
+            // Una aguja pausada que ya est√° en reposo deja de escribir su rotaci√≥n,
+            // as√≠ otro script (ej: PalancaTirador) puede controlar el objeto sin interferencias.
             if (marcador.pausada && marcador.factorActividad <= 0f) continue;
 
             marcador.factorActividad = Mathf.MoveTowards(
@@ -178,12 +178,12 @@ public class InteriorNaveEspacial : MonoBehaviour
             if (marcador.rotacionContinua)
             {
                 // ============================================
-                // MODO ROTACI”N CONTINUA (Giro infinito)
+                // MODO ROTACI√ìN CONTINUA (Giro infinito)
                 // ============================================
-                // El multiplicador frena el giro; con energÌa 0 la aguja se queda parada donde estÈ.
+                // El multiplicador frena el giro; con energ√≠a 0 la aguja se queda parada donde est√©.
                 marcador.anguloContinuoActual += Time.deltaTime * marcador.velocidadTemblor * factorGlobal;
 
-                // Mantenemos el ·ngulo dentro de los lÌmites de 360 grados
+                // Mantenemos el √°ngulo dentro de los l√≠mites de 360 grados
                 if (marcador.anguloContinuoActual >= 360f) marcador.anguloContinuoActual -= 360f;
                 else if (marcador.anguloContinuoActual <= -360f) marcador.anguloContinuoActual += 360f;
 
@@ -192,7 +192,7 @@ public class InteriorNaveEspacial : MonoBehaviour
             else
             {
                 // ============================================
-                // MODO TEMBLOR / PING-PONG (Mec·nica estropeada)
+                // MODO TEMBLOR / PING-PONG (Mec√°nica estropeada)
                 // ============================================
                 if (marcador.direccionIda)
                 {
@@ -219,7 +219,7 @@ public class InteriorNaveEspacial : MonoBehaviour
                 anguloActual = Mathf.Lerp(anguloCentro, anguloCompleto, factorGlobal);
             }
 
-            // Al pausar, el ·ngulo se lleva suavemente a 0 (rotaciÛn original exacta).
+            // Al pausar, el √°ngulo se lleva suavemente a 0 (rotaci√≥n original exacta).
             float anguloAplicado = Mathf.LerpAngle(0f, anguloActual, marcador.factorActividad);
 
             marcador.aguja.localRotation = marcador.rotacionBase * Quaternion.AngleAxis(anguloAplicado, marcador.ejeGiro);

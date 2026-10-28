@@ -10,8 +10,8 @@ public class SwordPhysicsController : MonoBehaviour
 
     [SerializeField] private Transform puntoFuerzaVertical;
 
-    [Header("DirecciÛn actual de la espada")]
-    [Tooltip("El eje Z debe apuntar desde la empuÒadura hacia la punta.")]
+    [Header("Direcci√≥n actual de la espada")]
+    [Tooltip("El eje Z debe apuntar desde la empu√±adura hacia la punta.")]
     [SerializeField] private Transform direccionEspada;
 
     [Header("Eje de giro del filo")]
@@ -38,20 +38,20 @@ public class SwordPhysicsController : MonoBehaviour
 
     [SerializeField] private string tagEnemigo = "Enemie";
 
-    [Tooltip("El dash elimina la velocidad y rotaciÛn anteriores.")]
+    [Tooltip("El dash elimina la velocidad y rotaci√≥n anteriores.")]
     [SerializeField] private bool ignorarInerciaAlHacerDash = true;
 
     [Header("Lanzamiento con E")]
-    [Tooltip("Impulso aplicado en la direcciÛn de la punta.")]
+    [Tooltip("Impulso aplicado en la direcci√≥n de la punta.")]
     [SerializeField] private float fuerzaLanzamiento = 50f;
 
     [Tooltip("Giro aplicado sobre el eje Z de la espada.")]
     [SerializeField] private float torqueLanzamiento = 35f;
 
-    [Tooltip("Si est· activo, elimina la velocidad antes de lanzar.")]
+    [Tooltip("Si est√° activo, elimina la velocidad antes de lanzar.")]
     [SerializeField] private bool ignorarInerciaAlLanzar = true;
 
-    [Tooltip("Si est· activo, elimina la rotaciÛn antes de lanzar.")]
+    [Tooltip("Si est√° activo, elimina la rotaci√≥n antes de lanzar.")]
     [SerializeField] private bool ignorarRotacionAlLanzar = true;
 
     [Tooltip("Aplica el impulso en el punto de la punta.")]
@@ -62,7 +62,7 @@ public class SwordPhysicsController : MonoBehaviour
 
     [SerializeField] private bool ignorarRotacionAnterior = true;
 
-    [Header("FÌsica")]
+    [Header("F√≠sica")]
     [SerializeField] private float amortiguacionAngular = 3f;
 
     [SerializeField] private float amortiguacionLineal = 0.1f;
@@ -289,7 +289,7 @@ public class SwordPhysicsController : MonoBehaviour
         if (camara == null)
         {
             Debug.LogWarning(
-                "No se encontrÛ una c·mara para el lanzamiento."
+                "No se encontr√≥ una c√°mara para el lanzamiento."
             );
 
             return;
@@ -433,7 +433,7 @@ public class SwordPhysicsController : MonoBehaviour
         if (camara == null)
         {
             Debug.LogWarning(
-                "No se ha asignado ninguna c·mara.",
+                "No se ha asignado ninguna c√°mara.",
                 this
             );
         }
@@ -457,8 +457,8 @@ public class SwordPhysicsController : MonoBehaviour
         if (direccionEspada == null)
         {
             Debug.LogWarning(
-                "No se ha asignado DirecciÛn Espada. " +
-                "Se usar· el transform principal.",
+                "No se ha asignado Direcci√≥n Espada. " +
+                "Se usar√° el transform principal.",
                 this
             );
         }
@@ -467,7 +467,7 @@ public class SwordPhysicsController : MonoBehaviour
         {
             Debug.LogWarning(
                 "No se ha asignado Eje Giro Filo. " +
-                "El lanzamiento usar· el centro de la espada.",
+                "El lanzamiento usar√° el centro de la espada.",
                 this
             );
         }

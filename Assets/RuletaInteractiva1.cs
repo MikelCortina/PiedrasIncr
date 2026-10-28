@@ -3,10 +3,10 @@ using UnityEngine;
 public class RuletaInteractiva1 : MonoBehaviour
 {
     public enum TipoControl { RotacionX, RotacionY, FuerzaLanzamiento }
-    [Tooltip("¿Qué controla esta ruleta?")]
+    [Tooltip("Â¿QuÃ© controla esta ruleta?")]
     public TipoControl tipoControl;
 
-    [Header("Límites del Efecto")]
+    [Header("LÃ­mites del Efecto")]
     public float valorMinimo = -45f;
     public float valorMaximo = 45f;
     [Range(0f, 1f)]
@@ -15,7 +15,7 @@ public class RuletaInteractiva1 : MonoBehaviour
     [Header("Giro Visual (Eje Z Local)")]
     public float anguloVisualMinimo = -140f;
     public float anguloVisualMaximo = 140f;
-    [Tooltip("Marca esta casilla si al mover la cámara la ruleta gira hacia el lado contrario")]
+    [Tooltip("Marca esta casilla si al mover la cÃ¡mara la ruleta gira hacia el lado contrario")]
     public bool invertirGiro = false;
 
     [Header("Referencias a Controlar")]
@@ -39,12 +39,12 @@ public class RuletaInteractiva1 : MonoBehaviour
         AplicarCambios();
     }
 
-    // NUEVO: Método que recibe los grados que has arrastrado circularmente con tu cabeza
+    // NUEVO: MÃ©todo que recibe los grados que has arrastrado circularmente con tu cabeza
     public void ModificarDesdeGiroVisual(float gradosGirados)
     {
         if (invertirGiro) gradosGirados = -gradosGirados;
 
-        // Calculamos cuánto porcentaje representa este giro respecto al tope de nuestra ruleta
+        // Calculamos cuÃ¡nto porcentaje representa este giro respecto al tope de nuestra ruleta
         float rangoTotalVisual = anguloVisualMaximo - anguloVisualMinimo;
 
         if (rangoTotalVisual != 0)

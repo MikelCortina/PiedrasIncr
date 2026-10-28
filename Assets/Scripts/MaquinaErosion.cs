@@ -11,7 +11,7 @@ public class MaquinaErosion : MonoBehaviour
     [Header("Requisitos de Entrada")]
 
     [Tooltip(
-        "Porcentaje mÌnimo de desgaste que debe tener " +
+        "Porcentaje m√≠nimo de desgaste que debe tener " +
         "la piedra para ser aceptada."
     )]
     [Range(0f, 100f)]
@@ -49,14 +49,14 @@ public class MaquinaErosion : MonoBehaviour
 
 
     [Tooltip(
-        "Punto situado sobre el NavMesh al que caminar·n " +
+        "Punto situado sobre el NavMesh al que caminar√°n " +
         "los Bots para entregar una piedra."
     )]
     public Transform puntoEntregaBot;
 
 
     [Tooltip(
-        "Punto sobre el NavMesh donde el Bot esperar· " +
+        "Punto sobre el NavMesh donde el Bot esperar√° " +
         "a que salga su piedra procesada."
     )]
     public Transform puntoEsperaSalidaBot;
@@ -123,7 +123,7 @@ public class MaquinaErosion : MonoBehaviour
     // EFECTOS
     // =====================================================
 
-    [Header("Efectos Visuales (PartÌculas)")]
+    [Header("Efectos Visuales (Part√≠culas)")]
 
     public ParticleSystem[] particulasTrabajando;
 
@@ -150,7 +150,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // VALIDACI”N
+    // VALIDACI√ìN
     // =====================================================
 
     private void OnValidate()
@@ -302,8 +302,8 @@ public class MaquinaErosion : MonoBehaviour
                 .ObtenerPorcentajeDesgasteHaciaEsfera();
 
 
-        // Mientras estÈ dentro de la m·quina
-        // ning˙n Bot debe poder seleccionarla.
+        // Mientras est√© dentro de la m√°quina
+        // ning√∫n Bot debe poder seleccionarla.
         if (GestorPiedras.Instancia != null)
         {
             GestorPiedras.Instancia
@@ -319,8 +319,8 @@ public class MaquinaErosion : MonoBehaviour
         );
 
 
-        // Recordamos quÈ Bot ha entregado ESTA piedra.
-        // Esto permite devolvÈrsela al mismo Bot al salir.
+        // Recordamos qu√© Bot ha entregado ESTA piedra.
+        // Esto permite devolv√©rsela al mismo Bot al salir.
         if (botOrigen != null)
         {
             botEsperandoSalida[rb] =
@@ -438,7 +438,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // OBTENER DEFORMACI”N
+    // OBTENER DEFORMACI√ìN
     // =====================================================
 
     private DeformacionPiedra ObtenerDeformacion(
@@ -477,7 +477,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // DIRECCI”N CON DISPERSI”N
+    // DIRECCI√ìN CON DISPERSI√ìN
     // =====================================================
 
     private Vector3 ObtenerDireccionConAngulo(
@@ -564,7 +564,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
     // =====================================================
-    // PARTÕCULAS
+    // PART√çCULAS
     // =====================================================
 
     private void ActualizarEmisionParticulas()
@@ -712,7 +712,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
         // =================================================
-        // REGISTRAR EN LA M¡QUINA
+        // REGISTRAR EN LA M√ÅQUINA
         // =================================================
 
         if (!piedrasEnProceso.ContainsKey(
@@ -895,7 +895,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
         // =================================================
-        // POSICI”N FINAL
+        // POSICI√ìN FINAL
         // =================================================
 
         if (puntoSalida != null)
@@ -992,7 +992,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
         // =================================================
-        // REACTIVAR DEFORMACI”N
+        // REACTIVAR DEFORMACI√ìN
         // =================================================
 
         if (deformacion != null)
@@ -1019,7 +1019,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
         // =================================================
-        // AVISAR AL BOT QUE ENTREG” ESTA PIEDRA
+        // AVISAR AL BOT QUE ENTREG√ì ESTA PIEDRA
         // =================================================
 
         if (botEsperandoSalida.TryGetValue(
@@ -1042,7 +1042,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
         // =================================================
-        // PARTÕCULAS DE SALIDA
+        // PART√çCULAS DE SALIDA
         // =================================================
 
         if (particulasExpulsion != null)
@@ -1075,7 +1075,7 @@ public class MaquinaErosion : MonoBehaviour
 
 
         Debug.Log(
-            "°Procesadora desbloqueada!"
+            "¬°Procesadora desbloqueada!"
         );
     }
 
@@ -1296,7 +1296,7 @@ public class MaquinaErosion : MonoBehaviour
         float fuerza,
         float angulo)
     {
-        float tamaÒoVisual =
+        float tama√±oVisual =
             Mathf.Clamp(
                 fuerza * 0.15f,
                 0.5f,
@@ -1308,7 +1308,7 @@ public class MaquinaErosion : MonoBehaviour
             origen +
             (
                 direccionCentral *
-                tamaÒoVisual
+                tama√±oVisual
             );
 
 
@@ -1356,7 +1356,7 @@ public class MaquinaErosion : MonoBehaviour
                 *
                 direccionCentral
                 *
-                tamaÒoVisual
+                tama√±oVisual
             );
 
 
@@ -1370,7 +1370,7 @@ public class MaquinaErosion : MonoBehaviour
                 *
                 direccionCentral
                 *
-                tamaÒoVisual
+                tama√±oVisual
             );
 
 
@@ -1384,7 +1384,7 @@ public class MaquinaErosion : MonoBehaviour
                 *
                 direccionCentral
                 *
-                tamaÒoVisual
+                tama√±oVisual
             );
 
 
@@ -1398,7 +1398,7 @@ public class MaquinaErosion : MonoBehaviour
                 *
                 direccionCentral
                 *
-                tamaÒoVisual
+                tama√±oVisual
             );
 
 

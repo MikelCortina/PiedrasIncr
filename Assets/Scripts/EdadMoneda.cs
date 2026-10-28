@@ -6,7 +6,7 @@ public class EdadMoneda : MonoBehaviour
 
     void Awake()
     {
-        // Registramos exactamente en qué segundo del juego nació la moneda
+        // Registramos exactamente en quÃ© segundo del juego naciÃ³ la moneda
         tiempoCreacion = Time.time;
     }
 

@@ -4,22 +4,22 @@ using UnityEngine;
 public class BotonTuberia : MonoBehaviour
 {
     [Header("Efectos Visuales")]
-    [Tooltip("El sistema de partÌculas en bucle (Looping) de la absorciÛn")]
+    [Tooltip("El sistema de part√≠culas en bucle (Looping) de la absorci√≥n")]
     public ParticleSystem particulasAbsorcion;
 
-    [Header("AnimaciÛn del BotÛn")]
-    [Tooltip("Cu·nto se mueve el botÛn al pulsarlo")]
+    [Header("Animaci√≥n del Bot√≥n")]
+    [Tooltip("Cu√°nto se mueve el bot√≥n al pulsarlo")]
     public float distanciaHundido = 0.15f;
     [Tooltip("La velocidad a la que se presiona")]
     public float velocidadAnimacion = 10f;
-    [Tooltip("DirecciÛn local hacia la que se hunde (normalmente Y negativa)")]
+    [Tooltip("Direcci√≥n local hacia la que se hunde (normalmente Y negativa)")]
     public Vector3 ejeHundimiento = new Vector3(0, -1, 0);
 
     // ========================================================
     // SISTEMA DE NEONES
     // ========================================================
     [Header("Indicadores Visuales (Neones)")]
-    [Tooltip("Arrastra aquÌ los objetos con el script ControladorNeon de este botÛn")]
+    [Tooltip("Arrastra aqu√≠ los objetos con el script ControladorNeon de este bot√≥n")]
     public ControladorNeon[] neonesBoton;
 
     [ColorUsage(true, true)]
@@ -27,12 +27,12 @@ public class BotonTuberia : MonoBehaviour
     [ColorUsage(true, true)]
     public Color colorNeonApagado = Color.red;
 
-    [Tooltip("Intensidad extra que se suma al encender el botÛn")]
+    [Tooltip("Intensidad extra que se suma al encender el bot√≥n")]
     public float aumentoIntensidadEncendido = 2f;
-    [Tooltip("Velocidad de parpadeo extra que se suma al encender el botÛn")]
+    [Tooltip("Velocidad de parpadeo extra que se suma al encender el bot√≥n")]
     public float aumentoParpadeoEncendido = 15f;
 
-    [Tooltip("Velocidad a la que el neÛn hace la transiciÛn (20 es r·pido)")]
+    [Tooltip("Velocidad a la que el ne√≥n hace la transici√≥n (20 es r√°pido)")]
     public float velocidadTransicionNeon = 20f;
 
     private float transicionNeonActual = 0f;
@@ -63,17 +63,17 @@ public class BotonTuberia : MonoBehaviour
                 {
                     intensidadesBaseNeones[i] = neonesBoton[i].intensidad;
                     parpadeosBaseNeones[i] = neonesBoton[i].velocidadParpadeo;
-                    // Forzamos el color inicial seg˙n empiece el botÛn
+                    // Forzamos el color inicial seg√∫n empiece el bot√≥n
                     neonesBoton[i].colorNeon = encendido ? colorNeonEncendido : colorNeonApagado;
                 }
             }
         }
 
-        // Configuramos la transiciÛn matem·tica inicial
+        // Configuramos la transici√≥n matem√°tica inicial
         transicionNeonActual = encendido ? 1f : 0f;
         // -----------------------------------------------------------
 
-        // Forzamos el estado visual inicial de las partÌculas
+        // Forzamos el estado visual inicial de las part√≠culas
         AplicarEstadoVisual(true);
     }
 
@@ -86,16 +86,16 @@ public class BotonTuberia : MonoBehaviour
     {
         encendido = !encendido; // Alternamos el estado
 
-        // Animamos el hundimiento del botÛn
+        // Animamos el hundimiento del bot√≥n
         if (animacionActual != null) StopCoroutine(animacionActual);
         animacionActual = StartCoroutine(AnimarBoton(encendido ? posicionEncendido : posicionApagado));
 
-        // Aplicamos apagado de partÌculas
+        // Aplicamos apagado de part√≠culas
         AplicarEstadoVisual(false);
     }
 
     // ========================================================
-    // L”GICA DE NEONES: Lerp r·pido
+    // L√ìGICA DE NEONES: Lerp r√°pido
     // ========================================================
     private void ManejarNeones()
     {
@@ -103,7 +103,7 @@ public class BotonTuberia : MonoBehaviour
 
         float transicionObjetivo = encendido ? 1f : 0f;
 
-        // Lerp r·pido para transiciÛn de colores e intensidades
+        // Lerp r√°pido para transici√≥n de colores e intensidades
         transicionNeonActual = Mathf.Lerp(transicionNeonActual, transicionObjetivo, Time.deltaTime * velocidadTransicionNeon);
 
         Color colorActualizado = Color.Lerp(colorNeonApagado, colorNeonEncendido, transicionNeonActual);
@@ -122,7 +122,7 @@ public class BotonTuberia : MonoBehaviour
 
     private void AplicarEstadoVisual(bool esInicio)
     {
-        // 1. Gestionar las PartÌculas
+        // 1. Gestionar las Part√≠culas
         if (particulasAbsorcion != null)
         {
             if (encendido)

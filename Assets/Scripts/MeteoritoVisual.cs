@@ -5,13 +5,13 @@ using UnityEngine;
 public class MeteoritoVisual : MonoBehaviour
 {
     [Header("Referencias Visuales")]
-    [Tooltip("El objeto hijo cuyo tamaÒo se ir· reduciendo hasta la mitad")]
+    [Tooltip("El objeto hijo cuyo tama√±o se ir√° reduciendo hasta la mitad")]
     public Transform objetoHijoVisual;
 
     [Header("Control de Color (Smoke Material)")]
     [Tooltip("El Renderer del objeto principal que tiene asignado el SmokeMaterial")]
     public Renderer rendererSmoke;
-    [Tooltip("Un segundo Renderer opcional al que tambiÈn se le inyectar· el color actual")]
+    [Tooltip("Un segundo Renderer opcional al que tambi√©n se le inyectar√° el color actual")]
     public Renderer rendererSmokeSecundario;
     [Tooltip("Nombre de la propiedad en el Shader Graph (suele ser _FireColor o FireColor)")]
     public string propiedadColorShader = "_FireColor";
@@ -28,34 +28,34 @@ public class MeteoritoVisual : MonoBehaviour
     [Tooltip("Lista de Trail Renderers que lleva el meteorito")]
     public List<TrailRenderer> estelasMeteorito = new List<TrailRenderer>();
 
-    [Header("PartÌculas de FricciÛn (Incremento al bajar)")]
-    [Tooltip("Sistema de partÌculas principal cuya emisiÛn aumentar· al acercarse al suelo")]
+    [Header("Part√≠culas de Fricci√≥n (Incremento al bajar)")]
+    [Tooltip("Sistema de part√≠culas principal cuya emisi√≥n aumentar√° al acercarse al suelo")]
     public ParticleSystem particulasFriccion;
     public float emisionMinima = 5f;
     public float emisionMaxima = 50f;
 
-    [Header("Control de PartÌculas en Impacto")]
-    [Tooltip("Lista de sistemas de partÌculas cuya tasa de emisiÛn bajar· a 0 al tocar el suelo")]
+    [Header("Control de Part√≠culas en Impacto")]
+    [Tooltip("Lista de sistemas de part√≠culas cuya tasa de emisi√≥n bajar√° a 0 al tocar el suelo")]
     public List<ParticleSystem> particulasParaApagarEnImpacto = new List<ParticleSystem>();
 
-    [Header("Efectos y DestrucciÛn al Impactar")]
-    [Tooltip("Sistemas de partÌculas que se reproducir·n una sola vez al chocar con el suelo")]
+    [Header("Efectos y Destrucci√≥n al Impactar")]
+    [Tooltip("Sistemas de part√≠culas que se reproducir√°n una sola vez al chocar con el suelo")]
     public List<ParticleSystem> particulasImpacto = new List<ParticleSystem>();
-    [Tooltip("Lista de objetos que se desactivar·n al impactar")]
+    [Tooltip("Lista de objetos que se desactivar√°n al impactar")]
     public List<GameObject> objetosADesactivarAlImpactar = new List<GameObject>();
-    [Tooltip("Lista de objetos que se DESTRUIR¡N por completo 0.5 segundos despuÈs de impactar")]
+    [Tooltip("Lista de objetos que se DESTRUIR√ÅN por completo 0.5 segundos despu√©s de impactar")]
     public List<GameObject> objetosADestruirConRetraso = new List<GameObject>();
-    [Tooltip("Tag del suelo para detectar la colisiÛn de impacto")]
+    [Tooltip("Tag del suelo para detectar la colisi√≥n de impacto")]
     public string tagSuelo = "Floor";
 
-    [Header("Efecto de Temblor de C·mara (Shake por Radio)")]
+    [Header("Efecto de Temblor de C√°mara (Shake por Radio)")]
     [Tooltip("Tag que identifica al jugador en la escena")]
     public string tagJugador = "Player";
-    [Tooltip("Radio m·ximo desde el punto de impacto en el que el jugador sentir· el temblor")]
+    [Tooltip("Radio m√°ximo desde el punto de impacto en el que el jugador sentir√° el temblor")]
     public float radioImpactoShake = 15f;
-    [Tooltip("Intensidad m·xima del temblor si el jugador est· justo en el epicentro")]
+    [Tooltip("Intensidad m√°xima del temblor si el jugador est√° justo en el epicentro")]
     public float magnitudShakeMax = 0.3f;
-    [Tooltip("DuraciÛn en segundos que dura el temblor en la c·mara")]
+    [Tooltip("Duraci√≥n en segundos que dura el temblor en la c√°mara")]
     public float duracionShake = 0.25f;
 
     [Header("Control de Alturas")]
@@ -78,7 +78,7 @@ public class MeteoritoVisual : MonoBehaviour
             escalaInicialHijo = objetoHijoVisual.localScale;
         }
 
-        // Creamos instancias ˙nicas de los materiales para no alterar los assets del proyecto
+        // Creamos instancias √∫nicas de los materiales para no alterar los assets del proyecto
         if (rendererSmoke != null)
         {
             materialSmokeInstanciado = rendererSmoke.material;
@@ -123,7 +123,7 @@ public class MeteoritoVisual : MonoBehaviour
             objetoHijoVisual.localScale = escalaInicialHijo * multiplicadorEscala;
         }
 
-        // 2. TransiciÛn del color HDR a los materiales configurados
+        // 2. Transici√≥n del color HDR a los materiales configurados
         if (materialSmokeInstanciado != null || materialSmokeSecundarioInstanciado != null)
         {
             // progresoCaida vale 1 en el cielo y 0 en el suelo
@@ -136,7 +136,7 @@ public class MeteoritoVisual : MonoBehaviour
                 materialSmokeSecundarioInstanciado.SetColor(propiedadColorShader, colorActual);
         }
 
-        // 3. Aumentar emisiÛn de partÌculas de fricciÛn
+        // 3. Aumentar emisi√≥n de part√≠culas de fricci√≥n
         if (particulasFriccion != null)
         {
             var emision = particulasFriccion.emission;
@@ -163,7 +163,7 @@ public class MeteoritoVisual : MonoBehaviour
     void EjecutarImpacto()
     {
         if (!activo) return;
-        activo = false; // Evitamos ejecuciones m˙ltiples
+        activo = false; // Evitamos ejecuciones m√∫ltiples
 
         // 1. Fijar escala final a la mitad y forzar el color de impacto
         if (objetoHijoVisual != null)
@@ -187,7 +187,7 @@ public class MeteoritoVisual : MonoBehaviour
             if (trail != null) trail.time = 0f;
         }
 
-        // 3. Bajar a 0 el rateOverTime de las partÌculas continuas
+        // 3. Bajar a 0 el rateOverTime de las part√≠culas continuas
         foreach (ParticleSystem ps in particulasParaApagarEnImpacto)
         {
             if (ps != null)
@@ -203,15 +203,15 @@ public class MeteoritoVisual : MonoBehaviour
             emisionFriccion.rateOverTime = 0f;
         }
 
-        // 4. Reproducir los sistemas de partÌculas de impacto (una vez)
+        // 4. Reproducir los sistemas de part√≠culas de impacto (una vez)
         foreach (ParticleSystem ps in particulasImpacto)
         {
             if (ps != null)
             {
-                // Lo soltamos del meteorito para que no herede su destrucciÛn
+                // Lo soltamos del meteorito para que no herede su destrucci√≥n
                 ps.transform.SetParent(null);
 
-                // Forzamos su rotaciÛn independientemente de cÛmo cayÛ el meteorito
+                // Forzamos su rotaci√≥n independientemente de c√≥mo cay√≥ el meteorito
                 ps.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
 
                 ps.Play();
@@ -219,7 +219,7 @@ public class MeteoritoVisual : MonoBehaviour
             }
         }
 
-        // 5. COMPROBACI”N DE RADIO Y SHAKE DE C¡MARA
+        // 5. COMPROBACI√ìN DE RADIO Y SHAKE DE C√ÅMARA
         VerificarShakeJugador();
 
         // 6. Desactivar objetos inmediatos
@@ -228,7 +228,7 @@ public class MeteoritoVisual : MonoBehaviour
             if (obj != null) obj.SetActive(false);
         }
 
-        // 7. DestrucciÛn con retraso de 1.5 segundos
+        // 7. Destrucci√≥n con retraso de 1.5 segundos
         StartCoroutine(RutinaDestruccionConRetraso());
     }
 

@@ -10,8 +10,8 @@ public class MonitorRendimiento : MonoBehaviour
 
     void Start()
     {
-        // Llamamos a la funciÛn de contar piedras cada 0.5 segundos.
-        // Hacerlo en cada fotograma (Update) arruinarÌa el rendimiento de tu PC.
+        // Llamamos a la funci√≥n de contar piedras cada 0.5 segundos.
+        // Hacerlo en cada fotograma (Update) arruinar√≠a el rendimiento de tu PC.
         InvokeRepeating(nameof(ContarPiedras), 0.5f, 0.5f);
     }
 
@@ -30,7 +30,7 @@ public class MonitorRendimiento : MonoBehaviour
 
         if (totalPiedras == 0) return;
 
-        // Comprobamos cu·ntas tienen sus fÌsicas apagadas (Kinematic)
+        // Comprobamos cu√°ntas tienen sus f√≠sicas apagadas (Kinematic)
         foreach (DeformacionPiedra piedra in piedras)
         {
             Rigidbody rb = piedra.GetComponent<Rigidbody>();
@@ -52,7 +52,7 @@ public class MonitorRendimiento : MonoBehaviour
         GUIStyle estilo = new GUIStyle();
         Rect rect = new Rect(15, 15, 350, 100);
 
-        // Ajustamos el tamaÒo de la letra para que se lea bien
+        // Ajustamos el tama√±o de la letra para que se lea bien
         estilo.alignment = TextAnchor.UpperLeft;
         estilo.fontSize = Mathf.Max(20, h * 2 / 100);
         estilo.normal.textColor = Color.white;
@@ -64,7 +64,7 @@ public class MonitorRendimiento : MonoBehaviour
         string texto = string.Format("Rendimiento: {0:0.0} ms ({1:0.} FPS)\n", milisegundos, fps);
         texto += string.Format("Piedras Totales: {0}\n", totalPiedras);
 
-        // Ponemos el porcentaje en Verde si est· por encima del 90%, y en Rojo si est· por debajo
+        // Ponemos el porcentaje en Verde si est√° por encima del 90%, y en Rojo si est√° por debajo
         string colorDormidas = porcentajeDormidas > 90f ? "green" : "red";
         texto += string.Format("Piedras Dormidas: <color={0}>{1:0.0}%</color>", colorDormidas, porcentajeDormidas);
 

@@ -11,7 +11,7 @@ public class ContadorGasolinera : MonoBehaviour
     // El combustible real que tenemos
     private float combustibleObjetivo = 0f;
 
-    // El combustible falso que usamos solo para la animación en pantalla
+    // El combustible falso que usamos solo para la animaciÃ³n en pantalla
     private float combustibleMostrado = 0f;
 
     void Start()
@@ -21,7 +21,7 @@ public class ContadorGasolinera : MonoBehaviour
 
     void Update()
     {
-        // Si el número de la pantalla aún no ha alcanzado al número real, lo subimos poco a poco
+        // Si el nÃºmero de la pantalla aÃºn no ha alcanzado al nÃºmero real, lo subimos poco a poco
         if (combustibleMostrado != combustibleObjetivo)
         {
             // Mathf.MoveTowards acerca el valor progresivamente sin pasarse
@@ -30,7 +30,7 @@ public class ContadorGasolinera : MonoBehaviour
         }
     }
 
-    // El agujero llama a esta función
+    // El agujero llama a esta funciÃ³n
     public void AgregarFuelo(float cantidad)
     {
         // Sumamos al objetivo real, no al mostrado

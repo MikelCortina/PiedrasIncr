@@ -2,7 +2,7 @@ Shader "HoleShader/HoleURP"
 {
     SubShader
     {
-        // AÒadimos el tag de URP y mantenemos tu orden de renderizado (Geometry+1)
+        // A√±adimos el tag de URP y mantenemos tu orden de renderizado (Geometry+1)
         Tags 
         { 
             "RenderType"="Opaque" 
@@ -22,7 +22,7 @@ Shader "HoleShader/HoleURP"
             #pragma vertex vert
             #pragma fragment frag
 
-            // LibrerÌa central de URP
+            // Librer√≠a central de URP
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             // Datos de entrada de la malla del cilindro
@@ -37,7 +37,7 @@ Shader "HoleShader/HoleURP"
                 float4 positionCS : SV_POSITION;
             };
 
-            // El Vertex Shader calcula dÛnde est·n los vÈrtices del cilindro en la c·mara
+            // El Vertex Shader calcula d√≥nde est√°n los v√©rtices del cilindro en la c√°mara
             Varyings vert(Attributes input)
             {
                 Varyings output;

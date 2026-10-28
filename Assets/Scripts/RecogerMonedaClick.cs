@@ -8,20 +8,20 @@ public class RecogerMonedaClick : MonoBehaviour
 
     [Header("Referencias")]
 
-    [Tooltip("C·mara desde la que se apunta.")]
+    [Tooltip("C√°mara desde la que se apunta.")]
     public Camera camaraJugador;
 
-    [Tooltip("Cartera donde se aÒaden las monedas.")]
+    [Tooltip("Cartera donde se a√±aden las monedas.")]
     public Cartera cartera;
 
 
     // =====================================================
-    // CONFIGURACI”N
+    // CONFIGURACI√ìN
     // =====================================================
 
-    [Header("ConfiguraciÛn")]
+    [Header("Configuraci√≥n")]
 
-    [Tooltip("Distancia m·xima desde la que se puede recoger.")]
+    [Tooltip("Distancia m√°xima desde la que se puede recoger.")]
     public float distanciaRecogida = 3f;
 
 
@@ -94,7 +94,7 @@ public class RecogerMonedaClick : MonoBehaviour
             hit.collider.GetComponent<Moneda>();
 
 
-        // Por si el collider est· en un hijo.
+        // Por si el collider est√° en un hijo.
         if (moneda == null)
         {
             moneda =

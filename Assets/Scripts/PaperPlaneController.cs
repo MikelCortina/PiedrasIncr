@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Controlador de vuelo con din·micas de planeo (inercia, picado, ascenso).
+/// Controlador de vuelo con din√°micas de planeo (inercia, picado, ascenso).
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody))]
@@ -14,7 +14,7 @@ public class PaperPlaneController : MonoBehaviour
     public ThirdPersonSwordCamera cameraRig;
 
     [Header("Referencia al Sistema de Apuntado")]
-    [Tooltip("Arrastra aquÌ el objeto del Canvas que tiene el script AimAssistVisual")]
+    [Tooltip("Arrastra aqu√≠ el objeto del Canvas que tiene el script AimAssistVisual")]
     public AimAssistVisual aimAssist;
 
     [Header("Sistema de Lanzamiento Inicial")]
@@ -25,13 +25,13 @@ public class PaperPlaneController : MonoBehaviour
     public bool isOrbitingAtStart = true;
     private float currentOrbitAngle = 0f;
 
-    [Header("C·mara durante ”rbita")]
+    [Header("C√°mara durante √ìrbita")]
     public float cameraOrbitAngle = 180f;
     public float cameraOrbitDistance = 8f;
     public float cameraOrbitHeight = 3f;
     public bool lockCameraDuringOrbit = true;
 
-    [Header("Din·micas de Planeo (Inercia)")]
+    [Header("Din√°micas de Planeo (Inercia)")]
     public float initialLaunchSpeed = 80f;
     public float minSpeed = 15f;
     public float absoluteMaxSpeed = 150f;
@@ -43,7 +43,7 @@ public class PaperPlaneController : MonoBehaviour
     public float pitchInputSharpness = 12f;
     public float maxPitchAngle = 60f;
 
-    [Header("InclinaciÛn y seguimiento de c·mara")]
+    [Header("Inclinaci√≥n y seguimiento de c√°mara")]
     public float maxBankAngle = 90f;
     public float cameraYawToBankSensitivity = 10f;
     public float cameraYawFollowSharpness = 10f;
@@ -53,7 +53,7 @@ public class PaperPlaneController : MonoBehaviour
     public float maxYawFollowMultiplier = 3f;
     public float bankToYawCurve = 0.4f;
 
-    [Header("Pitch por c·mara")]
+    [Header("Pitch por c√°mara")]
     public float cameraPitchToNoseSensitivity = 1.5f;
     public float cameraPitchFollowSharpness = 10f;
     public float maxCameraPitchAngle = 80f;
@@ -69,7 +69,7 @@ public class PaperPlaneController : MonoBehaviour
     public float collisionSpeedRetention = 0.3f;
     public string enemyTag = "Enemie";
 
-    [Header("Lanzamiento Autom·tico (Aim Assist)")]
+    [Header("Lanzamiento Autom√°tico (Aim Assist)")]
     public float enemyLaunchSpeed = 120f;
     public float maxEnemyLaunchDuration = 3f;
     public bool rotateTowardsLaunchTarget = true;
@@ -291,17 +291,17 @@ public class PaperPlaneController : MonoBehaviour
     }
 
     // =========================================================
-    // C¡LCULO DE VUELO CORREGIDO (Sin retrasos de fÌsicas)
+    // C√ÅLCULO DE VUELO CORREGIDO (Sin retrasos de f√≠sicas)
     // =========================================================
     private void ApplyNormalFlightMovement()
     {
         float pitch = Mathf.Clamp(currentKeyboardPitch + currentCameraPitch, -maxPitchAngle, maxPitchAngle);
         float wobble = Mathf.Sin(wobbleTimer * Mathf.PI * 2f) * wobbleAmplitude;
 
-        // 1. Calculamos la rotaciÛn exacta matem·tica del frame actual
+        // 1. Calculamos la rotaci√≥n exacta matem√°tica del frame actual
         Quaternion targetRotation = Quaternion.Euler(pitch, currentYaw, currentBank + wobble);
 
-        // 2. Extraemos el vector hacia adelante de esa rotaciÛn (sin depender del objeto)
+        // 2. Extraemos el vector hacia adelante de esa rotaci√≥n (sin depender del objeto)
         Vector3 exactForward = targetRotation * Vector3.forward;
 
         // 3. Multiplicamos por la velocidad inercial
@@ -314,7 +314,7 @@ public class PaperPlaneController : MonoBehaviour
         }
 
         SetLinearVelocity(finalVelocity);
-        rb.MoveRotation(targetRotation); // Giramos fÌsicamente el aviÛn
+        rb.MoveRotation(targetRotation); // Giramos f√≠sicamente el avi√≥n
 
         ActualizarVisualDuranteVueloNormal();
     }

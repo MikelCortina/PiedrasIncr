@@ -115,14 +115,14 @@ public class EsbirroIA : MonoBehaviour
 
             float pureza = scriptPiedraObjetivo.ObtenerPorcentajeDesgasteHaciaEsfera();
 
-            // Si ya est· perfecta, apuntamos DIRECTAMENTE al agujero
+            // Si ya est√° perfecta, apuntamos DIRECTAMENTE al agujero
             if (pureza >= 95f)
             {
                 direccionPatadaActual = vectorHaciaHoyo.normalized;
             }
             else
             {
-                // Si le falta desgaste, seguimos alej·ndola o jugando con ella
+                // Si le falta desgaste, seguimos alej√°ndola o jugando con ella
                 float distanciaAlHoyo = vectorHaciaHoyo.magnitude;
 
                 if (distanciaAlHoyo < distanciaSeguridadHoyo)
@@ -183,7 +183,7 @@ public class EsbirroIA : MonoBehaviour
         NavMeshHit hitPiedra;
         bool piedraEnNavMesh = NavMesh.SamplePosition(piedraObjetivo.position, out hitPiedra, 2.0f, NavMesh.AllAreas);
 
-        // Si alguien vende la piedra, cae al vacÌo, o desaparece de la zona jugable
+        // Si alguien vende la piedra, cae al vac√≠o, o desaparece de la zona jugable
         if (!piedraEnNavMesh)
         {
             piedraObjetivo = null;
@@ -198,7 +198,7 @@ public class EsbirroIA : MonoBehaviour
             return;
         }
 
-        // --- ADAPTACI”N INSTANT¡NEA ---
+        // --- ADAPTACI√ìN INSTANT√ÅNEA ---
         // Si mientras la piedra rodaba acaba de alcanzar el 95%, cambiamos la estrategia de tiro al momento
         float pureza = scriptPiedraObjetivo.ObtenerPorcentajeDesgasteHaciaEsfera();
         if (pureza >= 95f)

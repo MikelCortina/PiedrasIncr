@@ -4,10 +4,10 @@ using UnityEngine;
 public class MesaTrabajo : MonoBehaviour
 {
     // =====================================================
-    // INTERACCI”N
+    // INTERACCI√ìN
     // =====================================================
 
-    [Header("InteracciÛn")]
+    [Header("Interacci√≥n")]
     public KeyCode teclaInteractuar = KeyCode.E;
 
 
@@ -36,13 +36,13 @@ public class MesaTrabajo : MonoBehaviour
     [Header("Bloqueo de gameplay")]
 
     [Tooltip(
-        "Arrastra aquÌ el componente CamaraPrimeraPersona."
+        "Arrastra aqu√≠ el componente CamaraPrimeraPersona."
     )]
     public CamaraPrimeraPersona controladorCamara;
 
 
     [Tooltip(
-        "Arrastra aquÌ el componente ArmaLanzadora."
+        "Arrastra aqu√≠ el componente ArmaLanzadora."
     )]
     public ArmaLanzadora armaLanzadora;
 
@@ -214,7 +214,7 @@ public class MesaTrabajo : MonoBehaviour
 
 
         // =================================================
-        // BLOQUEAR C¡MARA
+        // BLOQUEAR C√ÅMARA
         // =================================================
 
         if (controladorCamara != null)
@@ -232,7 +232,7 @@ public class MesaTrabajo : MonoBehaviour
 
         if (armaLanzadora != null)
         {
-            // Guardamos cÛmo estaba
+            // Guardamos c√≥mo estaba
             // antes de abrir la tienda.
 
             armaEstabaActiva =
@@ -253,7 +253,7 @@ public class MesaTrabajo : MonoBehaviour
 
 
         // =================================================
-        // LIBERAR RAT”N
+        // LIBERAR RAT√ìN
         // =================================================
 
         Cursor.lockState =
@@ -300,7 +300,7 @@ public class MesaTrabajo : MonoBehaviour
 
 
         // =================================================
-        // DESBLOQUEAR C¡MARA
+        // DESBLOQUEAR C√ÅMARA
         // =================================================
 
         if (controladorCamara != null)
@@ -324,7 +324,7 @@ public class MesaTrabajo : MonoBehaviour
 
 
         // =================================================
-        // BLOQUEAR RAT”N
+        // BLOQUEAR RAT√ìN
         // =================================================
 
         Cursor.lockState =
@@ -336,7 +336,7 @@ public class MesaTrabajo : MonoBehaviour
 
 
         // =================================================
-        // VOLVER A MOSTRAR INTERACCI”N
+        // VOLVER A MOSTRAR INTERACCI√ìN
         // =================================================
 
         if (textoInteraccion != null &&
@@ -378,7 +378,7 @@ public class MesaTrabajo : MonoBehaviour
 
 
         // =================================================
-        // DESBLOQUEAR C¡MARA
+        // DESBLOQUEAR C√ÅMARA
         // =================================================
 
         if (controladorCamara != null)

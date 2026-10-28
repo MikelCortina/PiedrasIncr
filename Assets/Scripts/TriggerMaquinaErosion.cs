@@ -3,12 +3,12 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class TriggerMaquinaErosion : MonoBehaviour
 {
-    [Tooltip("Arrastra aquÌ el objeto principal que tiene el script MiniMaquinaErosion1")]
+    [Tooltip("Arrastra aqu√≠ el objeto principal que tiene el script MiniMaquinaErosion1")]
     public MaquinaErosion maquinaPrincipal;
 
     void OnTriggerEnter(Collider otro)
     {
-        // Si detectamos algo, le pasamos la informaciÛn a la m·quina principal
+        // Si detectamos algo, le pasamos la informaci√≥n a la m√°quina principal
         if (maquinaPrincipal != null)
         {
             maquinaPrincipal.RecibirPiedra(otro);

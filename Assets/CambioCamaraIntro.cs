@@ -12,10 +12,10 @@ public class CambioCamaraIntro : MonoBehaviour
     public SplineAnimate movimientoNave;
     public Transform puntoAparcamientoNave;
 
-    [Header("VibraciÛn de la Nave (Compatible con Spline)")]
-    [Tooltip("Activa la vibraciÛn de la nave sum·ndola a la orientaciÛn del spline sin romperla")]
+    [Header("Vibraci√≥n de la Nave (Compatible con Spline)")]
+    [Tooltip("Activa la vibraci√≥n de la nave sum√°ndola a la orientaci√≥n del spline sin romperla")]
     public bool vibrarNaveEnVuelo = true;
-    [Tooltip("Si est· activo, la nave tambiÈn vibra mientras espera a despegar (motores encendidos)")]
+    [Tooltip("Si est√° activo, la nave tambi√©n vibra mientras espera a despegar (motores encendidos)")]
     public bool vibrarNaveAntesDeDespegar = true;
     [Tooltip("Fuerza del temblor en grados para la nave")]
     public float intensidadVibracionNave = 0.8f;
@@ -23,47 +23,47 @@ public class CambioCamaraIntro : MonoBehaviour
     public float velocidadVibracionNave = 25f;
 
     [Header("Interior de la Nave")]
-    [Tooltip("Script del interior: la intro controla la vibraciÛn de sus agujas y apaga sus neones de alarma al bajar la palanca")]
+    [Tooltip("Script del interior: la intro controla la vibraci√≥n de sus agujas y apaga sus neones de alarma al bajar la palanca")]
     public InteriorNaveEspacial interiorNave;
 
-    [Header("ReducciÛn de VibraciÛn por Velocidad")]
-    [Tooltip("La vibraciÛn baja a medida que la nave frena, hasta su mÌnimo al final del recorrido")]
+    [Header("Reducci√≥n de Vibraci√≥n por Velocidad")]
+    [Tooltip("La vibraci√≥n baja a medida que la nave frena, hasta su m√≠nimo al final del recorrido")]
     public bool reducirVibracionConVelocidad = true;
-    [Tooltip("VibraciÛn mÌnima de la nave respecto a su valor de Inspector (0 = se apaga, 0.25 = queda un 25%)")]
+    [Tooltip("Vibraci√≥n m√≠nima de la nave respecto a su valor de Inspector (0 = se apaga, 0.25 = queda un 25%)")]
     [Range(0f, 1f)] public float porcentajeMinimoVibracionNave = 0f;
-    [Tooltip("VibraciÛn mÌnima de la c·mara interior respecto a su valor de Inspector (0 = se apaga, 0.25 = queda un 25%)")]
+    [Tooltip("Vibraci√≥n m√≠nima de la c√°mara interior respecto a su valor de Inspector (0 = se apaga, 0.25 = queda un 25%)")]
     [Range(0f, 1f)] public float porcentajeMinimoVibracionCamara = 0f;
-    [Tooltip("VibraciÛn mÌnima de las agujas del interior respecto a sus valores de Inspector (0 = quietas, 0.25 = queda un 25%)")]
+    [Tooltip("Vibraci√≥n m√≠nima de las agujas del interior respecto a sus valores de Inspector (0 = quietas, 0.25 = queda un 25%)")]
     [Range(0f, 1f)] public float porcentajeMinimoVibracionAgujas = 0f;
-    [Tooltip("Solo lectura: factor de velocidad actual (1 = valores del Inspector, 0 = mÌnimo configurado)")]
+    [Tooltip("Solo lectura: factor de velocidad actual (1 = valores del Inspector, 0 = m√≠nimo configurado)")]
     [SerializeField, Range(0f, 1f)] private float factorVibracionActual = 1f;
 
     [Header("Control de Velocidad en el Spline")]
     [Tooltip("Activa esto para controlar las aceleraciones y frenadas con la curva sin saltos bruscos")]
     public bool usarCurvaVelocidad = true;
-    [Tooltip("Tiempo base en segundos que tardarÌa en recorrer el spline a velocidad 1")]
+    [Tooltip("Tiempo base en segundos que tardar√≠a en recorrer el spline a velocidad 1")]
     public float duracionBaseRecorrido = 10f;
-    [Tooltip("Eje X (0 a 1) = PosiciÛn en el spline | Eje Y = Multiplicador de velocidad")]
+    [Tooltip("Eje X (0 a 1) = Posici√≥n en el spline | Eje Y = Multiplicador de velocidad")]
     public AnimationCurve curvaMultiplicadorVelocidad = AnimationCurve.Linear(0f, 1f, 1f, 1f);
 
-    [Header("PrevisualizaciÛn en Editor (0 a 1)")]
-    [Tooltip("Mueve este deslizador sin dar a Play para ver dÛnde est· la nave en cada punto (0 a 1). No altera la c·mara.")]
+    [Header("Previsualizaci√≥n en Editor (0 a 1)")]
+    [Tooltip("Mueve este deslizador sin dar a Play para ver d√≥nde est√° la nave en cada punto (0 a 1). No altera la c√°mara.")]
     [Range(0f, 1f)] public float previsualizarPuntoSpline = 0f;
 
-    [Header("Im·genes UI de Inicio")]
-    [Tooltip("Im·genes del Canvas que se desvanecen al empezar la intro")]
+    [Header("Im√°genes UI de Inicio")]
+    [Tooltip("Im√°genes del Canvas que se desvanecen al empezar la intro")]
     public List<Image> imagenesIntro = new List<Image>();
-    [Tooltip("Segundos de espera antes de empezar a desvanecer las im·genes")]
+    [Tooltip("Segundos de espera antes de empezar a desvanecer las im√°genes")]
     public float retrasoInicioImagenes = 0f;
-    [Tooltip("DuraciÛn en segundos del fundido de las im·genes")]
+    [Tooltip("Duraci√≥n en segundos del fundido de las im√°genes")]
     public float duracionFundidoImagenes = 3f;
-    [Tooltip("Opacidad final de las im·genes (0 = invisibles)")]
+    [Tooltip("Opacidad final de las im√°genes (0 = invisibles)")]
     [Range(0f, 1f)] public float alphaFinalImagenes = 0f;
     [Tooltip("Eje X = tiempo normalizado del fundido | Eje Y = progreso del fundido (0 = alpha original, 1 = alpha final)")]
     public AnimationCurve curvaFundidoImagenes = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     [Tooltip("Porcentaje del fundido (0 a 1) en el que la nave empieza a recorrer el spline")]
     [Range(0f, 1f)] public float porcentajeInicioNave = 0.5f;
-    [Tooltip("Desactiva los GameObjects de las im·genes al terminar el fundido")]
+    [Tooltip("Desactiva los GameObjects de las im√°genes al terminar el fundido")]
     public bool desactivarImagenesAlTerminar = true;
 
     [Header("Camaras")]
@@ -77,9 +77,9 @@ public class CambioCamaraIntro : MonoBehaviour
     public Transform camaraPrincipal;
 
     [Header("FOV del Jugador")]
-    [Tooltip("Al terminar la intro, devuelve a la c·mara principal el FOV del jugador. Sin esto se queda con el FOV de la ˙ltima c·mara Cinemachine (la de cabina).")]
+    [Tooltip("Al terminar la intro, devuelve a la c√°mara principal el FOV del jugador. Sin esto se queda con el FOV de la √∫ltima c√°mara Cinemachine (la de cabina).")]
     public bool restaurarFOVJugador = true;
-    [Tooltip("FOV vertical que tendr· la c·mara del jugador tras la intro")]
+    [Tooltip("FOV vertical que tendr√° la c√°mara del jugador tras la intro")]
     [Range(1f, 179f)] public float fovJugador = 60f;
 
     [Header("Puntos de Corte y Eventos en el Spline (0 a 1)")]
@@ -90,21 +90,21 @@ public class CambioCamaraIntro : MonoBehaviour
 
     [Tooltip("0 = Inicio del spline, 1 = Final del spline")]
     [Range(0f, 1f)] public float puntoCorteCamaraInterior = 0.5f;
-    [Tooltip("Punto donde la nave se detiene. Con palanca asignada, aquÌ empieza la espera; sin palanca, aquÌ termina la intro.")]
+    [Tooltip("Punto donde la nave se detiene. Con palanca asignada, aqu√≠ empieza la espera; sin palanca, aqu√≠ termina la intro.")]
     [Range(0f, 1f)] public float puntoFinIntroduccion = 0.99f;
 
     [Header("Salida con Palanca")]
-    [Tooltip("Palanca de la cabina que el jugador debe bajar para salir. VacÌa = la intro termina sola como antes.")]
+    [Tooltip("Palanca de la cabina que el jugador debe bajar para salir. Vac√≠a = la intro termina sola como antes.")]
     public PalancaTirador palancaSalida;
     [Tooltip("Bloquea la palanca durante el vuelo para que no se pueda usar antes de tiempo")]
     public bool bloquearPalancaHastaFinal = true;
-    [Tooltip("Si la manilla de la palanca tambiÈn es una aguja vibrante de 'Interior Nave', deja de vibrar (volviendo suave a su reposo) antes de poder usarla")]
+    [Tooltip("Si la manilla de la palanca tambi√©n es una aguja vibrante de 'Interior Nave', deja de vibrar (volviendo suave a su reposo) antes de poder usarla")]
     public bool pausarVibracionManillaPalanca = true;
 
     [Header("Apagado de Luces Interiores")]
-    [Tooltip("Los neones de alarma de 'Interior Nave' se apagan siempre. AquÌ puedes aÒadir adem·s Lights de Unity de la cabina (opcional).")]
+    [Tooltip("Los neones de alarma de 'Interior Nave' se apagan siempre. Aqu√≠ puedes a√±adir adem√°s Lights de Unity de la cabina (opcional).")]
     public List<Light> lucesInteriores = new List<Light>();
-    [Tooltip("Al apagar la nave, las agujas de 'Interior Nave' tambiÈn se detienen (las de rotaciÛn continua frenan hasta 0)")]
+    [Tooltip("Al apagar la nave, las agujas de 'Interior Nave' tambi√©n se detienen (las de rotaci√≥n continua frenan hasta 0)")]
     public bool detenerAgujasAlApagar = true;
     [Tooltip("Segundos que tardan las luces (y las agujas) en llegar a 0")]
     public float duracionApagadoLuces = 1.5f;
@@ -113,12 +113,12 @@ public class CambioCamaraIntro : MonoBehaviour
     [Tooltip("Segundos a oscuras antes de empezar el fundido a negro y el cambio al jugador")]
     public float esperaTrasApagarLuces = 0.5f;
 
-    [Header("Camara interior y VibraciÛn")]
+    [Header("Camara interior y Vibraci√≥n")]
     public Transform pivoteCamaraCabina;
     public float sensibilidadRaton = 2f;
     public float limiteHorizontal = 45f;
     public float limiteVertical = 20f;
-    [Tooltip("Activa el temblor de c·mara dentro de la cabina")]
+    [Tooltip("Activa el temblor de c√°mara dentro de la cabina")]
     public bool vibrarCamaraInterior = true;
     public float intensidadVibracionCamara = 0.15f;
     public float velocidadVibracionCamara = 30f;
@@ -127,7 +127,7 @@ public class CambioCamaraIntro : MonoBehaviour
     public Transform jugador;
     public Transform puntoSalidaJugador;
 
-    [Tooltip("Scripts de movimiento, mirada e interaccion del jugador (la CamaraPrimeraPersona de la c·mara principal se desactiva sola aunque no estÈ aquÌ)")]
+    [Tooltip("Scripts de movimiento, mirada e interaccion del jugador (la CamaraPrimeraPersona de la c√°mara principal se desactiva sola aunque no est√© aqu√≠)")]
     public MonoBehaviour[] controlesJugador;
 
     [Header("Pantalla negra")]
@@ -172,8 +172,8 @@ public class CambioCamaraIntro : MonoBehaviour
     private void OnValidate()
     {
 #if UNITY_EDITOR
-        // OnValidate tambiÈn salta al cargar la escena o recompilar, antes de que SplineAnimate estÈ listo.
-        // Aplazamos la previsualizaciÛn al siguiente tick del editor y no tocamos NormalizedTime.
+        // OnValidate tambi√©n salta al cargar la escena o recompilar, antes de que SplineAnimate est√© listo.
+        // Aplazamos la previsualizaci√≥n al siguiente tick del editor y no tocamos NormalizedTime.
         if (Application.isPlaying)
             return;
 
@@ -272,9 +272,9 @@ public class CambioCamaraIntro : MonoBehaviour
             }
         }
 
-        // La CamaraPrimeraPersona mueve la c·mara principal en Update. Aunque el Brain la recoloque en LateUpdate,
-        // cualquier script que lea la c·mara en Update (ej: el raycast de GestorRuletasFPS) la verÌa en la cabeza
-        // del jugador. Si no se ha desactivado ya por la lista de controles, la apagamos aquÌ.
+        // La CamaraPrimeraPersona mueve la c√°mara principal en Update. Aunque el Brain la recoloque en LateUpdate,
+        // cualquier script que lea la c√°mara en Update (ej: el raycast de GestorRuletasFPS) la ver√≠a en la cabeza
+        // del jugador. Si no se ha desactivado ya por la lista de controles, la apagamos aqu√≠.
         if (camaraPrincipal != null)
         {
             CamaraPrimeraPersona camaraFPS = camaraPrincipal.GetComponent<CamaraPrimeraPersona>();
@@ -292,13 +292,13 @@ public class CambioCamaraIntro : MonoBehaviour
         if (movimientoNave != null)
         {
             // La nave espera quieta al inicio del spline hasta que el fundido
-            // de las im·genes alcance porcentajeInicioNave.
+            // de las im√°genes alcance porcentajeInicioNave.
             movimientoNave.Pause();
             progresoPersonalizado = 0f;
             movimientoNave.NormalizedTime = 0f;
         }
 
-        // Velocidad que tendr· la nave al terminar la intro: ahÌ la vibraciÛn llega a su mÌnimo.
+        // Velocidad que tendr√° la nave al terminar la intro: ah√≠ la vibraci√≥n llega a su m√≠nimo.
         velocidadFinalNave = Mathf.Max(0.01f, curvaMultiplicadorVelocidad.Evaluate(puntoFinIntroduccion));
         velocidadPicoNave = 0f;
         factorVibracionActual = 1f;
@@ -312,7 +312,7 @@ public class CambioCamaraIntro : MonoBehaviour
                 palancaSalida.SetBloqueada(true);
 
             if (interiorNave == null)
-                Debug.LogWarning("CambioCamaraIntro: falta asignar 'Interior Nave'; los neones de alarma no se apagar·n al bajar la palanca.");
+                Debug.LogWarning("CambioCamaraIntro: falta asignar 'Interior Nave'; los neones de alarma no se apagar√°n al bajar la palanca.");
         }
 
         StartCoroutine(FundidoImagenesIntro());
@@ -385,7 +385,7 @@ public class CambioCamaraIntro : MonoBehaviour
         }
         else if (!palancaDesbloqueada && ManillaEnReposo())
         {
-            // La manilla ya dejÛ de vibrar: ahora sÌ puede usarse sin mezclar movimientos.
+            // La manilla ya dej√≥ de vibrar: ahora s√≠ puede usarse sin mezclar movimientos.
             palancaDesbloqueada = true;
             palancaSalida.SetBloqueada(false);
         }
@@ -401,7 +401,7 @@ public class CambioCamaraIntro : MonoBehaviour
         if (finalizando)
             return;
 
-        // 1. VibraciÛn de la Nave en vuelo (y opcionalmente antes de despegar)
+        // 1. Vibraci√≥n de la Nave en vuelo (y opcionalmente antes de despegar)
         bool puedeVibrar = naveIniciada || vibrarNaveAntesDeDespegar;
 
         if (movimientoNave != null && vibrarNaveEnVuelo && puedeVibrar)
@@ -419,7 +419,7 @@ public class CambioCamaraIntro : MonoBehaviour
             movimientoNave.transform.rotation = rotacionBaseSpline * Quaternion.Euler(ruidoX, ruidoY, ruidoZ);
         }
 
-        // 2. VibraciÛn de la C·mara Interior (Solo act˙a si ya estamos dentro de la cabina)
+        // 2. Vibraci√≥n de la C√°mara Interior (Solo act√∫a si ya estamos dentro de la cabina)
         if (cambioRealizado && pivoteCamaraCabina != null && vibrarCamaraInterior)
         {
             float intensidadCamara = intensidadVibracionCamara * FactorConMinimo(porcentajeMinimoVibracionCamara);
@@ -428,7 +428,7 @@ public class CambioCamaraIntro : MonoBehaviour
             float camX = (Mathf.PerlinNoise(tCam, 50f) - 0.5f) * 2f * intensidadCamara;
             float camY = (Mathf.PerlinNoise(50f, tCam) - 0.5f) * 2f * intensidadCamara;
 
-            // Se suma al c·lculo del ratÛn que ya se aplicÛ en Update
+            // Se suma al c√°lculo del rat√≥n que ya se aplic√≥ en Update
             pivoteCamaraCabina.localRotation *= Quaternion.Euler(camX, camY, 0f);
         }
     }
@@ -460,13 +460,13 @@ public class CambioCamaraIntro : MonoBehaviour
     {
         esperandoPalanca = true;
 
-        // La nave se queda parada en el punto final con la vibraciÛn al mÌnimo.
+        // La nave se queda parada en el punto final con la vibraci√≥n al m√≠nimo.
         factorVibracionActual = 0f;
 
         if (!usarCurvaVelocidad)
             movimientoNave.Pause();
 
-        // Si por configuraciÛn a˙n no est·bamos en la cabina, entramos ahora para poder ver la palanca.
+        // Si por configuraci√≥n a√∫n no est√°bamos en la cabina, entramos ahora para poder ver la palanca.
         if (!cambioRealizado)
             ActivarCamaraInterior();
 
@@ -480,8 +480,8 @@ public class CambioCamaraIntro : MonoBehaviour
         }
     }
 
-    // Si la manilla de la palanca est· en la lista de agujas de InteriorNaveEspacial, la pausamos
-    // para que deje de escribir su rotaciÛn y solo la mueva PalancaTirador.
+    // Si la manilla de la palanca est√° en la lista de agujas de InteriorNaveEspacial, la pausamos
+    // para que deje de escribir su rotaci√≥n y solo la mueva PalancaTirador.
     private void PausarVibracionManilla()
     {
         manillaPausada = null;
@@ -506,7 +506,7 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private void AlBajarPalancaSalida()
     {
-        // Ignoramos la palanca si a˙n no estamos esperando o si ya se ha usado.
+        // Ignoramos la palanca si a√∫n no estamos esperando o si ya se ha usado.
         if (!esperandoPalanca || palancaActivada || finalizando)
             return;
 
@@ -530,7 +530,7 @@ public class CambioCamaraIntro : MonoBehaviour
     private IEnumerator ApagarLucesInteriores()
     {
         // Los neones de alarma y las agujas los escribe InteriorNaveEspacial cada frame,
-        // asÌ que los apagamos bajando sus multiplicadores en lugar de tocarlos directamente.
+        // as√≠ que los apagamos bajando sus multiplicadores en lugar de tocarlos directamente.
         float multiplicadorAlarmaInicial = interiorNave != null ? interiorNave.multiplicadorLucesAlarma : 0f;
         float energiaAgujasInicial = interiorNave != null ? interiorNave.multiplicadorEnergiaAgujas : 0f;
 
@@ -570,7 +570,7 @@ public class CambioCamaraIntro : MonoBehaviour
     }
 
     // =====================================================
-    // REDUCCI”N DE VIBRACI”N POR VELOCIDAD
+    // REDUCCI√ìN DE VIBRACI√ìN POR VELOCIDAD
     // =====================================================
 
     private void ActualizarFactorVibracion(float progreso)
@@ -598,7 +598,7 @@ public class CambioCamaraIntro : MonoBehaviour
 
         if (velocidadPicoNave - velocidadFinalNave > 0.0001f)
         {
-            // Pico de velocidad = valores del Inspector | velocidad final = mÌnimo configurado.
+            // Pico de velocidad = valores del Inspector | velocidad final = m√≠nimo configurado.
             factorVibracionActual = Mathf.InverseLerp(velocidadFinalNave, velocidadPicoNave, velocidadActual);
         }
         else
@@ -608,7 +608,7 @@ public class CambioCamaraIntro : MonoBehaviour
         }
     }
 
-    // Convierte el factor de velocidad (1 a 0) en un multiplicador que va de 1 al mÌnimo indicado.
+    // Convierte el factor de velocidad (1 a 0) en un multiplicador que va de 1 al m√≠nimo indicado.
     private float FactorConMinimo(float porcentajeMinimo)
     {
         if (!reducirVibracionConVelocidad)
@@ -626,7 +626,7 @@ public class CambioCamaraIntro : MonoBehaviour
     }
 
     // =====================================================
-    // IM¡GENES UI DE INICIO
+    // IM√ÅGENES UI DE INICIO
     // =====================================================
 
     private void GuardarAlphasOriginalesImagenes()
@@ -727,7 +727,7 @@ public class CambioCamaraIntro : MonoBehaviour
             return;
 
         // Con curva de velocidad el avance lo controla Update.
-        // Sin curva, dejamos que SplineAnimate avance por sÌ mismo.
+        // Sin curva, dejamos que SplineAnimate avance por s√≠ mismo.
         if (!usarCurvaVelocidad)
             movimientoNave.Play();
     }
@@ -744,7 +744,7 @@ public class CambioCamaraIntro : MonoBehaviour
     }
 
     // =====================================================
-    // C¡MARAS
+    // C√ÅMARAS
     // =====================================================
 
     private void ActivarCamaraInterior()
@@ -795,8 +795,8 @@ public class CambioCamaraIntro : MonoBehaviour
             Quaternion.Euler(rotacionVertical, rotacionHorizontal, 0f);
     }
 
-    // El CinemachineBrain copia el lens de la c·mara virtual activa en la Camera real.
-    // Al desactivarlo, la Camera se queda con el FOV de la cabina, asÌ que lo devolvemos aquÌ.
+    // El CinemachineBrain copia el lens de la c√°mara virtual activa en la Camera real.
+    // Al desactivarlo, la Camera se queda con el FOV de la cabina, as√≠ que lo devolvemos aqu√≠.
     private void RestaurarFOVJugador()
     {
         if (!restaurarFOVJugador || camaraPrincipal == null)
@@ -911,7 +911,7 @@ public class CambioCamaraIntro : MonoBehaviour
             }
         }
 
-        // Devolvemos la c·mara del jugador si la apagÛ la intro por su cuenta.
+        // Devolvemos la c√°mara del jugador si la apag√≥ la intro por su cuenta.
         if (camaraFPSDesactivadaPorIntro != null)
         {
             camaraFPSDesactivadaPorIntro.enabled = true;

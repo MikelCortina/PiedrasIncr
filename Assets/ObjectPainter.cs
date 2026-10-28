@@ -11,16 +11,16 @@ public class SceneObjectPainter : MonoBehaviour
     [Tooltip("Activa esta casilla para empezar a pintar.")]
     public bool activarPincel = false;
 
-    [Header("Configuración")]
-    [Tooltip("Añade aquí todos los modelos que quieras. El script elegirá uno al azar cada vez.")]
-    public GameObject[] prefabsToPaint; // <-- Ahora es un Array para permitir múltiples objetos
+    [Header("ConfiguraciÃ³n")]
+    [Tooltip("AÃ±ade aquÃ­ todos los modelos que quieras. El script elegirÃ¡ uno al azar cada vez.")]
+    public GameObject[] prefabsToPaint; // <-- Ahora es un Array para permitir mÃºltiples objetos
     public LayerMask paintableLayer = ~0;
     public float spacing = 1f;
 
-    [Header("Orientación")]
+    [Header("OrientaciÃ³n")]
     public ModoAlineacion modoAlineacion = ModoAlineacion.Suelo;
 
-    [Header("Randomización de Escala")]
+    [Header("RandomizaciÃ³n de Escala")]
     public float minScale = 0.5f;
     public float maxScale = 1.5f;
 }
@@ -39,7 +39,7 @@ public class SceneObjectPainterEditor : Editor
 
     private void OnSceneGUI()
     {
-        // Validamos que el pincel esté activo y haya al menos un prefab en la lista
+        // Validamos que el pincel estÃ© activo y haya al menos un prefab en la lista
         if (!painter.activarPincel || painter.prefabsToPaint == null || painter.prefabsToPaint.Length == 0) return;
 
         Event e = Event.current;
@@ -70,17 +70,17 @@ public class SceneObjectPainterEditor : Editor
         {
             if (Vector3.Distance(lastPaintPosition, hit.point) > painter.spacing)
             {
-                // --- SELECCIÓN ALEATORIA DEL PREFAB ---
-                // Elegimos un índice al azar dentro del tamaño de nuestro Array de prefabs
+                // --- SELECCIÃ“N ALEATORIA DEL PREFAB ---
+                // Elegimos un Ã­ndice al azar dentro del tamaÃ±o de nuestro Array de prefabs
                 GameObject prefabSeleccionado = painter.prefabsToPaint[Random.Range(0, painter.prefabsToPaint.Length)];
 
-                // Medida de seguridad: por si dejas un hueco vacío en el Inspector
+                // Medida de seguridad: por si dejas un hueco vacÃ­o en el Inspector
                 if (prefabSeleccionado == null) return;
 
                 GameObject newObj = (GameObject)PrefabUtility.InstantiatePrefab(prefabSeleccionado);
                 newObj.transform.position = hit.point;
 
-                // Guardamos la rotación original del prefab seleccionado (por ejemplo, los -90 en X)
+                // Guardamos la rotaciÃ³n original del prefab seleccionado (por ejemplo, los -90 en X)
                 Quaternion originalPrefabRotation = prefabSeleccionado.transform.rotation;
 
                 if (painter.modoAlineacion == SceneObjectPainter.ModoAlineacion.Suelo)

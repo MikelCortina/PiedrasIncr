@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class InteraccionBotJugador : MonoBehaviour
 {
-    [Header("Interacción")]
+    [Header("InteracciÃ³n")]
     public float distanciaInteraccion = 3f;
     public KeyCode teclaInteraccion = KeyCode.E;
 
@@ -11,7 +11,7 @@ public class InteraccionBotJugador : MonoBehaviour
     public Camera camaraJugador;
     public MenuBotUI menuBot;
 
-    [Header("UI de Interacción")]
+    [Header("UI de InteracciÃ³n")]
     public TMP_Text textoInteraccion;
 
     [Header("Debug")]
@@ -33,7 +33,7 @@ public class InteraccionBotJugador : MonoBehaviour
 
     private void Update()
     {
-        // Si el menú está abierto no necesitamos
+        // Si el menÃº estÃ¡ abierto no necesitamos
         // seguir buscando Bots.
         if (menuBot != null &&
             menuBot.EstaAbierto())
@@ -136,7 +136,7 @@ public class InteraccionBotJugador : MonoBehaviour
 
 
         Debug.Log(
-            "Abriendo configuración de " +
+            "Abriendo configuraciÃ³n de " +
             botMirado.nombreBot
         );
 

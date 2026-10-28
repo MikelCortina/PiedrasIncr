@@ -10,10 +10,10 @@ public class EfectoBloop : MonoBehaviour
 
     void Start()
     {
-        // Guardamos la escala original del prefab para saber a quÈ tamaÒo debe llegar
+        // Guardamos la escala original del prefab para saber a qu√© tama√±o debe llegar
         escalaFinal = transform.localScale;
 
-        // Lo encogemos a 0 instant·neamente para que nazca invisible
+        // Lo encogemos a 0 instant√°neamente para que nazca invisible
         transform.localScale = Vector3.zero;
 
         StartCoroutine(AnimarBloop());
@@ -28,7 +28,7 @@ public class EfectoBloop : MonoBehaviour
             tiempo += Time.deltaTime;
             float t = tiempo / duracion;
 
-            // FÛrmula matem·tica 'Ease Out Back' para el rebote
+            // F√≥rmula matem√°tica 'Ease Out Back' para el rebote
             float c1 = 1.70158f;
             float c3 = c1 + 1f;
             float ease = 1f + c3 * Mathf.Pow(t - 1f, 3f) + c1 * Mathf.Pow(t - 1f, 2f);
@@ -41,7 +41,7 @@ public class EfectoBloop : MonoBehaviour
         // Aseguramos que termine exactamente en su escala original
         transform.localScale = escalaFinal;
 
-        // Destruimos este script (no el objeto) para ahorrar recursos de CPU, ya cumpliÛ su funciÛn
+        // Destruimos este script (no el objeto) para ahorrar recursos de CPU, ya cumpli√≥ su funci√≥n
         Destroy(this);
     }
 }

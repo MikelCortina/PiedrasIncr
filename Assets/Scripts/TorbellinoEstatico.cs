@@ -3,22 +3,22 @@ using System.Collections.Generic;
 
 public class TorbellinoEstatico : MonoBehaviour
 {
-    [Header("¡rea de Efecto (Cilindro)")]
+    [Header("√Årea de Efecto (Cilindro)")]
     [Tooltip("El radio del torbellino")]
     public float radioAtraccion = 15f;
-    [Tooltip("El radio del anillo interior donde orbitar·n las piedras")]
+    [Tooltip("El radio del anillo interior donde orbitar√°n las piedras")]
     public float radioOjoTornado = 3f;
-    [Tooltip("La altura m·xima hasta la que llega la succiÛn")]
+    [Tooltip("La altura m√°xima hasta la que llega la succi√≥n")]
     public float alturaTorbellino = 10f;
 
-    [Header("FÌsicas del VÛrtice")]
+    [Header("F√≠sicas del V√≥rtice")]
     [Tooltip("Velocidad a la que giran las piedras")]
     public float velocidadRotacion = 25f;
     [Tooltip("Velocidad constante a la que las piedras son empujadas hacia el suelo")]
     public float velocidadDescenso = 5f;
 
     [Header("Desgaste")]
-    [Tooltip("Multiplicador de erosiÛn de la piedra mientras est· atrapada (0.5 = mitad de desgaste)")]
+    [Tooltip("Multiplicador de erosi√≥n de la piedra mientras est√° atrapada (0.5 = mitad de desgaste)")]
     public float multiplicadorErosionTornado = 0.5f;
     public string tagPiedra = "Piedra";
 
@@ -32,11 +32,11 @@ public class TorbellinoEstatico : MonoBehaviour
 
     void ActualizarTorbellino()
     {
-        // 1. Definimos la forma del cilindro (C·psula matem·tica)
+        // 1. Definimos la forma del cilindro (C√°psula matem√°tica)
         Vector3 puntoInferior = transform.position;
         Vector3 puntoSuperior = transform.position + (Vector3.up * alturaTorbellino);
 
-        // 2. Buscamos quÈ hay dentro del ·rea en este fotograma
+        // 2. Buscamos qu√© hay dentro del √°rea en este fotograma
         Collider[] objetosDetectados = Physics.OverlapCapsule(puntoInferior, puntoSuperior, radioAtraccion);
         HashSet<Rigidbody> piedrasEnEsteFrame = new HashSet<Rigidbody>();
 
@@ -49,7 +49,7 @@ public class TorbellinoEstatico : MonoBehaviour
                 {
                     piedrasEnEsteFrame.Add(rb);
 
-                    // Si es una piedra nueva que acaba de entrar, la registramos y le bajamos la erosiÛn
+                    // Si es una piedra nueva que acaba de entrar, la registramos y le bajamos la erosi√≥n
                     if (!piedrasAtrapadas.Contains(rb))
                     {
                         piedrasAtrapadas.Add(rb);
@@ -60,7 +60,7 @@ public class TorbellinoEstatico : MonoBehaviour
             }
         }
 
-        // 3. Revisamos si alguna piedra se ha escapado (saliÛ del cilindro por arriba, abajo, o la cogiÛ el jugador)
+        // 3. Revisamos si alguna piedra se ha escapado (sali√≥ del cilindro por arriba, abajo, o la cogi√≥ el jugador)
         List<Rigidbody> piedrasFugadas = new List<Rigidbody>();
         foreach (Rigidbody rb in piedrasAtrapadas)
         {
@@ -70,7 +70,7 @@ public class TorbellinoEstatico : MonoBehaviour
             }
         }
 
-        // Devolvemos la erosiÛn original a las que escaparon
+        // Devolvemos la erosi√≥n original a las que escaparon
         foreach (Rigidbody rb in piedrasFugadas)
         {
             if (rb != null)
@@ -81,10 +81,10 @@ public class TorbellinoEstatico : MonoBehaviour
             piedrasAtrapadas.Remove(rb);
         }
 
-        // 4. Aplicamos las FÌsicas de Torbellino a las que siguen atrapadas
+        // 4. Aplicamos las F√≠sicas de Torbellino a las que siguen atrapadas
         foreach (Rigidbody rb in piedrasAtrapadas)
         {
-            // C·lculos planos (ignorando altura)
+            // C√°lculos planos (ignorando altura)
             Vector3 posicionPlana = new Vector3(rb.position.x, 0f, rb.position.z);
             Vector3 centroPlano = new Vector3(transform.position.x, 0f, transform.position.z);
 
@@ -102,9 +102,9 @@ public class TorbellinoEstatico : MonoBehaviour
                 distancia = radioAtraccion;
             }
 
-            // C·lculo de fuerzas
+            // C√°lculo de fuerzas
             float errorDistancia = distancia - radioOjoTornado;
-            float velocidadRadial = errorDistancia * 10f; // AtracciÛn hacia el anillo
+            float velocidadRadial = errorDistancia * 10f; // Atracci√≥n hacia el anillo
 
             Vector3 vectorAtraccion = direccionAlCentro * velocidadRadial;
             Vector3 direccionGiro = Vector3.Cross(direccionAlCentro, Vector3.up).normalized;
@@ -112,7 +112,7 @@ public class TorbellinoEstatico : MonoBehaviour
 
             Vector3 velocidadDeseada = vectorAtraccion + vectorGiro;
 
-            // DICTADURA FÕSICA: Movimiento perfecto en X y Z, y forzamos una caÌda constante en Y
+            // DICTADURA F√çSICA: Movimiento perfecto en X y Z, y forzamos una ca√≠da constante en Y
             rb.linearVelocity = new Vector3(velocidadDeseada.x, -velocidadDescenso, velocidadDeseada.z);
         }
     }
@@ -137,7 +137,7 @@ public class TorbellinoEstatico : MonoBehaviour
         Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
         DibujarCirculoGizmo(centroAbajo, radioOjoTornado);
 
-        // LÌneas verticales para conectar el cilindro visualmente
+        // L√≠neas verticales para conectar el cilindro visualmente
         Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
         Gizmos.DrawLine(centroAbajo + Vector3.right * radioAtraccion, centroArriba + Vector3.right * radioAtraccion);
         Gizmos.DrawLine(centroAbajo + Vector3.left * radioAtraccion, centroArriba + Vector3.left * radioAtraccion);

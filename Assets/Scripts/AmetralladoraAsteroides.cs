@@ -11,32 +11,32 @@ public class AmetralladoraAsteroides : MonoBehaviour
     public Transform pivoteCanon;
     public Transform puntoDisparo;
 
-    [Header("Configuraci髇 de Apuntado")]
+    [Header("Configuraci贸n de Apuntado")]
     public float velocidadGiro = 10f;
     public float margenFijacion = 10f;
 
-    [Header("Configuraci髇 de Disparo")]
+    [Header("Configuraci贸n de Disparo")]
     public float cadenciaDisparo = 1f;
-    [Tooltip("Rango de detecci髇 para BUSCAR nuevos objetivos")]
+    [Tooltip("Rango de detecci贸n para BUSCAR nuevos objetivos")]
     public float alcance = 300f;
     public float grosorLaser = 2f;
     public LayerMask capaAsteroides;
 
-    // --- NUEVO: SISTEMA DE ANIMACI覰 POR BLEND SHAPE ---
-    [Header("Animaci髇 (Blend Shape)")]
-    [Tooltip("El SkinnedMeshRenderer del ca耋n o pieza que contiene la animaci髇 de retroceso")]
+    // --- NUEVO: SISTEMA DE ANIMACI脫N POR BLEND SHAPE ---
+    [Header("Animaci贸n (Blend Shape)")]
+    [Tooltip("El SkinnedMeshRenderer del ca帽贸n o pieza que contiene la animaci贸n de retroceso")]
     public SkinnedMeshRenderer mallaArma;
-    [Tooltip("蚽dice de la forma de mezcla en el modelo 3D (0 es la primera, 1 la segunda...)")]
+    [Tooltip("脥ndice de la forma de mezcla en el modelo 3D (0 es la primera, 1 la segunda...)")]
     public int indiceBlendShape = 0;
     public float pesoMaximoBlendShape = 100f;
     public float velocidadRecuperacionBlend = 15f;
 
-    [Header("Efectos Visuales y Gr醘ica de Velocidad")]
+    [Header("Efectos Visuales y Gr谩fica de Velocidad")]
     public GameObject prefabProyectil;
-    [Tooltip("Velocidad m醲ima base del proyectil")]
+    [Tooltip("Velocidad m谩xima base del proyectil")]
     public float velocidadMaximaProyectil = 150f;
 
-    [Tooltip("Gr醘ica de velocidad (Eje X: 0 es inicio del vuelo, 1 es el impacto | Eje Y: multiplicador de velocidad)")]
+    [Tooltip("Gr谩fica de velocidad (Eje X: 0 es inicio del vuelo, 1 es el impacto | Eje Y: multiplicador de velocidad)")]
     public AnimationCurve curvaVelocidadProyectil = new AnimationCurve(
         new Keyframe(0f, 1f),
         new Keyframe(0.7f, 0.8f),
@@ -47,11 +47,11 @@ public class AmetralladoraAsteroides : MonoBehaviour
 
     private Transform asteroideObjetivo;
     private float timerCooldown = 0f;
-    private float pesoActualBlend = 0f; // Control del valor actual de deformaci髇
+    private float pesoActualBlend = 0f; // Control del valor actual de deformaci贸n
 
     private void Update()
     {
-        // 1. Recuperaci髇 continua del Blend Shape hacia 0
+        // 1. Recuperaci贸n continua del Blend Shape hacia 0
         ManejarBlendShape();
 
         if (timerCooldown > 0f)
@@ -59,7 +59,7 @@ public class AmetralladoraAsteroides : MonoBehaviour
             timerCooldown -= Time.deltaTime;
         }
 
-        // 2. Comprobaci髇 del objetivo fijado
+        // 2. Comprobaci贸n del objetivo fijado
         if (asteroideObjetivo != null)
         {
             if (!asteroideObjetivo.gameObject.activeInHierarchy)
@@ -68,7 +68,7 @@ public class AmetralladoraAsteroides : MonoBehaviour
             }
         }
 
-        // 3. B鷖queda o seguimiento
+        // 3. B煤squeda o seguimiento
         if (asteroideObjetivo == null)
         {
             BuscarMejorObjetivo();

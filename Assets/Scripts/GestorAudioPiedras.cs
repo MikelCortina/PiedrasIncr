@@ -5,20 +5,20 @@ public class GestorAudioPiedras : MonoBehaviour
 {
     public static GestorAudioPiedras Instancia;
 
-    [Header("Ajustes de OptimizaciÛn")]
+    [Header("Ajustes de Optimizaci√≥n")]
     public int maxImpactosSimultaneos = 15;
     public int maxDeslizamientosSimultaneos = 10;
 
     [Header("Culling de Audio (Rendimiento)")]
-    [Tooltip("Referencia al jugador o c·mara que escucha. Si se deja vacÌo, buscar· autom·ticamente la Main Camera.")]
+    [Tooltip("Referencia al jugador o c√°mara que escucha. Si se deja vac√≠o, buscar√° autom√°ticamente la Main Camera.")]
     public Transform oyente;
-    [Tooltip("Distancia m·xima a partir de la cual las piedras no ocupar·n reproductores de audio.")]
+    [Tooltip("Distancia m√°xima a partir de la cual las piedras no ocupar√°n reproductores de audio.")]
     public float distanciaMaximaEscucha = 100f;
 
     private List<AudioSource> poolImpactos = new List<AudioSource>();
     private List<AudioSource> poolDeslizamientos = new List<AudioSource>();
 
-    // Diccionario para saber quÈ reproductor est· usando cada piedra actualmente
+    // Diccionario para saber qu√© reproductor est√° usando cada piedra actualmente
     private Dictionary<DeformacionPiedra, AudioSource> deslizamientosActivos = new Dictionary<DeformacionPiedra, AudioSource>();
 
     void Awake()
@@ -50,7 +50,7 @@ public class GestorAudioPiedras : MonoBehaviour
 
     void Start()
     {
-        // Si no asignaste un oyente manual en el Inspector, usa la c·mara principal
+        // Si no asignaste un oyente manual en el Inspector, usa la c√°mara principal
         if (oyente == null && Camera.main != null)
         {
             oyente = Camera.main.transform;
@@ -62,13 +62,13 @@ public class GestorAudioPiedras : MonoBehaviour
         // --- FILTRO DE DISTANCIA (CULLING) ---
         if (oyente != null && Vector3.Distance(oyente.position, posicion) > distanciaMaximaEscucha)
         {
-            return; // Est· muy lejos, abortamos para no gastar recursos
+            return; // Est√° muy lejos, abortamos para no gastar recursos
         }
 
         AudioSource candidato = poolImpactos[0];
         float mayorProgreso = -1f;
 
-        // Buscamos un reproductor libre o reciclamos el que estÈ m·s cerca de terminar
+        // Buscamos un reproductor libre o reciclamos el que est√© m√°s cerca de terminar
         foreach (var src in poolImpactos)
         {
             if (!src.isPlaying) { candidato = src; break; }
@@ -95,7 +95,7 @@ public class GestorAudioPiedras : MonoBehaviour
         // --- FILTRO DE DISTANCIA (CULLING) ---
         if (oyente != null && Vector3.Distance(oyente.position, pos) > distanciaMaximaEscucha)
         {
-            // Si la piedra estaba sonando pero se alejÛ demasiado, le apagamos el audio para reciclar el reproductor
+            // Si la piedra estaba sonando pero se alej√≥ demasiado, le apagamos el audio para reciclar el reproductor
             DetenerDeslizamiento(piedra);
             return;
         }
