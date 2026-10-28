@@ -154,7 +154,7 @@ public class DesbloqueoProcesadoraMonedas : MonoBehaviour
     public int PrecioMejoraRestante =>
         Mathf.Max(0, PrecioMejoraActual - monedasMejoraRecibidas);
 
-    private readonly HashSet<EntityId> proyectilesRecibidosFrame = new HashSet<EntityId>();
+    private readonly HashSet<ProyectilArma> proyectilesRecibidosFrame = new HashSet<ProyectilArma>();
     private int ultimoFrameImpacto = -1;
 
     private void OnValidate()
@@ -355,8 +355,7 @@ public class DesbloqueoProcesadoraMonedas : MonoBehaviour
             proyectilesRecibidosFrame.Clear();
             ultimoFrameImpacto = Time.frameCount;
         }
-        EntityId id = proyectil.GetEntityId();
-        if (!proyectilesRecibidosFrame.Add(id))
+        if (!proyectilesRecibidosFrame.Add(proyectil))
             return;
 
         int valor = Mathf.Max(1, moneda.valor);
