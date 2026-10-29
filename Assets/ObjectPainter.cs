@@ -1,8 +1,10 @@
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
+using System.Collections.Generic;
 #endif
 
+[ExecuteAlways]
 public class SceneObjectPainter : MonoBehaviour
 {
     public enum ModoAlineacion { Suelo, Pared }
@@ -23,46 +25,110 @@ public class SceneObjectPainter : MonoBehaviour
     [Header("Randomización de Escala")]
     public float minScale = 0.5f;
     public float maxScale = 1.5f;
-}
 
 #if UNITY_EDITOR
-[CustomEditor(typeof(SceneObjectPainter))]
-public class SceneObjectPainterEditor : Editor
-{
-    private SceneObjectPainter painter;
-    private Vector3 lastPaintPosition = Vector3.positiveInfinity;
+    // Pintores cargados en las escenas abiertas (el pincel no depende de tenerlos seleccionados).
+    public static readonly HashSet<SceneObjectPainter> Activos = new HashSet<SceneObjectPainter>();
 
     private void OnEnable()
     {
-        painter = (SceneObjectPainter)target;
+        Activos.Add(this);
     }
 
-    private void OnSceneGUI()
+    private void OnDisable()
     {
-        // Validamos que el pincel esté activo y haya al menos un prefab en la lista
-        if (!painter.activarPincel || painter.prefabsToPaint == null || painter.prefabsToPaint.Length == 0) return;
+        Activos.Remove(this);
+    }
+
+    public bool PuedePintar => activarPincel && prefabsToPaint != null && prefabsToPaint.Length > 0;
+#endif
+}
+
+#if UNITY_EDITOR
+// El pincel escucha la Scene view directamente. Antes vivía en el OnSceneGUI de un Editor
+// personalizado, que Unity solo llama con el objeto seleccionado y su componente desplegado
+// en el Inspector; si no, el clic llegaba a la Scene view y seleccionaba el objeto de debajo.
+[InitializeOnLoad]
+public static class SceneObjectPainterPincel
+{
+    private static readonly int pistaControl = "SceneObjectPainterPincel".GetHashCode();
+    private static Vector3 lastPaintPosition = Vector3.positiveInfinity;
+
+    static SceneObjectPainterPincel()
+    {
+        SceneView.duringSceneGui -= AlDibujarEscena;
+        SceneView.duringSceneGui += AlDibujarEscena;
+    }
+
+    private static SceneObjectPainter PintorActivo()
+    {
+        // Si hay varios con la casilla activada, manda el que esté seleccionado.
+        SceneObjectPainter elegido = null;
+        foreach (SceneObjectPainter painter in SceneObjectPainter.Activos)
+        {
+            if (painter == null || !painter.PuedePintar)
+                continue;
+
+            if (Selection.activeGameObject == painter.gameObject)
+                return painter;
+
+            if (elegido == null)
+                elegido = painter;
+        }
+
+        return elegido;
+    }
+
+    private static void AlDibujarEscena(SceneView vista)
+    {
+        if (EditorApplication.isPlaying)
+            return;
+
+        SceneObjectPainter painter = PintorActivo();
+        if (painter == null)
+            return;
 
         Event e = Event.current;
+        int controlID = GUIUtility.GetControlID(pistaControl, FocusType.Passive);
 
-        int controlID = GUIUtility.GetControlID(FocusType.Passive);
         if (e.type == EventType.Layout)
         {
             HandleUtility.AddDefaultControl(controlID);
         }
 
-        if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) && e.button == 0 && !e.alt)
+        // El pincel se queda con el ratón (hotControl) desde que se pulsa hasta que se suelta:
+        // si el MouseUp queda libre, la Scene view lo usa para seleccionar el objeto de debajo.
+        switch (e.type)
         {
-            Paint(e.mousePosition);
-            e.Use();
-        }
+            case EventType.MouseDown:
+                if (e.button == 0 && !e.alt)
+                {
+                    GUIUtility.hotControl = controlID;
+                    Paint(painter, e.mousePosition);
+                    e.Use();
+                }
+                break;
 
-        if (e.type == EventType.MouseUp && e.button == 0)
-        {
-            lastPaintPosition = Vector3.positiveInfinity;
+            case EventType.MouseDrag:
+                if (GUIUtility.hotControl == controlID)
+                {
+                    Paint(painter, e.mousePosition);
+                    e.Use();
+                }
+                break;
+
+            case EventType.MouseUp:
+                if (GUIUtility.hotControl == controlID)
+                {
+                    GUIUtility.hotControl = 0;
+                    lastPaintPosition = Vector3.positiveInfinity;
+                    e.Use();
+                }
+                break;
         }
     }
 
-    private void Paint(Vector2 mousePosition)
+    private static void Paint(SceneObjectPainter painter, Vector2 mousePosition)
     {
         Ray ray = HandleUtility.GUIPointToWorldRay(mousePosition);
 

@@ -210,4 +210,23 @@ public class VariacionAlbedo : MonoBehaviour
             render.SetPropertyBlock(propBlock, config.indiceMaterial);
         }
     }
+
+#if UNITY_EDITOR
+    // Al reimportar una textura, el MaterialPropertyBlock sigue apuntando a la versión descargada
+    // y el objeto se ve negro hasta el siguiente OnEnable. Tras cada importación se vuelve a aplicar.
+    private class ReaplicarTrasImportar : UnityEditor.AssetPostprocessor
+    {
+        static void OnPostprocessAllAssets(string[] importados, string[] borrados, string[] movidos, string[] origenesMovidos)
+        {
+            if (importados.Length == 0)
+                return;
+
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                foreach (VariacionAlbedo variacion in Object.FindObjectsByType<VariacionAlbedo>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    variacion.AplicarMaterial();
+            };
+        }
+    }
+#endif
 }

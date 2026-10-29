@@ -62,6 +62,15 @@ Material:
     m_Ints: []
     m_Floats:
     - _BumpScale: 1
+    - _CloudOpacity: 1
+    - _CloudPoleFade: 0
+    - _CloudPower: 1.14
+    - _CloudScale: 64
+    - _CloudShear: 10
+    - _CloudSoftness: 0.062
+    - _CloudStarOcclusion: 0
+    - _CloudThreshold: 0.12
+    - _CloudTwirl: 12
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DirectionPitch: 9
@@ -80,11 +89,19 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _StarBreathIntensity: 0.5
+    - _StarBreathSize: 1
+    - _StarBreathSpeed: 5
     - _StarDensity: 0.021
+    - _StarRadius: 0.5
     - _StarSize: 300
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - _CloudColor: {r: 0.0074990317, g: 0.022173883, b: 0.02121901, a: 1}
+    - _CloudNoiseSpeed: {r: -0.002, g: -0.002, b: 0, a: 0}
+    - _CloudTwirlCenter: {r: 3.26, g: 0.5, b: 0, a: 0}
+    - _CloudTwirlSpeed: {r: 0.002, g: 0.002, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color1: {r: 0.58686364, g: 0.7924528, b: 0.75574046, a: 1}
     - _Color2: {r: 0.14538093, g: 0.30971265, b: 0.31132078, a: 1}
