@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -20,6 +19,14 @@ public class AgarrarManguera : MonoBehaviour
     [Header("Conexion con la nave")]
     public Transform puntoConexionNave;
     public float distanciaConexion = 1.5f;
+
+    [Header("Cambio al conectar")]
+    [Tooltip("Objeto que se activa al conectar la manguera (ej: una manguera estática ya enchufada)")]
+    public GameObject objetoActivarAlConectar;
+    [Tooltip("Objetos que se desactivan al conectar. Vacío = la manguera física entera (su MangueraSistema, con el tubo, y esta boquilla)")]
+    public GameObject[] objetosDesactivarAlConectar;
+    [Tooltip("Segundos tras conectar antes de hacer el cambio (0 = en el mismo instante)")]
+    [Min(0f)] public float retrasoCambioAlConectar = 0f;
 
     private Rigidbody rb;
     private bool agarrada = false;
@@ -135,5 +142,42 @@ public class AgarrarManguera : MonoBehaviour
             mangueraFisica.TensarAlConectar();
 
         Debug.Log("MANGUERA CONECTADA A LA NAVE");
+
+        if (retrasoCambioAlConectar > 0f)
+            StartCoroutine(CambiarTrasRetraso(mangueraFisica));
+        else
+            CambiarPorObjetoConectado(mangueraFisica);
+    }
+
+    System.Collections.IEnumerator CambiarTrasRetraso(MangueraFisica mangueraFisica)
+    {
+        yield return new WaitForSeconds(retrasoCambioAlConectar);
+        CambiarPorObjetoConectado(mangueraFisica);
+    }
+
+    // Sustituye la manguera física por el objeto configurado.
+    // Ojo: al conectar, la boquilla pasa a ser hija de la nave, así que desactivar
+    // MangueraSistema ya no la oculta; por eso por defecto se desactivan las dos.
+    void CambiarPorObjetoConectado(MangueraFisica mangueraFisica)
+    {
+        if (objetoActivarAlConectar != null)
+            objetoActivarAlConectar.SetActive(true);
+
+        if (objetosDesactivarAlConectar != null && objetosDesactivarAlConectar.Length > 0)
+        {
+            foreach (GameObject objeto in objetosDesactivarAlConectar)
+            {
+                if (objeto != null)
+                    objeto.SetActive(false);
+            }
+
+            return;
+        }
+
+        if (mangueraFisica != null)
+            mangueraFisica.gameObject.SetActive(false);
+
+        // La boquilla va la última: al desactivarse a sí misma se detiene este script.
+        gameObject.SetActive(false);
     }
 }
