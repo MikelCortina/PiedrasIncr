@@ -108,6 +108,12 @@ public class CambioCamaraIntro : MonoBehaviour
     public CinemachineBrain brainCamaraPrincipal;
     public Transform camaraPrincipal;
 
+    [Header("Layers de la Cámara Exterior")]
+    [Tooltip("Filtra qué layers se renderizan mientras se ve la cámara exterior del inicio. Se aplica al Culling Mask de la cámara principal (las CinemachineCamera no tienen uno propio) y se restaura al pasar a la cabina.")]
+    public bool filtrarLayersCamaraExterior = false;
+    [Tooltip("Layers que se ven con la cámara exterior del inicio")]
+    public LayerMask layersVisiblesCamaraExterior = ~0;
+
     [Header("FOV del Jugador")]
     [Tooltip("Al terminar la intro, devuelve a la cámara principal el FOV del jugador. Sin esto se queda con el FOV de la última cámara Cinemachine (la de cabina).")]
     public bool restaurarFOVJugador = true;
@@ -197,6 +203,10 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private Vector3 posicionFijaCamaraExterior;
     private Quaternion rotacionFijaCamaraExterior;
+
+    // Culling Mask original de la cámara principal mientras el filtro de la exterior está aplicado.
+    private Camera camaraConLayersFiltradas;
+    private int cullingMaskOriginal;
 
     private bool[] controlesOriginalmenteActivos;
     private CinemachineBlendDefinition transicionOriginal;
@@ -298,6 +308,8 @@ public class CambioCamaraIntro : MonoBehaviour
 
             camaraExterior.Follow = null;
             camaraExterior.LookAt = null;
+
+            AplicarLayersCamaraExterior();
         }
 
         if (camaraInterior != null)
@@ -392,6 +404,8 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private void OnDestroy()
     {
+        RestaurarLayersCamaraExterior();
+
         if (palancaSalida != null)
             palancaSalida.AlLlegarAlTope.RemoveListener(AlBajarPalancaSalida);
     }
@@ -991,8 +1005,35 @@ public class CambioCamaraIntro : MonoBehaviour
         if (camaraInterior != null)
             camaraInterior.Priority = 40;
 
+        RestaurarLayersCamaraExterior();
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    // Las CinemachineCamera no tienen Culling Mask: el filtro se aplica a la Camera real del Brain.
+    private void AplicarLayersCamaraExterior()
+    {
+        if (!filtrarLayersCamaraExterior || camaraPrincipal == null || camaraConLayersFiltradas != null)
+            return;
+
+        Camera camara = camaraPrincipal.GetComponent<Camera>();
+
+        if (camara == null)
+            return;
+
+        camaraConLayersFiltradas = camara;
+        cullingMaskOriginal = camara.cullingMask;
+        camara.cullingMask = layersVisiblesCamaraExterior;
+    }
+
+    private void RestaurarLayersCamaraExterior()
+    {
+        if (camaraConLayersFiltradas == null)
+            return;
+
+        camaraConLayersFiltradas.cullingMask = cullingMaskOriginal;
+        camaraConLayersFiltradas = null;
     }
 
     private void RotarCamaraExteriorHaciaNave()
@@ -1049,6 +1090,9 @@ public class CambioCamaraIntro : MonoBehaviour
         float tiempoFundido = Mathf.Max(0f, duracionFundido);
 
         yield return Fundido(0f, 1f, tiempoFundido);
+
+        // Por si la intro termina sin haber pasado por la cabina.
+        RestaurarLayersCamaraExterior();
 
         if (movimientoNave != null)
         {

@@ -7,6 +7,12 @@ public class MangueraFisica : MonoBehaviour
     public Transform puntoFijo;
     public Transform boquilla;
 
+    [Header("Salida desde la pared")]
+    [Tooltip("Metros que la manguera sale recta y en horizontal desde el punto fijo antes de caer por gravedad (0 = sin tramo recto)")]
+    [Min(0f)] public float longitudSalidaRecta = 0.3f;
+    [Tooltip("Eje local del punto fijo hacia el que sale la manguera. Se aplana a horizontal.")]
+    public Vector3 direccionSalidaLocal = Vector3.forward;
+
     [Header("Fisica")]
     [Range(8, 60)] public int segmentos = 30;
     [Range(1f, 22f)] public float holgura = 1.3f;
@@ -68,10 +74,7 @@ public class MangueraFisica : MonoBehaviour
         posiciones = new Vector3[segmentos + 1];
         posicionesAnteriores = new Vector3[segmentos + 1];
 
-        float distancia = Vector3.Distance(
-            puntoFijo.position,
-            boquilla.position
-        );
+        float distancia = DistanciaHastaBoquilla();
 
         // Longitud total guardada en el surtidor.
         longitudMaxima = Mathf.Max(0.01f, distancia * holgura);
@@ -84,12 +87,17 @@ public class MangueraFisica : MonoBehaviour
 
         longitudSegmento = longitudDesplegada / segmentos;
 
-        for (int i = 0; i <= segmentos; i++)
+        int finSalida = IndiceFinSalida();
+        FijarExtremos(finSalida);
+
+        Vector3 inicioCaida = posiciones[finSalida];
+
+        for (int i = finSalida + 1; i < segmentos; i++)
         {
-            float t = (float)i / segmentos;
+            float t = (float)(i - finSalida) / (segmentos - finSalida);
 
             Vector3 posicion = Vector3.Lerp(
-                puntoFijo.position,
+                inicioCaida,
                 boquilla.position,
                 t
             );
@@ -111,25 +119,24 @@ public class MangueraFisica : MonoBehaviour
         if (conectadaANave)
         {
             // Recoger toda la longitud sobrante.
-            longitudDesplegada = Vector3.Distance(
-                puntoFijo.position,
-                boquilla.position
-            );
+            longitudDesplegada = DistanciaHastaBoquilla();
 
             longitudSegmento = longitudDesplegada / segmentos;
 
             float suavizado = 1f - Mathf.Exp(-velocidadTensado * dt);
 
-            posiciones[0] = puntoFijo.position;
-            posiciones[segmentos] = boquilla.position;
+            int finSalidaConectada = IndiceFinSalida();
+            FijarExtremos(finSalidaConectada);
 
-            for (int i = 1; i < segmentos; i++)
+            Vector3 inicioTramo = posiciones[finSalidaConectada];
+
+            for (int i = finSalidaConectada + 1; i < segmentos; i++)
             {
-                float t = (float)i / segmentos;
+                float t = (float)(i - finSalidaConectada) / (segmentos - finSalidaConectada);
 
-                // Línea entre el surtidor y la nave.
+                // Línea entre el final de la salida recta y la nave.
                 Vector3 objetivo = Vector3.Lerp(
-                    puntoFijo.position,
+                    inicioTramo,
                     boquilla.position,
                     t
                 );
@@ -153,10 +160,7 @@ public class MangueraFisica : MonoBehaviour
         }
 
         // Distancia actual entre el surtidor y la boquilla.
-        float distanciaActual = Vector3.Distance(
-            puntoFijo.position,
-            boquilla.position
-        );
+        float distanciaActual = DistanciaHastaBoquilla();
 
         // Solo desplegar la longitud necesaria, con un poco de comba.
         float longitudObjetivo = Mathf.Min(
@@ -185,8 +189,11 @@ public class MangueraFisica : MonoBehaviour
         // Actualizamos el tamaño de los segmentos.
         longitudSegmento = longitudDesplegada / segmentos;
 
+        // Los puntos hasta finSalida forman el tramo recto: no caen ni se corrigen.
+        int finSalida = IndiceFinSalida();
+
         // Simulacion Verlet: gravedad e inercia.
-        for (int i = 1; i < segmentos; i++)
+        for (int i = finSalida + 1; i < segmentos; i++)
         {
             Vector3 actual = posiciones[i];
 
@@ -203,11 +210,10 @@ public class MangueraFisica : MonoBehaviour
         // Mantener la longitud y evitar penetrar el suelo.
         for (int j = 0; j < iteraciones; j++)
         {
-            posiciones[0] = puntoFijo.position;
-            posiciones[segmentos] = boquilla.position;
+            FijarExtremos(finSalida);
 
             // Restricciones de longitud.
-            for (int i = 0; i < segmentos; i++)
+            for (int i = finSalida; i < segmentos; i++)
             {
                 Vector3 diferencia =
                     posiciones[i + 1] - posiciones[i];
@@ -220,7 +226,7 @@ public class MangueraFisica : MonoBehaviour
                 Vector3 correccion =
                     diferencia * ((distancia - longitudSegmento) / distancia);
 
-                if (i == 0)
+                if (i == finSalida)
                 {
                     posiciones[i + 1] -= correccion;
                 }
@@ -238,7 +244,7 @@ public class MangueraFisica : MonoBehaviour
             // Colision de los segmentos con el suelo.
             if (capasSuelo.value != 0)
             {
-                for (int i = 1; i < segmentos; i++)
+                for (int i = finSalida + 1; i < segmentos; i++)
                 {
                     Vector3 origen = posiciones[i] + Vector3.up * 3f;
 
@@ -269,7 +275,60 @@ public class MangueraFisica : MonoBehaviour
         }
 
         // Los extremos permanecen sujetos.
-        posiciones[0] = puntoFijo.position;
+        FijarExtremos(finSalida);
+    }
+
+    // Dirección horizontal en la que la manguera sale de la pared.
+    Vector3 DireccionSalida()
+    {
+        Vector3 direccion = Vector3.ProjectOnPlane(
+            puntoFijo.TransformDirection(direccionSalidaLocal),
+            Vector3.up
+        );
+
+        // Si el eje elegido apunta en vertical, sale hacia la boquilla.
+        if (direccion.sqrMagnitude < 0.000001f)
+            direccion = Vector3.ProjectOnPlane(boquilla.position - puntoFijo.position, Vector3.up);
+
+        if (direccion.sqrMagnitude < 0.000001f)
+            direccion = Vector3.forward;
+
+        return direccion.normalized;
+    }
+
+    // Longitud mínima para llegar a la boquilla pasando por la salida recta.
+    float DistanciaHastaBoquilla()
+    {
+        Vector3 finSalida = puntoFijo.position + DireccionSalida() * longitudSalidaRecta;
+
+        return longitudSalidaRecta + Vector3.Distance(finSalida, boquilla.position);
+    }
+
+    // Último punto del tramo recto. Siempre deja al menos dos puntos libres antes de la boquilla.
+    int IndiceFinSalida()
+    {
+        if (longitudSalidaRecta <= 0f || longitudSegmento <= 0.0001f)
+            return 0;
+
+        int indice = Mathf.RoundToInt(longitudSalidaRecta / longitudSegmento);
+
+        return Mathf.Clamp(indice, 0, segmentos - 2);
+    }
+
+    // Sujeta el tramo recto de salida (sin velocidad) y la boquilla.
+    void FijarExtremos(int finSalida)
+    {
+        Vector3 origen = puntoFijo.position;
+        Vector3 direccion = DireccionSalida();
+
+        for (int i = 0; i <= finSalida; i++)
+        {
+            Vector3 punto = origen + direccion * (i * longitudSegmento);
+
+            posiciones[i] = punto;
+            posicionesAnteriores[i] = punto;
+        }
+
         posiciones[segmentos] = boquilla.position;
     }
 
