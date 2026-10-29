@@ -98,6 +98,20 @@ public class CambioCamaraIntro : MonoBehaviour
     [Tooltip("Desactiva los GameObjects de las imágenes al terminar el fundido")]
     public bool desactivarImagenesAlTerminar = true;
 
+    [Header("Imágenes UI de la Transición")]
+    [Tooltip("Imágenes del Canvas que se ven desde el inicio y se desvanecen cuando la nave llega al punto indicado del spline")]
+    public List<Image> imagenesTransicion = new List<Image>();
+    [Tooltip("Punto del spline (0 a 1) en el que empiezan a desvanecerse")]
+    [Range(0f, 1f)] public float puntoFundidoTransicion = 0.4f;
+    [Tooltip("Duración en segundos del fundido")]
+    [Min(0f)] public float duracionFundidoTransicion = 2f;
+    [Tooltip("Opacidad final de las imágenes (0 = invisibles)")]
+    [Range(0f, 1f)] public float alphaFinalTransicion = 0f;
+    [Tooltip("Eje X = tiempo normalizado del fundido | Eje Y = progreso del fundido (0 = alpha original, 1 = alpha final)")]
+    public AnimationCurve curvaFundidoTransicion = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    [Tooltip("Desactiva los GameObjects de las imágenes al terminar el fundido")]
+    public bool desactivarTransicionAlTerminar = true;
+
     [Header("Camaras")]
     public CinemachineCamera camaraExterior;
     public CinemachineCamera camaraInterior;
@@ -220,6 +234,8 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private bool naveIniciada;
     private float[] alphasOriginalesImagenes;
+    private float[] alphasOriginalesTransicion;
+    private bool fundidoTransicionIniciado;
 
     private float velocidadPicoNave;
     private float velocidadFinalNave;
@@ -327,7 +343,8 @@ public class CambioCamaraIntro : MonoBehaviour
             pantallaNegraIntro.blocksRaycasts = false;
         }
 
-        GuardarAlphasOriginalesImagenes();
+        alphasOriginalesImagenes = GuardarAlphasOriginales(imagenesIntro);
+        alphasOriginalesTransicion = GuardarAlphasOriginales(imagenesTransicion);
 
         if (controlesJugador != null)
         {
@@ -436,6 +453,12 @@ public class CambioCamaraIntro : MonoBehaviour
             previsualizarPuntoSpline = Mathf.Clamp01(progreso);
 
             ActualizarFactorVibracion(progreso);
+
+            if (!fundidoTransicionIniciado && progreso >= puntoFundidoTransicion)
+            {
+                fundidoTransicionIniciado = true;
+                StartCoroutine(FundidoImagenesTransicion());
+            }
 
             if (!cambioRealizado && camaraExterior != null)
             {
@@ -881,23 +904,25 @@ public class CambioCamaraIntro : MonoBehaviour
     // IMÁGENES UI DE INICIO
     // =====================================================
 
-    private void GuardarAlphasOriginalesImagenes()
+    private static float[] GuardarAlphasOriginales(List<Image> imagenes)
     {
-        if (imagenesIntro == null)
-            return;
+        if (imagenes == null)
+            return null;
 
-        alphasOriginalesImagenes = new float[imagenesIntro.Count];
+        float[] alphas = new float[imagenes.Count];
 
-        for (int i = 0; i < imagenesIntro.Count; i++)
+        for (int i = 0; i < imagenes.Count; i++)
         {
-            Image imagen = imagenesIntro[i];
+            Image imagen = imagenes[i];
 
             if (imagen == null)
                 continue;
 
-            alphasOriginalesImagenes[i] = imagen.color.a;
+            alphas[i] = imagen.color.a;
             imagen.gameObject.SetActive(true);
         }
+
+        return alphas;
     }
 
     private IEnumerator FundidoImagenesIntro()
@@ -916,14 +941,14 @@ public class CambioCamaraIntro : MonoBehaviour
                 tiempo += Time.deltaTime;
 
                 float t = Mathf.Clamp01(tiempo / duracionFundidoImagenes);
-                AplicarProgresoImagenes(curvaFundidoImagenes.Evaluate(t));
+                AplicarProgresoImagenes(imagenesIntro, alphasOriginalesImagenes, alphaFinalImagenes, curvaFundidoImagenes.Evaluate(t));
 
                 yield return null;
             }
         }
 
-        AplicarProgresoImagenes(1f);
-        TerminarImagenes();
+        AplicarProgresoImagenes(imagenesIntro, alphasOriginalesImagenes, alphaFinalImagenes, 1f);
+        TerminarImagenes(imagenesIntro, desactivarImagenesAlTerminar);
 
         // Sin imágenes el fundido "termina" al instante, así que el retraso cuenta desde el inicio.
         if (retrasoInicioNaveTrasFundido > 0f)
@@ -932,30 +957,52 @@ public class CambioCamaraIntro : MonoBehaviour
         IniciarNave();
     }
 
-    private void AplicarProgresoImagenes(float progreso)
+    // Se lanza cuando la nave llega a puntoFundidoTransicion. No bloquea el vuelo.
+    private IEnumerator FundidoImagenesTransicion()
     {
-        if (imagenesIntro == null || alphasOriginalesImagenes == null)
+        if (imagenesTransicion == null || imagenesTransicion.Count == 0)
+            yield break;
+
+        float tiempo = 0f;
+
+        while (tiempo < duracionFundidoTransicion)
+        {
+            tiempo += Time.deltaTime;
+
+            float t = Mathf.Clamp01(tiempo / duracionFundidoTransicion);
+            AplicarProgresoImagenes(imagenesTransicion, alphasOriginalesTransicion, alphaFinalTransicion, curvaFundidoTransicion.Evaluate(t));
+
+            yield return null;
+        }
+
+        AplicarProgresoImagenes(imagenesTransicion, alphasOriginalesTransicion, alphaFinalTransicion, 1f);
+        TerminarImagenes(imagenesTransicion, desactivarTransicionAlTerminar);
+    }
+
+    private static void AplicarProgresoImagenes(List<Image> imagenes, float[] alphasOriginales, float alphaFinal, float progreso)
+    {
+        if (imagenes == null || alphasOriginales == null)
             return;
 
-        for (int i = 0; i < imagenesIntro.Count; i++)
+        for (int i = 0; i < imagenes.Count && i < alphasOriginales.Length; i++)
         {
-            Image imagen = imagenesIntro[i];
+            Image imagen = imagenes[i];
 
             if (imagen == null)
                 continue;
 
             Color color = imagen.color;
-            color.a = Mathf.LerpUnclamped(alphasOriginalesImagenes[i], alphaFinalImagenes, progreso);
+            color.a = Mathf.LerpUnclamped(alphasOriginales[i], alphaFinal, progreso);
             imagen.color = color;
         }
     }
 
-    private void TerminarImagenes()
+    private static void TerminarImagenes(List<Image> imagenes, bool desactivar)
     {
-        if (!desactivarImagenesAlTerminar || imagenesIntro == null)
+        if (!desactivar || imagenes == null)
             return;
 
-        foreach (Image imagen in imagenesIntro)
+        foreach (Image imagen in imagenes)
         {
             if (imagen != null)
                 imagen.gameObject.SetActive(false);
@@ -1087,6 +1134,14 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private IEnumerator FinalizarIntroduccion()
     {
+        // Si la intro acaba antes de llegar al punto de la transición, esas imágenes no se quedan en pantalla.
+        if (!fundidoTransicionIniciado)
+        {
+            fundidoTransicionIniciado = true;
+            AplicarProgresoImagenes(imagenesTransicion, alphasOriginalesTransicion, alphaFinalTransicion, 1f);
+            TerminarImagenes(imagenesTransicion, desactivarTransicionAlTerminar);
+        }
+
         float tiempoFundido = Mathf.Max(0f, duracionFundido);
 
         yield return Fundido(0f, 1f, tiempoFundido);

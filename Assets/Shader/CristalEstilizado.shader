@@ -33,7 +33,7 @@ Shader "Custom/CristalEstilizado"
 
         [Header(Refraccion)]
         [Toggle(_REFRACCION_ON)] _Refraccion ("Refractar lo de detras (requiere Opaque Texture)", Float) = 1
-        _IntensidadRefraccion ("Intensidad de Refraccion", Range(0, 0.1)) = 0.02
+        _IntensidadRefraccion ("Grosor de Refraccion (metros)", Range(0, 0.1)) = 0.02
         _TinteFondo ("Tinte del Fondo", Range(0, 1)) = 0.35
     }
 
@@ -180,10 +180,12 @@ Shader "Custom/CristalEstilizado"
                 half4 resultado;
 
             #if defined(_REFRACCION_ON)
-                // Desplazamos la imagen de detrás según la normal en espacio de vista, y la teñimos con el cristal.
-                float2 uvPantalla = GetNormalizedScreenSpaceUV(entrada.positionCS);
-                float3 normalVista = TransformWorldToViewDir(normal);
-                float2 uvRefraccion = uvPantalla + normalVista.xy * _IntensidadRefraccion;
+                // Desplazamos el punto en el mundo (el grosor del cristal, en metros) y lo proyectamos a pantalla.
+                // Un desplazamiento fijo en pantalla hacía de lupa al alejarse: la cabina ocupaba poco y el
+                // desplazamiento seguía siendo el mismo, así que el interior se veía ampliado y movido.
+                float3 puntoDetras = entrada.positionWS - normal * _IntensidadRefraccion;
+                float4 pantallaDetras = ComputeScreenPos(TransformWorldToHClip(puntoDetras));
+                float2 uvRefraccion = pantallaDetras.xy / pantallaDetras.w;
                 half3 fondo = SampleSceneColor(uvRefraccion);
                 fondo = lerp(fondo, fondo * _ColorCristal.rgb, _TinteFondo);
 
