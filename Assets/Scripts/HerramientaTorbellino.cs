@@ -158,6 +158,9 @@ public class HerramientaTorbellino : MonoBehaviour
     private Vector3 posicionAnteriorTorbellino;
     private Vector3 velocidadTraslacionTornado;
     private HashSet<Rigidbody> piedrasAtrapadas = new HashSet<Rigidbody>();
+    // Búfer reutilizado para la detección (OverlapSphere creaba un array nuevo en cada paso físico).
+    private Collider[] bufferDeteccion = new Collider[256];
+    private static readonly System.Predicate<Rigidbody> piedraNoValida = rb => rb == null || !rb.gameObject.activeInHierarchy;
 
     private float velocidadOriginalMovimiento;
     private float sensibilidadOriginalCamara;
@@ -561,9 +564,17 @@ public class HerramientaTorbellino : MonoBehaviour
 
     void ActualizarPiedras(Vector3 centroTorbellino)
     {
-        Collider[] objetosDetectados = Physics.OverlapSphere(centroTorbellino, radioAtraccion);
-        foreach (Collider col in objetosDetectados)
+        int detectados = Physics.OverlapSphereNonAlloc(centroTorbellino, radioAtraccion, bufferDeteccion);
+        if (detectados == bufferDeteccion.Length)
         {
+            // Búfer lleno: se amplía para no dejar piedras fuera el siguiente paso.
+            bufferDeteccion = new Collider[bufferDeteccion.Length * 2];
+            detectados = Physics.OverlapSphereNonAlloc(centroTorbellino, radioAtraccion, bufferDeteccion);
+        }
+
+        for (int i = 0; i < detectados; i++)
+        {
+            Collider col = bufferDeteccion[i];
             if (col.CompareTag(tagPiedra))
             {
                 Rigidbody rb = col.GetComponent<Rigidbody>();
@@ -581,7 +592,7 @@ public class HerramientaTorbellino : MonoBehaviour
             }
         }
 
-        piedrasAtrapadas.RemoveWhere(rb => rb == null || !rb.gameObject.activeInHierarchy);
+        piedrasAtrapadas.RemoveWhere(piedraNoValida);
 
         Vector3 velTornadoPlana = new Vector3(velocidadTraslacionTornado.x, 0f, velocidadTraslacionTornado.z);
 

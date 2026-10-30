@@ -184,6 +184,11 @@ MonoBehaviour:
   intervaloComprobacion: 1
   umbralDistancia: 0.05
   umbralRotacion: 5
+  modoDeteccionColision: 2
+  intervaloActualizacionCollider: 0.3
+  tiempoEntreDeformaciones: 0.08
+  velocidadMinimaErosionArrastre: 3
+  intervaloErosionArrastre: 0.1
   radioDeImpacto: 0.5
   fuerzaDeErosion: 0.25
   fuerzaMinimaChoque: 1
@@ -282,6 +287,9 @@ MonoBehaviour:
   velocidadAscenso: 7
   velocidadVueltaAlBorde: 5
   alturaExtraTrayecto: 1
+  curvaturaLateral: 1.25
+  amplitudOscilacionLateral: 0.3
+  frecuenciaOscilacionLateral: 0.85
   duracionFrenado: 0.6
   velocidadMaximaDuranteFrenado: 12
   suavizadoMovimiento: 0.35
@@ -347,6 +355,10 @@ PrefabInstance:
     - target: {fileID: 5013780143572598559, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
       propertyPath: m_Name
       value: Chispas
+      objectReference: {fileID: 0}
+    - target: {fileID: 5013780143572598559, guid: 88b5499e620996b4abedb77baf5a5152, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

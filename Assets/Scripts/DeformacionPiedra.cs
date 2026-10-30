@@ -9,6 +9,20 @@ public class DeformacionPiedra : MonoBehaviour
     public float umbralDistancia = 0.05f;
     public float umbralRotacion = 5.0f;
 
+    [Header("Optimización: Rendimiento con muchas piedras")]
+    [Tooltip("Detección de colisión. ContinuousDynamic detecta bien los impactos (desgaste); ContinuousSpeculative es más barata pero suaviza los choques.")]
+    public CollisionDetectionMode modoDeteccionColision = CollisionDetectionMode.ContinuousDynamic;
+    [Tooltip("Segundos mínimos entre reconstrucciones del MeshCollider (rehacer el collider convexo es lo más caro). La malla visible se actualiza siempre al instante.")]
+    [Min(0f)] public float intervaloActualizacionCollider = 0.3f;
+    [Tooltip("Segundos mínimos entre dos deformaciones por choque de la misma piedra")]
+    [Min(0f)] public float tiempoEntreDeformaciones = 0.08f;
+
+    [Header("Desgaste por arrastre (rozando el suelo, p. ej. en el torbellino)")]
+    [Tooltip("Velocidad mínima a la que la piedra se desgasta mientras roza algo que no es otra piedra")]
+    [Min(0f)] public float velocidadMinimaErosionArrastre = 3f;
+    [Tooltip("Segundos entre desgastes mientras roza (más bajo = se desgasta más rápido)")]
+    [Min(0f)] public float intervaloErosionArrastre = 0.1f;
+
     [Header("Ajustes de Erosión")]
     public float radioDeImpacto = 0.5f;
     public float fuerzaDeErosion = 0.1f;
@@ -71,17 +85,28 @@ public class DeformacionPiedra : MonoBehaviour
     private Quaternion rotacionAnterior;
     private float temporizadorEspacial = 0f;
 
+    private MeshFilter filtroMalla;
+    private MeshCollider colliderMalla;
+    private bool colliderPendiente;
+    private float proximaActualizacionCollider;
+    private float ultimaDeformacion = -999f;
+    // El desgaste solo cambia al deformar: se cachea en vez de copiar todos los vértices en cada consulta.
+    private float desgasteCacheado;
+    private bool desgasteSucio = true;
+
     void Start()
     {
         tiempoNacimiento = Time.time;
-        malla = GetComponent<MeshFilter>().sharedMesh;
+        filtroMalla = GetComponent<MeshFilter>();
+        malla = filtroMalla.sharedMesh;
         vertices = malla.vertices;
+        desgasteSucio = true;
 
         rb = GetComponent<Rigidbody>();
-        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        rb.collisionDetectionMode = modoDeteccionColision;
 
-        MeshCollider mc = GetComponent<MeshCollider>();
-        if (mc != null) mc.convex = true;
+        colliderMalla = GetComponent<MeshCollider>();
+        if (colliderMalla != null) colliderMalla.convex = true;
 
         CalcularRadioObjetivo();
 
@@ -113,6 +138,9 @@ public class DeformacionPiedra : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (colliderPendiente && Time.time >= proximaActualizacionCollider)
+            AplicarCollider();
+
         if (!rb.isKinematic)
         {
             temporizadorEspacial += Time.fixedDeltaTime;
@@ -222,10 +250,18 @@ public class DeformacionPiedra : MonoBehaviour
 
         tocandoSuelo = true;
 
-        if (particulasPolvo == null || rb.isKinematic) return;
+        if (rb.isKinematic) return;
         if (Time.time < tiempoNacimiento + retrasoEfectosInicial) return;
 
         float velocidadActual = rb.linearVelocity.magnitude;
+
+        // Al no reconstruir el collider en cada golpe, el contacto sigue como Stay y ya no se repite
+        // OnCollisionEnter: el desgaste mientras se arrastra se hace aquí, con su propio ritmo.
+        if (velocidadActual >= velocidadMinimaErosionArrastre && Time.time - ultimaDeformacion >= intervaloErosionArrastre)
+            DeformarMalla(transform.InverseTransformPoint(colision.GetContact(0).point));
+
+        if (particulasPolvo == null) return;
+
         if (velocidadActual > velocidadMinimaDeslizamiento)
         {
             temporizadorPolvo -= Time.fixedDeltaTime;
@@ -247,6 +283,9 @@ public class DeformacionPiedra : MonoBehaviour
 
     void EmitirPolvo(Vector3 pos, Vector3 norm, float minF, float maxF, float fActual, int minP, int maxP)
     {
+        // Con las partículas desactivadas no se calcula nada.
+        if (!particulasPolvo.gameObject.activeInHierarchy) return;
+
         particulasPolvo.transform.position = pos;
         particulasPolvo.transform.rotation = Quaternion.LookRotation(norm);
 
@@ -268,6 +307,9 @@ public class DeformacionPiedra : MonoBehaviour
 
     public void DeformarMalla(Vector3 puntoImpactoLocal)
     {
+        // En el torbellino una piedra choca muchas veces por segundo: se limita la frecuencia.
+        if (Time.time - ultimaDeformacion < tiempoEntreDeformaciones) return;
+
         bool mallaModificada = false;
         float fuerzaErosionFinal = fuerzaDeErosion * multiplicadorErosion;
 
@@ -290,20 +332,8 @@ public class DeformacionPiedra : MonoBehaviour
 
         if (mallaModificada)
         {
-            if (!mallaClonada)
-            {
-                malla = Instantiate(GetComponent<MeshFilter>().sharedMesh);
-                mallaClonada = true;
-            }
-
-            malla.vertices = vertices;
-            malla.RecalculateNormals();
-            malla.RecalculateBounds();
-
-            MeshCollider mc = GetComponent<MeshCollider>();
-            mc.sharedMesh = malla;
-            mc.convex = true;
-            GetComponent<MeshFilter>().sharedMesh = malla;
+            ultimaDeformacion = Time.time;
+            ActualizarMalla();
         }
     }
 
@@ -323,29 +353,46 @@ public class DeformacionPiedra : MonoBehaviour
             }
         }
 
-        if (mallaModificada)
+        if (mallaModificada) ActualizarMalla();
+    }
+
+    // La malla visible se actualiza al instante; el MeshCollider convexo (caro de reconstruir) como mucho
+    // cada intervaloActualizacionCollider segundos.
+    void ActualizarMalla()
+    {
+        if (filtroMalla == null) filtroMalla = GetComponent<MeshFilter>();
+
+        if (!mallaClonada)
         {
-            if (!mallaClonada)
-            {
-                malla = Instantiate(GetComponent<MeshFilter>().sharedMesh);
-                mallaClonada = true;
-            }
-
-            malla.vertices = vertices;
-            malla.RecalculateNormals();
-            malla.RecalculateBounds();
-
-            MeshCollider mc = GetComponent<MeshCollider>();
-            mc.sharedMesh = malla;
-            mc.convex = true;
-            GetComponent<MeshFilter>().sharedMesh = malla;
+            malla = Instantiate(filtroMalla.sharedMesh);
+            mallaClonada = true;
         }
+
+        malla.vertices = vertices;
+        malla.RecalculateNormals();
+        malla.RecalculateBounds();
+        filtroMalla.sharedMesh = malla;
+
+        desgasteSucio = true;
+        colliderPendiente = true;
+    }
+
+    void AplicarCollider()
+    {
+        colliderPendiente = false;
+        proximaActualizacionCollider = Time.time + intervaloActualizacionCollider;
+
+        if (colliderMalla == null) return;
+        colliderMalla.sharedMesh = malla;
+        colliderMalla.convex = true;
     }
 
     public float ObtenerPorcentajeDesgasteHaciaEsfera()
     {
         if (malla == null) return 0f;
-        Vector3[] verts = malla.vertices;
+        if (!desgasteSucio) return desgasteCacheado;
+
+        Vector3[] verts = vertices ?? malla.vertices;
         if (verts.Length == 0) return 0f;
 
         float sumaDistanciasActuales = 0f;
@@ -357,7 +404,9 @@ public class DeformacionPiedra : MonoBehaviour
         float radioMaximoInicial = radioObjetivoMinimo + (radioDeImpacto * 2f);
         float progreso = Mathf.InverseLerp(radioMaximoInicial, radioObjetivoMinimo, radioActualPromedio);
 
-        return Mathf.Clamp01(progreso) * 100f;
+        desgasteCacheado = Mathf.Clamp01(progreso) * 100f;
+        desgasteSucio = false;
+        return desgasteCacheado;
     }
 
     void OnDestroy()
