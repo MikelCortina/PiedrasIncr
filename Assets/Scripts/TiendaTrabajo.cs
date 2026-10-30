@@ -60,6 +60,7 @@ public class TiendaTrabajo : MonoBehaviour
 
     public int precioRadioNivel2 = 5;
     public int precioRadioNivel3 = 10;
+    public int precioRadioNivel4 = 20;
 
 
     // =====================================================
@@ -473,6 +474,13 @@ public class TiendaTrabajo : MonoBehaviour
         {
             precio =
                 precioRadioNivel3;
+        }
+        else if (
+            herramientaTorbellino
+                .NivelRadio == 3)
+        {
+            precio =
+                precioRadioNivel4;
         }
         else
         {
@@ -1518,6 +1526,25 @@ public class TiendaTrabajo : MonoBehaviour
                 textoBotonRadio.text =
                     "MEJORAR RADIO NIVEL 3 - " +
                     precioRadioNivel3 +
+                    " monedas";
+            }
+
+
+            if (botonMejorarRadio != null)
+            {
+                botonMejorarRadio.interactable =
+                    true;
+            }
+        }
+        else if (
+            herramientaTorbellino
+                .NivelRadio == 3)
+        {
+            if (textoBotonRadio != null)
+            {
+                textoBotonRadio.text =
+                    "MEJORAR RADIO NIVEL 4 - " +
+                    precioRadioNivel4 +
                     " monedas";
             }
 

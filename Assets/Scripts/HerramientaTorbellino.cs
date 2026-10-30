@@ -84,18 +84,37 @@ public class HerramientaTorbellino : MonoBehaviour
     public CamaraPrimeraPersona scriptCamara;
 
     [Header("Mejora - Radio del Torbellino")]
-    [SerializeField, Range(1, 3)]
+    [SerializeField, Range(1, 4)]
     private int nivelRadio = 1;
 
     [Header("Radio de Atracción")]
     public float radioAtraccionNivel1 = 8f;
     public float radioAtraccionNivel2 = 12f;
     public float radioAtraccionNivel3 = 18f;
+    [Tooltip("0 = automático: sigue la progresión de los niveles 2 y 3")]
+    public float radioAtraccionNivel4 = 0f;
 
     [Header("Radio del Ojo")]
     public float radioOjoNivel1 = 1.5f;
     public float radioOjoNivel2 = 2.25f;
     public float radioOjoNivel3 = 3.4f;
+    [Tooltip("0 = automático: sigue la progresión de los niveles 2 y 3")]
+    public float radioOjoNivel4 = 0f;
+
+    [Header("Efecto que crece con el radio")]
+    [Tooltip("Partículas que crecen al subir el nivel del radio. Vacío = busca un hijo llamado FX_WindFloor_In.")]
+    public Transform efectoRadio;
+    [Tooltip("Escala del efecto en cada nivel, multiplicando su tamaño original (1 = sin cambio)")]
+    [Min(0.01f)] public float escalaEfectoNivel1 = 1f;
+    [Min(0.01f)] public float escalaEfectoNivel2 = 1.25f;
+    [Min(0.01f)] public float escalaEfectoNivel3 = 1.5f;
+    [Min(0.01f)] public float escalaEfectoNivel4 = 1.75f;
+    // Valores originales de cada sistema de partículas del efecto (se escalan sin tocar el transform).
+    private ParticleSystem[] sistemasEfecto;
+    private float[] tamanosOriginales;
+    private Vector3[] tamanos3DOriginales;
+    private float[] radiosFormaOriginales;
+    private Vector3[] escalasFormaOriginales;
 
 
     [Header("Mejora - Alcance del Torbellino")]
@@ -125,6 +144,10 @@ public class HerramientaTorbellino : MonoBehaviour
     public int NivelMovilidad => nivelMovilidad;
     public int NivelAlcance => nivelAlcance;
     public int NivelRadio => nivelRadio;
+    // Centro del torbellino en el suelo (último punto válido apuntado) y si está apuntando a uno.
+    public Vector3 CentroTorbellino => posicionActualTorbellino;
+    public Vector3 NormalTorbellino => normalActualTorbellino;
+    public bool TorbellinoActivo => torbellinoActivo;
 
     private Camera camaraPrincipal;
 
@@ -147,7 +170,7 @@ public class HerramientaTorbellino : MonoBehaviour
 
     private void OnValidate()
     {
-        nivelRadio = Mathf.Clamp(nivelRadio, 1, 3);
+        nivelRadio = Mathf.Clamp(nivelRadio, 1, 4);
         nivelAlcance = Mathf.Clamp(nivelAlcance, 1, 3);
         nivelMovilidad = Mathf.Clamp(nivelMovilidad, 1, 3);
 
@@ -595,10 +618,17 @@ public class HerramientaTorbellino : MonoBehaviour
 
     public bool MejorarRadio()
     {
-        if (nivelRadio >= 3) return false;
+        if (nivelRadio >= 4) return false;
         nivelRadio++;
         AplicarNivelRadio();
         return true;
+    }
+
+    // Para volver a un nivel concreto (por ejemplo, al reiniciar una secuencia de pruebas).
+    public void EstablecerNivelRadio(int nivel)
+    {
+        nivelRadio = Mathf.Clamp(nivel, 1, 4);
+        AplicarNivelRadio();
     }
 
     private void AplicarNivelRadio()
@@ -617,10 +647,100 @@ public class HerramientaTorbellino : MonoBehaviour
                 radioAtraccion = radioAtraccionNivel3;
                 radioOjoTornado = radioOjoNivel3;
                 break;
+            case 4:
+                // Sin valor propio, el nivel 4 da el mismo salto que hubo del 2 al 3.
+                radioAtraccion = radioAtraccionNivel4 > 0f ? radioAtraccionNivel4 : radioAtraccionNivel3 + (radioAtraccionNivel3 - radioAtraccionNivel2);
+                radioOjoTornado = radioOjoNivel4 > 0f ? radioOjoNivel4 : radioOjoNivel3 + (radioOjoNivel3 - radioOjoNivel2);
+                break;
+        }
+
+        EscalarEfectoRadio();
+    }
+
+    // El efecto toma la escala configurada para el nivel actual (respecto a su tamaño original).
+    private void EscalarEfectoRadio()
+    {
+        // Solo en juego: en el editor (OnValidate) no se toca la escala guardada en la escena.
+        if (!Application.isPlaying)
+            return;
+
+        if (efectoRadio == null)
+            efectoRadio = BuscarHijo(transform, "FX_WindFloor_In") ??
+                          (modeloHerramienta != null ? BuscarHijo(modeloHerramienta.transform, "FX_WindFloor_In") : null);
+
+        if (efectoRadio == null)
+            return;
+
+        // Se escala el tamaño de las partículas y la forma del emisor, no el transform ni el modo de escalado:
+        // cambiar el modo a Hierarchy hacía que heredasen de golpe la escala de los padres (salto enorme del nivel 1 al 2).
+        if (sistemasEfecto == null)
+            GuardarValoresEfecto();
+
+        float escala = nivelRadio switch
+        {
+            2 => escalaEfectoNivel2,
+            3 => escalaEfectoNivel3,
+            4 => escalaEfectoNivel4,
+            _ => escalaEfectoNivel1,
+        };
+
+        for (int i = 0; i < sistemasEfecto.Length; i++)
+        {
+            ParticleSystem sistema = sistemasEfecto[i];
+            if (sistema == null)
+                continue;
+
+            ParticleSystem.MainModule principal = sistema.main;
+            if (principal.startSize3D)
+            {
+                principal.startSizeXMultiplier = tamanos3DOriginales[i].x * escala;
+                principal.startSizeYMultiplier = tamanos3DOriginales[i].y * escala;
+                principal.startSizeZMultiplier = tamanos3DOriginales[i].z * escala;
+            }
+            else
+            {
+                principal.startSizeMultiplier = tamanosOriginales[i] * escala;
+            }
+
+            ParticleSystem.ShapeModule forma = sistema.shape;
+            forma.radius = radiosFormaOriginales[i] * escala;
+            forma.scale = escalasFormaOriginales[i] * escala;
         }
     }
 
-    public bool RadioAlMaximo() { return nivelRadio >= 3; }
+    private void GuardarValoresEfecto()
+    {
+        sistemasEfecto = efectoRadio.GetComponentsInChildren<ParticleSystem>(true);
+        int n = sistemasEfecto.Length;
+        tamanosOriginales = new float[n];
+        tamanos3DOriginales = new Vector3[n];
+        radiosFormaOriginales = new float[n];
+        escalasFormaOriginales = new Vector3[n];
+
+        for (int i = 0; i < n; i++)
+        {
+            ParticleSystem.MainModule principal = sistemasEfecto[i].main;
+            tamanosOriginales[i] = principal.startSizeMultiplier;
+            tamanos3DOriginales[i] = new Vector3(principal.startSizeXMultiplier, principal.startSizeYMultiplier, principal.startSizeZMultiplier);
+
+            ParticleSystem.ShapeModule forma = sistemasEfecto[i].shape;
+            radiosFormaOriginales[i] = forma.radius;
+            escalasFormaOriginales[i] = forma.scale;
+        }
+    }
+
+    private static Transform BuscarHijo(Transform raiz, string nombre)
+    {
+        foreach (Transform hijo in raiz.GetComponentsInChildren<Transform>(true))
+        {
+            if (hijo.name == nombre)
+                return hijo;
+        }
+
+        return null;
+    }
+
+    public bool RadioAlMaximo() { return nivelRadio >= 4; }
 
     public bool MejorarAlcance()
     {
