@@ -16,8 +16,17 @@ public sealed class GameSaveData
 
     public EconomySaveData economy = new EconomySaveData();
 
-    // Campo opcional en v1: archivos anteriores con solo economía siguen siendo legibles.
+    // Campo opcional en v1: archivos anteriores con solo economia siguen siendo legibles.
     public PlayerSaveData player = new PlayerSaveData();
+
+    // Campo de presencia explicito. JsonUtility puede materializar clases
+    // serializables aunque su valor original fuese null o faltase en el JSON.
+    // Los guardados antiguos carecen de esta marca (false por defecto).
+    public bool hasEquipmentUnlocksData;
+
+    // Solo es valido cuando hasEquipmentUnlocksData == true.
+    // false + datos por defecto NO significa que el jugador no tenga mejoras.
+    public EquipmentUnlocksSaveData equipmentUnlocks;
 }
 
 [Serializable]
@@ -29,12 +38,20 @@ public sealed class EconomySaveData
 [Serializable]
 public sealed class PlayerSaveData
 {
-    // False significa: la posición segura todavía no ha sido capturada.
-    // Nunca debe interpretarse (0,0,0) como punto de aparición por defecto.
+    // False significa: la posicion segura todavia no ha sido capturada.
+    // Nunca debe interpretarse (0,0,0) como punto de aparicion por defecto.
     public bool hasSafePosition;
 
     public float positionX;
     public float positionY;
     public float positionZ;
     public float yawDegrees;
+}
+
+[Serializable]
+public sealed class EquipmentUnlocksSaveData
+{
+    public bool armaLanzadoraDesbloqueada;
+    public bool torbellinoDesbloqueado;
+    public bool martilloDesbloqueado;
 }
