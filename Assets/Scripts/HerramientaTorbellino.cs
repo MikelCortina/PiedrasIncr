@@ -789,6 +789,27 @@ public class HerramientaTorbellino : MonoBehaviour
         }
     }
 
+
+    public void RestaurarNiveles(int radio, int alcance, int movilidad)
+    {
+        if (radio < 1 || radio > 4)
+            throw new System.ArgumentOutOfRangeException(nameof(radio));
+
+        if (alcance < 1 || alcance > 3)
+            throw new System.ArgumentOutOfRangeException(nameof(alcance));
+
+        if (movilidad < 1 || movilidad > 3)
+            throw new System.ArgumentOutOfRangeException(nameof(movilidad));
+
+        nivelRadio = radio;
+        nivelAlcance = alcance;
+        nivelMovilidad = movilidad;
+
+        AplicarNivelRadio();
+        AplicarNivelAlcance();
+        AplicarNivelMovilidad();
+    }
+
     public bool MovilidadAlMaximo() { return nivelMovilidad >= 3; }
     public bool AlcanceAlMaximo() { return nivelAlcance >= 3; }
 }

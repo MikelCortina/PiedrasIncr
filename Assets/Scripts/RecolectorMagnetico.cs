@@ -337,5 +337,19 @@ public class RecolectorMagnetico : MonoBehaviour
         Debug.Log("¡Imán desbloqueado!");
     }
 
+
     public bool EstaImanDesbloqueado() => imanDesbloqueado;
+
+
+    public void RestaurarEstadoIman(bool desbloqueado, int nivel)
+    {
+        if (nivel < 1 || nivel > 3)
+            throw new System.ArgumentOutOfRangeException(nameof(nivel));
+
+        imanDesbloqueado = desbloqueado;
+        nivelAlcance = nivel;
+
+        AplicarNivelAlcance();
+    }
+
 }

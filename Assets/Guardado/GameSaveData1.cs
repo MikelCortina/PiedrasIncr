@@ -19,14 +19,14 @@ public sealed class GameSaveData
     // Campo opcional en v1: archivos anteriores con solo economia siguen siendo legibles.
     public PlayerSaveData player = new PlayerSaveData();
 
-    // Campo de presencia explicito. JsonUtility puede materializar clases
-    // serializables aunque su valor original fuese null o faltase en el JSON.
-    // Los guardados antiguos carecen de esta marca (false por defecto).
+    // Marca explicita para distinguir datos inexistentes de 'todo bloqueado'.
     public bool hasEquipmentUnlocksData;
-
-    // Solo es valido cuando hasEquipmentUnlocksData == true.
-    // false + datos por defecto NO significa que el jugador no tenga mejoras.
     public EquipmentUnlocksSaveData equipmentUnlocks;
+
+    // Marca explicita: archivos anteriores a las mejoras NO contienen estos datos.
+    // Nunca asumir nivel 1 o iman bloqueado si la marca es false.
+    public bool hasToolUpgradesData;
+    public ToolUpgradesSaveData toolUpgrades;
 }
 
 [Serializable]
@@ -38,10 +38,7 @@ public sealed class EconomySaveData
 [Serializable]
 public sealed class PlayerSaveData
 {
-    // False significa: la posicion segura todavia no ha sido capturada.
-    // Nunca debe interpretarse (0,0,0) como punto de aparicion por defecto.
     public bool hasSafePosition;
-
     public float positionX;
     public float positionY;
     public float positionZ;
@@ -54,4 +51,14 @@ public sealed class EquipmentUnlocksSaveData
     public bool armaLanzadoraDesbloqueada;
     public bool torbellinoDesbloqueado;
     public bool martilloDesbloqueado;
+}
+
+[Serializable]
+public sealed class ToolUpgradesSaveData
+{
+    public int nivelRadioTorbellino;      // 1..4
+    public int nivelAlcanceTorbellino;    // 1..3
+    public int nivelMovilidadTorbellino;  // 1..3
+    public bool imanDesbloqueado;
+    public int nivelAlcanceIman;          // 1..3
 }

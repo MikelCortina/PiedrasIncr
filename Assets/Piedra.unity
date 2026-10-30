@@ -73330,6 +73330,19 @@ MonoBehaviour:
   velocidadRotacion: 150
   intensidadDelay: 15
   velocidadRecuperacion: 15
+  teclaMostrarTodas: 112
+  mostrarDesgasteTodas: 0
+  fuentePanel: {fileID: 0}
+  escalaPanel: 1
+  porcentajeListo: 95
+  colorFondoPanel: {r: 0.04, g: 0.06, b: 0.1, a: 0.82}
+  colorAcento: {r: 0.35, g: 0.85, b: 1, a: 1}
+  colorDesgasteBajo: {r: 1, g: 0.45, b: 0.2, a: 1}
+  colorDesgasteMedio: {r: 1, g: 0.82, b: 0.25, a: 1}
+  colorListo: {r: 0.35, g: 1, b: 0.55, a: 1}
+  velocidadFundidoPanel: 6
+  velocidadContador: 6
+  intervaloBusquedaPiedras: 0.5
   objetivoActual: {fileID: 0}
 --- !u!1001 &902939682
 PrefabInstance:
@@ -140049,6 +140062,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef33849105df41c4fac9e36557bc3f6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  saltarIntroParaPruebas: 1
   movimientoNave: {fileID: 238560949}
   puntoAparcamientoNave: {fileID: 142909715}
   vibrarNaveEnVuelo: 1
