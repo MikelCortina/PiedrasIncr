@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 public class AimAssistVisual : MonoBehaviour
@@ -34,6 +36,29 @@ public class AimAssistVisual : MonoBehaviour
     public float intensidadDelay = 15f;
     public float velocidadRecuperacion = 15f;
 
+    [Header("Panel de desgaste")]
+    [Tooltip("Tecla que muestra u oculta el desgaste de todas las piedras a cualquier distancia.")]
+    public KeyCode teclaMostrarTodas = KeyCode.P;
+    [Tooltip("Muestra una etiqueta con el desgaste sobre todas las piedras, a cualquier distancia (se alterna con la tecla).")]
+    public bool mostrarDesgasteTodas = false;
+    [Tooltip("Fuente del panel (vacío = la de por defecto).")]
+    public Font fuentePanel;
+    [Tooltip("Tamaño del panel. Además se adapta a la resolución (referencia 1080p).")]
+    public float escalaPanel = 1f;
+    [Tooltip("Desgaste a partir del cual la piedra se considera lista.")]
+    public float porcentajeListo = 95f;
+    public Color colorFondoPanel = new Color(0.04f, 0.06f, 0.1f, 0.82f);
+    public Color colorAcento = new Color(0.35f, 0.85f, 1f, 1f);
+    public Color colorDesgasteBajo = new Color(1f, 0.45f, 0.2f, 1f);
+    public Color colorDesgasteMedio = new Color(1f, 0.82f, 0.25f, 1f);
+    public Color colorListo = new Color(0.35f, 1f, 0.55f, 1f);
+    [Tooltip("Velocidad de aparición y desaparición del panel.")]
+    public float velocidadFundidoPanel = 6f;
+    [Tooltip("Velocidad a la que el porcentaje cuenta hasta su valor real.")]
+    public float velocidadContador = 6f;
+    [Tooltip("Cada cuántos segundos se vuelve a buscar la lista de piedras en el modo de todas las piedras.")]
+    public float intervaloBusquedaPiedras = 0.5f;
+
     // Variables internas para la UI
     private Vector3 escalaOriginalMirilla;
     private Vector3[] escalasOriginalesExtras;
@@ -46,6 +71,26 @@ public class AimAssistVisual : MonoBehaviour
     public Transform objetivoActual;
     private float porcentajeDesgasteActual = 0f;
     private bool escaneandoActivo = false;
+
+    // Panel de desgaste
+    private struct EtiquetaPiedra
+    {
+        public Vector2 posicion;
+        public float porcentaje;
+        public float distancia;
+    }
+
+    private static readonly System.Comparison<EtiquetaPiedra> OrdenLejanasPrimero = (a, b) => b.distancia.CompareTo(a.distancia);
+
+    private readonly List<DeformacionPiedra> piedrasCacheadas = new List<DeformacionPiedra>();
+    private readonly List<Collider> collidersCacheados = new List<Collider>();
+    private readonly List<EtiquetaPiedra> etiquetas = new List<EtiquetaPiedra>();
+    private float siguienteBusquedaPiedras;
+    private Transform objetivoPanel;
+    private float porcentajeMostrado;
+    private float alfaPanel;
+    private Vector2 posicionPanel;
+    private GUIStyle estiloTexto;
 
     void Awake()
     {
@@ -87,6 +132,12 @@ public class AimAssistVisual : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(teclaMostrarTodas))
+        {
+            mostrarDesgasteTodas = !mostrarDesgasteTodas;
+            siguienteBusquedaPiedras = 0f;
+        }
+
         // Comprobamos si estamos en modo construcción
         bool enModoConstruccion = SistemaConstruccion.Instancia != null && SistemaConstruccion.Instancia.modoConstruccion;
 
@@ -189,6 +240,9 @@ public class AimAssistVisual : MonoBehaviour
         {
             AnimarElementoUIPersonalizado(elementosUIExtras[i], escalasOriginalesExtras[i], escaneandoActivo || enModoConstruccion);
         }
+
+        ActualizarPanel();
+        ActualizarEtiquetas();
     }
 
     // ==========================================
@@ -280,35 +334,231 @@ public class AimAssistVisual : MonoBehaviour
         objetivoActual = mejorObjetivo;
     }
 
-    // Dibujamos el panel HUD en pantalla con la información de la piedra escaneada
+    // ==========================================
+    // PANEL DE DESGASTE (HUD)
+    // ==========================================
+
+    void ActualizarPanel()
+    {
+        bool visible = escaneandoActivo && objetivoActual != null;
+        alfaPanel = Mathf.MoveTowards(alfaPanel, visible ? 1f : 0f, Time.deltaTime * velocidadFundidoPanel);
+
+        if (!visible)
+        {
+            // Al cerrarse del todo, la próxima piedra vuelve a "contar" desde cero.
+            if (alfaPanel <= 0f) objetivoPanel = null;
+            return;
+        }
+
+        Collider col = objetivoActual.GetComponentInChildren<Collider>();
+        bool enPantalla = PosicionSobrePiedra(col, objetivoActual, out Vector2 posicion, out _);
+
+        if (objetivoActual != objetivoPanel)
+        {
+            objetivoPanel = objetivoActual;
+            porcentajeMostrado = 0f;
+            if (enPantalla) posicionPanel = posicion;
+        }
+
+        porcentajeMostrado = Mathf.Lerp(porcentajeMostrado, porcentajeDesgasteActual, Time.deltaTime * velocidadContador);
+        if (enPantalla)
+            posicionPanel = Vector2.Lerp(posicionPanel, posicion, Time.deltaTime * velocidadTransicion);
+    }
+
+    // Etiquetas de todas las piedras (modo de la tecla P), sin límite de distancia.
+    void ActualizarEtiquetas()
+    {
+        etiquetas.Clear();
+        if (!mostrarDesgasteTodas || camaraPrincipal == null) return;
+
+        if (Time.time >= siguienteBusquedaPiedras)
+        {
+            BuscarTodasLasPiedras();
+            siguienteBusquedaPiedras = Time.time + intervaloBusquedaPiedras;
+        }
+
+        float margen = 100f;
+        for (int i = 0; i < piedrasCacheadas.Count; i++)
+        {
+            DeformacionPiedra piedra = piedrasCacheadas[i];
+            if (piedra == null || !piedra.isActiveAndEnabled) continue;
+
+            // La piedra escaneada ya tiene el panel grande.
+            if (alfaPanel > 0f && piedra.transform == objetivoPanel) continue;
+
+            if (!PosicionSobrePiedra(collidersCacheados[i], piedra.transform, out Vector2 posicion, out float distancia)) continue;
+            if (posicion.x < -margen || posicion.x > Screen.width + margen || posicion.y < -margen || posicion.y > Screen.height + margen) continue;
+
+            etiquetas.Add(new EtiquetaPiedra
+            {
+                posicion = posicion,
+                porcentaje = piedra.ObtenerPorcentajeDesgasteHaciaEsfera(),
+                distancia = distancia
+            });
+        }
+
+        // Las lejanas se dibujan primero para que las cercanas queden encima.
+        etiquetas.Sort(OrdenLejanasPrimero);
+    }
+
+    void BuscarTodasLasPiedras()
+    {
+        piedrasCacheadas.Clear();
+        collidersCacheados.Clear();
+
+        foreach (GameObject objeto in GameObject.FindGameObjectsWithTag(tagPiedra))
+        {
+            DeformacionPiedra piedra = objeto.GetComponent<DeformacionPiedra>();
+            if (piedra == null) continue;
+
+            piedrasCacheadas.Add(piedra);
+            collidersCacheados.Add(objeto.GetComponentInChildren<Collider>());
+        }
+    }
+
+    // Punto justo encima de la piedra, en coordenadas de GUI (origen arriba a la izquierda).
+    bool PosicionSobrePiedra(Collider col, Transform piedra, out Vector2 posicion, out float distancia)
+    {
+        Vector3 punto = col != null ? col.bounds.center + Vector3.up * col.bounds.extents.y : piedra.position;
+        Vector3 pantalla = camaraPrincipal.WorldToScreenPoint(punto);
+
+        posicion = new Vector2(pantalla.x, Screen.height - pantalla.y);
+        distancia = pantalla.z;
+        return pantalla.z > 0f;
+    }
+
     void OnGUI()
     {
-        // Solo mostramos la interfaz si estamos manteniendo pulsada la tecla Y apuntando a una piedra
-        if (!escaneandoActivo || objetivoActual == null) return;
+        // Todo se dibuja en el evento Repaint: el resto de eventos de OnGUI no pintan nada.
+        if (Event.current.type != EventType.Repaint) return;
+        if (alfaPanel <= 0f && etiquetas.Count == 0) return;
 
-        int w = Screen.width, h = Screen.height;
-        GUIStyle estilo = new GUIStyle();
-        estilo.fontSize = Mathf.Max(16, h * 2 / 100);
-        estilo.normal.textColor = Color.yellow;
-        estilo.alignment = TextAnchor.MiddleCenter;
+        PrepararEstilo();
+        float escala = Screen.height / 1080f * escalaPanel;
 
-        // Posicionamos la ventanita de info justo encima de la mirilla
-        Rect rect = new Rect(w / 2f - 150, (h / 2f) - 70, 300, 50);
+        foreach (EtiquetaPiedra etiqueta in etiquetas)
+            DibujarEtiqueta(etiqueta, escala);
 
-        GUI.backgroundColor = new Color(0, 0, 0, 0.7f);
-        GUI.Box(rect, "");
+        if (alfaPanel > 0f)
+            DibujarPanel(escala);
+    }
 
-        string textoInfo = string.Format("Desgaste a Esfera: {0:0.0}%", porcentajeDesgasteActual);
-        if (porcentajeDesgasteActual >= 95f)
-        {
-            textoInfo += "\n<color=green>¡Núcleo Alcanzado (Listo)!</color>";
-        }
-        else
-        {
-            textoInfo += "\n<color=orange>Falta Erosión</color>";
-        }
+    void DibujarPanel(float e)
+    {
+        // Aparición con un pequeño "pop" (ease out).
+        float a = 1f - Mathf.Pow(1f - alfaPanel, 3f);
+        float pop = Mathf.Lerp(0.85f, 1f, a);
 
-        estilo.richText = true;
-        GUI.Label(rect, textoInfo, estilo);
+        float ancho = 300f * e * pop;
+        float alto = 92f * e * pop;
+        float x = Mathf.Clamp(posicionPanel.x - ancho * 0.5f, 10f, Screen.width - ancho - 10f);
+        float y = Mathf.Clamp(posicionPanel.y - alto - 30f * e, 10f, Screen.height - alto - 10f);
+        Rect r = new Rect(x, y, ancho, alto);
+
+        float porcentaje = Mathf.Clamp(porcentajeMostrado, 0f, 100f);
+        bool listo = porcentaje >= porcentajeListo;
+        Color estado = ColorDesgaste(porcentaje);
+        float pulso = listo ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 6f) : 1f;
+        float m = 16f * e * pop;
+
+        // Fondo: sombra, tarjeta, borde y franja de acento a la izquierda.
+        Rectangulo(new Rect(r.x + 4f * e, r.y + 5f * e, r.width, r.height), new Color(0f, 0f, 0f, 0.35f * a), 12f * e);
+        Rectangulo(r, ConAlfa(colorFondoPanel, colorFondoPanel.a * a), 12f * e);
+        Borde(r, ConAlfa(estado, 0.85f * a * pulso), 1.5f * e, 12f * e);
+        Rectangulo(new Rect(r.x + 5f * e, r.y + 14f * e, 3f * e, r.height - 28f * e), ConAlfa(estado, a), 1.5f * e);
+
+        // Título y porcentaje.
+        Texto(new Rect(r.x + m, r.y + 10f * e, r.width - 2f * m, 18f * e), "EROSION SCAN", 13f * e, TextAnchor.UpperLeft, ConAlfa(colorAcento, 0.9f * a));
+        Texto(new Rect(r.x + m, r.y + 4f * e, r.width - 2f * m, 40f * e), porcentaje.ToString("0.0", CultureInfo.InvariantCulture) + "%", 30f * e, TextAnchor.UpperRight, ConAlfa(Color.white, a));
+
+        // Barra de progreso con la marca del punto en el que la piedra está lista.
+        Rect barra = new Rect(r.x + m, r.y + 50f * e * pop, r.width - 2f * m, 8f * e);
+        Rectangulo(barra, new Color(1f, 1f, 1f, 0.12f * a), 4f * e);
+        float relleno = barra.width * porcentaje / 100f;
+        if (relleno > 1f)
+            Rectangulo(new Rect(barra.x, barra.y, relleno, barra.height), ConAlfa(estado, a * pulso), 4f * e);
+        float marca = barra.x + barra.width * porcentajeListo / 100f;
+        Rectangulo(new Rect(marca - e, barra.y - 3f * e, 2f * e, barra.height + 6f * e), new Color(1f, 1f, 1f, 0.6f * a), 0f);
+
+        // Estado.
+        float yEstado = barra.yMax + 8f * e;
+        Rectangulo(new Rect(r.x + m, yEstado + 5f * e, 8f * e, 8f * e), ConAlfa(estado, a * pulso), 4f * e);
+        Texto(new Rect(r.x + m + 14f * e, yEstado, r.width - 2f * m, 18f * e),
+              listo ? "CORE REACHED  ·  READY" : "EROSION REQUIRED", 13f * e, TextAnchor.MiddleLeft, ConAlfa(estado, a));
+    }
+
+    void DibujarEtiqueta(EtiquetaPiedra etiqueta, float e)
+    {
+        float porcentaje = Mathf.Clamp(etiqueta.porcentaje, 0f, 100f);
+        bool listo = porcentaje >= porcentajeListo;
+        Color estado = ColorDesgaste(porcentaje);
+
+        float ancho = 64f * e, alto = 28f * e;
+        Rect r = new Rect(etiqueta.posicion.x - ancho * 0.5f, etiqueta.posicion.y - alto - 12f * e, ancho, alto);
+
+        Rectangulo(new Rect(r.x + 2f * e, r.y + 3f * e, r.width, r.height), new Color(0f, 0f, 0f, 0.3f), 8f * e);
+        Rectangulo(r, colorFondoPanel, 8f * e);
+        Borde(r, ConAlfa(estado, 0.8f), 1f * e, 8f * e);
+
+        Texto(new Rect(r.x, r.y + 1f * e, r.width, r.height - 7f * e), porcentaje.ToString("0", CultureInfo.InvariantCulture) + "%",
+              14f * e, TextAnchor.MiddleCenter, listo ? estado : Color.white);
+
+        Rect barra = new Rect(r.x + 9f * e, r.yMax - 8f * e, r.width - 18f * e, 3f * e);
+        Rectangulo(barra, new Color(1f, 1f, 1f, 0.15f), 1.5f * e);
+        float relleno = barra.width * porcentaje / 100f;
+        if (relleno > 1f)
+            Rectangulo(new Rect(barra.x, barra.y, relleno, barra.height), estado, 1.5f * e);
+
+        // Punto que señala la piedra.
+        Rectangulo(new Rect(etiqueta.posicion.x - 2.5f * e, r.yMax + 4f * e, 5f * e, 5f * e), estado, 2.5f * e);
+    }
+
+    Color ColorDesgaste(float porcentaje)
+    {
+        if (porcentaje >= porcentajeListo) return colorListo;
+
+        float t = Mathf.Clamp01(porcentaje / porcentajeListo);
+        return t < 0.5f
+            ? Color.Lerp(colorDesgasteBajo, colorDesgasteMedio, t * 2f)
+            : Color.Lerp(colorDesgasteMedio, colorListo, (t - 0.5f) * 2f);
+    }
+
+    void PrepararEstilo()
+    {
+        if (estiloTexto != null) return;
+
+        estiloTexto = new GUIStyle { font = fuentePanel, fontStyle = FontStyle.Bold, clipping = TextClipping.Overflow };
+        estiloTexto.normal.textColor = Color.white;
+    }
+
+    // Texto con sombra para que se lea sobre cualquier fondo.
+    void Texto(Rect r, string texto, float tamano, TextAnchor anclaje, Color color)
+    {
+        estiloTexto.fontSize = Mathf.Max(8, Mathf.RoundToInt(tamano));
+        estiloTexto.alignment = anclaje;
+
+        Color guardado = GUI.color;
+        float sombra = Mathf.Max(1f, tamano * 0.08f);
+        GUI.color = new Color(0f, 0f, 0f, 0.6f * color.a);
+        GUI.Label(new Rect(r.x + sombra, r.y + sombra, r.width, r.height), texto, estiloTexto);
+        GUI.color = color;
+        GUI.Label(r, texto, estiloTexto);
+        GUI.color = guardado;
+    }
+
+    static void Rectangulo(Rect r, Color color, float radio)
+    {
+        GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, color, 0f, radio);
+    }
+
+    static void Borde(Rect r, Color color, float grosor, float radio)
+    {
+        GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, color, grosor, radio);
+    }
+
+    static Color ConAlfa(Color color, float alfa)
+    {
+        color.a = alfa;
+        return color;
     }
 }
