@@ -123,6 +123,13 @@
             Name "ForwardLit"
             Tags {"LightMode" = "UniversalForwardOnly"}
 
+            // No se dibuja donde la máscara del agujero (Hole.shader) marcó el stencil.
+            Stencil
+            {
+                Ref 1
+                Comp NotEqual
+            }
+
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
@@ -252,6 +259,13 @@
             Tags{"LightMode" = "Outline"}
 
             Cull Front
+
+            // Tampoco el contorno del suelo dentro del agujero.
+            Stencil
+            {
+                Ref 1
+                Comp NotEqual
+            }
 
             HLSLPROGRAM
             #include "LibraryUrp/StylizedInput.hlsl"
