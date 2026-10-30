@@ -147,6 +147,24 @@ public class MovimientoPersonaje : MonoBehaviour
         ApagarPasos();
     }
 
+
+    /// <summary>
+    /// Limpia velocidades, suelo y modos especiales despues de recolocar al
+    /// jugador desde un guardado. No cambia su posicion ni su orientacion.
+    /// </summary>
+    public void RestablecerEstadoTrasCarga()
+    {
+        modoRescate = false;
+        permitirMovimientoEnRescate = false;
+        velocidadCaida = Vector3.zero;
+        movimientoCinta = Vector3.zero;
+        normalDelSuelo = Vector3.up;
+        tocandoSueloExtra = false;
+        puntoSueloDetectado = Vector3.zero;
+        colliderSueloDetectado = null;
+        ApagarPasos();
+    }
+
     // Solo se llama cuando se ha pulsado la tecla de aterrizar sobre suelo.
     public void TerminarLevitacionRescate()
     {
