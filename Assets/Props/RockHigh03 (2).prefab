@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RockHigh03 (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.13
@@ -71,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 2300000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+      objectReference: {fileID: 2100000, guid: 15d2331f6318ef64584bef7b131ee2ad, type: 2}
     - target: {fileID: 3300000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -82,42 +86,21 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5556472198900729135}
+      addedObject: {fileID: 7294762457178390225}
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7294762457178390225}
+      addedObject: {fileID: 209488384558540}
   m_SourcePrefab: {fileID: 100100000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
+--- !u!23 &2142845868771158707 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
+  m_PrefabInstance: {fileID: 2142845868773454547}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2142845868773356659 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: 4ca254aabd3ac4812bde2d20a38a54ba, type: 3}
   m_PrefabInstance: {fileID: 2142845868773454547}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5556472198900729135
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142845868773356659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 0.40392157, g: 0.36862746, b: 0.38586864, a: 1}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 0}
-    selfShadingSize: 0.383
-    edgeSize: 0
-    localizedShading: 0.72
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 0
-    shadowColor: {r: 0.19215687, g: 0.11372549, b: 0.21176471, a: 1}
-    shadowSharpness: 1
 --- !u!64 &7294762457178390225
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -140,3 +123,22 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 6974242c286561b40875fe7061383924, type: 2}
+--- !u!205 &209488384558540
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142845868773356659}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.61335087, y: -0.1822195, z: 12.524258}
+  m_Size: 25.048515
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2142845868771158707}
+  m_Enabled: 1

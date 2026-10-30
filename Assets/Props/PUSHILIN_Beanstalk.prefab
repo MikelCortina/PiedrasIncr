@@ -51,7 +51,7 @@ PrefabInstance:
     - target: {fileID: -7635826562936255635, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+      objectReference: {fileID: 2100000, guid: 239d899f9e3b1b4449e9e4a6544ae676, type: 2}
     - target: {fileID: -6400281290468069383, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -60,42 +60,48 @@ PrefabInstance:
       propertyPath: m_Name
       value: PUSHILIN_Beanstalk
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8164078558771037576, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8385542010972401758}
+      addedObject: {fileID: 4686593455743710079}
   m_SourcePrefab: {fileID: 100100000, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
---- !u!1 &7877540457510640868 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8164078558771037576, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
+--- !u!23 &726802801311584769 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7635826562936255635, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
   m_PrefabInstance: {fileID: 2026065122465601900}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8385542010972401758
-MonoBehaviour:
+--- !u!1 &1215812124061983805 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ecb4e854050311140bc8f8eced1de5e0, type: 3}
+  m_PrefabInstance: {fileID: 2026065122465601900}
+  m_PrefabAsset: {fileID: 0}
+--- !u!205 &4686593455743710079
+LODGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7877540457510640868}
+  m_GameObject: {fileID: 1215812124061983805}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.067330465, y: -0.050990105, z: 0.15017956}
+  m_Size: 3.0636482
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 726802801311584769}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 0.14509805, g: 0.30980393, b: 0.30980393, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0.24705882, g: 0.21568628, b: 0.28627452, a: 0}
-    selfShadingSize: 0.383
-    edgeSize: 0
-    localizedShading: 0.72
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 0
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
-    shadowSharpness: 10

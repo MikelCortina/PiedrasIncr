@@ -27,6 +27,8 @@ public class AgarrarManguera : MonoBehaviour
     public GameObject[] objetosDesactivarAlConectar;
     [Tooltip("Segundos tras conectar antes de hacer el cambio (0 = en el mismo instante)")]
     [Min(0f)] public float retrasoCambioAlConectar = 0f;
+    [Tooltip("Desactiva también esta boquilla al conectar, aunque no esté en la lista de objetos a desactivar")]
+    public bool desactivarBoquillaAlConectar = true;
 
     private Rigidbody rb;
     private bool agarrada = false;
@@ -170,6 +172,10 @@ public class AgarrarManguera : MonoBehaviour
                 if (objeto != null)
                     objeto.SetActive(false);
             }
+
+            // La boquilla va la última: al desactivarse a sí misma se detiene este script.
+            if (desactivarBoquillaAlConectar)
+                gameObject.SetActive(false);
 
             return;
         }

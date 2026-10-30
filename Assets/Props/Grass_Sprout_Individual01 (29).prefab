@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Grass_Sprout_Individual01 (29)
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.37
@@ -75,7 +79,7 @@ PrefabInstance:
     - target: {fileID: 2300000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+      objectReference: {fileID: 2100000, guid: 97a5e5af679e73e4199d39595513fd44, type: 2}
     - target: {fileID: 3300000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -86,36 +90,34 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1279901303076859185}
+      addedObject: {fileID: 2245758260848989851}
   m_SourcePrefab: {fileID: 100100000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
 --- !u!1 &4865889836085042670 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
   m_PrefabInstance: {fileID: 4865889836085140302}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1279901303076859185
-MonoBehaviour:
+--- !u!205 &2245758260848989851
+LODGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4865889836085042670}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.0362522, y: -0.047461744, z: 0.10040608}
+  m_Size: 0.47829294
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.015
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 4865889836087296814}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
-  configuraciones:
-  - indiceMaterial: 0
-    nuevoColor: {r: 0.14509805, g: 0.30980393, b: 0.30980393, a: 0}
-    nuevaTextura: {fileID: 0}
-    colorSombreado: {r: 0.24705882, g: 0.21568628, b: 0.28627452, a: 0}
-    selfShadingSize: 0.383
-    edgeSize: 0
-    localizedShading: 0.72
-    colorContorno: {r: 0, g: 0, b: 0, a: 0}
-    grosorContorno: 1
-    modificarSombras: 1
-    shadowPower: 1
-    shadowColor: {r: 0.24705884, g: 0.21568629, b: 0.28627452, a: 1}
-    shadowSharpness: 0
+--- !u!23 &4865889836087296814 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2300000, guid: 8e333a3dfe292412ebcfa33e6e5c09f0, type: 3}
+  m_PrefabInstance: {fileID: 4865889836085140302}
+  m_PrefabAsset: {fileID: 0}
