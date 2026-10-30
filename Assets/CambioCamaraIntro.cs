@@ -8,6 +8,10 @@ using Unity.Cinemachine;
 [DefaultExecutionOrder(-500)]
 public class CambioCamaraIntro : MonoBehaviour
 {
+    [Header("Pruebas (Editor)")]
+    [Tooltip("Activado: omite la cinemática, aparca la nave y coloca al jugador listo para jugar desde Play.")]
+    public bool saltarIntroParaPruebas = false;
+
     [Header("Nave")]
     public SplineAnimate movimientoNave;
     public Transform puntoAparcamientoNave;
@@ -207,6 +211,7 @@ public class CambioCamaraIntro : MonoBehaviour
 
     private bool cambioRealizado;
     private bool finalizando;
+    private bool omitiendoIntroEstaSesion;
 
     private float rotacionHorizontal;
     private float rotacionVertical;
@@ -405,6 +410,14 @@ public class CambioCamaraIntro : MonoBehaviour
             rotacionInicialCaraFrontal = caraFrontal.localRotation;
         }
 
+        // Modo de desarrollo: reutilizamos la misma finalización que la intro real,
+        // pero sin esperar al spline, a la palanca ni a los fundidos.
+        if (saltarIntroParaPruebas && Application.isEditor)
+        {
+            SaltarIntroduccionParaPruebas();
+            return;
+        }
+
         if (palancaSalida != null)
         {
             palancaSalida.AlLlegarAlTope.AddListener(AlBajarPalancaSalida);
@@ -417,6 +430,54 @@ public class CambioCamaraIntro : MonoBehaviour
         }
 
         StartCoroutine(FundidoImagenesIntro());
+    }
+
+    private void SaltarIntroduccionParaPruebas()
+    {
+        // Evitar que Update/LateUpdate sigan animando la nave y las cámaras.
+        finalizando = true;
+        omitiendoIntroEstaSesion = true;
+        naveIniciada = false;
+
+        if (movimientoNave != null)
+        {
+            movimientoNave.Pause();
+            // Posición de respaldo si no hay Punto Aparcamiento Nave.
+            movimientoNave.NormalizedTime = Mathf.Clamp01(puntoFinIntroduccion);
+        }
+
+        // Sin intro no debe quedar ninguna imagen inicial tapando la partida.
+        AplicarProgresoImagenes(imagenesIntro, alphasOriginalesImagenes,
+                               alphaFinalImagenes, 1f);
+        TerminarImagenes(imagenesIntro, true);
+
+        AplicarProgresoImagenes(imagenesTransicion, alphasOriginalesTransicion,
+                               alphaFinalTransicion, 1f);
+        TerminarImagenes(imagenesTransicion, true);
+        fundidoTransicionIniciado = true;
+
+        if (pantallaNegraIntro != null)
+        {
+            pantallaNegraIntro.alpha = 0f;
+            pantallaNegraIntro.blocksRaycasts = false;
+        }
+
+        // Estado de motores/cabina tras apagar la nave.
+        ApagarParticulasNave();
+        if (interiorNave != null)
+        {
+            interiorNave.multiplicadorLucesAlarma = 0f;
+            interiorNave.multiplicadorVibracionAgujas = 0f;
+            if (detenerAgujasAlApagar)
+                interiorNave.multiplicadorEnergiaAgujas = 0f;
+        }
+
+        foreach (Light luz in lucesInteriores)
+            if (luz != null) luz.intensity = 0f;
+
+        // Reutiliza exactamente el acoplamiento de nave, el spawn del jugador
+        // y la restauración de cámara y controles de la intro normal.
+        StartCoroutine(FinalizarIntroduccion());
     }
 
     private void OnDestroy()
@@ -1144,7 +1205,8 @@ public class CambioCamaraIntro : MonoBehaviour
 
         float tiempoFundido = Mathf.Max(0f, duracionFundido);
 
-        yield return Fundido(0f, 1f, tiempoFundido);
+        if (!omitiendoIntroEstaSesion)
+            yield return Fundido(0f, 1f, tiempoFundido);
 
         // Por si la intro termina sin haber pasado por la cabina.
         RestaurarLayersCamaraExterior();
@@ -1231,10 +1293,14 @@ public class CambioCamaraIntro : MonoBehaviour
             }
         }
 
-        float espera = Mathf.Max(0f, duracionPantallaNegra - 2f * tiempoFundido);
-        yield return new WaitForSeconds(espera);
+        if (!omitiendoIntroEstaSesion)
+        {
+            float espera = Mathf.Max(0f, duracionPantallaNegra - 2f * tiempoFundido);
+            if (espera > 0f)
+                yield return new WaitForSeconds(espera);
 
-        yield return Fundido(1f, 0f, tiempoFundido);
+            yield return Fundido(1f, 0f, tiempoFundido);
+        }
 
         if (controlesJugador != null && controlesOriginalmenteActivos != null)
         {
