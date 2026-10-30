@@ -9,9 +9,6 @@ public class LluviaMeteoritos : MonoBehaviour
     [Tooltip("Si asignas el Cinturón de Asteroides, los meteoritos orbitarán en él hasta estar en la zona de caída.")]
     public CinturonAsteroides cinturonOrigen;
 
-    [Header("Inicio de partida")]
-    public bool generarMeteoritoInicial = true;
-
     [Header("Ajustes de Altura y Trayectoria")]
     public float alturaCielo = 100f;
     public float alturaArco = 30f;
@@ -38,11 +35,6 @@ public class LluviaMeteoritos : MonoBehaviour
 
     void Start()
     {
-        if (generarMeteoritoInicial)
-        {
-            SpawnearMeteorito();
-        }
-
         if (sistemaActivo)
         {
             IniciarRutinaLluvia();

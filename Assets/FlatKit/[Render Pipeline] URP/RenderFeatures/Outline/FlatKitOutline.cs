@@ -41,6 +41,9 @@ public class FlatKitOutline : ScriptableRendererFeature {
         // Material.
         {
 #if UNITY_EDITOR
+            // En los procesos de importacion (miniaturas de materiales) el shader puede no estar cargado:
+            // tocar el material ahi cuelga el proceso y hace fallar la build.
+            if (UnityEditor.AssetDatabase.IsAssetImportWorkerProcess()) return;
             var effectMaterial = SubAssetMaterial.GetOrCreate(settings, ShaderName);
             if (effectMaterial == null) return;
             settings.effectMaterial = effectMaterial;

@@ -41,17 +41,21 @@ public class AimAssistVisual : MonoBehaviour
     public KeyCode teclaMostrarTodas = KeyCode.P;
     [Tooltip("Muestra una etiqueta con el desgaste sobre todas las piedras, a cualquier distancia (se alterna con la tecla).")]
     public bool mostrarDesgasteTodas = false;
-    [Tooltip("Fuente del panel (vacío = la de por defecto).")]
+    [Tooltip("Fuente del panel. Por defecto, la de los carteles LED (DS-DIGI).")]
     public Font fuentePanel;
     [Tooltip("Tamaño del panel. Además se adapta a la resolución (referencia 1080p).")]
     public float escalaPanel = 1f;
     [Tooltip("Desgaste a partir del cual la piedra se considera lista.")]
     public float porcentajeListo = 95f;
-    public Color colorFondoPanel = new Color(0.04f, 0.06f, 0.1f, 0.82f);
-    public Color colorAcento = new Color(0.35f, 0.85f, 1f, 1f);
-    public Color colorDesgasteBajo = new Color(1f, 0.45f, 0.2f, 1f);
-    public Color colorDesgasteMedio = new Color(1f, 0.82f, 0.25f, 1f);
-    public Color colorListo = new Color(0.35f, 1f, 0.55f, 1f);
+    [Tooltip("Placa del cartel (violeta espacial muy oscuro).")]
+    public Color colorPlaca = new Color(0.035f, 0.025f, 0.09f, 0.88f);
+    [Tooltip("Neón del borde y los textos fijos (el lavanda de los carteles).")]
+    public Color colorNeon = new Color(0.926f, 0.887f, 1f, 1f);
+    public Color colorNeonBajo = new Color(0.926f, 0.075f, 0.102f, 1f);
+    public Color colorNeonMedio = new Color(0.579f, 0.387f, 0.943f, 1f);
+    public Color colorNeonAlto = new Color(0.914f, 0.616f, 0.992f, 1f);
+    [Tooltip("Color al llegar al núcleo (parpadea).")]
+    public Color colorNeonListo = new Color(0.926f, 0.887f, 1f, 1f);
     [Tooltip("Velocidad de aparición y desaparición del panel.")]
     public float velocidadFundidoPanel = 6f;
     [Tooltip("Velocidad a la que el porcentaje cuenta hasta su valor real.")]
@@ -91,6 +95,15 @@ public class AimAssistVisual : MonoBehaviour
     private float alfaPanel;
     private Vector2 posicionPanel;
     private GUIStyle estiloTexto;
+
+#if UNITY_EDITOR
+    // Si no hay fuente asignada, se pone la de los carteles LED. Guarda la escena para conservarla.
+    void OnValidate()
+    {
+        if (fuentePanel == null)
+            fuentePanel = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Materials/Led/DS-DIGI.TTF");
+    }
+#endif
 
     void Awake()
     {
@@ -443,48 +456,56 @@ public class AimAssistVisual : MonoBehaviour
             DibujarPanel(escala);
     }
 
+    // Panel con estilo de cartel LED (como los de la gasolinera): placa oscura, borde de neón con halo,
+    // esquinas de HUD, dígitos de 7 segmentos con los "8" apagados de fondo y barra de segmentos.
     void DibujarPanel(float e)
     {
         // Aparición con un pequeño "pop" (ease out).
         float a = 1f - Mathf.Pow(1f - alfaPanel, 3f);
         float pop = Mathf.Lerp(0.85f, 1f, a);
 
-        float ancho = 300f * e * pop;
-        float alto = 92f * e * pop;
-        float x = Mathf.Clamp(posicionPanel.x - ancho * 0.5f, 10f, Screen.width - ancho - 10f);
-        float y = Mathf.Clamp(posicionPanel.y - alto - 30f * e, 10f, Screen.height - alto - 10f);
+        float ancho = 270f * e * pop;
+        float alto = 104f * e * pop;
+        float x = Mathf.Clamp(posicionPanel.x - ancho * 0.5f, 14f, Screen.width - ancho - 14f);
+        float y = Mathf.Clamp(posicionPanel.y - alto - 34f * e, 14f, Screen.height - alto - 14f);
         Rect r = new Rect(x, y, ancho, alto);
+        float k = e * pop;
 
         float porcentaje = Mathf.Clamp(porcentajeMostrado, 0f, 100f);
         bool listo = porcentaje >= porcentajeListo;
         Color estado = ColorDesgaste(porcentaje);
-        float pulso = listo ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 6f) : 1f;
-        float m = 16f * e * pop;
+        // Parpadeo de LED al estar lista.
+        float parpadeo = listo ? (Mathf.Repeat(Time.unscaledTime * 1.6f, 1f) < 0.65f ? 1f : 0.35f) : 1f;
 
-        // Fondo: sombra, tarjeta, borde y franja de acento a la izquierda.
-        Rectangulo(new Rect(r.x + 4f * e, r.y + 5f * e, r.width, r.height), new Color(0f, 0f, 0f, 0.35f * a), 12f * e);
-        Rectangulo(r, ConAlfa(colorFondoPanel, colorFondoPanel.a * a), 12f * e);
-        Borde(r, ConAlfa(estado, 0.85f * a * pulso), 1.5f * e, 12f * e);
-        Rectangulo(new Rect(r.x + 5f * e, r.y + 14f * e, 3f * e, r.height - 28f * e), ConAlfa(estado, a), 1.5f * e);
+        // Placa, líneas de barrido y borde de neón con halo.
+        Rectangulo(new Rect(r.x + 4f * k, r.y + 6f * k, r.width, r.height), new Color(0f, 0f, 0f, 0.4f * a), 4f * k);
+        Rectangulo(r, ConAlfa(colorPlaca, colorPlaca.a * a), 4f * k);
+        for (float ly = r.y + 3f * k; ly < r.yMax - 2f * k; ly += 3f * k)
+            Rectangulo(new Rect(r.x + 2f * k, ly, r.width - 4f * k, Mathf.Max(1f, 0.6f * k)), ConAlfa(colorNeon, 0.035f * a), 0f);
+        BordeNeon(r, ConAlfa(colorNeon, 0.75f * a), k, 4f * k);
+        EsquinasHUD(r, ConAlfa(estado, a), k);
 
-        // Título y porcentaje.
-        Texto(new Rect(r.x + m, r.y + 10f * e, r.width - 2f * m, 18f * e), "EROSION SCAN", 13f * e, TextAnchor.UpperLeft, ConAlfa(colorAcento, 0.9f * a));
-        Texto(new Rect(r.x + m, r.y + 4f * e, r.width - 2f * m, 40f * e), porcentaje.ToString("0.0", CultureInfo.InvariantCulture) + "%", 30f * e, TextAnchor.UpperRight, ConAlfa(Color.white, a));
+        float m = 14f * k;
 
-        // Barra de progreso con la marca del punto en el que la piedra está lista.
-        Rect barra = new Rect(r.x + m, r.y + 50f * e * pop, r.width - 2f * m, 8f * e);
-        Rectangulo(barra, new Color(1f, 1f, 1f, 0.12f * a), 4f * e);
-        float relleno = barra.width * porcentaje / 100f;
-        if (relleno > 1f)
-            Rectangulo(new Rect(barra.x, barra.y, relleno, barra.height), ConAlfa(estado, a * pulso), 4f * e);
+        // Cabecera.
+        TextoNeon(new Rect(r.x + m, r.y + 8f * k, r.width - 2f * m, 16f * k), "EROSION", 15f * k, TextAnchor.UpperLeft, ConAlfa(colorNeon, 0.85f * a), 0.5f);
+        TextoNeon(new Rect(r.x + m, r.y + 8f * k, r.width - 2f * m, 16f * k), "SCAN", 15f * k, TextAnchor.UpperRight, ConAlfa(colorNeon, 0.45f * a), 0f);
+
+        // Porcentaje en dígitos de 7 segmentos, con los segmentos apagados de fondo.
+        Rect cifras = new Rect(r.x + m, r.y + 20f * k, r.width - 2f * m - 26f * k, 46f * k);
+        TextoNeon(cifras, "888.8", 44f * k, TextAnchor.MiddleRight, ConAlfa(estado, 0.09f * a), 0f);
+        TextoNeon(cifras, porcentaje.ToString("0.0", CultureInfo.InvariantCulture), 44f * k, TextAnchor.MiddleRight, ConAlfa(estado, a * parpadeo), 1f);
+        TextoNeon(new Rect(cifras.xMax + 4f * k, cifras.y + 6f * k, 24f * k, 40f * k), "%", 22f * k, TextAnchor.MiddleLeft, ConAlfa(estado, 0.9f * a), 0.6f);
+
+        // Barra de segmentos LED, cada uno con el color de su tramo.
+        Rect barra = new Rect(r.x + m, r.y + 70f * k, r.width - 2f * m, 8f * k);
+        BarraSegmentos(barra, porcentaje, 20, 2f * k, a);
         float marca = barra.x + barra.width * porcentajeListo / 100f;
-        Rectangulo(new Rect(marca - e, barra.y - 3f * e, 2f * e, barra.height + 6f * e), new Color(1f, 1f, 1f, 0.6f * a), 0f);
+        Rectangulo(new Rect(marca - 0.75f * k, barra.y - 3f * k, 1.5f * k, barra.height + 6f * k), ConAlfa(colorNeon, 0.7f * a), 0f);
 
         // Estado.
-        float yEstado = barra.yMax + 8f * e;
-        Rectangulo(new Rect(r.x + m, yEstado + 5f * e, 8f * e, 8f * e), ConAlfa(estado, a * pulso), 4f * e);
-        Texto(new Rect(r.x + m + 14f * e, yEstado, r.width - 2f * m, 18f * e),
-              listo ? "CORE REACHED  ·  READY" : "EROSION REQUIRED", 13f * e, TextAnchor.MiddleLeft, ConAlfa(estado, a));
+        string textoEstado = listo ? "CORE REACHED - READY" : "EROSION REQUIRED";
+        TextoNeon(new Rect(r.x + m, barra.yMax + 5f * k, r.width - 2f * m, 16f * k), textoEstado, 14f * k, TextAnchor.UpperLeft, ConAlfa(estado, a * parpadeo), 0.6f);
     }
 
     void DibujarEtiqueta(EtiquetaPiedra etiqueta, float e)
@@ -492,55 +513,104 @@ public class AimAssistVisual : MonoBehaviour
         float porcentaje = Mathf.Clamp(etiqueta.porcentaje, 0f, 100f);
         bool listo = porcentaje >= porcentajeListo;
         Color estado = ColorDesgaste(porcentaje);
+        float parpadeo = listo ? (Mathf.Repeat(Time.unscaledTime * 1.6f, 1f) < 0.65f ? 1f : 0.35f) : 1f;
 
-        float ancho = 64f * e, alto = 28f * e;
-        Rect r = new Rect(etiqueta.posicion.x - ancho * 0.5f, etiqueta.posicion.y - alto - 12f * e, ancho, alto);
+        float ancho = 66f * e, alto = 32f * e;
+        Rect r = new Rect(etiqueta.posicion.x - ancho * 0.5f, etiqueta.posicion.y - alto - 14f * e, ancho, alto);
 
-        Rectangulo(new Rect(r.x + 2f * e, r.y + 3f * e, r.width, r.height), new Color(0f, 0f, 0f, 0.3f), 8f * e);
-        Rectangulo(r, colorFondoPanel, 8f * e);
-        Borde(r, ConAlfa(estado, 0.8f), 1f * e, 8f * e);
+        Rectangulo(r, colorPlaca, 3f * e);
+        BordeNeon(r, ConAlfa(colorNeon, 0.6f), e, 3f * e);
 
-        Texto(new Rect(r.x, r.y + 1f * e, r.width, r.height - 7f * e), porcentaje.ToString("0", CultureInfo.InvariantCulture) + "%",
-              14f * e, TextAnchor.MiddleCenter, listo ? estado : Color.white);
+        Rect cifras = new Rect(r.x, r.y + 2f * e, r.width, r.height - 9f * e);
+        TextoNeon(cifras, porcentaje.ToString("0", CultureInfo.InvariantCulture) + "%", 20f * e, TextAnchor.MiddleCenter, ConAlfa(estado, parpadeo), 0.8f);
 
-        Rect barra = new Rect(r.x + 9f * e, r.yMax - 8f * e, r.width - 18f * e, 3f * e);
-        Rectangulo(barra, new Color(1f, 1f, 1f, 0.15f), 1.5f * e);
-        float relleno = barra.width * porcentaje / 100f;
-        if (relleno > 1f)
-            Rectangulo(new Rect(barra.x, barra.y, relleno, barra.height), estado, 1.5f * e);
+        BarraSegmentos(new Rect(r.x + 7f * e, r.yMax - 7f * e, r.width - 14f * e, 3f * e), porcentaje, 10, 1.5f * e, 1f);
 
-        // Punto que señala la piedra.
-        Rectangulo(new Rect(etiqueta.posicion.x - 2.5f * e, r.yMax + 4f * e, 5f * e, 5f * e), estado, 2.5f * e);
+        // Línea que une la etiqueta con la piedra.
+        Rectangulo(new Rect(etiqueta.posicion.x - 0.75f * e, r.yMax, 1.5f * e, 10f * e), ConAlfa(estado, 0.7f), 0f);
+    }
+
+    void BarraSegmentos(Rect barra, float porcentaje, int segmentos, float hueco, float alfa)
+    {
+        float anchoSegmento = (barra.width - hueco * (segmentos - 1)) / segmentos;
+        float encendidos = porcentaje / 100f * segmentos;
+
+        for (int i = 0; i < segmentos; i++)
+        {
+            Rect segmento = new Rect(barra.x + i * (anchoSegmento + hueco), barra.y, anchoSegmento, barra.height);
+            Color color = ColorDesgaste((i + 1f) / segmentos * 100f);
+
+            // El último segmento se enciende a medias según lo que falte.
+            float encendido = Mathf.Clamp01(encendidos - i);
+            Rectangulo(segmento, ConAlfa(color, Mathf.Lerp(0.1f, 1f, encendido) * alfa), 0.5f * barra.height * 0.3f);
+            if (encendido > 0.5f)
+                Rectangulo(new Rect(segmento.x - 1f, segmento.y - 1f, segmento.width + 2f, segmento.height + 2f), ConAlfa(color, 0.18f * encendido * alfa), 1f);
+        }
+    }
+
+    // Borde de neón: línea nítida y dos capas de halo por fuera.
+    void BordeNeon(Rect r, Color color, float e, float radio)
+    {
+        for (int i = 2; i >= 1; i--)
+        {
+            float expansion = i * 2f * e;
+            Rect halo = new Rect(r.x - expansion, r.y - expansion, r.width + expansion * 2f, r.height + expansion * 2f);
+            Borde(halo, ConAlfa(color, color.a * (i == 2 ? 0.08f : 0.18f)), 2f * e, radio + expansion);
+        }
+        Borde(r, color, 1.2f * e, radio);
+    }
+
+    // Esquinas en "L" por fuera de la placa, como un visor.
+    void EsquinasHUD(Rect r, Color color, float e)
+    {
+        float largo = 12f * e, grosor = 2f * e, separacion = 5f * e;
+        float izquierda = r.x - separacion, derecha = r.xMax + separacion;
+        float arriba = r.y - separacion, abajo = r.yMax + separacion;
+
+        Rectangulo(new Rect(izquierda, arriba, largo, grosor), color, 0f);
+        Rectangulo(new Rect(izquierda, arriba, grosor, largo), color, 0f);
+        Rectangulo(new Rect(derecha - largo, arriba, largo, grosor), color, 0f);
+        Rectangulo(new Rect(derecha - grosor, arriba, grosor, largo), color, 0f);
+        Rectangulo(new Rect(izquierda, abajo - grosor, largo, grosor), color, 0f);
+        Rectangulo(new Rect(izquierda, abajo - largo, grosor, largo), color, 0f);
+        Rectangulo(new Rect(derecha - largo, abajo - grosor, largo, grosor), color, 0f);
+        Rectangulo(new Rect(derecha - grosor, abajo - largo, grosor, largo), color, 0f);
     }
 
     Color ColorDesgaste(float porcentaje)
     {
-        if (porcentaje >= porcentajeListo) return colorListo;
+        if (porcentaje >= porcentajeListo) return colorNeonListo;
 
         float t = Mathf.Clamp01(porcentaje / porcentajeListo);
         return t < 0.5f
-            ? Color.Lerp(colorDesgasteBajo, colorDesgasteMedio, t * 2f)
-            : Color.Lerp(colorDesgasteMedio, colorListo, (t - 0.5f) * 2f);
+            ? Color.Lerp(colorNeonBajo, colorNeonMedio, t * 2f)
+            : Color.Lerp(colorNeonMedio, colorNeonAlto, (t - 0.5f) * 2f);
     }
 
     void PrepararEstilo()
     {
-        if (estiloTexto != null) return;
+        if (estiloTexto != null && estiloTexto.font == fuentePanel) return;
 
-        estiloTexto = new GUIStyle { font = fuentePanel, fontStyle = FontStyle.Bold, clipping = TextClipping.Overflow };
+        estiloTexto = new GUIStyle { font = fuentePanel, fontStyle = FontStyle.Normal, clipping = TextClipping.Overflow };
         estiloTexto.normal.textColor = Color.white;
     }
 
-    // Texto con sombra para que se lea sobre cualquier fondo.
-    void Texto(Rect r, string texto, float tamano, TextAnchor anclaje, Color color)
+    // Texto luminoso: copias desplazadas y tenues alrededor (halo) y el texto nítido encima.
+    void TextoNeon(Rect r, string texto, float tamano, TextAnchor anclaje, Color color, float halo)
     {
         estiloTexto.fontSize = Mathf.Max(8, Mathf.RoundToInt(tamano));
         estiloTexto.alignment = anclaje;
 
         Color guardado = GUI.color;
-        float sombra = Mathf.Max(1f, tamano * 0.08f);
-        GUI.color = new Color(0f, 0f, 0f, 0.6f * color.a);
-        GUI.Label(new Rect(r.x + sombra, r.y + sombra, r.width, r.height), texto, estiloTexto);
+        if (halo > 0f)
+        {
+            float d = Mathf.Max(1f, tamano * 0.05f);
+            GUI.color = ConAlfa(color, color.a * 0.22f * halo);
+            GUI.Label(new Rect(r.x - d, r.y, r.width, r.height), texto, estiloTexto);
+            GUI.Label(new Rect(r.x + d, r.y, r.width, r.height), texto, estiloTexto);
+            GUI.Label(new Rect(r.x, r.y - d, r.width, r.height), texto, estiloTexto);
+            GUI.Label(new Rect(r.x, r.y + d, r.width, r.height), texto, estiloTexto);
+        }
         GUI.color = color;
         GUI.Label(r, texto, estiloTexto);
         GUI.color = guardado;
