@@ -219,6 +219,9 @@ public class MeteoritoVisual : MonoBehaviour
             }
         }
 
+        // 4b. Marca de quemadura en el suelo bajo el impacto (solo sobre objetos con el tag del suelo)
+        GestorQuemaduras.CrearBajo(transform.position);
+
         // 5. COMPROBACIÓN DE RADIO Y SHAKE DE CÁMARA
         VerificarShakeJugador();
 
