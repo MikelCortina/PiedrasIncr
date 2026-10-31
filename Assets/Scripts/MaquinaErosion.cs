@@ -1143,6 +1143,40 @@ public class MaquinaErosion : MonoBehaviour
 
 
     // =====================================================
+    // RESTAURAR ESTADO DESDE GUARDADO
+    // =====================================================
+
+    public void RestaurarEstadoGuardado(
+        bool desbloqueada,
+        int nivel)
+    {
+        if (nivel < 1 || nivel > 3)
+        {
+            throw new System.ArgumentOutOfRangeException(
+                nameof(nivel),
+                "El nivel de la procesadora debe estar entre 1 y 3."
+            );
+        }
+
+        if (!desbloqueada && nivel != 1)
+        {
+            throw new System.InvalidOperationException(
+                "Una procesadora bloqueada no puede tener mejoras."
+            );
+        }
+
+        // Recuperar el desbloqueo sin ejecutar compras.
+        procesadoraDesbloqueada = desbloqueada;
+
+        // Recuperar el nivel exacto.
+        nivelProcesado = nivel;
+
+        // Actualizar el tiempo real de procesamiento.
+        AplicarNivelProcesado();
+    }
+
+
+    // =====================================================
     // MAX
     // =====================================================
 

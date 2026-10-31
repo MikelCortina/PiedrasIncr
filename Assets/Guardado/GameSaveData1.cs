@@ -1,6 +1,7 @@
+
 using System;
 
-// Datos puros serializables; sin referencias a objetos de la escena.
+// Datos serializables de una partida.
 [Serializable]
 public sealed class GameSaveData
 {
@@ -14,19 +15,25 @@ public sealed class GameSaveData
     public double totalPlaySeconds;
     public string sceneName = "Piedra";
 
+    // Economia
     public EconomySaveData economy = new EconomySaveData();
 
-    // Campo opcional en v1: archivos anteriores con solo economia siguen siendo legibles.
+    // Jugador
     public PlayerSaveData player = new PlayerSaveData();
 
-    // Marca explicita para distinguir datos inexistentes de 'todo bloqueado'.
+    // Desbloqueos de herramientas
     public bool hasEquipmentUnlocksData;
     public EquipmentUnlocksSaveData equipmentUnlocks;
 
-    // Marca explicita: archivos anteriores a las mejoras NO contienen estos datos.
-    // Nunca asumir nivel 1 o iman bloqueado si la marca es false.
+    // Mejoras del Torbellino e Iman
     public bool hasToolUpgradesData;
     public ToolUpgradesSaveData toolUpgrades;
+
+    // Procesadora
+    // La marca impide interpretar un guardado antiguo
+    // como si tuviera una procesadora sin desbloquear.
+    public bool hasProcessorData;
+    public ProcessorSaveData processor;
 }
 
 [Serializable]
@@ -56,9 +63,25 @@ public sealed class EquipmentUnlocksSaveData
 [Serializable]
 public sealed class ToolUpgradesSaveData
 {
-    public int nivelRadioTorbellino;      // 1..4
-    public int nivelAlcanceTorbellino;    // 1..3
-    public int nivelMovilidadTorbellino;  // 1..3
+    public int nivelRadioTorbellino;
+    public int nivelAlcanceTorbellino;
+    public int nivelMovilidadTorbellino;
     public bool imanDesbloqueado;
-    public int nivelAlcanceIman;          // 1..3
+    public int nivelAlcanceIman;
+}
+
+// Estado permanente de la procesadora.
+[Serializable]
+public sealed class ProcessorSaveData
+{
+    public bool desbloqueada;
+    public int nivelProcesado;
+
+    // Construccion
+    public int monedasConstruccionAportadas;
+    public int monedasConstruccionNecesarias;
+
+    // Siguiente mejora
+    public int monedasMejoraAportadas;
+    public int precioSiguienteMejora;
 }
