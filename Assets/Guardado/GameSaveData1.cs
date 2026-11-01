@@ -33,9 +33,13 @@ public sealed class GameSaveData
     public bool hasProcessorData;
     public ProcessorSaveData processor;
 
-    // Inventario de edificios comprados
+    // Inventario de edificios
     public bool hasBuildingInventoryData;
     public BuildingInventorySaveData buildingInventory;
+
+    // Edificios colocados y sus conexiones
+    public bool hasPlacedBuildingsData;
+    public PlacedBuildingsSaveData placedBuildings;
 }
 
 [Serializable]
@@ -68,6 +72,7 @@ public sealed class ToolUpgradesSaveData
     public int nivelRadioTorbellino;
     public int nivelAlcanceTorbellino;
     public int nivelMovilidadTorbellino;
+
     public bool imanDesbloqueado;
     public int nivelAlcanceIman;
 }
@@ -85,7 +90,10 @@ public sealed class ProcessorSaveData
     public int precioSiguienteMejora;
 }
 
-// Inventario permanente de edificios
+// ========================================
+// INVENTARIO DE EDIFICIOS
+// ========================================
+
 [Serializable]
 public sealed class BuildingInventorySaveData
 {
@@ -96,9 +104,64 @@ public sealed class BuildingInventorySaveData
 [Serializable]
 public sealed class BuildingInventoryItemSaveData
 {
-    // Nombre estable del tipo de edificio.
     public string tipo;
-
-    // Unidades que el jugador tiene en su mochila.
     public int unidades;
+}
+
+// ========================================
+// EDIFICIOS COLOCADOS
+// ========================================
+
+[Serializable]
+public sealed class PlacedBuildingsSaveData
+{
+    public List<PlacedBuildingSaveData> edificios =
+        new List<PlacedBuildingSaveData>();
+}
+
+[Serializable]
+public sealed class PlacedBuildingSaveData
+{
+    // Identidad y prefab
+    public string idPersistente;
+    public string tipo;
+    public int variantePrefab;
+    public float curvaturaRampa;
+
+    // Posicion global
+    public float positionX;
+    public float positionY;
+    public float positionZ;
+
+    // Rotacion global
+    public float rotationX;
+    public float rotationY;
+    public float rotationZ;
+    public float rotationW;
+
+    // Escala local
+    public float scaleX;
+    public float scaleY;
+    public float scaleZ;
+
+    // ========================================
+    // NUEVO: CONEXION ENTRE EDIFICIOS
+    // ========================================
+
+    // Indica si este edificio esta conectado
+    // a otro mediante un conector.
+    public bool hasConnection;
+
+    // ID permanente del edificio propietario
+    // del conector utilizado.
+    public string connectedToBuildingId;
+
+    // Ruta del conector dentro del prefab.
+    // Ejemplo: "GameObject[0]"
+    public string connectorPath;
+
+    // Tag del conector utilizado.
+    // Ejemplos: RailRampa, ConectorSalida,
+    // ConectorParedEntrada, etc.
+    public string connectorTag;
 }

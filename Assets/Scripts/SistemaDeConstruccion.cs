@@ -757,6 +757,14 @@ public class SistemaConstruccion : MonoBehaviour
                 EdificioConstruido id = nuevaEstructura.AddComponent<EdificioConstruido>();
                 id.tipo = actual.tipo;
 
+                id.RegistrarComoNuevo(
+                    indiceVarianteActual,
+                    actual.tipo == TipoEdificio.Rampa
+                        ? curvaturaActual
+                        : 0f
+                );
+
+
                 if (estaImantado && imanApuntado != null)
                 {
                     id.conectorUsado = imanApuntado;
@@ -833,12 +841,149 @@ public class SistemaConstruccion : MonoBehaviour
     }
 }
 
+
+
 public class EdificioConstruido : MonoBehaviour
 {
     public SistemaConstruccion.TipoEdificio tipo;
-    public Collider conectorUsado;
-    public List<GameObject> edificiosDependientes = new List<GameObject>();
 
-    [Tooltip("Conectores de otras rampas/paredes acopladas a nosotros, que debemos re-encender si morimos")]
-    public List<Collider> conectoresHijosBloqueados = new List<Collider>();
+    public Collider conectorUsado;
+
+    public List<GameObject> edificiosDependientes =
+        new List<GameObject>();
+
+    [Tooltip("Conectores de otras rampas/paredes acopladas")]
+    public List<Collider> conectoresHijosBloqueados =
+        new List<Collider>();
+
+    // IDENTIDAD PERMANENTE
+
+    [SerializeField, HideInInspector]
+    private string idPersistente;
+
+    [SerializeField, HideInInspector]
+    private int variantePrefab = -1;
+
+    [SerializeField, HideInInspector]
+    private float curvaturaRampa;
+
+    public string IdPersistente => idPersistente;
+    public int VariantePrefab => variantePrefab;
+    public float CurvaturaRampa => curvaturaRampa;
+
+    // =========================================
+    // REGISTRAR EDIFICIO NUEVO
+    // =========================================
+
+    public void RegistrarComoNuevo(
+        int variante,
+        float curvatura)
+    {
+        if (!string.IsNullOrEmpty(idPersistente))
+        {
+            throw new System.InvalidOperationException(
+                "Este edificio ya tiene una identidad."
+            );
+        }
+
+        if (variante < 0)
+        {
+            throw new System.ArgumentOutOfRangeException(
+                nameof(variante)
+            );
+        }
+
+        if (float.IsNaN(curvatura) ||
+            float.IsInfinity(curvatura))
+        {
+            throw new System.ArgumentException(
+                "Curvatura invalida."
+            );
+        }
+
+        idPersistente =
+            System.Guid.NewGuid().ToString("N");
+
+        variantePrefab = variante;
+        curvaturaRampa = curvatura;
+    }
+
+    // =========================================
+    // RESTAURAR IDENTIDAD DESDE UN GUARDADO
+    // =========================================
+
+    public void RestaurarIdentidadGuardada(
+        string idGuardado,
+        SistemaConstruccion.TipoEdificio tipoGuardado,
+        int varianteGuardada,
+        float curvaturaGuardada)
+    {
+        // Impedir modificar un edificio ya registrado.
+        if (!string.IsNullOrEmpty(idPersistente))
+        {
+            throw new System.InvalidOperationException(
+                "No se puede sobrescribir la identidad " +
+                "de un edificio existente."
+            );
+        }
+
+        // Validar el identificador.
+        System.Guid identificador;
+
+        if (string.IsNullOrEmpty(idGuardado) ||
+            !System.Guid.TryParseExact(
+                idGuardado,
+                "N",
+                out identificador))
+        {
+            throw new System.ArgumentException(
+                "ID de edificio invalido."
+            );
+        }
+
+        // Validar el tipo.
+        if (!System.Enum.IsDefined(
+            typeof(SistemaConstruccion.TipoEdificio),
+            tipoGuardado))
+        {
+            throw new System.ArgumentException(
+                "Tipo de edificio desconocido."
+            );
+        }
+
+        // Validar la variante.
+        if (varianteGuardada < 0)
+        {
+            throw new System.ArgumentOutOfRangeException(
+                nameof(varianteGuardada)
+            );
+        }
+
+        // Validar la curvatura.
+        if (float.IsNaN(curvaturaGuardada) ||
+            float.IsInfinity(curvaturaGuardada))
+        {
+            throw new System.ArgumentException(
+                "Curvatura guardada invalida."
+            );
+        }
+
+        if (tipoGuardado !=
+                SistemaConstruccion.TipoEdificio.Rampa &&
+            curvaturaGuardada != 0f)
+        {
+            throw new System.ArgumentException(
+                "Un edificio que no es rampa " +
+                "no puede tener curvatura."
+            );
+        }
+
+        // Aplicar todos los datos una vez validados.
+        idPersistente = idGuardado;
+        tipo = tipoGuardado;
+        variantePrefab = varianteGuardada;
+        curvaturaRampa = curvaturaGuardada;
+    }
 }
+
+
