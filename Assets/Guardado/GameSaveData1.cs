@@ -1,7 +1,7 @@
 
 using System;
+using System.Collections.Generic;
 
-// Datos serializables de una partida.
 [Serializable]
 public sealed class GameSaveData
 {
@@ -30,10 +30,12 @@ public sealed class GameSaveData
     public ToolUpgradesSaveData toolUpgrades;
 
     // Procesadora
-    // La marca impide interpretar un guardado antiguo
-    // como si tuviera una procesadora sin desbloquear.
     public bool hasProcessorData;
     public ProcessorSaveData processor;
+
+    // Inventario de edificios comprados
+    public bool hasBuildingInventoryData;
+    public BuildingInventorySaveData buildingInventory;
 }
 
 [Serializable]
@@ -70,18 +72,33 @@ public sealed class ToolUpgradesSaveData
     public int nivelAlcanceIman;
 }
 
-// Estado permanente de la procesadora.
 [Serializable]
 public sealed class ProcessorSaveData
 {
     public bool desbloqueada;
     public int nivelProcesado;
 
-    // Construccion
     public int monedasConstruccionAportadas;
     public int monedasConstruccionNecesarias;
 
-    // Siguiente mejora
     public int monedasMejoraAportadas;
     public int precioSiguienteMejora;
+}
+
+// Inventario permanente de edificios
+[Serializable]
+public sealed class BuildingInventorySaveData
+{
+    public List<BuildingInventoryItemSaveData> articulos =
+        new List<BuildingInventoryItemSaveData>();
+}
+
+[Serializable]
+public sealed class BuildingInventoryItemSaveData
+{
+    // Nombre estable del tipo de edificio.
+    public string tipo;
+
+    // Unidades que el jugador tiene en su mochila.
+    public int unidades;
 }
