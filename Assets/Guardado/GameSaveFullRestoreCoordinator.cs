@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Paso 80: carga coordinada de la partida
-/// con recuperacion ante fallos.
-/// Solo admite escenas preparadas y sin edificios.
+/// Paso 81: carga coordinada de la partida
+/// con recuperacion ante fallos y pruebas
+/// independientes en cada etapa.
+///
+/// Solo admite una escena preparada
+/// y sin edificios existentes.
 /// </summary>
 public static class GameSaveFullRestoreCoordinator
 {
 #if UNITY_EDITOR
-    // Permite provocar fallos controlados durante
-    // las pruebas. No existe en la build final.
+    // Permite provocar fallos controlados.
+    // Solo existe dentro del Editor de Unity.
     public static Action<string> FalloDiagnostico;
 #endif
 
@@ -36,11 +39,15 @@ public static class GameSaveFullRestoreCoordinator
 
         GameSaveData partida =
             GameSaveFullLoadValidator.LeerYValidar(
-                storage, ranura, r, out respaldo
+                storage,
+                ranura,
+                r,
+                out respaldo
             );
 
         GameSaveFullLoadValidator.ExigirEscenaPreparada(
-            partida, r
+            partida,
+            r
         );
 
         // ======================================
@@ -67,8 +74,13 @@ public static class GameSaveFullRestoreCoordinator
 
             creados =
                 PlacedBuildingsSlotBridge.RestaurarEnEscenaVacia(
-                    r.sistema, partida
+                    r.sistema,
+                    partida
                 );
+
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke("TrasEdificios");
+#endif
 
             // ======================================
             // 4. RESTAURAR JUGADOR
@@ -77,8 +89,13 @@ public static class GameSaveFullRestoreCoordinator
             jugadorIniciado = true;
 
             PlayerRestoreAdapter.Restore(
-                r.jugador, partida
+                r.jugador,
+                partida
             );
+
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke("TrasJugador");
+#endif
 
             // ======================================
             // 5. RESTAURAR MEJORAS
@@ -92,6 +109,10 @@ public static class GameSaveFullRestoreCoordinator
                 partida
             );
 
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke("TrasMejoras");
+#endif
+
             // ======================================
             // 6. RESTAURAR DESBLOQUEOS
             // ======================================
@@ -102,6 +123,10 @@ public static class GameSaveFullRestoreCoordinator
                 r.equipamiento,
                 partida
             );
+
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke("TrasEquipo");
+#endif
 
             // ======================================
             // 7. RESTAURAR PROCESADORA
@@ -115,6 +140,10 @@ public static class GameSaveFullRestoreCoordinator
                 partida
             );
 
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke("TrasProcesadora");
+#endif
+
             // ======================================
             // 8. RESTAURAR INVENTARIO
             // ======================================
@@ -125,6 +154,10 @@ public static class GameSaveFullRestoreCoordinator
                 r.inventario,
                 partida
             );
+
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke("TrasInventario");
+#endif
 
             // ======================================
             // 9. RESTAURAR ECONOMIA
@@ -138,10 +171,6 @@ public static class GameSaveFullRestoreCoordinator
             );
 
 #if UNITY_EDITOR
-            // PASO 80:
-            // Punto de inyeccion de fallo controlado.
-            // Se ejecuta despues de aplicar todos
-            // los sistemas de la partida.
             FalloDiagnostico?.Invoke("TrasEconomia");
 #endif
 
@@ -281,15 +310,13 @@ public static class GameSaveFullRestoreCoordinator
                 );
             }
 
-            // El estado anterior se ha intentado
-            // recuperar sin errores detectados.
-            // Propagar el fallo original.
+            // Propagar el error original.
             throw;
         }
     }
 
     // ======================================
-    // RECUPERACION INDIVIDUAL SEGURA
+    // RECUPERACION INDIVIDUAL
     // ======================================
 
     private static void Intentar(
