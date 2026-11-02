@@ -808,4 +808,30 @@ public class GuardadoPartidaJuego : MonoBehaviour
     {
         ranura = Mathf.Clamp(ranura, 1, 3);
     }
+
+
+    public void NotificarRanuraEliminada(int numeroRanura)
+    {
+        if (ranuraActiva == numeroRanura)
+        {
+            ranuraActiva = 0;
+            idPartidaActiva = null;
+            revisionActiva = null;
+        }
+
+        if (ranura == numeroRanura)
+        {
+            // Evita recrear accidentalmente la
+            // partida eliminada al pulsar F5.
+            ranura = ranuraActiva >= 1
+                ? ranuraActiva
+                : 0;
+        }
+
+        Debug.Log(
+            "[GUARDADO] PASO 90 ESTADO ACTUALIZADO: " +
+            "ranura eliminada=" + numeroRanura
+        );
+    }
+
 }
