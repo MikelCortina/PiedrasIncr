@@ -17,6 +17,13 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class PlacedBuildingsConnectionsRestoreAdapter
 {
+#if UNITY_EDITOR
+    // PASO 82:
+    // Permite provocar un fallo controlado
+    // despues de aplicar cada conexion.
+    public static Action<int> FalloDiagnostico;
+#endif
+
     private sealed class EnlacePendiente
     {
         public EdificioConstruido hijo;
@@ -50,9 +57,9 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
         PlacedBuildingsSaveData datos =
             PlacedBuildingsSaveAdapter.Read(partida);
 
-        // ==========================================
+        // ======================================
         // 1. LOCALIZAR LOS EDIFICIOS
-        // ==========================================
+        // ======================================
 
         Dictionary<string, EdificioConstruido> actuales =
             new Dictionary<string, EdificioConstruido>(
@@ -115,9 +122,9 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
             }
         }
 
-        // ==========================================
+        // ======================================
         // 2. VALIDAR TODAS LAS CONEXIONES
-        // ==========================================
+        // ======================================
 
         List<EnlacePendiente> pendientes =
             new List<EnlacePendiente>();
@@ -290,8 +297,6 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
                  registro.connectorTag ==
                     "ConectorParedEntrada"))
             {
-                // Misma regla que SistemaConstruccion:
-                //
                 // Salida del padre -> Entrada del hijo.
                 // Entrada del padre -> Salida del hijo.
 
@@ -337,8 +342,8 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
                 );
             }
 
-            // Un mismo extremo no puede reservarse
-            // para dos conexiones diferentes.
+            // Evitar reservar un mismo extremo
+            // para varias conexiones.
             if (enlace.conectorHijoBloqueado != null &&
                 !extremosBloqueados.Add(
                     enlace.conectorHijoBloqueado))
@@ -352,20 +357,24 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
             pendientes.Add(enlace);
         }
 
-        // ==========================================
+        // ======================================
         // 3. RESTAURAR LAS CONEXIONES
-        // ==========================================
+        // ======================================
+
         // Hasta aqui no se ha modificado ningun
         // conector ni dependencia.
 
+        // PASO 82: contar las conexiones aplicadas.
+        int conexionesAplicadas = 0;
+
         foreach (EnlacePendiente enlace in pendientes)
         {
-            // El hijo recuerda a que conector
-            // del padre esta unido.
+            // El hijo recuerda el conector
+            // del edificio padre.
             enlace.hijo.conectorUsado =
                 enlace.conectorPadre;
 
-            // Ocupamos el conector del padre.
+            // Ocupar el conector del padre.
             enlace.conectorPadre.enabled = false;
 
             // ======================================
@@ -383,8 +392,8 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
                     );
                 }
 
-                // Las paredes sobre una rampa
-                // deshabilitan sus conectores propios.
+                // Deshabilitar los conectores propios
+                // de la pared situada sobre la rampa.
                 Collider[] colliders =
                     enlace.hijo.GetComponentsInChildren<
                         Collider>(true);
@@ -410,12 +419,11 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
                 Collider bloqueado =
                     enlace.conectorHijoBloqueado;
 
-                // El extremo de la construccion hija
-                // tambien queda ocupado.
+                // Bloquear extremo del hijo.
                 bloqueado.enabled = false;
 
-                // El padre recuerda el extremo
-                // para liberarlo cuando sea demolido.
+                // Registrar el conector bloqueado
+                // para liberarlo durante la demolicion.
                 if (!enlace.padre.conectoresHijosBloqueados
                         .Contains(bloqueado))
                 {
@@ -423,14 +431,27 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
                         .Add(bloqueado);
                 }
             }
+
+            // ======================================
+            // PASO 82: FALLO INTERNO CONTROLADO
+            // ======================================
+
+            // La conexion fisica ya se ha aplicado.
+            conexionesAplicadas++;
+
+#if UNITY_EDITOR
+            FalloDiagnostico?.Invoke(
+                conexionesAplicadas
+            );
+#endif
         }
 
         return pendientes.Count;
     }
 
-    // ==========================================
+    // ======================================
     // BUSCAR CONECTOR POR NOMBRE
-    // ==========================================
+    // ======================================
 
     private static Collider BuscarConectorPorNombre(
         Transform raiz,
@@ -465,9 +486,9 @@ public static class PlacedBuildingsConnectionsRestoreAdapter
         return encontrado;
     }
 
-    // ==========================================
+    // ======================================
     // LOCALIZAR CONECTOR POR SU RUTA GUARDADA
-    // ==========================================
+    // ======================================
 
     private static Collider ResolverConector(
         Transform raiz,

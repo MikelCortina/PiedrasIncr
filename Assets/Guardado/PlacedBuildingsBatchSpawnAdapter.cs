@@ -16,6 +16,13 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class PlacedBuildingsBatchSpawnAdapter
 {
+#if UNITY_EDITOR
+    // PASO 82:
+    // Permite provocar errores despues de crear
+    // cada prefab durante las pruebas del Editor.
+    public static Action<int> FalloDiagnostico;
+#endif
+
     public static List<EdificioConstruido> CrearORecuperarTodos(
         SistemaConstruccion sistema,
         GameSaveData partida)
@@ -43,16 +50,6 @@ public static class PlacedBuildingsBatchSpawnAdapter
         // ======================================
         // 2. VALIDAR TODAS LAS CONEXIONES
         // ======================================
-        // IMPORTANTE:
-        // Esta comprobacion se realiza ANTES
-        // de crear cualquier edificio.
-        //
-        // Rechaza:
-        // - Conexiones con IDs inexistentes.
-        // - Conectores utilizados dos veces.
-        // - Conexiones circulares.
-        // - Tipos de conexion incompatibles.
-        // - Datos de conexiones inconsistentes.
 
         PlacedBuildingsConnectionGraphValidator.Analizar(
             partida
@@ -165,11 +162,18 @@ public static class PlacedBuildingsBatchSpawnAdapter
 
                 resultado.Add(edificio);
 
-                // Solo registrar objetos realmente nuevos.
+                // Registrar solamente los objetos nuevos.
                 // Nunca eliminar edificios preexistentes.
                 if (!existiaAntes)
                 {
                     nuevos.Add(edificio.gameObject);
+
+#if UNITY_EDITOR
+                    // PASO 82:
+                    // El prefab ya esta registrado
+                    // para su limpieza si hay un fallo.
+                    FalloDiagnostico?.Invoke(nuevos.Count);
+#endif
                 }
             }
 
@@ -177,14 +181,21 @@ public static class PlacedBuildingsBatchSpawnAdapter
         }
         catch
         {
-            // Si falla la operacion, retirar
-            // exclusivamente los edificios nuevos.
+            // ======================================
+            // 6. RECUPERACION ANTE FALLOS
+            // ======================================
+
+            // Eliminar solo los prefabs creados
+            // durante esta operacion.
             foreach (GameObject objeto in nuevos)
             {
                 if (objeto != null)
                 {
                     objeto.SetActive(false);
-                    UnityEngine.Object.Destroy(objeto);
+
+                    UnityEngine.Object.Destroy(
+                        objeto
+                    );
                 }
             }
 
@@ -231,7 +242,8 @@ public static class PlacedBuildingsBatchSpawnAdapter
         {
             throw new InvalidOperationException(
                 "Se esperaba un unico prefab para " +
-                tipo + ", variante=" + variante +
+                tipo +
+                ", variante=" + variante +
                 ". Coincidencias=" + coincidencias
             );
         }
