@@ -1,16 +1,23 @@
 
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Paso 86:
-/// F5 guarda la partida.
-/// F9 carga la partida desde una escena limpia.
+/// Paso 88:
 ///
-/// La sobrescritura solo se permite cuando
-/// la partida corresponde a la ranura activa
-/// y el archivo no ha cambiado desde entonces.
+/// F5: guardar partida.
+/// F9: cargar partida desde una escena limpia.
+///
+/// Permite cargar directamente una partida
+/// desde el menu de ranuras.
+///
+/// Si es necesario, recarga la escena antes
+/// de restaurar los edificios y el progreso.
+///
+/// Mantiene la proteccion de sobrescritura
+/// implementada en el paso 86.
 /// </summary>
 public class GuardadoPartidaJuego : MonoBehaviour
 {
@@ -40,17 +47,25 @@ public class GuardadoPartidaJuego : MonoBehaviour
 
     private bool operacionEnCurso;
 
-    // Identidad de la partida activa.
     private int ranuraActiva;
     private string idPartidaActiva;
     private string revisionActiva;
 
-    // Tiempo acumulado antes de esta sesion.
     private double segundosAcumulados;
     private float inicioSesion;
 
     // =====================================
-    // INICIO
+    // PASO 88: CARGA PENDIENTE
+    // =====================================
+
+    // Static permite conservar la solicitud
+    // mientras se destruye y recarga la escena.
+
+    private static int ranuraCargaPendiente;
+    private static string escenaCargaPendiente;
+
+    // =====================================
+    // AWAKE
     // =====================================
 
     private void Awake()
@@ -63,7 +78,79 @@ public class GuardadoPartidaJuego : MonoBehaviour
     }
 
     // =====================================
-    // CONTROLES
+    // START: CARGAR TRAS RECARGAR ESCENA
+    // =====================================
+
+    private IEnumerator Start()
+    {
+        if (ranuraCargaPendiente == 0)
+            yield break;
+
+        int ranuraACargar = ranuraCargaPendiente;
+        string escenaEsperada = escenaCargaPendiente;
+
+        ranuraCargaPendiente = 0;
+        escenaCargaPendiente = null;
+
+        if (SceneManager.GetActiveScene().name !=
+            escenaEsperada)
+        {
+            Debug.LogError(
+                "[CARGA] PASO 88 FALLIDO: " +
+                "la escena cargada no coincide."
+            );
+
+            yield break;
+        }
+
+        // Esperar a que los componentes y la
+        // fisica del jugador esten preparados.
+
+        const int maxIntentos = 180;
+
+        for (int intento = 0;
+             intento < maxIntentos;
+             intento++)
+        {
+            yield return new WaitForFixedUpdate();
+
+            MovimientoPersonaje movimiento =
+                FindFirstObjectByType<MovimientoPersonaje>();
+
+            if (movimiento == null)
+                continue;
+
+            CharacterController controlador =
+                movimiento.GetComponent<CharacterController>();
+
+            if (controlador == null ||
+                !controlador.enabled ||
+                !controlador.isGrounded ||
+                !movimiento.SueloDetectado)
+            {
+                continue;
+            }
+
+            Debug.Log(
+                "[CARGA] PASO 88 ESCENA PREPARADA: " +
+                escenaEsperada
+            );
+
+            // Utilizar el coordinador completo
+            // que ya hemos probado.
+            CargarDesdeRanura(ranuraACargar);
+
+            yield break;
+        }
+
+        Debug.LogError(
+            "[CARGA] PASO 88 FALLIDO: " +
+            "el jugador no ha alcanzado suelo seguro."
+        );
+    }
+
+    // =====================================
+    // UPDATE
     // =====================================
 
     private void Update()
@@ -141,26 +228,16 @@ public class GuardadoPartidaJuego : MonoBehaviour
                         StringComparison.Ordinal
                     );
 
-                // Solo sobrescribir si:
-                //
-                // - Esta permitido.
-                // - Es la partida activa.
-                // - La revision no ha cambiado.
-                // - El principal es valido.
-
                 if (!permitirSobrescribir ||
                     !esPartidaActiva ||
                     cargadoDesdeRespaldo)
                 {
                     Debug.LogWarning(
-                        "[GUARDADO] PASO 86 " +
-                        "SOBRESCRITURA BLOQUEADA. " +
+                        "[GUARDADO] SOBRESCRITURA BLOQUEADA. " +
                         "Ranura=" + numeroRanura +
-                        ". Debes cargar primero esta " +
-                        "misma partida, activar " +
-                        "Permitir Sobrescribir y " +
-                        "utilizar un archivo " +
-                        "principal valido."
+                        ". Carga primero la misma partida, " +
+                        "activa Permitir Sobrescribir " +
+                        "y utiliza un archivo principal valido."
                     );
 
                     return;
@@ -168,14 +245,14 @@ public class GuardadoPartidaJuego : MonoBehaviour
             }
 
             // =====================================
-            // 2. OBTENER REFERENCIAS
+            // 2. REFERENCIAS
             // =====================================
 
             GameSaveSceneReferences referencias =
                 ObtenerReferencias();
 
             // =====================================
-            // 3. CALCULAR TIEMPO JUGADO
+            // 3. TIEMPO DE PARTIDA
             // =====================================
 
             double tiempoSesion = Math.Max(
@@ -187,7 +264,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
                 segundosAcumulados + tiempoSesion;
 
             // =====================================
-            // 4. GUARDAR PARTIDA COMPLETA
+            // 4. GUARDADO COMPLETO
             // =====================================
 
             GameSaveData guardada =
@@ -199,23 +276,23 @@ public class GuardadoPartidaJuego : MonoBehaviour
                 );
 
             // =====================================
-            // 5. VERIFICAR ARCHIVO GUARDADO
+            // 5. VERIFICAR ARCHIVO
             // =====================================
 
             GameSaveData comprobacion;
-            bool verificacionDesdeRespaldo;
+            bool desdeRespaldo;
 
             if (!almacenamiento.TryLoad(
                 numeroRanura,
                 out comprobacion,
-                out verificacionDesdeRespaldo))
+                out desdeRespaldo))
             {
                 throw new InvalidOperationException(
                     "No se puede leer la partida guardada."
                 );
             }
 
-            if (verificacionDesdeRespaldo ||
+            if (desdeRespaldo ||
                 comprobacion.saveId != guardada.saveId ||
                 comprobacion.savedUtc != guardada.savedUtc ||
                 comprobacion.economy.coins !=
@@ -232,10 +309,10 @@ public class GuardadoPartidaJuego : MonoBehaviour
             // 6. REGISTRAR PARTIDA ACTIVA
             // =====================================
 
+            ranura = numeroRanura;
             ranuraActiva = numeroRanura;
 
             idPartidaActiva = guardada.saveId;
-
             revisionActiva = guardada.savedUtc;
 
             // =====================================
@@ -243,7 +320,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
             // =====================================
 
             Debug.Log(
-                "[GUARDADO] PASO 86 GUARDADO OK: " +
+                "[GUARDADO] PASO 88 GUARDADO OK: " +
                 "ranura=" + numeroRanura +
                 ", monedas=" +
                 guardada.economy.coins +
@@ -263,7 +340,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
         catch (Exception ex)
         {
             Debug.LogError(
-                "[GUARDADO] PASO 86 ERROR AL GUARDAR: " +
+                "[GUARDADO] PASO 88 ERROR AL GUARDAR: " +
                 ex
             );
         }
@@ -274,7 +351,99 @@ public class GuardadoPartidaJuego : MonoBehaviour
     }
 
     // =====================================
-    // CARGAR
+    // PASO 88: CARGAR DESDE EL MENU
+    // =====================================
+
+    public void CargarDesdeMenu(int numeroRanura)
+    {
+        if (operacionEnCurso)
+            return;
+
+        if (!RanuraValida(numeroRanura))
+            return;
+
+        if (!Application.isPlaying)
+            return;
+
+        SaveStorage almacenamiento =
+            new SaveStorage();
+
+        GameSaveData partida;
+        bool desdeRespaldo;
+
+        if (!almacenamiento.TryLoad(
+            numeroRanura,
+            out partida,
+            out desdeRespaldo))
+        {
+            Debug.LogWarning(
+                "[CARGA] La ranura " +
+                numeroRanura +
+                " no contiene una partida valida."
+            );
+
+            return;
+        }
+
+        // =====================================
+        // 1. COMPROBAR ESCENA
+        // =====================================
+
+        if (string.IsNullOrEmpty(partida.sceneName) ||
+            !Application.CanStreamedLevelBeLoaded(
+                partida.sceneName))
+        {
+            Debug.LogError(
+                "[CARGA] PASO 88 FALLIDO: " +
+                "la escena no esta disponible " +
+                "en Build Profiles: " +
+                partida.sceneName
+            );
+
+            return;
+        }
+
+        // =====================================
+        // 2. REGISTRAR CARGA PENDIENTE
+        // =====================================
+
+        ranuraCargaPendiente = numeroRanura;
+        escenaCargaPendiente = partida.sceneName;
+
+        Debug.Log(
+            "[CARGA] PASO 88 INICIANDO: " +
+            "ranura=" + numeroRanura +
+            ", escena=" + partida.sceneName
+        );
+
+        // =====================================
+        // 3. RECARGAR ESCENA LIMPIA
+        // =====================================
+
+        try
+        {
+            // Incluso si ya estamos en Piedra,
+            // recargamos la escena para no
+            // restaurar sobre edificios existentes.
+
+            SceneManager.LoadScene(
+                partida.sceneName,
+                LoadSceneMode.Single
+            );
+        }
+        catch (Exception ex)
+        {
+            ranuraCargaPendiente = 0;
+            escenaCargaPendiente = null;
+
+            Debug.LogError(
+                "[CARGA] PASO 88 ERROR: " + ex
+            );
+        }
+    }
+
+    // =====================================
+    // CARGAR CON F9
     // =====================================
 
     public void Cargar()
@@ -332,13 +501,6 @@ public class GuardadoPartidaJuego : MonoBehaviour
             // 3. RESTAURAR PARTIDA
             // =====================================
 
-            // El coordinador valida la escena,
-            // reconstruye edificios y conexiones
-            // y restaura los sistemas del juego.
-            //
-            // Si una etapa falla, intenta recuperar
-            // el estado anterior.
-
             GameSaveFullRestoreCoordinator.Resultado resultado =
                 GameSaveFullRestoreCoordinator.Restaurar(
                     almacenamiento,
@@ -350,9 +512,11 @@ public class GuardadoPartidaJuego : MonoBehaviour
             // 4. REGISTRAR PARTIDA ACTIVA
             // =====================================
 
-            // Solo se registra cuando la carga
-            // ha terminado correctamente.
+            // Importante:
+            // F5 seguira guardando en la ranura
+            // que acabamos de cargar.
 
+            ranura = numeroRanura;
             ranuraActiva = numeroRanura;
 
             idPartidaActiva =
@@ -362,7 +526,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
                 resultado.partida.savedUtc;
 
             // =====================================
-            // 5. RECUPERAR TIEMPO JUGADO
+            // 5. RESTAURAR TIEMPO
             // =====================================
 
             segundosAcumulados =
@@ -372,7 +536,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
                 Time.timeSinceLevelLoad;
 
             // =====================================
-            // 6. COMPROBAR RESULTADO
+            // 6. RESULTADO
             // =====================================
 
             int edificios =
@@ -382,7 +546,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
                 resultado.construcciones.conexionesRestauradas;
 
             Debug.Log(
-                "[CARGA] PASO 86 CARGA OK: " +
+                "[CARGA] PASO 88 SUPERADO: " +
                 "ranura=" + numeroRanura +
                 ", monedas=" +
                 resultado.partida.economy.coins +
@@ -395,25 +559,46 @@ public class GuardadoPartidaJuego : MonoBehaviour
             if (resultado.desdeRespaldo)
             {
                 Debug.LogWarning(
-                    "[CARGA] La partida se ha recuperado " +
+                    "[CARGA] Se ha recuperado la partida " +
                     "desde el archivo de respaldo. " +
-                    "La sobrescritura automatica " +
-                    "de esta ranura permanecera bloqueada " +
-                    "hasta recuperar un principal valido."
+                    "La sobrescritura de esta ranura " +
+                    "permanecera bloqueada mientras " +
+                    "el principal no sea valido."
                 );
             }
         }
         catch (Exception ex)
         {
             Debug.LogError(
-                "[CARGA] PASO 86 ERROR AL CARGAR: " +
-                ex
+                "[CARGA] PASO 88 FALLIDO: " + ex
             );
         }
         finally
         {
             operacionEnCurso = false;
         }
+    }
+
+    // =====================================
+    // PASO 87: SELECCION DE RANURAS
+    // =====================================
+
+    public int RanuraSeleccionada => ranura;
+
+    public void SeleccionarRanura(int nuevaRanura)
+    {
+        if (!RanuraValida(nuevaRanura))
+            return;
+
+        if (operacionEnCurso)
+            return;
+
+        ranura = nuevaRanura;
+
+        Debug.Log(
+            "[GUARDADO] PASO 88 RANURA SELECCIONADA: " +
+            ranura
+        );
     }
 
     // =====================================
@@ -516,7 +701,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
     }
 
     // =====================================
-    // BUSCAR COMPONENTES EN ESCENA
+    // BUSCAR COMPONENTES DE ESCENA
     // =====================================
 
     private static T BuscarUnico<T>() where T : Component
@@ -563,29 +748,4 @@ public class GuardadoPartidaJuego : MonoBehaviour
     {
         ranura = Mathf.Clamp(ranura, 1, 3);
     }
-
-
-    public int RanuraSeleccionada => ranura;
-
-    public void SeleccionarRanura(int nuevaRanura)
-    {
-        if (nuevaRanura < 1 || nuevaRanura > 3)
-        {
-            Debug.LogError(
-                "[GUARDADO] Ranura invalida: " + nuevaRanura
-            );
-            return;
-        }
-
-        if (operacionEnCurso)
-            return;
-
-        ranura = nuevaRanura;
-
-        Debug.Log(
-            "[GUARDADO] PASO 87 RANURA SELECCIONADA: " +
-            ranura
-        );
-    }
-
 }
