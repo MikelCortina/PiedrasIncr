@@ -4,20 +4,15 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// Paso 88:
+/// Paso 89:
+/// F6 abre y cierra el menu.
 ///
-/// F6 abre y cierra el panel.
-/// Una ranura ocupada carga su partida.
-/// Una ranura vacia solo se selecciona.
-///
-/// F5 y F9 siguen funcionando.
+/// Ranura ocupada: cargar partida.
+/// Ranura vacia: comenzar partida nueva.
+/// Archivos invalidos: bloquear operacion.
 /// </summary>
 public class MenuRanurasGuardado : MonoBehaviour
 {
-    // =====================================
-    // REFERENCIAS
-    // =====================================
-
     [Header("Sistema")]
     [SerializeField]
     private GuardadoPartidaJuego sistemaGuardado;
@@ -40,10 +35,6 @@ public class MenuRanurasGuardado : MonoBehaviour
     [SerializeField]
     private KeyCode teclaMenu = KeyCode.F6;
 
-    // =====================================
-    // ESTADO INTERNO
-    // =====================================
-
     private SaveStorage almacenamiento;
 
     private bool abierto;
@@ -52,10 +43,6 @@ public class MenuRanurasGuardado : MonoBehaviour
     private bool cursorVisibleAnterior;
 
     private float siguienteActualizacion;
-
-    // =====================================
-    // AWAKE
-    // =====================================
 
     private void Awake()
     {
@@ -68,21 +55,15 @@ public class MenuRanurasGuardado : MonoBehaviour
         }
 
         if (panel != null)
-        {
             panel.SetActive(false);
-        }
     }
-
-    // =====================================
-    // START
-    // =====================================
 
     private void Start()
     {
         if (sistemaGuardado == null)
         {
             Debug.LogError(
-                "[GUARDADO] PASO 88: " +
+                "[GUARDADO] PASO 89: " +
                 "No existe GuardadoPartidaJuego."
             );
 
@@ -93,16 +74,10 @@ public class MenuRanurasGuardado : MonoBehaviour
         ActualizarRanuras();
     }
 
-    // =====================================
-    // UPDATE
-    // =====================================
-
     private void Update()
     {
         if (Input.GetKeyDown(teclaMenu))
-        {
             AlternarPanel();
-        }
 
         if (!abierto)
             return;
@@ -117,7 +92,7 @@ public class MenuRanurasGuardado : MonoBehaviour
     }
 
     // =====================================
-    // ABRIR Y CERRAR PANEL
+    // PANEL
     // =====================================
 
     public void AlternarPanel()
@@ -127,7 +102,6 @@ public class MenuRanurasGuardado : MonoBehaviour
             Debug.LogError(
                 "[GUARDADO] Falta asignar el panel."
             );
-
             return;
         }
 
@@ -163,16 +137,14 @@ public class MenuRanurasGuardado : MonoBehaviour
         abierto = false;
 
         if (panel != null)
-        {
             panel.SetActive(false);
-        }
 
         Cursor.lockState = bloqueoAnterior;
         Cursor.visible = cursorVisibleAnterior;
     }
 
     // =====================================
-    // BOTONES DE RANURAS
+    // BOTONES
     // =====================================
 
     public void SeleccionarRanura1()
@@ -191,18 +163,15 @@ public class MenuRanurasGuardado : MonoBehaviour
     }
 
     // =====================================
-    // PASO 88: SELECCION Y CARGA
+    // SELECCIONAR, CARGAR O CREAR
     // =====================================
 
     private void Seleccionar(int numero)
     {
         if (sistemaGuardado == null ||
             almacenamiento == null)
-        {
             return;
-        }
 
-        // Primero seleccionar la ranura.
         sistemaGuardado.SeleccionarRanura(numero);
 
         ActualizarRanuras();
@@ -210,51 +179,61 @@ public class MenuRanurasGuardado : MonoBehaviour
         GameSaveData partida;
         bool desdeRespaldo;
 
-        // =====================================
-        // RANURA OCUPADA
-        // =====================================
-
+        // CASO 1: PARTIDA EXISTENTE
         if (almacenamiento.TryLoad(
             numero,
             out partida,
             out desdeRespaldo))
         {
             Debug.Log(
-                "[GUARDADO] PASO 88 CARGAR RANURA: " +
+                "[GUARDADO] PASO 89 CARGAR RANURA: " +
                 numero
             );
 
-            // Recargar la escena y restaurar
-            // la partida seleccionada.
             sistemaGuardado.CargarDesdeMenu(numero);
+            return;
         }
-        else
-        {
-            // =====================================
-            // RANURA VACIA O NO VALIDA
-            // =====================================
 
-            Debug.Log(
-                "[GUARDADO] PASO 88 RANURA SIN " +
-                "PARTIDA VALIDA: " + numero
+        string principal =
+            almacenamiento.GetPrimaryPathForDiagnostics(
+                numero
             );
 
-            // Por ahora no se crea una partida nueva.
-            // La ranura permanece seleccionada.
+        // CASO 2: ARCHIVOS NO VALIDOS
+        if (File.Exists(principal) ||
+            File.Exists(principal + ".bak") ||
+            File.Exists(principal + ".tmp"))
+        {
+            Debug.LogWarning(
+                "[GUARDADO] PASO 89 BLOQUEADO: " +
+                "la ranura " + numero +
+                " contiene archivos no validos. " +
+                "No se iniciara otra partida encima."
+            );
+
+            return;
         }
+
+        // CASO 3: RANURA COMPLETAMENTE VACIA
+        Debug.Log(
+            "[NUEVA PARTIDA] PASO 89 SOLICITADA: " +
+            "ranura=" + numero
+        );
+
+        sistemaGuardado.IniciarNuevaPartidaDesdeMenu(
+            numero
+        );
     }
 
     // =====================================
-    // ACTUALIZAR LAS TRES RANURAS
+    // ACTUALIZACION DE TEXTOS
     // =====================================
 
     public void ActualizarRanuras()
     {
         if (sistemaGuardado == null ||
             almacenamiento == null)
-        {
             return;
-        }
 
         ActualizarTexto(textoRanura1, 1);
         ActualizarTexto(textoRanura2, 2);
@@ -274,17 +253,14 @@ public class MenuRanurasGuardado : MonoBehaviour
         string prefijo =
             seleccionada ? "> " : "";
 
-        string estado =
-            ObtenerEstado(numero);
-
         texto.text =
             prefijo +
             "Ranura " + numero +
-            " - " + estado;
+            " - " + ObtenerEstado(numero);
     }
 
     // =====================================
-    // CONSULTAR ESTADO DE UNA RANURA
+    // ESTADO DE RANURA
     // =====================================
 
     private string ObtenerEstado(int numero)
@@ -323,9 +299,6 @@ public class MenuRanurasGuardado : MonoBehaviour
                 numero
             );
 
-        // Distinguir una ranura vacia
-        // de una con archivos corruptos.
-
         if (File.Exists(principal) ||
             File.Exists(principal + ".bak") ||
             File.Exists(principal + ".tmp"))
@@ -336,15 +309,9 @@ public class MenuRanurasGuardado : MonoBehaviour
         return "VACIA";
     }
 
-    // =====================================
-    // DESACTIVACION
-    // =====================================
-
     private void OnDisable()
     {
         if (abierto)
-        {
             CerrarPanel();
-        }
     }
 }
