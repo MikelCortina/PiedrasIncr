@@ -44,6 +44,10 @@ public class InventarioEdificios : MonoBehaviour
     [Header("Cartera del jugador")]
     public Cartera cartera;
 
+    [Header("Pruebas / tráiler")]
+    [Tooltip("Se puede colocar cualquier estructura sin haberla comprado y sin gastar unidades.")]
+    public bool construccionInfinita = false;
+
     [Header("Precio y limite INDEPENDIENTE de cada edificio")]
     [Tooltip("Por defecto todos cuestan 1 moneda y caben 5 unidades de cada tipo.")]
     public List<Articulo> articulos = new List<Articulo>();
@@ -89,12 +93,17 @@ public class InventarioEdificios : MonoBehaviour
 
     public bool TieneUnidad(SistemaConstruccion.TipoEdificio tipo)
     {
+        if (construccionInfinita) return true;
+
         Articulo a = Obtener(tipo);
         return a != null && a.Unidades > 0;
     }
 
     public bool ConsumirUnidad(SistemaConstruccion.TipoEdificio tipo)
     {
+        // Con construcción infinita colocar no gasta nada.
+        if (construccionInfinita) return true;
+
         Articulo a = Obtener(tipo);
         if (a == null || !a.Sacar()) return false;
         InventarioCambiado?.Invoke();

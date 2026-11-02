@@ -3256,12 +3256,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
   ajustesPorSlot:
   - nombre: "Pieza Ne\xF3n"
-    indiceMaterial: 0
-    colorNeon: {r: 0.9262353, g: 0.8872745, b: 1, a: 1}
+    indiceMaterial: 1
+    colorNeon: {r: 0.9262353, g: 0.07450981, b: 0.101960786, a: 1}
     intensidad: 1.5
     grosorOutline: 1
     cantidadZonasMuertas: 0
     velocidadParpadeo: 0
+    inestabilidadFallo: 0
+    temporizadorFallo: 0
+    offsetZonasActual: 0
+    cantidadZonasActual: 0
 --- !u!114 &304018499489846983
 MonoBehaviour:
   m_ObjectHideFlags: 0

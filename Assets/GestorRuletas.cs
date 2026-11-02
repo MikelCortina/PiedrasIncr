@@ -16,6 +16,12 @@ public class GestorRuletasFPS : MonoBehaviour
 
     [Tooltip("Sensibilidad para arrastrar palancas al mirar hacia abajo")]
     public float sensibilidadArrastre = 100f;
+    [Tooltip("Todas las palancas se completan bajando la mirada lo mismo (Recorrido Mirada Palancas), " +
+             "sin importar el 'Distancia Arrastre Max' de cada una.")]
+    public bool mismoRecorridoTodasPalancas = true;
+    [Tooltip("Cuánto hay que bajar la mirada (ya multiplicado por la sensibilidad) para llevar cualquier palanca al tope. " +
+             "Súbelo si van demasiado rápido; bájalo si van lentas.")]
+    [Min(0.0001f)] public float recorridoMiradaPalancas = 0.08f;
 
     [Header("UI Mirilla")]
     public Image imagenMirilla;
@@ -27,8 +33,9 @@ public class GestorRuletasFPS : MonoBehaviour
     public float velocidadPop = 15f;
 
     [Header("Debug")]
-    [Tooltip("Dibuja el rayo en la vista Scene y escribe en consola qué collider toca cada vez que cambia")]
-    public bool debugRaycast = false;
+    [Tooltip("Dibuja el rayo en la vista Scene y escribe en consola qué collider toca cada vez que cambia. " +
+             "Solo para diagnosticar: escribir en consola cada segundo provoca tirones en el editor.")]
+    public bool depurarRayo = false;
     [Tooltip("Con debug activo, cada cuántos segundos se escribe el informe completo (cámaras, origen del rayo y palancas)")]
     public float intervaloInformeDebug = 1f;
 
@@ -69,7 +76,7 @@ public class GestorRuletasFPS : MonoBehaviour
         {
             Debug.LogError("[GestorRuletasFPS] '" + name + "' no tiene 'Camara Principal' asignada: no podrá detectar nada.", this);
         }
-        else if (debugRaycast)
+        else if (depurarRayo)
         {
             Debug.Log("[GestorRuletasFPS] Activo en '" + name + "' | rayo desde '" + camaraPrincipal.name +
                       "' | capas: " + NombresCapas(capasDetectables) + " | distancia: " + distanciaInteraccion, this);
@@ -135,7 +142,7 @@ public class GestorRuletasFPS : MonoBehaviour
         bool impacto = Physics.Raycast(rayo, out RaycastHit hit, distanciaInteraccion, capasDetectables);
         bool mirandoInteractuable = false;
 
-        if (debugRaycast)
+        if (depurarRayo)
         {
             DebugRayo(rayo, impacto, hit);
             InformeDebugPeriodico(rayo);
@@ -258,7 +265,10 @@ public class GestorRuletasFPS : MonoBehaviour
             // Limitamos a que no pueda empujar hacia arriba de la posición original
             desplazamientoYAcumulado = Mathf.Max(0f, desplazamientoYAcumulado);
 
-            palancaActiva.ActualizarArrastre(desplazamientoYAcumulado);
+            if (mismoRecorridoTodasPalancas)
+                palancaActiva.ActualizarProgresoArrastre(desplazamientoYAcumulado / recorridoMiradaPalancas);
+            else
+                palancaActiva.ActualizarArrastre(desplazamientoYAcumulado);
         }
     }
 

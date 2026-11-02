@@ -38,8 +38,9 @@ public class GrabadorTrailer : MonoBehaviour
     public bool grabarAudio = true;
 
     [Header("Archivos")]
-    [Tooltip("Carpeta de los clips. Relativa a la carpeta del proyecto (fuera de Assets, para que Unity no importe los vídeos) o una ruta absoluta.")]
-    public string carpetaClips = "Trailer/Clips";
+    [Tooltip("Carpeta de los clips, siempre fuera del repositorio: ruta absoluta o relativa a tu carpeta Vídeos. " +
+             "Clic derecho en el componente → 'Elegir carpeta de clips…' para buscarla. Si apunta dentro del proyecto se usa Vídeos/Trailer Rock-It/Clips.")]
+    public string carpetaClips = "Trailer Rock-It/Clips";
     public string prefijoArchivo = "Clip";
 
     [Header("Fluidez")]
@@ -80,11 +81,35 @@ public class GrabadorTrailer : MonoBehaviour
 
     bool EstaGrabando() => controlador != null && controlador.IsRecording();
 
+    // Los clips pesan gigas: nunca se guardan dentro del repositorio del juego.
+    string CarpetaDestino()
+    {
+        string videos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+        string carpeta = Path.GetFullPath(Path.IsPathRooted(carpetaClips) ? carpetaClips : Path.Combine(videos, carpetaClips));
+        string proyecto = Path.GetFullPath(Directory.GetParent(Application.dataPath).FullName) + Path.DirectorySeparatorChar;
+
+        if (!carpeta.StartsWith(proyecto, StringComparison.OrdinalIgnoreCase))
+            return carpeta;
+
+        string porDefecto = Path.Combine(videos, "Trailer Rock-It", "Clips");
+        Debug.LogWarning($"[GrabadorTrailer] '{carpeta}' está dentro del repositorio; el clip se guarda en {porDefecto}.");
+        return porDefecto;
+    }
+
+    [ContextMenu("Elegir carpeta de clips…")]
+    void ElegirCarpeta()
+    {
+        string elegida = EditorUtility.OpenFolderPanel("Carpeta de los clips del tráiler", CarpetaDestino(), "");
+        if (string.IsNullOrEmpty(elegida)) return;
+
+        Undo.RecordObject(this, "Carpeta de clips");
+        carpetaClips = elegida;
+        EditorUtility.SetDirty(this);
+    }
+
     void Empezar()
     {
-        string carpeta = Path.IsPathRooted(carpetaClips)
-            ? carpetaClips
-            : Path.Combine(Directory.GetParent(Application.dataPath).FullName, carpetaClips);
+        string carpeta = CarpetaDestino();
         Directory.CreateDirectory(carpeta);
 
         // Sin extensión: la pone el Recorder según el formato (.mov o .mp4).

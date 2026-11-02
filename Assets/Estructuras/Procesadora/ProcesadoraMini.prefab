@@ -20387,13 +20387,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MaquinaErosion
   tuberiasAbajo:
   - puntoAbsorcion: {fileID: 7807892390376416394}
-    direccionAbsorcionLocal: {x: 0, y: -0.04, z: 6}
-    distanciaAbsorcion: 5
-    anguloCono: 77
-    velocidadSuccion: 5
+    direccionAbsorcionLocal: {x: 0, y: 0.35, z: 1}
+    apoyarEnSuelo: 1
+    distanciaAbsorcion: 2.5
+    anguloCono: 26
+    velocidadSuccion: 3
     velocidadOrbita: 15
     multiplicadorAceleracionCentro: 1
-    amplitudOrbita: 0.5
+    amplitudOrbita: 0.429
   capaPiedras:
     serializedVersion: 2
     m_Bits: 4096
@@ -20407,7 +20408,7 @@ MonoBehaviour:
   fuerzaMaximaRechazo: 20
   anguloDispersionRechazo: 15
   puntoSalida: {fileID: 8296616117949701471}
-  puntoEntregaBot: {fileID: 7807892390376416394}
+  puntoEntregaBot: {fileID: 0}
   direccionSalida: {x: 0, y: 1, z: -10}
   fuerzaMinimaExpulsion: 10
   fuerzaMaximaExpulsion: 20
@@ -20415,11 +20416,11 @@ MonoBehaviour:
   tiempoCrecimiento: 0.2
   tiempoProcesamiento: 3
   particulasTrabajando:
-  - {fileID: 6155179359608199669}
   - {fileID: 4394262985837324146}
   - {fileID: 8927664187797232672}
   - {fileID: 754484609255564823}
   - {fileID: 3143851057071731054}
+  - {fileID: 6155179359608199669}
   particulasExpulsion: []
   objetosGiratorios:
   - {fileID: 8370632558534586127}

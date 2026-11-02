@@ -106,8 +106,7 @@ public class MovimientoPersonaje : MonoBehaviour
             CintaTransportadora cinta = hit.collider.GetComponentInParent<CintaTransportadora>();
             if (cinta != null)
             {
-                Vector3 direccionMundo =
-                    cinta.transform.TransformDirection(cinta.direccionLocal).normalized;
+                Vector3 direccionMundo = cinta.DireccionEn(hit.point);
                 movimientoCinta = direccionMundo * cinta.velocidad;
             }
             else

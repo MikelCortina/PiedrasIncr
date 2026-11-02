@@ -16,6 +16,11 @@ public class MiniMaquinaErosion : MonoBehaviour
         [Tooltip("Dirección hacia la que apunta el cono localmente (ej: 0,0,1 es Forward, 0,-1,0 es Abajo).")]
         public Vector3 direccionAbsorcionLocal = new Vector3(0f, 0f, 1f);
 
+        [Tooltip("El cono se apoya con su cara de abajo plana (como un lado contra el suelo): su eje sube la mitad de la apertura " +
+                 "sobre la dirección indicada, así la órbita de las piedras nunca baja de esa cara y no chocan con el suelo. " +
+                 "La cara de abajo sigue la inclinación de 'Direccion Absorcion Local': inclínala para orientar el cono arriba o abajo.")]
+        public bool apoyarEnSuelo = true;
+
         [Header("Zona de Acción (Cónica)")]
         [Tooltip("La distancia máxima a la que la máquina detecta piedras (Largo del cono).")]
         public float distanciaAbsorcion = 5f;
@@ -45,6 +50,7 @@ public class MiniMaquinaErosion : MonoBehaviour
         public TuberiaAbsorcion tuberia;
         public Vector3 escalaOriginal;
         public float distanciaInicial;
+        public EscalaPiedra escala;
     }
 
 
@@ -205,14 +211,20 @@ public class MiniMaquinaErosion : MonoBehaviour
             if (tuberia == null || tuberia.puntoAbsorcion == null) continue;
 
             Collider[] piedrasCercanas = Physics.OverlapSphere(tuberia.puntoAbsorcion.position, tuberia.distanciaAbsorcion, capaPiedras);
-            Vector3 direccionConoMundo = tuberia.puntoAbsorcion.TransformDirection(tuberia.direccionAbsorcionLocal.normalized);
+            Vector3 direccionConoMundo = EjeCono(tuberia);
+            Vector3 boquilla = tuberia.puntoAbsorcion.position;
 
             foreach (var col in piedrasCercanas)
             {
                 Rigidbody rb = col.GetComponent<Rigidbody>();
                 if (rb == null || !rb.gameObject.activeInHierarchy || piedrasEnSuccion.ContainsKey(rb) || piedrasEnProceso.ContainsKey(rb)) continue;
 
-                Vector3 dirHaciaPiedra = rb.position - tuberia.puntoAbsorcion.position;
+                // Con el cono apoyado, una piedra en el suelo cuenta si su parte de arriba llega a la cara de abajo del cono.
+                Vector3 puntoPiedra = rb.position;
+                if (tuberia.apoyarEnSuelo && puntoPiedra.y < boquilla.y)
+                    puntoPiedra.y = Mathf.Min(boquilla.y + 0.001f, puntoPiedra.y + col.bounds.extents.y);
+
+                Vector3 dirHaciaPiedra = puntoPiedra - boquilla;
                 float distancia = dirHaciaPiedra.magnitude;
 
                 if (distancia <= tuberia.distanciaAbsorcion && distancia > 0.001f)
@@ -232,9 +244,11 @@ public class MiniMaquinaErosion : MonoBehaviour
                         {
                             rb = rb,
                             tuberia = tuberia,
-                            escalaOriginal = rb.transform.localScale,
+                            escala = EscalaPiedra.De(rb),
                             distanciaInicial = distancia
                         };
+                        // Tamaño real, aunque la piedra aún estuviera creciendo; y deja de crecer.
+                        datos.escalaOriginal = datos.escala.TomarControl(this);
                         piedrasEnSuccion.Add(rb, datos);
                     }
                 }
@@ -252,6 +266,13 @@ public class MiniMaquinaErosion : MonoBehaviour
             Rigidbody rb = kvp.Key;
             DatosPiedra datos = kvp.Value;
 
+            // Otro script (el jugador, otra máquina...) se ha llevado la piedra: se suelta sin tocar su escala.
+            if (rb != null && datos.escala != null && !datos.escala.Controla(this))
+            {
+                piedrasPerdidas.Add(rb);
+                continue;
+            }
+
             if (rb == null || !rb.gameObject.activeInHierarchy)
             {
                 piedrasPerdidas.Add(rb);
@@ -268,7 +289,7 @@ public class MiniMaquinaErosion : MonoBehaviour
             }
             else
             {
-                Vector3 ejeConoMundo = datos.tuberia.puntoAbsorcion.TransformDirection(datos.tuberia.direccionAbsorcionLocal.normalized);
+                Vector3 ejeConoMundo = EjeCono(datos.tuberia);
 
                 Vector3 dirDesdePunta = -vectorHaciaPunta;
                 float distanciaEje = Vector3.Dot(dirDesdePunta, ejeConoMundo);
@@ -309,7 +330,7 @@ public class MiniMaquinaErosion : MonoBehaviour
 
                 Vector3 vectorGiro = direccionGiro * velocidadOrbitaActual;
 
-                rb.linearVelocity = vectorAtraccion + vectorOffsetOrbita + vectorGiro;
+                if (!rb.isKinematic) rb.linearVelocity = vectorAtraccion + vectorOffsetOrbita + vectorGiro;
             }
         }
 
@@ -338,7 +359,7 @@ public class MiniMaquinaErosion : MonoBehaviour
         }
         else
         {
-            rb.transform.localScale = escalaOriginal;
+            EscalaPiedra.De(rb).RestaurarBase();
             RechazarPiedra(rb);
         }
     }
@@ -376,7 +397,7 @@ public class MiniMaquinaErosion : MonoBehaviour
         if (deformacion == null) return false;
 
         float porcentajeActual = deformacion.ObtenerPorcentajeDesgasteHaciaEsfera();
-        Vector3 escalaOriginal = rb.transform.localScale;
+        Vector3 escalaOriginal = EscalaPiedra.De(rb).TomarControl(this);
 
         if (GestorPiedras.Instancia != null) GestorPiedras.Instancia.DesregistrarPiedra(rb);
 
@@ -503,9 +524,13 @@ public class MiniMaquinaErosion : MonoBehaviour
         ActualizarEmisionParticulas();
 
         // Apagar físicas y mallas
+        // Primero se para y luego se vuelve cinemática (a un cuerpo cinemático no se le puede poner velocidad).
+        if (!rb.isKinematic)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
         rb.isKinematic = true;
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
 
         MeshRenderer[] renderizadores = rb.GetComponentsInChildren<MeshRenderer>();
         foreach (MeshRenderer mr in renderizadores) { if (mr != null) mr.enabled = false; }
@@ -576,7 +601,7 @@ public class MiniMaquinaErosion : MonoBehaviour
         }
 
         // Llamamos a la animación de crecer el tamaño
-        StartCoroutine(CrecerPiedra(rb.transform, escalaOriginal));
+        EscalaPiedra.De(rb).Crecer(tiempoCrecimiento);
 
         piedrasEnProceso.Remove(rb);
         ActualizarEmisionParticulas();
@@ -595,24 +620,6 @@ public class MiniMaquinaErosion : MonoBehaviour
         }
     }
 
-    private IEnumerator CrecerPiedra(Transform t, Vector3 escalaFinal)
-    {
-        float tiempoRecorrido = 0f;
-
-        while (tiempoRecorrido < tiempoCrecimiento)
-        {
-            if (t == null) yield break;
-
-            tiempoRecorrido += Time.deltaTime;
-            float progreso = tiempoRecorrido / tiempoCrecimiento;
-
-            t.localScale = Vector3.Lerp(Vector3.zero, escalaFinal, progreso);
-            yield return null;
-        }
-
-        if (t != null) t.localScale = escalaFinal;
-    }
-
 
     // =====================================================
     // GIZMOS
@@ -626,7 +633,7 @@ public class MiniMaquinaErosion : MonoBehaviour
             TuberiaAbsorcion tuberia = tuberiasAbajo[i];
             if (tuberia != null && tuberia.puntoAbsorcion != null)
             {
-                Vector3 direccionConoMundo = tuberia.puntoAbsorcion.TransformDirection(tuberia.direccionAbsorcionLocal.normalized);
+                Vector3 direccionConoMundo = EjeCono(tuberia);
 
                 // Dibujar el área de detección máxima (Verde)
                 Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
@@ -671,6 +678,21 @@ public class MiniMaquinaErosion : MonoBehaviour
         }
     }
 
+    // Eje real del cono. Apoyado: la dirección indicada pasa a ser la cara de abajo del cono (con su inclinación,
+    // para poder orientarlo hacia arriba o hacia abajo) y el eje sube la mitad de la apertura sobre ella.
+    private Vector3 EjeCono(TuberiaAbsorcion tuberia)
+    {
+        Vector3 eje = tuberia.puntoAbsorcion.TransformDirection(tuberia.direccionAbsorcionLocal.normalized);
+        if (!tuberia.apoyarEnSuelo) return eje;
+
+        Vector3 horizontal = Vector3.ProjectOnPlane(eje, Vector3.up);
+        if (horizontal.sqrMagnitude < 0.0001f) return eje; // Cono vertical: no hay "suelo" sobre el que apoyarlo.
+
+        Vector3 derecha = Vector3.Cross(Vector3.up, horizontal.normalized);
+        return Quaternion.AngleAxis(-tuberia.anguloCono / 2f, derecha) * eje;
+    }
+
+    // Pirámide de base cuadrada con un lado abajo (cara inferior plana), que envuelve al cono.
     private void DibujarConoDeteccion(Vector3 origen, Vector3 direccionCentral, float distancia, float anguloTotal)
     {
         if (distancia <= 0f) return;
@@ -680,27 +702,27 @@ public class MiniMaquinaErosion : MonoBehaviour
 
         if (anguloTotal <= 0f) return;
 
-        Vector3 ejeX = Vector3.Cross(direccionCentral, Vector3.up);
-        if (ejeX.magnitude < 0.01f) ejeX = Vector3.right;
-        ejeX.Normalize();
+        Vector3 lateral = Vector3.Cross(Vector3.up, direccionCentral);
+        if (lateral.magnitude < 0.01f) lateral = Vector3.right;
+        lateral.Normalize();
+        Vector3 arriba = Vector3.Cross(direccionCentral, lateral).normalized;
 
-        Vector3 ejeY = Vector3.Cross(direccionCentral, ejeX).normalized;
-        float anguloMitad = anguloTotal / 2f;
+        float radio = Mathf.Tan(Mathf.Min(anguloTotal, 179f) / 2f * Mathf.Deg2Rad) * distancia;
 
-        Vector3 p1 = origen + (Quaternion.AngleAxis(anguloMitad, ejeX) * direccionCentral * distancia);
-        Vector3 p2 = origen + (Quaternion.AngleAxis(-anguloMitad, ejeX) * direccionCentral * distancia);
-        Vector3 p3 = origen + (Quaternion.AngleAxis(anguloMitad, ejeY) * direccionCentral * distancia);
-        Vector3 p4 = origen + (Quaternion.AngleAxis(-anguloMitad, ejeY) * direccionCentral * distancia);
+        Vector3 abajoIzquierda = finCentral + (-lateral - arriba) * radio;
+        Vector3 abajoDerecha = finCentral + (lateral - arriba) * radio;
+        Vector3 arribaDerecha = finCentral + (lateral + arriba) * radio;
+        Vector3 arribaIzquierda = finCentral + (-lateral + arriba) * radio;
 
-        Gizmos.DrawLine(origen, p1);
-        Gizmos.DrawLine(origen, p2);
-        Gizmos.DrawLine(origen, p3);
-        Gizmos.DrawLine(origen, p4);
+        Gizmos.DrawLine(origen, abajoIzquierda);
+        Gizmos.DrawLine(origen, abajoDerecha);
+        Gizmos.DrawLine(origen, arribaDerecha);
+        Gizmos.DrawLine(origen, arribaIzquierda);
 
-        Gizmos.DrawLine(p1, p3);
-        Gizmos.DrawLine(p3, p2);
-        Gizmos.DrawLine(p2, p4);
-        Gizmos.DrawLine(p4, p1);
+        Gizmos.DrawLine(abajoIzquierda, abajoDerecha);
+        Gizmos.DrawLine(abajoDerecha, arribaDerecha);
+        Gizmos.DrawLine(arribaDerecha, arribaIzquierda);
+        Gizmos.DrawLine(arribaIzquierda, abajoIzquierda);
     }
 
     private void DibujarConoGizmo(Vector3 origen, Vector3 direccionCentral, float fuerza, float angulo)

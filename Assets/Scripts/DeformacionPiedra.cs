@@ -14,6 +14,9 @@ public class DeformacionPiedra : MonoBehaviour
     public CollisionDetectionMode modoDeteccionColision = CollisionDetectionMode.ContinuousDynamic;
     [Tooltip("Segundos mínimos entre reconstrucciones del MeshCollider (rehacer el collider convexo es lo más caro). La malla visible se actualiza siempre al instante.")]
     [Min(0f)] public float intervaloActualizacionCollider = 0.3f;
+    [Tooltip("Vértices máximos del collider convexo. PhysX admite como mucho 255 caras: con todos los vértices de la piedra " +
+             "se pasaba, avisaba en cada reconstrucción y cocinarlo era más lento. Con 64 puntos el casco tiene como mucho 124 caras.")]
+    [Range(8, 120)] public int verticesMaximosCollider = 64;
     [Tooltip("Segundos mínimos entre dos deformaciones por choque de la misma piedra")]
     [Min(0f)] public float tiempoEntreDeformaciones = 0.08f;
 
@@ -88,6 +91,9 @@ public class DeformacionPiedra : MonoBehaviour
     private MeshFilter filtroMalla;
     private MeshCollider colliderMalla;
     private bool colliderPendiente;
+    private Mesh mallaCollider;
+    private int[] indicesCollider;
+    private Vector3[] puntosCollider;
     private float proximaActualizacionCollider;
     private float ultimaDeformacion = -999f;
     // El desgaste solo cambia al deformar: se cachea en vez de copiar todos los vértices en cada consulta.
@@ -383,8 +389,55 @@ public class DeformacionPiedra : MonoBehaviour
         proximaActualizacionCollider = Time.time + intervaloActualizacionCollider;
 
         if (colliderMalla == null) return;
-        colliderMalla.sharedMesh = malla;
+        colliderMalla.sharedMesh = MallaColliderReducida();
         colliderMalla.convex = true;
+    }
+
+    // Malla solo para el collider: los mismos vértices deformados, pero un subconjunto repartido por la superficie.
+    // El casco convexo solo usa los vértices; los triángulos son de relleno para que la malla sea válida.
+    Mesh MallaColliderReducida()
+    {
+        if (vertices == null || vertices.Length <= verticesMaximosCollider) return malla;
+
+        if (indicesCollider == null)
+        {
+            indicesCollider = ElegirVerticesCollider();
+            if (indicesCollider.Length < 4) return malla;
+
+            puntosCollider = new Vector3[indicesCollider.Length];
+            mallaCollider = new Mesh { name = malla.name + "_Collider" };
+            mallaCollider.vertices = puntosCollider;
+            int[] triangulos = new int[(puntosCollider.Length - 2) * 3];
+            for (int i = 0; i < puntosCollider.Length - 2; i++)
+            {
+                triangulos[i * 3] = i;
+                triangulos[i * 3 + 1] = i + 1;
+                triangulos[i * 3 + 2] = i + 2;
+            }
+            mallaCollider.triangles = triangulos;
+        }
+
+        for (int i = 0; i < indicesCollider.Length; i++) puntosCollider[i] = vertices[indicesCollider[i]];
+        mallaCollider.vertices = puntosCollider;
+        mallaCollider.RecalculateBounds();
+        return mallaCollider;
+    }
+
+    // Vértices únicos (las costuras de la malla repiten posiciones) tomados cada cierto paso hasta el máximo.
+    int[] ElegirVerticesCollider()
+    {
+        var unicos = new System.Collections.Generic.List<int>();
+        var vistos = new System.Collections.Generic.HashSet<Vector3>();
+        for (int i = 0; i < vertices.Length; i++)
+            if (vistos.Add(vertices[i])) unicos.Add(i);
+
+        int maximo = Mathf.Max(4, verticesMaximosCollider);
+        if (unicos.Count <= maximo) return unicos.ToArray();
+
+        int[] elegidos = new int[maximo];
+        float paso = (float)unicos.Count / maximo;
+        for (int i = 0; i < maximo; i++) elegidos[i] = unicos[Mathf.Min(unicos.Count - 1, Mathf.FloorToInt(i * paso))];
+        return elegidos;
     }
 
     public float ObtenerPorcentajeDesgasteHaciaEsfera()
@@ -411,6 +464,8 @@ public class DeformacionPiedra : MonoBehaviour
 
     void OnDestroy()
     {
+        if (mallaCollider != null) Destroy(mallaCollider);
+
         if (GestorAudioPiedras.Instancia != null)
         {
             GestorAudioPiedras.Instancia.DetenerDeslizamiento(this);

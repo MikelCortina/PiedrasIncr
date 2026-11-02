@@ -123,6 +123,10 @@ public class AgarreLanzamiento : MonoBehaviour
         RescateVacioPiedra rescate = objetoSostenido.GetComponent<RescateVacioPiedra>();
         if (rescate != null) rescate.NotificarRecogida();
 
+        // Al cogerla vuelve a su tamaño real y ninguna máquina ni animación la sigue escalando.
+        EscalaPiedra escala = objetoSostenido.GetComponent<EscalaPiedra>();
+        if (escala != null) escala.RestaurarBase();
+
         objetoSostenido.isKinematic = true;
         objetoSostenido.interpolation = RigidbodyInterpolation.None;
         objetoSostenido.detectCollisions = false;

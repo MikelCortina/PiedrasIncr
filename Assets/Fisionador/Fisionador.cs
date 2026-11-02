@@ -259,14 +259,16 @@ public class Fisionador : MonoBehaviour
     private IEnumerator RutinaCrecimientoYExpulsion(GameObject objetoExpulsado)
     {
         Transform objetivo = objetoExpulsado.transform;
-        Vector3 escalaFinal = objetivo.localScale;
+        EscalaPiedra escala = EscalaPiedra.De(objetivo);
+        Vector3 escalaFinal = escala.TomarControl(this);
         objetivo.localScale = Vector3.zero;
 
         // Fase 1: Crecimiento
         float t = 0f;
         while (t < 1f)
         {
-            if (objetivo == null) yield break;
+            // Si otro script se la ha llevado a medio crecer (p. ej. el jugador), deja de escalarla.
+            if (objetivo == null || !escala.Controla(this)) yield break;
 
             t += Time.deltaTime * velocidadCrecimientoExpulsado;
             objetivo.localScale = Vector3.Lerp(Vector3.zero, escalaFinal, t);
@@ -276,6 +278,7 @@ public class Fisionador : MonoBehaviour
         if (objetivo != null)
         {
             objetivo.localScale = escalaFinal;
+            escala.Soltar(this);
 
             // Fase 2: Aplicar físicas (si está activado) una vez ha crecido del todo
             if (aplicarFuerzaFisica)

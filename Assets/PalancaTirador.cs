@@ -10,7 +10,8 @@ public class PalancaTirador : MonoBehaviour
     }
 
     [Header("Configuración de Arrastre (Mirada)")]
-    [Tooltip("Unidades imaginarias que hay que bajar la mirada para alcanzar el máximo del tirador")]
+    [Tooltip("Unidades imaginarias que hay que bajar la mirada para alcanzar el máximo del tirador. " +
+             "Solo se usa si el GestorRuletasFPS tiene desactivado 'Mismo Recorrido Todas Palancas'.")]
     public float distanciaArrastreMax = 150f;
     [Tooltip("Suavizado al soltar la palanca si te arrepientes antes de llegar al final")]
     public float velocidadRetorno = 5f;
@@ -90,6 +91,8 @@ public class PalancaTirador : MonoBehaviour
     private int estado = 0;
 
     public bool EstaBloqueada => bloqueada;
+    // Activada: agarrada, bajando, con las puertas abiertas o cerrándose (cualquier estado menos reposo).
+    public bool EstaActivada => estado != 0;
 
     private void Start()
     {
@@ -209,11 +212,18 @@ public class PalancaTirador : MonoBehaviour
         }
     }
 
+    // Arrastre con el recorrido propio de esta palanca (distanciaArrastreMax).
     public void ActualizarArrastre(float acumuladorMirada)
+    {
+        ActualizarProgresoArrastre(acumuladorMirada / distanciaArrastreMax);
+    }
+
+    // Arrastre con el progreso ya calculado (0 = reposo, 1 = tope), p. ej. con un recorrido común a todas las palancas.
+    public void ActualizarProgresoArrastre(float progreso)
     {
         if (estado == 1)
         {
-            progresoTirador = Mathf.Clamp01(acumuladorMirada / distanciaArrastreMax);
+            progresoTirador = Mathf.Clamp01(progreso);
 
             if (progresoTirador >= 1f)
             {

@@ -87,8 +87,8 @@ public class CambioCamaraIntro : MonoBehaviour
     [Range(0f, 1f)] public float previsualizarPuntoSpline = 0f;
 
     [Header("Imágenes UI de Inicio")]
-    [Tooltip("Imágenes del Canvas que se desvanecen al empezar la intro")]
-    public List<Image> imagenesIntro = new List<Image>();
+    [Tooltip("Imágenes del Canvas (Image o RawImage) que se desvanecen al empezar la intro")]
+    public List<Graphic> imagenesIntro = new List<Graphic>();
     [Tooltip("Segundos de espera antes de empezar a desvanecer las imágenes")]
     public float retrasoInicioImagenes = 0f;
     [Tooltip("Duración en segundos del fundido de las imágenes")]
@@ -103,8 +103,8 @@ public class CambioCamaraIntro : MonoBehaviour
     public bool desactivarImagenesAlTerminar = true;
 
     [Header("Imágenes UI de la Transición")]
-    [Tooltip("Imágenes del Canvas que se ven desde el inicio y se desvanecen cuando la nave llega al punto indicado del spline")]
-    public List<Image> imagenesTransicion = new List<Image>();
+    [Tooltip("Imágenes del Canvas (Image o RawImage, ej: el vídeo del título) que se ven desde el inicio y se desvanecen cuando la nave llega al punto indicado del spline")]
+    public List<Graphic> imagenesTransicion = new List<Graphic>();
     [Tooltip("Punto del spline (0 a 1) en el que empiezan a desvanecerse")]
     [Range(0f, 1f)] public float puntoFundidoTransicion = 0.4f;
     [Tooltip("Duración en segundos del fundido")]
@@ -965,7 +965,7 @@ public class CambioCamaraIntro : MonoBehaviour
     // IMÁGENES UI DE INICIO
     // =====================================================
 
-    private static float[] GuardarAlphasOriginales(List<Image> imagenes)
+    private static float[] GuardarAlphasOriginales(List<Graphic> imagenes)
     {
         if (imagenes == null)
             return null;
@@ -974,7 +974,7 @@ public class CambioCamaraIntro : MonoBehaviour
 
         for (int i = 0; i < imagenes.Count; i++)
         {
-            Image imagen = imagenes[i];
+            Graphic imagen = imagenes[i];
 
             if (imagen == null)
                 continue;
@@ -1040,14 +1040,14 @@ public class CambioCamaraIntro : MonoBehaviour
         TerminarImagenes(imagenesTransicion, desactivarTransicionAlTerminar);
     }
 
-    private static void AplicarProgresoImagenes(List<Image> imagenes, float[] alphasOriginales, float alphaFinal, float progreso)
+    private static void AplicarProgresoImagenes(List<Graphic> imagenes, float[] alphasOriginales, float alphaFinal, float progreso)
     {
         if (imagenes == null || alphasOriginales == null)
             return;
 
         for (int i = 0; i < imagenes.Count && i < alphasOriginales.Length; i++)
         {
-            Image imagen = imagenes[i];
+            Graphic imagen = imagenes[i];
 
             if (imagen == null)
                 continue;
@@ -1058,12 +1058,12 @@ public class CambioCamaraIntro : MonoBehaviour
         }
     }
 
-    private static void TerminarImagenes(List<Image> imagenes, bool desactivar)
+    private static void TerminarImagenes(List<Graphic> imagenes, bool desactivar)
     {
         if (!desactivar || imagenes == null)
             return;
 
-        foreach (Image imagen in imagenes)
+        foreach (Graphic imagen in imagenes)
         {
             if (imagen != null)
                 imagen.gameObject.SetActive(false);

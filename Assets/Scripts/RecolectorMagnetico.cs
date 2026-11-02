@@ -264,6 +264,9 @@ public class RecolectorMagnetico : MonoBehaviour
         Vector3 posInicial = obj.transform.position;
         Vector3 posObjetivo = posInicial + Vector3.up * 1.5f; // Salto hacia arriba
         Vector3 escalaInicial = obj.transform.localScale;
+        // Nadie más la escala mientras se la traga (p. ej. una animación de crecimiento a medias).
+        EscalaPiedra escalaPiedra = obj.GetComponent<EscalaPiedra>();
+        if (escalaPiedra != null) escalaPiedra.TomarControl(this);
         Quaternion rotacionInicial = obj.transform.rotation;
 
         // 3. Cálculo del giro aleatorio: entre 180 y 360, y luego 50% de probabilidad de ser negativo

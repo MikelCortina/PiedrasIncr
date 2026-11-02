@@ -5,6 +5,9 @@ public class AmetralladoraAsteroides : MonoBehaviour
 {
     [Header("Referencias")]
     public LluviaMeteoritos gestorLluvia;
+    [Tooltip("Mientras esta palanca esté activada (bajando, abierta o cerrándose), el arma ni gira ni dispara. " +
+             "Vacío = se busca la PalancaTirador del propio arma.")]
+    public PalancaTirador palancaBloqueo;
 
     [Header("Articulaciones de la Torreta")]
     public Transform pivoteBase;
@@ -49,10 +52,31 @@ public class AmetralladoraAsteroides : MonoBehaviour
     private float timerCooldown = 0f;
     private float pesoActualBlend = 0f; // Control del valor actual de deformación
 
+    private void Start()
+    {
+        if (palancaBloqueo == null) palancaBloqueo = BuscarPalancaDelArma();
+    }
+
+    // Busca la palanca en el propio arma y, si no está, subiendo un par de niveles (raíz del modelo del arma).
+    private PalancaTirador BuscarPalancaDelArma()
+    {
+        Transform nivel = transform;
+        for (int i = 0; i < 3 && nivel != null; i++)
+        {
+            PalancaTirador palanca = nivel.GetComponentInChildren<PalancaTirador>(true);
+            if (palanca != null) return palanca;
+            nivel = nivel.parent;
+        }
+        return null;
+    }
+
     private void Update()
     {
         // 1. Recuperación continua del Blend Shape hacia 0
         ManejarBlendShape();
+
+        // Con la palanca activada el arma se queda quieta: ni gira, ni apunta, ni dispara.
+        if (palancaBloqueo != null && palancaBloqueo.EstaActivada) return;
 
         if (timerCooldown > 0f)
         {

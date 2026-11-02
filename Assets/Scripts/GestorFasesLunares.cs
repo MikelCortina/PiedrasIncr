@@ -128,7 +128,9 @@ public class GestorFasesLunares : MonoBehaviour
             AlinearLuna();
         }
 
-        if (Input.GetKeyDown(teclaResetFase) && !enTransicion)
+        // En modo construcción la tecla se usa para girar estructuras (por defecto ambas son la R).
+        bool construyendo = SistemaConstruccion.Instancia != null && SistemaConstruccion.Instancia.modoConstruccion;
+        if (Input.GetKeyDown(teclaResetFase) && !enTransicion && !construyendo)
         {
             ResetearFase();
         }

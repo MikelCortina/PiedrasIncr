@@ -29,6 +29,8 @@ public class MaquinaPiedras : MonoBehaviour
     public TuberiaAbsorcion[] tuberiasAbajo = new TuberiaAbsorcion[4];
     public LayerMask capaPiedras;
     public float distanciaConsumo = 0.5f;
+    [Tooltip("Metros extra alrededor de cada tubería en los que se buscan piedras rápidas que podrían cruzar la zona entre dos pasos de física.")]
+    [Min(0f)] public float margenDeteccionRapidas = 2f;
 
     [Header("Configuración de Lanzamiento")]
     public Transform puntoLanzamiento;
@@ -65,6 +67,7 @@ public class MaquinaPiedras : MonoBehaviour
         public TuberiaAbsorcion tuberia;
         public Vector3 escalaOriginal;
         public float distanciaInicial;
+        public EscalaPiedra escala;
     }
 
     private Dictionary<Rigidbody, DatosPiedra> piedrasEnSuccion = new Dictionary<Rigidbody, DatosPiedra>();
@@ -119,44 +122,61 @@ public class MaquinaPiedras : MonoBehaviour
             // IGNORAR SI EL BOTÓN ESTÁ APAGADO
             if (tuberia.botonControl != null && !tuberia.botonControl.encendido) continue;
 
-            Collider[] piedrasCercanas = Physics.OverlapSphere(tuberia.puntoAbsorcion.position, Mathf.Max(tuberia.radioAbsorcion, tuberia.alturaAbsorcion), capaPiedras);
+            float radioBusqueda = Mathf.Max(tuberia.radioAbsorcion, tuberia.alturaAbsorcion) + margenDeteccionRapidas;
+            Collider[] piedrasCercanas = Physics.OverlapSphere(tuberia.puntoAbsorcion.position, radioBusqueda, capaPiedras);
 
             foreach (var col in piedrasCercanas)
             {
-                Rigidbody rb = col.GetComponent<Rigidbody>();
+                // attachedRigidbody: también vale si el collider está en un hijo de la piedra.
+                Rigidbody rb = col.attachedRigidbody;
                 if (rb == null || !rb.gameObject.activeInHierarchy || piedrasEnSuccion.ContainsKey(rb)) continue;
 
-                Vector3 dirHaciaPiedra = rb.position - tuberia.puntoAbsorcion.position;
-                float alturaLocal = Vector3.Dot(dirHaciaPiedra, tuberia.puntoAbsorcion.up);
+                if (!PiedraCruzaZona(tuberia, rb, col)) continue;
 
-                if (alturaLocal >= 0f && alturaLocal <= tuberia.alturaAbsorcion)
+                DatosPiedra datos = new DatosPiedra
                 {
-                    Vector3 direccionPlana = dirHaciaPiedra - (tuberia.puntoAbsorcion.up * alturaLocal);
-                    float distanciaPlana = direccionPlana.magnitude;
-
-                    if (distanciaPlana <= tuberia.radioAbsorcion)
-                    {
-                        float angulo = 0f;
-                        if (distanciaPlana > 0.001f)
-                        {
-                            angulo = Vector3.Angle(tuberia.puntoAbsorcion.forward, direccionPlana.normalized);
-                        }
-
-                        if (angulo <= tuberia.anguloAbsorcion / 2f)
-                        {
-                            DatosPiedra datos = new DatosPiedra
-                            {
-                                rb = rb,
-                                tuberia = tuberia,
-                                escalaOriginal = rb.transform.localScale,
-                                distanciaInicial = dirHaciaPiedra.magnitude
-                            };
-                            piedrasEnSuccion.Add(rb, datos);
-                        }
-                    }
-                }
+                    rb = rb,
+                    tuberia = tuberia,
+                    escala = EscalaPiedra.De(rb),
+                    distanciaInicial = Vector3.Distance(rb.position, tuberia.puntoAbsorcion.position)
+                };
+                // Tamaño real, aunque la piedra aún estuviera creciendo; y deja de crecer.
+                datos.escalaOriginal = datos.escala.TomarControl(this);
+                piedrasEnSuccion.Add(rb, datos);
             }
         }
+    }
+
+    // La zona es una "loncha" fina: una piedra rápida (lanzada por otra máquina, la diana...) puede atravesarla
+    // entera entre dos pasos de física. Por eso se comprueba todo el tramo recorrido en el último paso
+    // y se tiene en cuenta el tamaño de la piedra, no solo su centro.
+    bool PiedraCruzaZona(TuberiaAbsorcion tuberia, Rigidbody rb, Collider col)
+    {
+        float radioPiedra = col.bounds.extents.magnitude * 0.5f;
+        Vector3 actual = rb.position;
+        Vector3 anterior = actual - rb.linearVelocity * Time.fixedDeltaTime;
+
+        int muestras = Mathf.Clamp(Mathf.CeilToInt(Vector3.Distance(anterior, actual) / 0.1f), 1, 16);
+        for (int i = 0; i <= muestras; i++)
+        {
+            if (PuntoEnZona(tuberia, Vector3.Lerp(anterior, actual, (float)i / muestras), radioPiedra))
+                return true;
+        }
+        return false;
+    }
+
+    bool PuntoEnZona(TuberiaAbsorcion tuberia, Vector3 punto, float tolerancia)
+    {
+        Vector3 dirHaciaPunto = punto - tuberia.puntoAbsorcion.position;
+        float alturaLocal = Vector3.Dot(dirHaciaPunto, tuberia.puntoAbsorcion.up);
+        if (alturaLocal < -tolerancia || alturaLocal > tuberia.alturaAbsorcion + tolerancia) return false;
+
+        Vector3 direccionPlana = dirHaciaPunto - (tuberia.puntoAbsorcion.up * alturaLocal);
+        float distanciaPlana = direccionPlana.magnitude;
+        if (distanciaPlana > tuberia.radioAbsorcion + tolerancia) return false;
+        if (distanciaPlana <= 0.001f) return true;
+
+        return Vector3.Angle(tuberia.puntoAbsorcion.forward, direccionPlana / distanciaPlana) <= tuberia.anguloAbsorcion / 2f;
     }
 
     void AplicarDictaduraSuccion()
@@ -169,6 +189,13 @@ public class MaquinaPiedras : MonoBehaviour
             Rigidbody rb = kvp.Key;
             DatosPiedra datos = kvp.Value;
 
+            // Otro script (el jugador, otra máquina...) se ha llevado la piedra: se suelta sin tocar su escala.
+            if (rb != null && datos.escala != null && !datos.escala.Controla(this))
+            {
+                piedrasPerdidas.Add(rb);
+                continue;
+            }
+
             // Comprobar si apagaron la máquina en mitad del vuelo de esta piedra
             bool maquinaApagada = datos.tuberia.botonControl != null && !datos.tuberia.botonControl.encendido;
 
@@ -177,7 +204,7 @@ public class MaquinaPiedras : MonoBehaviour
                 if (rb != null && maquinaApagada)
                 {
                     // Si se apaga, le devolvemos su tamaño original para que caiga de forma realista
-                    rb.transform.localScale = datos.escalaOriginal;
+                    datos.escala.RestaurarBase();
                 }
                 piedrasPerdidas.Add(rb);
                 continue;
@@ -193,7 +220,7 @@ public class MaquinaPiedras : MonoBehaviour
             else
             {
                 Vector3 direccionNormalizada = vectorHaciaCentro.normalized;
-                rb.linearVelocity = direccionNormalizada * datos.tuberia.velocidadSuccion;
+                if (!rb.isKinematic) rb.linearVelocity = direccionNormalizada * datos.tuberia.velocidadSuccion;
 
                 float rangoTotal = datos.distanciaInicial - distanciaConsumo;
                 if (rangoTotal > 0f)
@@ -213,8 +240,11 @@ public class MaquinaPiedras : MonoBehaviour
             piedrasEnSuccion.Remove(rb);
 
             rb.gameObject.SetActive(false);
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
             rb.transform.localScale = Vector3.zero;
 
             piedrasAlmacenadas.Enqueue(datos);
@@ -256,25 +286,7 @@ public class MaquinaPiedras : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         rb.AddForce(puntoLanzamiento.forward * fuerzaLanzamiento, ForceMode.Impulse);
 
-        StartCoroutine(CrecerPiedra(rb.transform, piedra.escalaOriginal));
-    }
-
-    IEnumerator CrecerPiedra(Transform t, Vector3 escalaFinal)
-    {
-        float tiempoRecorrido = 0f;
-
-        while (tiempoRecorrido < tiempoCrecimiento)
-        {
-            if (t == null) yield break;
-
-            tiempoRecorrido += Time.deltaTime;
-            float progreso = tiempoRecorrido / tiempoCrecimiento;
-
-            t.localScale = Vector3.Lerp(Vector3.zero, escalaFinal, progreso);
-            yield return null;
-        }
-
-        if (t != null) t.localScale = escalaFinal;
+        piedra.escala.Crecer(tiempoCrecimiento);
     }
 
     // ==========================================

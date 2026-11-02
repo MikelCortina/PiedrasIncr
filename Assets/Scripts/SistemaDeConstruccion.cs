@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -74,6 +75,33 @@ public class SistemaConstruccion : MonoBehaviour
     public KeyCode teclaConstruccion = KeyCode.B;
     public KeyCode teclaCambiarTipo = KeyCode.Tab;
     public float velocidadRotacion = 10f;
+    [Tooltip("Gira la estructura que estás colocando un paso fijo (cualquier tipo de estructura).")]
+    public KeyCode teclaRotarPaso = KeyCode.R;
+    [Tooltip("Grados que gira cada pulsación de la tecla de rotar.")]
+    public float gradosRotacionPaso = 90f;
+    [Tooltip("La siguiente estructura empieza con el mismo giro que la última (con R o el ratón). Si se desactiva, cada una empieza sin girar.")]
+    public bool conservarRotacion = true;
+
+    [Header("Inclinación según el suelo")]
+    [Tooltip("Al colocar libremente, la estructura se inclina con la superficie que hay debajo (cuestas, rampas...).")]
+    public bool inclinarSegunSuelo = true;
+    [Tooltip("Superficies más inclinadas que esto (grados) no sirven para colocar: así no se pegan estructuras a las paredes.")]
+    [Range(0f, 90f)] public float inclinacionMaximaColocacion = 45f;
+    [Tooltip("Un conector que está por debajo del suelo más de esto (metros) no se puede usar para imantar.")]
+    [Min(0f)] public float toleranciaAtravesarSuelo = 0.1f;
+    [Tooltip("Rapidez con la que el holograma se adapta a la nueva inclinación (más alto = más inmediato).")]
+    public float suavizadoInclinacion = 15f;
+    [Tooltip("Permite colocar estructuras encima de otras de distinto tipo (p. ej. sobre una rampa), orientadas con su superficie.")]
+    public bool colocarSobreEstructuras = true;
+
+    [Header("Piedras bajo las estructuras")]
+    [Tooltip("Al construir, las piedras que quedan dentro o debajo de la estructura se suben a su superficie.")]
+    public bool subirPiedrasAlConstruir = true;
+    public string tagPiedra = "Piedra";
+    [Tooltip("Capas en las que se buscan piedras.")]
+    public LayerMask capaPiedras = ~0;
+    [Tooltip("Segundos tras construir en los que se repite la comprobación (la estructura crece con el efecto bloop).")]
+    [Min(0f)] public float repetirSubidaPiedrasTras = 0.35f;
     public float distanciaMaximaConstruccion = 15f;
     public float tiempoEsperaConstruccion = 0.5f;
 
@@ -105,6 +133,9 @@ public class SistemaConstruccion : MonoBehaviour
     private bool estaImantado = false;
     private Collider imanApuntado = null;
     private float rotacionManualOffset = 0f;
+    // Normal de la superficie donde se coloca (objetivo) y la que se aplica, suavizada.
+    private Vector3 normalSueloObjetivo = Vector3.up;
+    private Vector3 normalSueloActual = Vector3.up;
     public GameObject edificioApuntado = null;
     private GameObject edificioApuntadoAnterior = null;
     private float cooldownHolograma = 0f;
@@ -223,7 +254,7 @@ public class SistemaConstruccion : MonoBehaviour
 
     void CrearHolograma()
     {
-        rotacionManualOffset = 0f;
+        if (!conservarRotacion) rotacionManualOffset = 0f;
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
 
         if (edificioActual.prefabsHologramas.Length > 0)
@@ -433,7 +464,27 @@ public class SistemaConstruccion : MonoBehaviour
             {
                 mc.sharedMesh = clon;
             }
+            else
+            {
+                // Una caja no se puede curvar: se quedaba recta sobresaliendo de la curva y atrapaba las piedras.
+                // Se sustituye por un MeshCollider con la malla ya curvada.
+                BoxCollider caja = mf.GetComponent<BoxCollider>();
+                if (caja != null && !caja.isTrigger)
+                {
+                    MeshCollider curvado = mf.gameObject.AddComponent<MeshCollider>();
+                    curvado.sharedMesh = clon;
+                    curvado.sharedMaterial = caja.sharedMaterial;
+                    caja.enabled = false;
+                    Destroy(caja);
+                }
+            }
         }
+
+        // La cinta transportadora usa estos datos para empujar siguiendo la curva.
+        CurvaturaRampa datosCurva = estructuraReal.AddComponent<CurvaturaRampa>();
+        datosCurva.curvatura = curvaturaActual;
+        datosCurva.minZ = hologramaMinZ;
+        datosCurva.maxZ = hologramaMaxZ;
 
         Transform[] hijos = estructuraReal.GetComponentsInChildren<Transform>();
         foreach (Transform t in hijos)
@@ -482,6 +533,9 @@ public class SistemaConstruccion : MonoBehaviour
                 conectorValido = true;
         }
 
+        // Un conector enterrado no se puede usar: se sigue con la colocación normal (suelo, estructuras...).
+        if (conectorValido && ConectorBajoSuelo(hitConector.transform.position)) conectorValido = false;
+
         if (conectorValido)
         {
             posicionSueloBloqueada = null;
@@ -503,27 +557,7 @@ public class SistemaConstruccion : MonoBehaviour
 
                 if (detector != null) detector.rampaAIgnorar = hitConector.collider.transform.root.gameObject;
 
-                if (actual.tipo == TipoEdificio.Rampa)
-                {
-                    hologramaActual.transform.rotation = hitConector.transform.rotation;
-                    if (hitConector.collider.CompareTag("ConectorSalida")) AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
-                    else if (hitConector.collider.CompareTag("ConectorEntrada")) AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
-                }
-                else if (actual.tipo == TipoEdificio.Pared)
-                {
-                    if (hitConector.collider.CompareTag("RailRampa"))
-                    {
-                        hologramaActual.transform.position = hitConector.transform.position;
-                        hologramaActual.transform.rotation = hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
-                    }
-                    else
-                    {
-                        hologramaActual.transform.rotation = hitConector.transform.root.rotation;
-
-                        if (hitConector.collider.CompareTag("ConectorParedSalida")) AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
-                        else if (hitConector.collider.CompareTag("ConectorParedEntrada")) AlinearPiezas("PuntoConexionPared_Salida", hitConector.transform.position);
-                    }
-                }
+                ColocarEnConector(hitConector, actual);
             }
         }
         else if (Physics.Raycast(rayo, out hit, distanciaMaximaConstruccion, capaEdificios))
@@ -542,6 +576,16 @@ public class SistemaConstruccion : MonoBehaviour
                 imanApuntado = null;
                 if (detector != null) detector.rampaAIgnorar = null;
             }
+            else if (colocarSobreEstructuras && SuperficieColocable(hit.normal))
+            {
+                // Se apoya en la superficie de la otra estructura y no cuenta como choque con ella.
+                hologramaActual.transform.position = hit.point;
+                normalSueloObjetivo = hit.normal;
+                estaImantado = false;
+                apuntandoValido = true;
+                imanApuntado = null;
+                if (detector != null) detector.rampaAIgnorar = hit.transform.root.gameObject;
+            }
             else
             {
                 apuntandoValido = false;
@@ -553,7 +597,8 @@ public class SistemaConstruccion : MonoBehaviour
         {
             slotBloqueado = null;
 
-            if (posicionSueloBloqueada.HasValue && Vector3.Distance(hit.point, posicionSueloBloqueada.Value) < 2.0f)
+            if ((posicionSueloBloqueada.HasValue && Vector3.Distance(hit.point, posicionSueloBloqueada.Value) < 2.0f)
+                || !SuperficieColocable(hit.normal))
             {
                 apuntandoValido = false;
                 estaImantado = false;
@@ -566,6 +611,7 @@ public class SistemaConstruccion : MonoBehaviour
                 timerBloqueoSlot = 0f;
 
                 hologramaActual.transform.position = hit.point;
+                normalSueloObjetivo = hit.normal;
                 estaImantado = false;
                 apuntandoValido = true;
                 imanApuntado = null;
@@ -586,6 +632,106 @@ public class SistemaConstruccion : MonoBehaviour
         hologramaActual.SetActive(apuntandoValido);
     }
 
+    // Pone el holograma en la posición y rotación que le da el conector.
+    void ColocarEnConector(RaycastHit hitConector, InfoEdificio actual)
+    {
+        if (actual.tipo == TipoEdificio.Rampa)
+        {
+            hologramaActual.transform.rotation = hitConector.transform.rotation;
+            if (hitConector.collider.CompareTag("ConectorSalida")) AlinearPiezas("PuntoConexion_Entrada", hitConector.transform.position);
+            else if (hitConector.collider.CompareTag("ConectorEntrada")) AlinearPiezas("PuntoConexion_Salida", hitConector.transform.position);
+        }
+        else if (actual.tipo == TipoEdificio.Pared)
+        {
+            if (hitConector.collider.CompareTag("RailRampa"))
+            {
+                hologramaActual.transform.position = hitConector.transform.position;
+                hologramaActual.transform.rotation = hitConector.transform.rotation * Quaternion.Euler(-90f, 0f, 0f);
+            }
+            else
+            {
+                hologramaActual.transform.rotation = hitConector.transform.root.rotation;
+
+                if (hitConector.collider.CompareTag("ConectorParedSalida")) AlinearPiezas("PuntoConexionPared_Entrada", hitConector.transform.position);
+                else if (hitConector.collider.CompareTag("ConectorParedEntrada")) AlinearPiezas("PuntoConexionPared_Salida", hitConector.transform.position);
+            }
+        }
+    }
+
+    // Ahora (con la estructura a tamaño completo, antes de que el bloop la encoja) y otra vez al terminar de crecer.
+    IEnumerator RutinaSubirPiedras(GameObject estructura)
+    {
+        SubirPiedrasEncima(estructura);
+
+        if (repetirSubidaPiedrasTras <= 0f) yield break;
+        yield return new WaitForSeconds(repetirSubidaPiedrasTras);
+
+        if (estructura != null) SubirPiedrasEncima(estructura);
+    }
+
+    // Las piedras que han quedado dentro o debajo de la estructura se colocan sobre su superficie.
+    void SubirPiedrasEncima(GameObject estructura)
+    {
+        Physics.SyncTransforms();
+
+        List<Collider> propios = new List<Collider>();
+        foreach (Collider col in estructura.GetComponentsInChildren<Collider>())
+            if (col.enabled && !col.isTrigger) propios.Add(col);
+
+        HashSet<Rigidbody> revisadas = new HashSet<Rigidbody>();
+        foreach (Collider col in propios)
+        {
+            Bounds limites = col.bounds;
+            foreach (Collider otro in Physics.OverlapBox(limites.center, limites.extents, Quaternion.identity, capaPiedras, QueryTriggerInteraction.Ignore))
+            {
+                Rigidbody rb = otro.attachedRigidbody;
+                if (rb == null || rb.isKinematic || !revisadas.Add(rb) || !rb.CompareTag(tagPiedra)) continue;
+                if (rb.transform.IsChildOf(estructura.transform)) continue;
+
+                SubirPiedra(rb, otro, propios);
+            }
+        }
+    }
+
+    void SubirPiedra(Rigidbody rb, Collider colPiedra, List<Collider> superficies)
+    {
+        Vector3 posicion = rb.position;
+        float radio = colPiedra.bounds.extents.y;
+
+        // Superficie más alta de la estructura justo encima/debajo de la piedra.
+        float alturaSuperficie = float.NegativeInfinity;
+        foreach (Collider superficie in superficies)
+        {
+            Bounds b = superficie.bounds;
+            Ray rayo = new Ray(new Vector3(posicion.x, b.max.y + 1f, posicion.z), Vector3.down);
+            if (superficie.Raycast(rayo, out RaycastHit hit, b.size.y + 2f) && hit.point.y > alturaSuperficie)
+                alturaSuperficie = hit.point.y;
+        }
+
+        if (float.IsNegativeInfinity(alturaSuperficie)) return;
+        // Ya está encima (o apoyada): no se toca.
+        if (posicion.y - radio >= alturaSuperficie - 0.02f) return;
+
+        Vector3 nuevaPosicion = new Vector3(posicion.x, alturaSuperficie + radio + 0.05f, posicion.z);
+        rb.position = nuevaPosicion;
+        rb.transform.position = nuevaPosicion;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.WakeUp();
+    }
+
+    bool SuperficieColocable(Vector3 normal)
+    {
+        return Vector3.Angle(Vector3.up, normal) <= inclinacionMaximaColocacion;
+    }
+
+    // True si el punto del conector está por debajo del suelo que tiene encima.
+    bool ConectorBajoSuelo(Vector3 posicionConector)
+    {
+        return Physics.Raycast(posicionConector + Vector3.up * 100f, Vector3.down, out RaycastHit suelo, 200f, capaSuelo, QueryTriggerInteraction.Ignore)
+               && posicionConector.y < suelo.point.y - toleranciaAtravesarSuelo;
+    }
+
     void AlinearPiezas(string nombreConectorMio, Vector3 posicionDestino)
     {
         Transform miConector = null;
@@ -604,6 +750,13 @@ public class SistemaConstruccion : MonoBehaviour
 
     void ManejarRotacionLibre()
     {
+        // Paso fijo con la tecla: primero encaja al múltiplo más cercano (por si se giró con el ratón) y luego suma un paso.
+        if (Input.GetKeyDown(teclaRotarPaso) && gradosRotacionPaso > 0f)
+        {
+            float pasos = Mathf.Round(rotacionManualOffset / gradosRotacionPaso) + 1f;
+            rotacionManualOffset = Mathf.Repeat(pasos * gradosRotacionPaso, 360f);
+        }
+
         if (!estaImantado && edificioApuntado == null)
         {
             if (Input.GetMouseButton(1)) rotacionManualOffset += Input.GetAxis("Mouse X") * velocidadRotacion;
@@ -613,7 +766,8 @@ public class SistemaConstruccion : MonoBehaviour
 
             if (direccionCamara.sqrMagnitude > 0.001f)
             {
-                Quaternion rotacionBase = Quaternion.LookRotation(direccionCamara.normalized);
+                // Giro de la estructura según la cámara, inclinado después con la superficie de debajo.
+                Quaternion rotacionBase = InclinacionSuelo() * Quaternion.LookRotation(direccionCamara.normalized);
 
                 if (edificios[indiceEdificioActual].tipo == TipoEdificio.Pared)
                 {
@@ -625,6 +779,20 @@ public class SistemaConstruccion : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Rotación que lleva el "arriba" de la estructura a la normal de la superficie (limitada y suavizada).
+    Quaternion InclinacionSuelo()
+    {
+        if (!inclinarSegunSuelo) return Quaternion.identity;
+
+        Vector3 objetivo = normalSueloObjetivo.sqrMagnitude > 0.0001f ? normalSueloObjetivo.normalized : Vector3.up;
+        float angulo = Vector3.Angle(Vector3.up, objetivo);
+        if (angulo > inclinacionMaximaColocacion)
+            objetivo = Vector3.Slerp(Vector3.up, objetivo, inclinacionMaximaColocacion / angulo);
+
+        normalSueloActual = Vector3.Slerp(normalSueloActual, objetivo, 1f - Mathf.Exp(-suavizadoInclinacion * Time.deltaTime));
+        return Quaternion.FromToRotation(Vector3.up, normalSueloActual);
     }
 
     bool PuedeColocarActual()
@@ -753,6 +921,9 @@ public class SistemaConstruccion : MonoBehaviour
                 }
 
                 nuevaEstructura.AddComponent<EfectoBloop>();
+
+                if (subirPiedrasAlConstruir)
+                    StartCoroutine(RutinaSubirPiedras(nuevaEstructura));
 
                 EdificioConstruido id = nuevaEstructura.AddComponent<EdificioConstruido>();
                 id.tipo = actual.tipo;

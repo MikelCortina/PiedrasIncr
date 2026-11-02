@@ -69,6 +69,12 @@ public class DianaBloop : MonoBehaviour
     public float tiempoInmunidadPiedra = 0.5f;
     public float velocidadCrecimientoPiedra = 12f;
 
+    [Header("Disparo automático")]
+    [Tooltip("Escupe piedras sola cada vez que termina el cooldown, sin necesidad de golpearla.")]
+    public bool disparoAutomatico = false;
+    [Tooltip("Segundos desde que se activa hasta el primer disparo automático (deja que termine de construirse/escalarse).")]
+    [Min(0f)] public float retrasoPrimerDisparoAutomatico = 1f;
+
     [Header("Ajustes del Bloop - CUERPO PRINCIPAL")]
     public float retrasoExpulsion = 0.15f;
     public bool bloopEjeAleatorio = true;
@@ -89,6 +95,7 @@ public class DianaBloop : MonoBehaviour
     private Quaternion rotacionOriginalBanderin;
 
     private bool inicializado = false;
+    private float tiempoActivacion;
 
     private Coroutine corrutinaBloopPrincipal;
     private Coroutine corrutinaBloopSalida;
@@ -118,6 +125,8 @@ public class DianaBloop : MonoBehaviour
 
     private void OnEnable()
     {
+        tiempoActivacion = Time.time;
+
         // Al encenderse, activamos las partículas y la luz asegurándonos de que ya tiene escala
         if (controladorNeon != null)
         {
@@ -140,6 +149,17 @@ public class DianaBloop : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        // En automático dispara en cuanto está lista (al empezar y cada vez que acaba el cooldown).
+        if (!disparoAutomatico || enCooldown) return;
+        if (Time.time - tiempoActivacion < retrasoPrimerDisparoAutomatico) return;
+
+        // Sin sonido: solo suena cuando se golpea.
+        InicializarTardio();
+        IniciarExpulsion();
+    }
+
     public void RecibirImpacto(Vector3 puntoExactoImpacto, Vector3 normalSuperficie = default)
     {
         InicializarTardio();
@@ -158,11 +178,7 @@ public class DianaBloop : MonoBehaviour
             Destroy(vfx, 3f);
         }
 
-        if (audioSource != null && sonidoBloop != null)
-        {
-            audioSource.pitch = Random.Range(0.9f, 1.25f);
-            audioSource.PlayOneShot(sonidoBloop);
-        }
+        ReproducirSonidoBloop();
 
         if (modeloBanderin != null)
         {
@@ -170,23 +186,37 @@ public class DianaBloop : MonoBehaviour
             corrutinaBanderin = StartCoroutine(RutinaBanderin());
         }
 
-        if (!enCooldown)
+        IniciarExpulsion();
+    }
+
+    // Bloop + expulsión de piedras + cooldown. Si ya está en cooldown no hace nada.
+    private void IniciarExpulsion()
+    {
+        if (enCooldown) return;
+
+        enCooldown = true;
+        if (corrutinaOscilacion != null) StopCoroutine(corrutinaOscilacion);
+
+        if (psCargando != null)
         {
-            enCooldown = true;
-            if (corrutinaOscilacion != null) StopCoroutine(corrutinaOscilacion);
+            StartCoroutine(RutinaInvertirParticulasConExplosion(psCargando, factorAceleracionExplosion, tiempoCorteEmision, cantidadBurstImpacto, true));
+        }
 
-            if (psCargando != null)
-            {
-                StartCoroutine(RutinaInvertirParticulasConExplosion(psCargando, factorAceleracionExplosion, tiempoCorteEmision, cantidadBurstImpacto, true));
-            }
+        if (modeloVisual != null)
+        {
+            if (corrutinaBloopPrincipal != null) StopCoroutine(corrutinaBloopPrincipal);
+            corrutinaBloopPrincipal = StartCoroutine(RutinaBloopPrincipal(modeloVisual, escalaOriginalPrincipal, bloopEjeAleatorio));
+        }
 
-            if (modeloVisual != null)
-            {
-                if (corrutinaBloopPrincipal != null) StopCoroutine(corrutinaBloopPrincipal);
-                corrutinaBloopPrincipal = StartCoroutine(RutinaBloopPrincipal(modeloVisual, escalaOriginalPrincipal, bloopEjeAleatorio));
-            }
+        StartCoroutine(RutinaSecuenciaExpulsion());
+    }
 
-            StartCoroutine(RutinaSecuenciaExpulsion());
+    private void ReproducirSonidoBloop()
+    {
+        if (audioSource != null && sonidoBloop != null)
+        {
+            audioSource.pitch = Random.Range(0.9f, 1.25f);
+            audioSource.PlayOneShot(sonidoBloop);
         }
     }
 
@@ -545,9 +575,11 @@ public class InmunidadTemporalPiedra : MonoBehaviour
 {
     private string tagOriginal;
     private int layerOriginal;
+    private bool iniciada;
 
     public void IniciarInmunidad(float duracion)
     {
+        iniciada = true;
         tagOriginal = gameObject.tag;
         layerOriginal = gameObject.layer;
 
@@ -560,35 +592,56 @@ public class InmunidadTemporalPiedra : MonoBehaviour
     private IEnumerator RutinaRestaurar(float duracion)
     {
         yield return new WaitForSeconds(duracion);
+        Restaurar();
+    }
 
-        if (this != null && gameObject != null)
-        {
-            gameObject.tag = tagOriginal;
-            gameObject.layer = layerOriginal;
-            Destroy(this);
-        }
+    // Si la piedra se desactiva durante la inmunidad (p. ej. una máquina se la traga), la corrutina se para:
+    // se restaura ya, o se quedaría para siempre sin su tag ni su capa y ninguna máquina la volvería a absorber.
+    private void OnDisable()
+    {
+        Restaurar();
+    }
+
+    private void Restaurar()
+    {
+        if (!iniciada || this == null || gameObject == null) return;
+        iniciada = false;
+
+        gameObject.tag = tagOriginal;
+        gameObject.layer = layerOriginal;
+        Destroy(this);
     }
 }
 
 public class CrecimientoInicialPiedra : MonoBehaviour
 {
-    private Vector3 escalaObjetivo;
+    private EscalaPiedra escala;
     private float velocidad;
 
     public void IniciarCrecimiento(Vector3 escalaFinal, float vel)
     {
-        escalaObjetivo = escalaFinal;
         velocidad = vel;
+        escala = EscalaPiedra.De(this);
+        escala.FijarBase(escalaFinal);
+        escala.TomarControl(this);
         transform.localScale = Vector3.zero;
     }
 
     private void Update()
     {
-        transform.localScale = Vector3.Lerp(transform.localScale, escalaObjetivo, Time.deltaTime * velocidad);
-
-        if (Vector3.Distance(transform.localScale, escalaObjetivo) < 0.01f)
+        // Si otro script se ha hecho cargo de la piedra (el jugador, una máquina...), el crecimiento se cancela.
+        if (escala == null || !escala.Controla(this))
         {
-            transform.localScale = escalaObjetivo;
+            Destroy(this);
+            return;
+        }
+
+        transform.localScale = Vector3.Lerp(transform.localScale, escala.Base, Time.deltaTime * velocidad);
+
+        if (Vector3.Distance(transform.localScale, escala.Base) < 0.01f)
+        {
+            transform.localScale = escala.Base;
+            escala.Soltar(this);
             Destroy(this);
         }
     }

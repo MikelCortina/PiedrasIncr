@@ -123,9 +123,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: 14173745caae60a4f8e568cb2e171625, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6269614910566615158}
-    - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: 14173745caae60a4f8e568cb2e171625, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4312207672377351770}
     - targetCorrespondingSourceObject: {fileID: -516098083770646512, guid: 14173745caae60a4f8e568cb2e171625, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5032163462837982285}
@@ -160,27 +157,12 @@ MonoBehaviour:
   animarTextura: 1
   direccionTextura: {x: 0, y: 1}
   multiplicadorSincronizacion: 0.1
---- !u!65 &4312207672377351770
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3379146398279125906}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2.0000005, y: 10.000002, z: 0.5}
-  m_Center: {x: 0.0000009536743, y: 0, z: 0}
+  aceleracionArrastre: 20
+  arrastrarEnToda: 1
+  desatascar: 1
+  tiempoAtasco: 0.25
+  umbralAtasco: 0.15
+  impulsoDesatasco: 3
 --- !u!1 &5883349273388988435 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8416272007918961125, guid: 14173745caae60a4f8e568cb2e171625, type: 3}
