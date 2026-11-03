@@ -507,11 +507,35 @@ public class GestorPatasArana : MonoBehaviour
         // ESPERAMOS
         // =================================================
 
-        if (AlgunaPataEstaMoviendose())
+        bool grupoAEnPaso =
+            pataFL.EstaDandoPaso ||
+            pataMR.EstaDandoPaso ||
+            pataBL.EstaDandoPaso;
+
+        bool grupoBEnPaso =
+            pataFR.EstaDandoPaso ||
+            pataML.EstaDandoPaso ||
+            pataBR.EstaDandoPaso;
+
+        if (grupoAEnPaso || grupoBEnPaso)
         {
+            // Solo permitimos incorporar patas
+            // del grupo que ya está moviéndose.
+            if (grupoAEnPaso && !grupoBEnPaso)
+            {
+                if (pataFL.NecesitaDarPaso()) pataFL.OrdenarPaso();
+                if (pataMR.NecesitaDarPaso()) pataMR.OrdenarPaso();
+                if (pataBL.NecesitaDarPaso()) pataBL.OrdenarPaso();
+            }
+            else if (grupoBEnPaso && !grupoAEnPaso)
+            {
+                if (pataFR.NecesitaDarPaso()) pataFR.OrdenarPaso();
+                if (pataML.NecesitaDarPaso()) pataML.OrdenarPaso();
+                if (pataBR.NecesitaDarPaso()) pataBR.OrdenarPaso();
+            }
+
             return;
         }
-
 
         // =================================================
         // NECESIDAD INDIVIDUAL
