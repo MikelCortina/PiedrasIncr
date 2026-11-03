@@ -346,11 +346,12 @@ public class MenuBotUI : MonoBehaviour
             dropdownDestino.AddOptions(
                 new List<string>
                 {
-                    "Agujero",
-                    "Procesadora",
-"Automático",
-"Zona Piedras"
+        "Agujero",
+        "Procesadora",
+        "Zona Piedras",
+        "Automático"
                 }
+            
             );
 
 
