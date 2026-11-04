@@ -177,6 +177,10 @@ public class PataProcedural : MonoBehaviour
     [Tooltip("En Play, dibuja verde si el raycast encuentra apoyo y rojo si falla.")]
     public bool mostrarRaycastApoyo = true;
 
+    [Tooltip("Si no hay superficie bajo el Target (borde, hueco, capa no incluida en Capa Suelo), se busca apoyo en " +
+             "estos puntos entre el Target y la cadera. Sin ello la pata no volvía a moverse y se quedaba estirada atrás. 0 = desactivado.")]
+    [Range(0, 8)] public int muestrasApoyoAlternativo = 4;
+
     [SerializeField] private bool ultimoObjetivoConApoyo = true;
     private Vector3 ultimoOrigenApoyo;
     private Vector3 ultimaDireccionApoyo;
@@ -913,10 +917,12 @@ public class PataProcedural : MonoBehaviour
         Vector3 objetivoPaso =
             ObtenerObjetivoParaPaso();
 
-        // Si el raycast falló, NO levantar la pata hacia un punto flotante.
-        // El pie conserva su posición anterior hasta recuperar superficie.
+        // Si el raycast falló, NO levantar la pata hacia un punto flotante:
+        // se busca apoyo más cerca de la cadera y, si tampoco hay,
+        // el pie conserva su posición anterior hasta recuperar superficie.
         if (impedirPasosSinSuperficie && !apoyoSuperiorForzado &&
-            !ultimoObjetivoConApoyo) return false;
+            !ultimoObjetivoConApoyo &&
+            !BuscarApoyoAlternativo(objetivoPaso, out objetivoPaso)) return false;
 
         // =================================================
         // PIE -> OBJETIVO FUTURO
@@ -1027,7 +1033,8 @@ public class PataProcedural : MonoBehaviour
             ObtenerObjetivoParaPaso();
 
         if (impedirPasosSinSuperficie && !apoyoSuperiorForzado &&
-            !ultimoObjetivoConApoyo) return;
+            !ultimoObjetivoConApoyo &&
+            !BuscarApoyoAlternativo(nuevoDestino, out nuevoDestino)) return;
 
         float distanciaExtension =
             Vector3.Distance(
@@ -1179,6 +1186,35 @@ public class PataProcedural : MonoBehaviour
     // =====================================================
     // BUSCAR SUELO
     // =====================================================
+
+    private bool BuscarApoyoAlternativo(
+        Vector3 objetivoSinApoyo,
+        out Vector3 apoyo)
+    {
+        for (int i = 1; i <= muestrasApoyoAlternativo; i++)
+        {
+            Vector3 punto =
+                Vector3.Lerp(
+                    objetivoSinApoyo,
+                    cadera.position,
+                    (float)i / (muestrasApoyoAlternativo + 1)
+                );
+
+            apoyo =
+                BuscarSuelo(
+                    punto
+                );
+
+            if (ultimoObjetivoConApoyo)
+                return true;
+        }
+
+        apoyo =
+            objetivoSinApoyo;
+
+        return false;
+    }
+
 
     private Vector3 BuscarSuelo(
         Vector3 posicion)

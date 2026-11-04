@@ -79685,14 +79685,15 @@ MonoBehaviour:
   velocidadRecuperacion: 15
   teclaMostrarTodas: 112
   mostrarDesgasteTodas: 0
-  fuentePanel: {fileID: 0}
+  fuentePanel: {fileID: 12800000, guid: 1d43eb51a5293dd4dad6075de564c3f8, type: 3}
   escalaPanel: 1
   porcentajeListo: 95
-  colorFondoPanel: {r: 0.04, g: 0.06, b: 0.1, a: 0.82}
-  colorAcento: {r: 0.35, g: 0.85, b: 1, a: 1}
-  colorDesgasteBajo: {r: 1, g: 0.45, b: 0.2, a: 1}
-  colorDesgasteMedio: {r: 1, g: 0.82, b: 0.25, a: 1}
-  colorListo: {r: 0.35, g: 1, b: 0.55, a: 1}
+  colorPlaca: {r: 0.035, g: 0.025, b: 0.09, a: 0.88}
+  colorNeon: {r: 0.926, g: 0.887, b: 1, a: 1}
+  colorNeonBajo: {r: 0.926, g: 0.075, b: 0.102, a: 1}
+  colorNeonMedio: {r: 0.579, g: 0.387, b: 0.943, a: 1}
+  colorNeonAlto: {r: 0.914, g: 0.616, b: 0.992, a: 1}
+  colorNeonListo: {r: 0.926, g: 0.887, b: 1, a: 1}
   velocidadFundidoPanel: 6
   velocidadContador: 6
   intervaloBusquedaPiedras: 0.5
@@ -146794,7 +146795,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1681088967}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
   m_Name: 
@@ -194269,3 +194270,6 @@ SceneRoots:
   - {fileID: 1981487153}
   - {fileID: 445956524}
   - {fileID: 1385987592}
+  - {fileID: 609466952}
+  - {fileID: 444394609}
+  - {fileID: 2039175473}

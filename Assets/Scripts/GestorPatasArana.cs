@@ -520,14 +520,18 @@ public class GestorPatasArana : MonoBehaviour
         if (grupoAEnPaso || grupoBEnPaso)
         {
             // Solo permitimos incorporar patas
-            // del grupo que ya está moviéndose.
-            if (grupoAEnPaso && !grupoBEnPaso)
+            // del grupo que ya está moviéndose,
+            // y solo si el otro grupo no está esperando
+            // turno: si no, un grupo podía encadenar
+            // pasos sin fin y las patas del otro se
+            // quedaban atrás, estiradas.
+            if (grupoAEnPaso && !grupoBEnPaso && !GrupoBNecesitaPaso())
             {
                 if (pataFL.NecesitaDarPaso()) pataFL.OrdenarPaso();
                 if (pataMR.NecesitaDarPaso()) pataMR.OrdenarPaso();
                 if (pataBL.NecesitaDarPaso()) pataBL.OrdenarPaso();
             }
-            else if (grupoBEnPaso && !grupoAEnPaso)
+            else if (grupoBEnPaso && !grupoAEnPaso && !GrupoANecesitaPaso())
             {
                 if (pataFR.NecesitaDarPaso()) pataFR.OrdenarPaso();
                 if (pataML.NecesitaDarPaso()) pataML.OrdenarPaso();
@@ -853,6 +857,24 @@ public class GestorPatasArana : MonoBehaviour
     // =====================================================
     // ¿ALGUNA PATA ESTÁ MOVIÉNDOSE?
     // =====================================================
+
+    private bool GrupoANecesitaPaso()
+    {
+        return
+            pataFL.NecesitaDarPaso() ||
+            pataMR.NecesitaDarPaso() ||
+            pataBL.NecesitaDarPaso();
+    }
+
+
+    private bool GrupoBNecesitaPaso()
+    {
+        return
+            pataFR.NecesitaDarPaso() ||
+            pataML.NecesitaDarPaso() ||
+            pataBR.NecesitaDarPaso();
+    }
+
 
     private bool AlgunaPataEstaMoviendose()
     {
