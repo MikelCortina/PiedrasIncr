@@ -154,6 +154,29 @@ public class ConfiguracionBot : MonoBehaviour
     }
 
 
+
+    private float ultimaVelocidadDetectada = -1f;
+
+    private void Update()
+    {
+        if (Mathf.Approximately(
+            velocidadMovimiento,
+            ultimaVelocidadDetectada))
+            return;
+
+        ultimaVelocidadDetectada = velocidadMovimiento;
+
+        if (bot != null)
+        {
+            bot.EstablecerVelocidadBase(velocidadMovimiento);
+        }
+        else if (agente != null)
+        {
+            agente.speed = velocidadMovimiento;
+        }
+    }
+
+
     // =====================================================
     // APLICAR
     // =====================================================

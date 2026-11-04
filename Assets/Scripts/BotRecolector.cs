@@ -9722,4 +9722,33 @@ public class BotRecolector : MonoBehaviour
         }
     }
 
+
+    public void EstablecerVelocidadBase(float nuevaVelocidad)
+    {
+        float valor = Mathf.Clamp(nuevaVelocidad, 0.1f, 5f);
+
+        if (agente == null)
+            agente = GetComponent<NavMeshAgent>();
+
+        if (configuracionBot == null)
+            configuracionBot = GetComponent<ConfiguracionBot>();
+
+        if (configuracionBot != null)
+            configuracionBot.velocidadMovimiento = valor;
+
+        velocidadBaseAgente = valor;
+
+        if (agente != null)
+        {
+            float factor = usarGiroProgresivo
+                ? Mathf.Clamp(factorVelocidadGiroActual, 0.05f, 1f)
+                : 1f;
+
+
+            agente.speed = valor * factor;
+
+        }
+    }
+
+
 }

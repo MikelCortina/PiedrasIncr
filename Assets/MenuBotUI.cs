@@ -770,20 +770,25 @@ public class MenuBotUI : MonoBehaviour
     // VELOCIDAD
     // =====================================================
 
-    private void CambiarVelocidad(
-        float valor)
+
+    private void CambiarVelocidad(float valor)
     {
         if (botActual == null)
             return;
 
-
-        botActual.SetVelocidad(
-            valor
-        );
-
+        // BotRecolector controla la velocidad real.
+        if (recolectorActual != null)
+        {
+            recolectorActual.EstablecerVelocidadBase(valor);
+        }
+        else
+        {
+            botActual.SetVelocidad(valor);
+        }
 
         ActualizarTextos();
     }
+
 
 
     // =====================================================
