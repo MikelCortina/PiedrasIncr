@@ -1516,11 +1516,22 @@ public class PataProcedural : MonoBehaviour
         segmento.rotation = Quaternion.LookRotation(ejeZ.normalized, ejeY);
 
         // Conservamos EXACTAMENTE la escala procedural del script original.
+
+        float escalaPadre = segmento.parent != null
+            ? segmento.parent.lossyScale.y
+            : 1f;
+
+        escalaPadre = Mathf.Max(
+            0.0001f,
+            Mathf.Abs(escalaPadre)
+        );
+
         segmento.localScale = new Vector3(
             grosorPata,
-            longitud * 0.5f,
+            longitud * 0.5f / escalaPadre,
             grosorPata
         );
+
     }
 
 
