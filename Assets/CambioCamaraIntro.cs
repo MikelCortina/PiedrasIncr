@@ -160,6 +160,9 @@ public class CambioCamaraIntro : MonoBehaviour
     [Header("Apagado de Luces Interiores")]
     [Tooltip("Los neones de alarma de 'Interior Nave' se apagan siempre. Aquí puedes añadir además Lights de Unity de la cabina (opcional).")]
     public List<Light> lucesInteriores = new List<Light>();
+    [Tooltip("Los neones de alarma se apagan en cuanto la nave llega al final del spline, sin esperar a la palanca " +
+             "(con la misma duración y curva que el resto de luces). Desactivado: se apagan al bajar la palanca.")]
+    public bool apagarAlarmaAlLlegar = true;
     [Tooltip("Al apagar la nave, las agujas de 'Interior Nave' también se detienen (las de rotación continua frenan hasta 0)")]
     public bool detenerAgujasAlApagar = true;
     [Tooltip("Segundos que tardan las luces (y las agujas) en llegar a 0")]
@@ -736,6 +739,9 @@ public class CambioCamaraIntro : MonoBehaviour
     {
         esperandoPalanca = true;
 
+        if (apagarAlarmaAlLlegar && interiorNave != null)
+            StartCoroutine(ApagarAlarma());
+
         // La nave se queda parada en el punto final con la vibración al mínimo.
         factorVibracionActual = 0f;
 
@@ -886,6 +892,23 @@ public class CambioCamaraIntro : MonoBehaviour
         }
 
         AplicarApagadoLuces(1f, multiplicadorAlarmaInicial, energiaAgujasInicial, intensidadesLuces);
+    }
+
+    // Solo los neones de alarma. Al bajar la palanca, ApagarLucesInteriores parte del valor actual (ya 0) y no los reenciende.
+    private IEnumerator ApagarAlarma()
+    {
+        float inicial = interiorNave.multiplicadorLucesAlarma;
+        float duracion = Mathf.Max(0f, duracionApagadoLuces);
+        float tiempo = 0f;
+
+        while (tiempo < duracion)
+        {
+            tiempo += Time.deltaTime;
+            interiorNave.multiplicadorLucesAlarma = Mathf.LerpUnclamped(inicial, 0f, curvaApagadoLuces.Evaluate(Mathf.Clamp01(tiempo / duracion)));
+            yield return null;
+        }
+
+        interiorNave.multiplicadorLucesAlarma = 0f;
     }
 
     private void AplicarApagadoLuces(float progreso, float multiplicadorAlarmaInicial, float energiaAgujasInicial, float[] intensidadesLuces)
