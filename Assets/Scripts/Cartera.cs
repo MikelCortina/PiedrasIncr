@@ -43,4 +43,22 @@ public class Cartera : MonoBehaviour
 
         return true;
     }
+
+    /// <summary>
+    /// Restaura un saldo previamente validado, sin ejecutar una compra ni
+    /// entregar monedas como recompensa. Notifica un cambio real una sola vez.
+    /// SOLO debe llamarse durante la restauracion de la partida.
+    /// </summary>
+    public void RestaurarMonedas(int cantidad)
+    {
+        if (cantidad < 0)
+            throw new ArgumentOutOfRangeException(nameof(cantidad),
+                "No se puede restaurar un saldo negativo.");
+
+        if (monedas == cantidad)
+            return;
+
+        monedas = cantidad;
+        OnMonedasCambiadas?.Invoke(monedas);
+    }
 }

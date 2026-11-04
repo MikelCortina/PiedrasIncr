@@ -518,6 +518,157 @@ public class DesbloqueoProcesadoraMonedas : MonoBehaviour
             textoProgreso.text = "DESGASTADORA NIVEL MÁXIMO";
     }
 
+    // =====================================================
+    // RESTAURAR PAGOS Y ASPECTO DESDE GUARDADO
+    // =====================================================
+
+    public void RestaurarPagosYAspecto(ProcessorSaveData datos)
+    {
+        // Validar antes de modificar nada.
+        ProcessorSaveAdapter.Validate(datos);
+
+        if (!Application.isPlaying || !isActiveAndEnabled)
+        {
+            throw new System.InvalidOperationException(
+                "La restauracion requiere la procesadora activa en Play."
+            );
+        }
+
+        if (maquinaErosion == null)
+        {
+            throw new System.InvalidOperationException(
+                "No hay una MaquinaErosion asociada."
+            );
+        }
+
+        if (enTransicion)
+        {
+            throw new System.InvalidOperationException(
+                "No se puede restaurar durante una animacion."
+            );
+        }
+
+        if (escalasOriginales.Count == 0)
+        {
+            throw new System.InvalidOperationException(
+                "La procesadora todavia no ha inicializado sus piezas."
+            );
+        }
+
+        // El estado de MaquinaErosion debe restaurarse primero.
+        if (maquinaErosion.ProcesadoraDesbloqueada != datos.desbloqueada ||
+            maquinaErosion.NivelProcesado != datos.nivelProcesado)
+        {
+            throw new System.InvalidOperationException(
+                "Primero hay que restaurar el estado de MaquinaErosion."
+            );
+        }
+
+        // Evitar aplicar pagos a precios diferentes.
+        if (monedasNecesarias != datos.monedasConstruccionNecesarias ||
+            PrecioMejoraActual != datos.precioSiguienteMejora)
+        {
+            throw new System.InvalidOperationException(
+                "Los precios actuales no coinciden con el guardado."
+            );
+        }
+
+        // Una construccion terminada debe tener el pago completo.
+        if (datos.desbloqueada &&
+            datos.monedasConstruccionAportadas != monedasNecesarias)
+        {
+            throw new System.InvalidOperationException(
+                "El pago de construccion no esta completo."
+            );
+        }
+
+        if (!datos.desbloqueada &&
+            datos.monedasConstruccionAportadas >= monedasNecesarias)
+        {
+            throw new System.InvalidOperationException(
+                "La construccion figura pagada pero sigue bloqueada."
+            );
+        }
+
+        // Detener efectos visuales temporales.
+        if (corrutinaBloopAntena != null)
+        {
+            StopCoroutine(corrutinaBloopAntena);
+            corrutinaBloopAntena = null;
+        }
+
+        if (corrutinaBloopEstructura != null)
+        {
+            StopCoroutine(corrutinaBloopEstructura);
+            corrutinaBloopEstructura = null;
+        }
+
+        // Recuperar las monedas ya aportadas.
+        monedasRecibidas = datos.monedasConstruccionAportadas;
+        monedasMejoraRecibidas = datos.monedasMejoraAportadas;
+
+        // Asociar el pago a su nivel correcto.
+        nivelDeMejoraEnPago = maquinaErosion.NivelProcesado + 1;
+
+        // Actualizar inmediatamente el contador.
+        if (!datos.desbloqueada)
+        {
+            valorMostradoEnPantalla =
+                monedasNecesarias - monedasRecibidas;
+        }
+        else if (maquinaErosion.ProcesadoAlMaximo())
+        {
+            valorMostradoEnPantalla = 0f;
+        }
+        else
+        {
+            valorMostradoEnPantalla = PrecioMejoraRestante;
+        }
+
+        if (!datos.desbloqueada)
+        {
+            progresoVisualLed =
+                (float)monedasRecibidas / monedasNecesarias;
+        }
+        else if (maquinaErosion.ProcesadoAlMaximo())
+        {
+            progresoVisualLed = 1f;
+        }
+        else
+        {
+            progresoVisualLed =
+                (float)monedasMejoraRecibidas / PrecioMejoraActual;
+        }
+
+        // Recuperar piezas, ruinas, antena y mejoras visuales.
+        // false significa restauracion INSTANTANEA, sin animaciones.
+        SincronizarAspecto(false);
+
+        // Sincronizar indicadores y tienda.
+        ActualizarTexto();
+
+        if (textoPantallaAntena != null)
+        {
+            textoPantallaAntena.text =
+                maquinaErosion.ProcesadoAlMaximo()
+                    ? "MAX"
+                    : Mathf.CeilToInt(valorMostradoEnPantalla)
+                        .ToString(formatoNumeros);
+        }
+
+        if (ledAntena != null)
+        {
+            ledAntena.colorNeon =
+                Color.Lerp(colorInicio, colorFinal, progresoVisualLed);
+
+            ledAntena.intensidad =
+                Mathf.Lerp(intensidadInicio, intensidadFinal,
+                           progresoVisualLed);
+        }
+
+        RefrescarTienda();
+    }
+
     public void RefrescarTienda()
     {
         if (tiendaTrabajo != null) tiendaTrabajo.RefrescarTienda();

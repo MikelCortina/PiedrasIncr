@@ -126,6 +126,27 @@ public class RescateVacioJugador : MonoBehaviour
         }
     }
 
+
+    /// <summary>
+    /// Borra las referencias al suelo anterior y cualquier fase de rescate,
+    /// para que LateUpdate reconozca el nuevo suelo despues de una carga.
+    /// El adaptador de guardado controla el CharacterController y el Transform.
+    /// </summary>
+    public void RestablecerEstadoTrasCarga()
+    {
+        estado = Estado.Normal;
+        existeSueloSeguro = false;
+        estabaEnSuelo = false;
+        ultimoPuntoSeguro = Vector3.zero;
+        ultimaPosicionSegura = Vector3.zero;
+        ultimaDireccionHorizontal = Vector3.forward;
+        destinoRescate = Vector3.zero;
+        inicioTramo = Vector3.zero;
+        finTramo = Vector3.zero;
+        progresoTramo = 0f;
+        duracionTramo = 0f;
+    }
+
     private bool EsCapaSueloValida(Collider col)
     {
         return col != null && (capasSuelo.value & (1 << col.gameObject.layer)) != 0;
