@@ -6787,24 +6787,138 @@ public class BotRecolector : MonoBehaviour
     // ZONA PIEDRAS - desplazamiento y entrega
     // =====================================================
 
+
     private bool SeleccionarPuntoEntregaZonaPiedras()
     {
-        if (zonaPiedras == null)
-            zonaPiedras = FindAnyObjectByType<ZonaPiedras>();
+        if (puntoReservadoEsZonaPiedras &&
+            zonaPiedras != null &&
+            zonaPiedras.isActiveAndEnabled &&
+            zonaPiedras.PuntoLlegada != null &&
+            puntoLlegadaReservado == zonaPiedras.PuntoLlegada)
+        {
+            return true;
+        }
 
-        if (zonaPiedras == null || !zonaPiedras.isActiveAndEnabled)
+        ZonaPiedras[] zonas =
+            FindObjectsByType<ZonaPiedras>(
+                FindObjectsSortMode.None
+            );
+
+        ZonaPiedras mejorZona = null;
+        float mejorDistancia = float.MaxValue;
+        int mejorPrioridad = int.MaxValue;
+
+        bool agenteDisponible =
+            agente != null &&
+            agente.enabled &&
+            agente.isOnNavMesh;
+
+        foreach (ZonaPiedras zona in zonas)
+        {
+            if (zona == null ||
+                !zona.isActiveAndEnabled ||
+                zona.PuntoLlegada == null)
+            {
+                continue;
+            }
+
+            if (!NavMesh.SamplePosition(
+                zona.PuntoLlegada.position,
+                out NavMeshHit puntoNav,
+                3f,
+                NavMesh.AllAreas))
+            {
+                continue;
+            }
+
+            float distancia = Vector3.Distance(
+                transform.position,
+                puntoNav.position
+            );
+
+            int prioridad = 2;
+
+            if (agenteDisponible)
+            {
+                NavMeshPath camino = new NavMeshPath();
+
+                if (agente.CalculatePath(
+                    puntoNav.position,
+                    camino
+                ) &&
+                    camino.status ==
+                        NavMeshPathStatus.PathComplete)
+                {
+                    prioridad = 0;
+                    distancia = 0f;
+
+                    Vector3[] esquinas = camino.corners;
+
+                    for (int i = 1; i < esquinas.Length; i++)
+                    {
+                        distancia += Vector3.Distance(
+                            esquinas[i - 1],
+                            esquinas[i]
+                        );
+                    }
+                }
+                else if (
+                    usarConexionesEscaladaParaPiedras &&
+                    PlanificadorConexionesArana.BuscarPrimeraConexion(
+                        agente.nextPosition,
+                        puntoNav.position,
+                        agente.areaMask,
+                        out ConexionEscalada conexion,
+                        out bool subir,
+                        out Vector3 entrada,
+                        out NavMeshPath caminoEntrada))
+                {
+                    prioridad = 1;
+
+                    distancia =
+                        Vector3.Distance(
+                            agente.nextPosition,
+                            entrada
+                        ) +
+                        Vector3.Distance(
+                            entrada,
+                            puntoNav.position
+                        );
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            if (prioridad < mejorPrioridad ||
+                (prioridad == mejorPrioridad &&
+                 distancia < mejorDistancia))
+            {
+                mejorZona = zona;
+                mejorDistancia = distancia;
+                mejorPrioridad = prioridad;
+            }
+        }
+
+        if (mejorZona == null)
             return false;
 
-        if (puntoReservadoEsZonaPiedras &&
-            puntoLlegadaReservado == zonaPiedras.PuntoLlegada)
-            return true;
-
-        // Si hubiera una reserva del agujero, la liberamos antes de cambiar.
         LiberarPuntoEntrega();
-        puntoLlegadaReservado = zonaPiedras.PuntoLlegada;
+
+        zonaPiedras = mejorZona;
+        puntoLlegadaReservado = mejorZona.PuntoLlegada;
         puntoReservadoEsZonaPiedras = true;
-        return puntoLlegadaReservado != null;
+
+        Debug.Log(
+            "[BOT] " + name +
+            " | Zona seleccionada: " +
+            zonaPiedras.name
+        );
+
+        return true;
     }
+
 
     private void ComportamientoLlevarZonaPiedras()
     {
