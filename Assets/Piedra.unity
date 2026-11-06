@@ -48477,6 +48477,54 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &590325356 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3806787779178427219, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+  m_PrefabInstance: {fileID: 5637306455188684567}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &590325364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590325356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75e4081cbba19384382de5a41fe88b35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AranaPateable
+  permitirPatadas: 1
+  camaraJugador: {fileID: 2046494805}
+  alcancePatada: 3.5
+  precisionMirada: 0.65
+  tiempoEntrePatadas: 1
+  comprobarObstaculos: 0
+  duracionReaccion: 0.13
+  inclinacionGolpe: 18
+  aplastamientoGolpe: 0.12
+  duracionVoltereta: 0.65
+  alturaVoltereta: 0.9
+  desplazamientoPatada: 0.35
+  torsionVoltereta: 15
+  tiempoBocaArriba: 1.8
+  balanceoBocaArriba: 10
+  amplitudPatas: 30
+  frecuenciaPatas: 5
+  "peque\xF1osSaltos": 0.045
+  duracionPreparacionSalto: 0.18
+  duracionRecuperacion: 0.75
+  alturaSalto: 0.8
+  alturaRebote: 0.13
+  duracionAterrizaje: 0.4
+  aplastamientoAterrizaje: 0.16
+  tambaleoFinal: 12
+  sonidoGolpe: {fileID: 0}
+  sonidoCaida: {fileID: 0}
+  sonidoRecuperacion: {fileID: 0}
+  particulasGolpe: {fileID: 0}
+  particulasAterrizaje: {fileID: 0}
+  volumen: 0.8
 --- !u!1 &590909000 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5192281034274402202, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
@@ -194086,6 +194134,9 @@ PrefabInstance:
     - {fileID: 2461728431993904067, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3806787779178427219, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 590325364}
     - targetCorrespondingSourceObject: {fileID: 43858963360967209, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5637306455188684569}
