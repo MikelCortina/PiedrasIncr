@@ -6,7 +6,6 @@ public class SistemaPatada : MonoBehaviour
 {
     [Header("Ajustes de la Patada")]
     public float fuerzaPatada = 10f;
-    [Tooltip("Cantidad máxima de piedras que puedes patear simultáneamente en un solo golpe.")]
     public int maxPiedrasPorPatada = 3;
 
     [Header("Limites de Elevación")]
@@ -17,7 +16,6 @@ public class SistemaPatada : MonoBehaviour
     public float radioGolpe = 1.5f;
     public Transform puntoGolpe;
     public LayerMask capaPiedra;
-    [Tooltip("Ángulo máximo hacia los lados desde el centro de tu visión donde puedes detectar piedras.")]
     public float anguloVisionMaximo = 60f;
 
     [Header("Sonidos")]
@@ -32,7 +30,14 @@ public class SistemaPatada : MonoBehaviour
     private GestorEquipamiento gestorEquipamiento;
     private RecolectorMagnetico recolectorMagnetico;
 
-    void Start()
+    private struct CandidataArana
+    {
+        public AranaPateable arana;
+        public float distanciaCuadrada;
+        public Vector3 puntoImpacto;
+    }
+
+    private void Start()
     {
         audioSource = GetComponent<AudioSource>();
         scriptAgarre = FindObjectOfType<AgarreLanzamiento>();
@@ -42,7 +47,7 @@ public class SistemaPatada : MonoBehaviour
             recolectorMagnetico = FindObjectOfType<RecolectorMagnetico>();
     }
 
-    void Update()
+    private void Update()
     {
         if (gestorEquipamiento != null && !gestorEquipamiento.PuedeUsarManos())
             return;
@@ -52,8 +57,6 @@ public class SistemaPatada : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            // Si el clic recogió una moneda, NO patear en el mismo clic.
-            // El recolector recuerda el resultado aunque su Update ya se ejecutara.
             if (recolectorMagnetico != null &&
                 recolectorMagnetico.IntentarRecogerMonedaConClick())
                 return;
@@ -66,54 +69,141 @@ public class SistemaPatada : MonoBehaviour
         }
     }
 
-    void DarPatada()
+    private void DarPatada()
     {
-        if (puntoGolpe == null || Camera.main == null) return;
+        Camera camara = Camera.main;
+        if (puntoGolpe == null || camara == null)
+            return;
+
+        Transform camaraTrans = camara.transform;
+        Vector3 forwardCamaraPlano = new Vector3(
+            camaraTrans.forward.x,
+            0f,
+            camaraTrans.forward.z
+        ).normalized;
 
         Collider[] objetosGolpeados = Physics.OverlapSphere(
-            puntoGolpe.position, radioGolpe, capaPiedra);
-        if (objetosGolpeados.Length == 0) return;
+            puntoGolpe.position,
+            radioGolpe,
+            capaPiedra
+        );
 
         List<Collider> listaPiedras = new List<Collider>();
-        Transform camaraTrans = Camera.main.transform;
-        Vector3 forwardCamaraPlano = new Vector3(
-            camaraTrans.forward.x, 0, camaraTrans.forward.z).normalized;
 
         foreach (Collider col in objetosGolpeados)
         {
-            // Mantener la protección de piedras que están rescatándose/levitando.
-            RescateVacioPiedra rescate = col.GetComponentInParent<RescateVacioPiedra>();
+            if (col.GetComponentInParent<AranaPateable>() != null)
+                continue;
+
+            RescateVacioPiedra rescate =
+                col.GetComponentInParent<RescateVacioPiedra>();
+
             if (rescate == null && col.attachedRigidbody != null)
                 rescate = col.attachedRigidbody.GetComponent<RescateVacioPiedra>();
+
             if (rescate != null && rescate.ProtegidaContraGolpes)
                 continue;
 
-            // Nunca tratar una moneda como una piedra que se puede patear.
             if (col.GetComponentInParent<Moneda>() != null)
                 continue;
 
-            Vector3 direccionHaciaPiedra = col.bounds.center - camaraTrans.position;
-            direccionHaciaPiedra.y = 0;
-
-            if (direccionHaciaPiedra.sqrMagnitude > 0.001f)
-            {
-                direccionHaciaPiedra.Normalize();
-                float angulo = Vector3.Angle(forwardCamaraPlano, direccionHaciaPiedra);
-                if (angulo <= anguloVisionMaximo)
-                    listaPiedras.Add(col);
-            }
-            else
-            {
+            if (EstaEnAnguloDeGolpe(col.bounds.center, camaraTrans, forwardCamaraPlano))
                 listaPiedras.Add(col);
-            }
         }
-
-        if (listaPiedras.Count == 0) return;
 
         listaPiedras.Sort((a, b) =>
             Vector3.Distance(puntoGolpe.position, a.transform.position)
             .CompareTo(Vector3.Distance(puntoGolpe.position, b.transform.position)));
 
+        float distanciaPiedraCuadrada = float.PositiveInfinity;
+
+        foreach (Collider col in listaPiedras)
+        {
+            if (col.attachedRigidbody == null && col.GetComponent<Rigidbody>() == null)
+                continue;
+
+            distanciaPiedraCuadrada =
+                (col.transform.position - puntoGolpe.position).sqrMagnitude;
+            break;
+        }
+
+        Collider[] colisionadoresAranas = Physics.OverlapSphere(
+            puntoGolpe.position,
+            radioGolpe,
+            ~0,
+            QueryTriggerInteraction.Ignore
+        );
+
+        Dictionary<AranaPateable, CandidataArana> candidatasUnicas =
+            new Dictionary<AranaPateable, CandidataArana>();
+
+        foreach (Collider col in colisionadoresAranas)
+        {
+            AranaPateable arana = col.GetComponentInParent<AranaPateable>();
+
+            if (arana == null || !arana.isActiveAndEnabled)
+                continue;
+
+            if (!EstaEnAnguloDeGolpe(col.bounds.center, camaraTrans, forwardCamaraPlano))
+                continue;
+
+            float distanciaCuadrada =
+                (col.transform.position - puntoGolpe.position).sqrMagnitude;
+
+            if (!candidatasUnicas.TryGetValue(arana, out CandidataArana anterior) ||
+                distanciaCuadrada < anterior.distanciaCuadrada)
+            {
+                candidatasUnicas[arana] = new CandidataArana
+                {
+                    arana = arana,
+                    distanciaCuadrada = distanciaCuadrada,
+                    puntoImpacto = col.bounds.center
+                };
+            }
+        }
+
+        List<CandidataArana> candidatasOrdenadas =
+            new List<CandidataArana>(candidatasUnicas.Values);
+
+        candidatasOrdenadas.Sort((a, b) =>
+            a.distanciaCuadrada.CompareTo(b.distanciaCuadrada));
+
+        foreach (CandidataArana candidata in candidatasOrdenadas)
+        {
+            if (candidata.distanciaCuadrada > distanciaPiedraCuadrada)
+                break;
+
+            if (candidata.arana.IntentarPatear(forwardCamaraPlano))
+            {
+                ReproducirEfectosPatada(candidata.puntoImpacto);
+                return;
+            }
+        }
+
+        if (listaPiedras.Count == 0)
+            return;
+
+        PatearPiedras(listaPiedras, camaraTrans);
+    }
+
+    private bool EstaEnAnguloDeGolpe(
+        Vector3 punto,
+        Transform camaraTrans,
+        Vector3 forwardCamaraPlano)
+    {
+        Vector3 direccion = punto - camaraTrans.position;
+        direccion.y = 0f;
+
+        if (direccion.sqrMagnitude <= 0.001f)
+            return true;
+
+        direccion.Normalize();
+        float angulo = Vector3.Angle(forwardCamaraPlano, direccion);
+        return angulo <= anguloVisionMaximo;
+    }
+
+    private void PatearPiedras(List<Collider> listaPiedras, Transform camaraTrans)
+    {
         int cantidadAGolpear = Mathf.Min(listaPiedras.Count, maxPiedrasPorPatada);
         bool golpeReal = false;
 
@@ -121,11 +211,14 @@ public class SistemaPatada : MonoBehaviour
         {
             Collider colision = listaPiedras[i];
             Rigidbody rbPiedra = colision.attachedRigidbody;
-            if (rbPiedra == null) rbPiedra = colision.GetComponent<Rigidbody>();
-            if (rbPiedra == null) continue;
+            if (rbPiedra == null)
+                rbPiedra = colision.GetComponent<Rigidbody>();
+            if (rbPiedra == null)
+                continue;
 
             DeformacionPiedra scriptPiedra = rbPiedra.GetComponent<DeformacionPiedra>();
-            if (scriptPiedra != null) scriptPiedra.Despertar();
+            if (scriptPiedra != null)
+                scriptPiedra.Despertar();
 
             Vector3 dirCamara = camaraTrans.forward;
             float anguloCamara = Mathf.Asin(Mathf.Clamp(dirCamara.y, -1f, 1f)) * Mathf.Rad2Deg;
@@ -134,7 +227,8 @@ public class SistemaPatada : MonoBehaviour
             if (anguloCamara > anguloFielMaximo)
             {
                 float rangoCamaraRestante = 90f - anguloFielMaximo;
-                if (rangoCamaraRestante <= 0.001f) rangoCamaraRestante = 0.001f;
+                if (rangoCamaraRestante <= 0.001f)
+                    rangoCamaraRestante = 0.001f;
                 float rangoPatadaRestante = anguloElevacionMaximo - anguloFielMaximo;
                 float t = Mathf.Clamp01((anguloCamara - anguloFielMaximo) / rangoCamaraRestante);
                 float suavizado = Mathf.Sin(t * Mathf.PI / 2f);
@@ -142,21 +236,26 @@ public class SistemaPatada : MonoBehaviour
             }
 
             Vector3 dirPlano = new Vector3(dirCamara.x, 0, dirCamara.z).normalized;
-            if (dirPlano.sqrMagnitude < 0.001f) dirPlano = camaraTrans.up;
+            if (dirPlano.sqrMagnitude < 0.001f)
+                dirPlano = camaraTrans.up;
 
-            Vector3 direccionFinal = (dirPlano * Mathf.Cos(anguloPatada * Mathf.Deg2Rad)) +
-                                      (Vector3.up * Mathf.Sin(anguloPatada * Mathf.Deg2Rad));
+            Vector3 direccionFinal =
+                dirPlano * Mathf.Cos(anguloPatada * Mathf.Deg2Rad) +
+                Vector3.up * Mathf.Sin(anguloPatada * Mathf.Deg2Rad);
 
             rbPiedra.AddForce(direccionFinal * fuerzaPatada, ForceMode.Impulse);
             rbPiedra.AddTorque(new Vector3(
-                Random.Range(-5f, 5f), Random.Range(-5f, 5f),
-                Random.Range(-5f, 5f)), ForceMode.Impulse);
+                Random.Range(-5f, 5f),
+                Random.Range(-5f, 5f),
+                Random.Range(-5f, 5f)
+            ), ForceMode.Impulse);
 
             if (!golpeReal && particulasPatada != null)
             {
                 particulasPatada.transform.position = rbPiedra.transform.position;
                 particulasPatada.Play();
             }
+
             golpeReal = true;
         }
 
@@ -164,18 +263,32 @@ public class SistemaPatada : MonoBehaviour
             audioSource.PlayOneShot(sonidoPatada, volumenPatada);
     }
 
-    void OnDrawGizmosSelected()
+    private void ReproducirEfectosPatada(Vector3 puntoImpacto)
     {
-        if (puntoGolpe == null) return;
+        if (particulasPatada != null)
+        {
+            particulasPatada.transform.position = puntoImpacto;
+            particulasPatada.Play();
+        }
+
+        if (sonidoPatada != null)
+            audioSource.PlayOneShot(sonidoPatada, volumenPatada);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (puntoGolpe == null)
+            return;
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(puntoGolpe.position, radioGolpe);
 
-        if (Camera.main == null) return;
+        if (Camera.main == null)
+            return;
 
         Vector3 origen = puntoGolpe.position;
         Vector3 forward = Camera.main.transform.forward;
-        forward.y = 0;
+        forward.y = 0f;
         forward.Normalize();
 
         Vector3 limiteDerecho = Quaternion.Euler(0, anguloVisionMaximo, 0) * forward;
