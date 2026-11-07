@@ -1,6 +1,8 @@
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,57 +10,79 @@ using UnityEngine.AI;
 [RequireComponent(typeof(BotRecolector))]
 public class AranaPateable : MonoBehaviour
 {
-    [Header("Control de patadas")]
+    [Header("Patadas")]
     public bool permitirPatadas = true;
     public Camera camaraJugador;
-    [Min(0.5f)] public float alcancePatada = 4f;
+    public float alcancePatada = 4f;
     [Range(0.5f, 0.99f)] public float precisionMirada = 0.75f;
-    [Min(0f)] public float tiempoEntrePatadas = 1f;
+    public float tiempoEntrePatadas = 1f;
     public bool comprobarObstaculos = false;
 
-    [Header("Caidas direccionales")]
+    [Header("Tipos de caida")]
     public bool permitirCaidasLaterales = true;
     [Range(0.4f, 1.5f)] public float predominioLateral = 0.85f;
-    [Range(75f, 105f)] public float anguloCaidaLateral = 93f;
-    [Range(0f, 20f)] public float torsionImpacto = 12f;
-
-    [SerializeField] private string ultimaCaida = "Sin impactos";
+    public float anguloCaidaLateral = 93f;
+    public float torsionImpacto = 12f;
 
     [Header("Reaccion inicial")]
-    [Min(0.01f)] public float duracionReaccion = 0.13f;
-    [Range(0f, 35f)] public float inclinacionGolpe = 18f;
-    [Range(0f, 0.3f)] public float aplastamientoGolpe = 0.12f;
+    public float duracionReaccion = 0.13f;
+    public float inclinacionGolpe = 18f;
+    public float aplastamientoGolpe = 0.12f;
 
     [Header("Voltereta")]
-    [Min(0.1f)] public float duracionVoltereta = 0.7f;
-    [Min(0f)] public float alturaVoltereta = 1.1f;
-    [Min(0f)] public float desplazamientoPatada = 0.4f;
+    public float duracionVoltereta = 0.7f;
+    public float alturaVoltereta = 1.1f;
+    public float desplazamientoPatada = 0.4f;
 
     [Header("En el suelo")]
-    [Min(0f)] public float tiempoBocaArriba = 2f;
-    [Range(0f, 30f)] public float balanceoBocaArriba = 10f;
-    [Range(0f, 70f)] public float amplitudPatas = 38f;
-    [Min(0.1f)] public float frecuenciaPatas = 5.5f;
-    [Min(0f)] public float pequenosSaltos = 0.045f;
+    public float tiempoBocaArriba = 1.8f;
+    public float balanceoBocaArriba = 10f;
+    public float amplitudPatas = 38f;
+    public float frecuenciaPatas = 5.5f;
+    public float pequenosSaltos = 0.045f;
 
-    [Header("Recuperacion")]
-    [Min(0.05f)] public float duracionPreparacionSalto = 0.18f;
-    [Min(0.1f)] public float duracionRecuperacion = 0.65f;
-    [Min(0f)] public float alturaSalto = 0.95f;
+    [Header("Salto de recuperacion")]
+    public float duracionPreparacionSalto = 0.18f;
+    public float duracionRecuperacion = 0.65f;
+    public float alturaSalto = 0.95f;
 
     [Header("Aterrizaje")]
-    [Min(0f)] public float alturaRebote = 0.13f;
-    [Min(0.05f)] public float duracionAterrizaje = 0.4f;
-    [Range(0f, 0.3f)] public float aplastamientoAterrizaje = 0.16f;
-    [Range(0f, 25f)] public float tambaleoFinal = 12f;
+    public float duracionAterrizaje = 0.4f;
+    public float alturaRebote = 0.13f;
+    public float aplastamientoAterrizaje = 0.16f;
+    public float tambaleoFinal = 12f;
+
+    [Header("Personalidad")]
+    [Range(0f, 1f)] public float probabilidadEnfado = 0.65f;
+    public float duracionEnfado = 1.4f;
+    public float amplitudAmenaza = 45f;
+    public float giroMaximoMirada = 35f;
+    public float duracionMareo = 1.1f;
 
     [Header("Efectos opcionales")]
     public AudioClip sonidoGolpe;
     public AudioClip sonidoCaida;
     public AudioClip sonidoRecuperacion;
+    public AudioClip sonidoEnfado;
     public ParticleSystem particulasGolpe;
     public ParticleSystem particulasAterrizaje;
     [Range(0f, 1f)] public float volumen = 0.8f;
+
+    [Header("Diagnostico")]
+    [SerializeField] private string ultimaCaida = "Ninguna";
+    [SerializeField] private string ultimaReaccion = "Ninguna";
+
+    private static readonly FieldInfo campoEstado =
+        typeof(BotRecolector).GetField(
+            "estadoActual",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+
+    private static readonly FieldInfo campoInteraccion =
+        typeof(BotRecolector).GetField(
+            "enInteraccion",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
 
     private BotRecolector recolector;
     private NavMeshAgent agente;
@@ -77,20 +101,18 @@ public class AranaPateable : MonoBehaviour
     private Vector3 posicionOriginal;
     private Quaternion rotacionOriginal;
     private Vector3 escalaOriginal;
-
     private Vector3 centroLocal;
     private Vector3 centroPadre;
     private Vector3 direccionPatada;
     private Vector3 ejeCaidaLocal;
 
+    private float escalaBot;
+    private float relojAnimacion;
+    private float ultimaPatada = -999f;
     private float anguloFinalCaida;
     private float anguloFinalRecuperacion;
-    private float ultimaPatada = -999f;
-    private float escalaBot = 1f;
-    private float relojAnimacion;
-
+    private float sentidoBalanceo;
     private bool caidaLateral;
-    private float sentidoBalanceo = 1f;
 
     private readonly List<EstadoTransform> estados =
         new List<EstadoTransform>();
@@ -112,7 +134,6 @@ public class AranaPateable : MonoBehaviour
         public Transform pie;
         public Transform superior;
         public Transform inferior;
-
         public Vector3 caderaLocal;
         public Vector3 rodillaLocal;
         public Vector3 pieLocal;
@@ -134,15 +155,11 @@ public class AranaPateable : MonoBehaviour
         if (visual == null && gestor != null)
             visual = gestor.transform;
 
-        MonoBehaviour[] componentes =
-            GetComponentsInChildren<MonoBehaviour>(true);
-
-        foreach (MonoBehaviour componente in componentes)
+        foreach (MonoBehaviour componente in
+            GetComponentsInChildren<MonoBehaviour>(true))
         {
-            if (componente == null)
-                continue;
-
-            if (componente.GetType().Name == "BalanceoCuerpoArana")
+            if (componente != null &&
+                componente.GetType().Name == "BalanceoCuerpoArana")
             {
                 balanceoCuerpo = componente;
                 break;
@@ -152,10 +169,7 @@ public class AranaPateable : MonoBehaviour
 
     private void Update()
     {
-        if (!permitirPatadas || animando)
-            return;
-
-        if (!TeclaPulsada())
+        if (!permitirPatadas || animando || !TeclaPulsada())
             return;
 
         Camera camara = camaraJugador != null
@@ -192,13 +206,13 @@ public class AranaPateable : MonoBehaviour
 
     private AranaPateable BuscarObjetivo(Camera camara)
     {
+        AranaPateable mejor = null;
+        float mejorDistancia = float.MaxValue;
+
         AranaPateable[] candidatas =
             FindObjectsByType<AranaPateable>(
                 FindObjectsSortMode.None
             );
-
-        AranaPateable mejor = null;
-        float mejorDistancia = float.MaxValue;
 
         foreach (AranaPateable candidata in candidatas)
         {
@@ -206,9 +220,7 @@ public class AranaPateable : MonoBehaviour
                 !candidata.permitirPatadas ||
                 candidata.animando ||
                 !candidata.isActiveAndEnabled)
-            {
                 continue;
-            }
 
             Vector3 punto = candidata.visual != null
                 ? candidata.visual.position
@@ -220,16 +232,11 @@ public class AranaPateable : MonoBehaviour
                     Mathf.Abs(candidata.transform.lossyScale.y) * 0.4f
                 );
 
-            Vector3 direccion =
-                punto - camara.transform.position;
-
+            Vector3 direccion = punto - camara.transform.position;
             float distancia = direccion.magnitude;
 
-            if (distancia < 0.01f ||
-                distancia > alcancePatada)
-            {
+            if (distancia < 0.01f || distancia > alcancePatada)
                 continue;
-            }
 
             float alineacion = Vector3.Dot(
                 camara.transform.forward,
@@ -265,49 +272,39 @@ public class AranaPateable : MonoBehaviour
         return mejor;
     }
 
-    [ContextMenu("PROBAR PATADA")]
-    public void ProbarPatada()
-    {
-        if (!Application.isPlaying)
-            return;
-
-        Patear(transform.forward);
-    }
-
     [ContextMenu("PROBAR PATADA FRONTAL")]
     public void ProbarPatadaFrontal()
     {
-        if (!Application.isPlaying)
-            return;
-
-        Patear(-transform.forward);
+        if (Application.isPlaying)
+            Patear(-transform.forward);
     }
 
     [ContextMenu("PROBAR PATADA TRASERA")]
     public void ProbarPatadaTrasera()
     {
-        if (!Application.isPlaying)
-            return;
-
-        Patear(transform.forward);
+        if (Application.isPlaying)
+            Patear(transform.forward);
     }
 
-    [ContextMenu("PROBAR PATADA LATERAL IZQUIERDA")]
+    [ContextMenu("PROBAR PATADA IZQUIERDA")]
     public void ProbarPatadaIzquierda()
     {
-        if (!Application.isPlaying)
-            return;
-
-        Patear(transform.right);
+        if (Application.isPlaying)
+            Patear(transform.right);
     }
 
-    [ContextMenu("PROBAR PATADA LATERAL DERECHA")]
+    [ContextMenu("PROBAR PATADA DERECHA")]
     public void ProbarPatadaDerecha()
     {
-        if (!Application.isPlaying)
-            return;
+        if (Application.isPlaying)
+            Patear(-transform.right);
+    }
 
-        Patear(-transform.right);
+    [ContextMenu("PROBAR PATADA")]
+    public void ProbarPatada()
+    {
+        if (Application.isPlaying)
+            Patear(transform.forward);
     }
 
     public void Patear(Vector3 direccion)
@@ -318,33 +315,47 @@ public class AranaPateable : MonoBehaviour
         if (Time.time - ultimaPatada < tiempoEntrePatadas)
             return;
 
+        if (!PuedeRecibirPatada())
+            return;
+
+        direccionPatada = Vector3.ProjectOnPlane(
+            direccion,
+            Vector3.up
+        ).normalized;
+
+        if (direccionPatada.sqrMagnitude < 0.001f)
+            direccionPatada = transform.forward;
+
+        CalcularCaida();
+
+        ultimaPatada = Time.time;
+        animando = true;
+
+        StartCoroutine(SecuenciaCompleta());
+    }
+
+    private bool PuedeRecibirPatada()
+    {
         if (recolector == null ||
             agente == null ||
             visual == null ||
-            visual.parent == null)
-        {
-            Debug.LogWarning(
-                "[PATADA] Faltan referencias en " + name
-            );
-            return;
-        }
-
-        if (!recolector.enabled ||
+            visual.parent == null ||
+            !recolector.enabled ||
             !agente.enabled ||
             !agente.isOnNavMesh)
         {
             Debug.LogWarning(
-                "[PATADA] La araña debe estar sobre NavMesh."
+                "[PATADA] Araña no preparada: " + name
             );
-            return;
+            return false;
         }
 
         if (patas == null || patas.Length != 6)
         {
             Debug.LogWarning(
-                "[PATADA] Se necesitan seis patas procedurales."
+                "[PATADA] Se necesitan seis patas: " + name
             );
-            return;
+            return false;
         }
 
         foreach (PataProcedural pata in patas)
@@ -355,32 +366,59 @@ public class AranaPateable : MonoBehaviour
                 pata.pie == null)
             {
                 Debug.LogWarning(
-                    "[PATADA] Hay referencias incompletas."
+                    "[PATADA] Referencias incompletas: " + name
                 );
-                return;
+                return false;
             }
         }
 
-        direccionPatada = Vector3.ProjectOnPlane(
-            direccion,
-            Vector3.up
-        ).normalized;
+        if (campoEstado == null)
+        {
+            Debug.LogWarning(
+                "[PATADA] No se puede consultar el estado del bot."
+            );
+            return false;
+        }
 
-        if (direccionPatada.sqrMagnitude < 0.001f)
-            direccionPatada = transform.forward;
+        BotRecolector.EstadoBot estado =
+            (BotRecolector.EstadoBot)campoEstado.GetValue(recolector);
 
-        CalcularTipoCaida(direccionPatada);
+        bool estadoSeguro =
+            estado == BotRecolector.EstadoBot.Buscando ||
+            estado == BotRecolector.EstadoBot.Esperando ||
+            estado == BotRecolector.EstadoBot.YendoAPiedra;
 
-        ultimaPatada = Time.time;
-        animando = true;
+        if (!estadoSeguro)
+        {
+            Debug.Log(
+                "[PATADA] Bloqueada durante: " + estado
+            );
+            return false;
+        }
 
-        StartCoroutine(SecuenciaCompleta());
+        if (campoInteraccion != null &&
+            (bool)campoInteraccion.GetValue(recolector))
+        {
+            return false;
+        }
+
+        if (recolector.puntoAgarre != null &&
+            recolector.puntoAgarre
+                .GetComponentInChildren<Rigidbody>(true) != null)
+        {
+            Debug.Log(
+                "[PATADA] Bloqueada mientras transporta una piedra."
+            );
+            return false;
+        }
+
+        return true;
     }
 
-    private void CalcularTipoCaida(Vector3 direccion)
+    private void CalcularCaida()
     {
         Vector3 local =
-            transform.InverseTransformDirection(direccion);
+            transform.InverseTransformDirection(direccionPatada);
 
         local.y = 0f;
         local.Normalize();
@@ -398,31 +436,30 @@ public class AranaPateable : MonoBehaviour
         if (ejeCaidaLocal.sqrMagnitude < 0.001f)
             ejeCaidaLocal = Vector3.right;
 
-        sentidoBalanceo =
-            local.x >= 0f ? 1f : -1f;
+        sentidoBalanceo = local.x >= 0f ? 1f : -1f;
+
+        anguloFinalCaida = caidaLateral
+            ? anguloCaidaLateral
+            : 180f;
+
+        anguloFinalRecuperacion = caidaLateral
+            ? 0f
+            : 360f;
 
         if (caidaLateral)
         {
-            anguloFinalCaida = anguloCaidaLateral;
-            anguloFinalRecuperacion = 0f;
-
             ultimaCaida = local.x >= 0f
-                ? "Caida hacia la derecha"
-                : "Caida hacia la izquierda";
+                ? "Lateral derecho"
+                : "Lateral izquierdo";
         }
         else
         {
-            anguloFinalCaida = 180f;
-            anguloFinalRecuperacion = 360f;
-
             ultimaCaida = local.z >= 0f
                 ? "Voltereta hacia delante"
                 : "Voltereta hacia atras";
         }
 
-        Debug.Log(
-            "[PATADA] " + name + " | " + ultimaCaida
-        );
+        Debug.Log("[PATADA] " + name + " | " + ultimaCaida);
     }
 
     private IEnumerator SecuenciaCompleta()
@@ -450,12 +487,11 @@ public class AranaPateable : MonoBehaviour
                 0f,
                 0f,
                 -0.04f * Mathf.Sin(t * Mathf.PI),
-                -0.10f * s,
+                -0.1f * s,
                 aplastamientoGolpe * Mathf.Sin(t * Mathf.PI)
             );
 
-            AgitarPatas(relojAnimacion, 0.3f * s);
-
+            AgitarPatas(relojAnimacion, 0.3f * s, false);
             yield return null;
         }
 
@@ -479,13 +515,11 @@ public class AranaPateable : MonoBehaviour
             );
 
             float altura =
-                Mathf.Sin(t * Mathf.PI) *
-                alturaVoltereta +
+                Mathf.Sin(t * Mathf.PI) * alturaVoltereta +
                 0.08f * s;
 
             float torsion =
-                Mathf.Sin(t * Mathf.PI) *
-                torsionImpacto;
+                Mathf.Sin(t * Mathf.PI) * torsionImpacto;
 
             MoverVisual(
                 angulo,
@@ -498,7 +532,8 @@ public class AranaPateable : MonoBehaviour
 
             AgitarPatas(
                 relojAnimacion,
-                Mathf.Lerp(0.4f, 1.2f, s)
+                Mathf.Lerp(0.4f, 1.2f, s),
+                false
             );
 
             yield return null;
@@ -522,12 +557,9 @@ public class AranaPateable : MonoBehaviour
                 Mathf.Abs(Mathf.Sin(tiempo * 12f)) *
                 pequenosSaltos;
 
-            float balanceo =
-                caidaLateral ? 0.5f : 1f;
-
             MoverVisual(
                 anguloFinalCaida +
-                oscilacion * balanceo,
+                    oscilacion * (caidaLateral ? 0.5f : 1f),
                 oscilacion * 0.5f,
                 Mathf.Sin(tiempo * 5f) * 4f,
                 altura,
@@ -535,10 +567,11 @@ public class AranaPateable : MonoBehaviour
                 0f
             );
 
-            float intensidad =
-                0.9f + 0.3f * Mathf.Sin(tiempo * 3f);
-
-            AgitarPatas(relojAnimacion, intensidad);
+            AgitarPatas(
+                relojAnimacion,
+                0.9f + 0.3f * Mathf.Sin(tiempo * 3f),
+                false
+            );
 
             yield return null;
         }
@@ -551,23 +584,19 @@ public class AranaPateable : MonoBehaviour
             relojAnimacion += Time.deltaTime;
 
             float t = Mathf.Clamp01(
-                tiempo /
-                Mathf.Max(0.01f, duracionPreparacionSalto)
+                tiempo / Mathf.Max(0.01f, duracionPreparacionSalto)
             );
-
-            float s = Suavizar(t);
 
             MoverVisual(
                 anguloFinalCaida,
                 0f,
                 0f,
-                Mathf.Lerp(0.08f, 0.02f, s),
+                Mathf.Lerp(0.08f, 0.02f, Suavizar(t)),
                 desplazamientoPatada,
-                0.12f * s
+                0.12f * Suavizar(t)
             );
 
-            AgitarPatas(relojAnimacion, 1.4f);
-
+            AgitarPatas(relojAnimacion, 1.4f, false);
             yield return null;
         }
 
@@ -581,40 +610,28 @@ public class AranaPateable : MonoBehaviour
             relojAnimacion += Time.deltaTime;
 
             float t = Mathf.Clamp01(
-                tiempo /
-                Mathf.Max(0.01f, duracionRecuperacion)
+                tiempo / Mathf.Max(0.01f, duracionRecuperacion)
             );
 
             float s = Suavizar(t);
 
-            float angulo = Mathf.Lerp(
-                anguloFinalCaida,
-                anguloFinalRecuperacion,
-                s
-            );
-
-            float altura =
-                Mathf.Sin(t * Mathf.PI) *
-                alturaSalto;
-
-            float avance = Mathf.Lerp(
-                desplazamientoPatada,
-                0f,
-                s
-            );
-
             MoverVisual(
-                angulo,
+                Mathf.Lerp(
+                    anguloFinalCaida,
+                    anguloFinalRecuperacion,
+                    s
+                ),
                 Mathf.Sin(t * Mathf.PI) * -8f,
                 0f,
-                altura,
-                avance,
+                Mathf.Sin(t * Mathf.PI) * alturaSalto,
+                Mathf.Lerp(desplazamientoPatada, 0f, s),
                 0.12f * (1f - s)
             );
 
             AgitarPatas(
                 relojAnimacion,
-                1.3f * (1f - s)
+                1.3f * (1f - s),
+                false
             );
 
             yield return null;
@@ -630,45 +647,155 @@ public class AranaPateable : MonoBehaviour
             relojAnimacion += Time.deltaTime;
 
             float t = Mathf.Clamp01(
-                tiempo /
-                Mathf.Max(0.01f, duracionAterrizaje)
+                tiempo / Mathf.Max(0.01f, duracionAterrizaje)
             );
-
-            float amortiguacion =
-                (1f - t) * (1f - t);
 
             float cabeceo =
                 Mathf.Sin(t * Mathf.PI * 4f) *
                 tambaleoFinal *
-                amortiguacion;
-
-            float rebote =
-                Mathf.Sin(t * Mathf.PI) *
-                alturaRebote *
-                (1f - t);
-
-            float compresion =
-                Mathf.Sin(t * Mathf.PI) *
-                aplastamientoAterrizaje;
+                (1f - t) * (1f - t);
 
             MoverVisual(
                 anguloFinalRecuperacion + cabeceo,
                 -cabeceo * 0.35f,
                 0f,
-                rebote,
+                Mathf.Sin(t * Mathf.PI) *
+                    alturaRebote * (1f - t),
                 0f,
-                compresion
+                Mathf.Sin(t * Mathf.PI) *
+                    aplastamientoAterrizaje
             );
 
             AgitarPatas(
                 relojAnimacion,
-                0.25f * (1f - t)
+                0.25f * (1f - t),
+                false
             );
 
             yield return null;
         }
 
+        if (UnityEngine.Random.value < probabilidadEnfado)
+            yield return ReaccionEnfadada();
+        else
+            yield return ReaccionMareada();
+
         RestaurarAnimacion();
+    }
+
+    private IEnumerator ReaccionEnfadada()
+    {
+        ultimaReaccion = "Enfadada";
+
+        ReproducirSonido(sonidoEnfado);
+
+        Camera camara = camaraJugador != null
+            ? camaraJugador
+            : Camera.main;
+
+        float giroJugador = 0f;
+
+        if (camara != null)
+        {
+            Vector3 haciaJugador = Vector3.ProjectOnPlane(
+                camara.transform.position - transform.position,
+                Vector3.up
+            );
+
+            if (haciaJugador.sqrMagnitude > 0.001f)
+            {
+                giroJugador = Mathf.Clamp(
+                    Vector3.SignedAngle(
+                        transform.forward,
+                        haciaJugador,
+                        Vector3.up
+                    ),
+                    -giroMaximoMirada,
+                    giroMaximoMirada
+                );
+            }
+        }
+
+        float tiempo = 0f;
+
+        while (tiempo < duracionEnfado)
+        {
+            tiempo += Time.deltaTime;
+            relojAnimacion += Time.deltaTime;
+
+            float t = Mathf.Clamp01(
+                tiempo / Mathf.Max(0.01f, duracionEnfado)
+            );
+
+            float intensidad = Mathf.Sin(t * Mathf.PI);
+
+            float inclinacion =
+                Mathf.Sin(tiempo * 13f) *
+                7f * intensidad;
+
+            MoverVisual(
+                inclinacion,
+                Mathf.Sin(tiempo * 10f) * 4f * intensidad,
+                giroJugador * intensidad,
+                0.025f * Mathf.Abs(Mathf.Sin(tiempo * 13f)),
+                0f,
+                0f
+            );
+
+            float amplitudAnterior = amplitudPatas;
+
+            amplitudPatas = amplitudAmenaza;
+
+            AgitarPatas(
+                relojAnimacion,
+                1.25f * intensidad,
+                true
+            );
+
+            amplitudPatas = amplitudAnterior;
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator ReaccionMareada()
+    {
+        ultimaReaccion = "Mareada";
+
+        float tiempo = 0f;
+
+        while (tiempo < duracionMareo)
+        {
+            tiempo += Time.deltaTime;
+            relojAnimacion += Time.deltaTime;
+
+            float t = Mathf.Clamp01(
+                tiempo / Mathf.Max(0.01f, duracionMareo)
+            );
+
+            float intensidad = 1f - Suavizar(t);
+
+            float inclinacion =
+                Mathf.Sin(tiempo * 8f) *
+                14f * intensidad;
+
+            MoverVisual(
+                inclinacion,
+                Mathf.Cos(tiempo * 6f) * 11f * intensidad,
+                Mathf.Sin(tiempo * 4f) * 9f * intensidad,
+                0f,
+                0f,
+                0f
+            );
+
+            AgitarPatas(
+                relojAnimacion,
+                0.2f * intensidad,
+                false
+            );
+
+            yield return null;
+        }
     }
 
     private void PrepararAnimacion()
@@ -698,8 +825,6 @@ public class AranaPateable : MonoBehaviour
         patasActivas = new bool[patas.Length];
         datosPatas = new DatosPata[patas.Length];
 
-        int cantidad = 0;
-
         for (int i = 0; i < patas.Length; i++)
         {
             PataProcedural pata = patas[i];
@@ -716,23 +841,15 @@ public class AranaPateable : MonoBehaviour
             };
 
             datos.caderaLocal =
-                visual.InverseTransformPoint(
-                    datos.cadera.position
-                );
+                visual.InverseTransformPoint(datos.cadera.position);
 
             datos.rodillaLocal =
-                visual.InverseTransformPoint(
-                    datos.rodilla.position
-                );
+                visual.InverseTransformPoint(datos.rodilla.position);
 
             datos.pieLocal =
-                visual.InverseTransformPoint(
-                    datos.pie.position
-                );
+                visual.InverseTransformPoint(datos.pie.position);
 
             centroLocal += datos.caderaLocal;
-            cantidad++;
-
             datosPatas[i] = datos;
 
             GuardarTransform(datos.rodilla);
@@ -741,8 +858,7 @@ public class AranaPateable : MonoBehaviour
             GuardarTransform(datos.inferior);
         }
 
-        if (cantidad > 0)
-            centroLocal /= cantidad;
+        centroLocal /= patas.Length;
 
         centroPadre =
             visual.parent.InverseTransformPoint(
@@ -790,14 +906,7 @@ public class AranaPateable : MonoBehaviour
         float avance,
         float compresion)
     {
-        if (visual == null || visual.parent == null)
-            return;
-
-        compresion = Mathf.Clamp(
-            compresion,
-            0f,
-            0.3f
-        );
+        compresion = Mathf.Clamp(compresion, 0f, 0.3f);
 
         visual.localScale = Vector3.Scale(
             escalaOriginal,
@@ -809,10 +918,7 @@ public class AranaPateable : MonoBehaviour
         );
 
         Quaternion giroPrincipal =
-            Quaternion.AngleAxis(
-                angulo,
-                ejeCaidaLocal
-            );
+            Quaternion.AngleAxis(angulo, ejeCaidaLocal);
 
         Quaternion giroSecundario =
             Quaternion.Euler(
@@ -849,22 +955,28 @@ public class AranaPateable : MonoBehaviour
             rotacion * centroEscalado;
     }
 
-    private void AgitarPatas(float tiempo, float intensidad)
+    private void AgitarPatas(
+        float tiempo,
+        float intensidad,
+        bool soloDelanteras)
     {
-        if (datosPatas == null)
-            return;
-
         for (int i = 0; i < datosPatas.Length; i++)
         {
             DatosPata pata = datosPatas[i];
 
-            float desfase = i * 1.73f;
+            bool esDelantera = gestor != null
+                ? patas[i] == gestor.pataFL ||
+                  patas[i] == gestor.pataFR
+                : i < 2;
+
+            float fuerza =
+                soloDelanteras && !esDelantera
+                ? 0f
+                : intensidad;
 
             float fase =
-                tiempo *
-                frecuenciaPatas *
-                Mathf.PI * 2f +
-                desfase;
+                tiempo * frecuenciaPatas * Mathf.PI * 2f +
+                i * 1.73f;
 
             float ondaPrincipal = Mathf.Sin(fase);
             float ondaSecundaria = Mathf.Sin(fase * 1.47f + i);
@@ -873,14 +985,11 @@ public class AranaPateable : MonoBehaviour
             float giroSuperior =
                 (ondaPrincipal * 0.7f +
                  ondaSecundaria * 0.3f) *
-                amplitudPatas *
-                intensidad;
+                amplitudPatas * fuerza;
 
             float giroInferior =
                 ondaRodilla *
-                amplitudPatas *
-                0.72f *
-                intensidad;
+                amplitudPatas * 0.72f * fuerza;
 
             Quaternion giroCadera =
                 Quaternion.AngleAxis(
@@ -906,25 +1015,16 @@ public class AranaPateable : MonoBehaviour
                 (pata.pieLocal - pata.rodillaLocal);
 
             Vector3 caderaMundo =
-                visual.TransformPoint(
-                    pata.caderaLocal
-                );
+                visual.TransformPoint(pata.caderaLocal);
 
             Vector3 rodillaMundo =
-                visual.TransformPoint(
-                    rodillaLocal
-                );
+                visual.TransformPoint(rodillaLocal);
 
             Vector3 pieMundo =
-                visual.TransformPoint(
-                    pieLocal
-                );
+                visual.TransformPoint(pieLocal);
 
-            if (pata.rodilla != null)
-                pata.rodilla.position = rodillaMundo;
-
-            if (pata.pie != null)
-                pata.pie.position = pieMundo;
+            pata.rodilla.position = rodillaMundo;
+            pata.pie.position = pieMundo;
 
             ColocarSegmento(
                 pata.superior,
@@ -968,16 +1068,16 @@ public class AranaPateable : MonoBehaviour
 
         segmento.position = (inicio + final) * 0.5f;
 
-        segmento.rotation = Quaternion.LookRotation(
-            ejeZ.normalized,
-            ejeY
-        );
+        segmento.rotation =
+            Quaternion.LookRotation(
+                ejeZ.normalized,
+                ejeY
+            );
     }
 
     private static float Suavizar(float t)
     {
         t = Mathf.Clamp01(t);
-
         return t * t * (3f - 2f * t);
     }
 
@@ -1054,7 +1154,9 @@ public class AranaPateable : MonoBehaviour
         animando = false;
 
         Debug.Log(
-            "[PATADA] Recuperacion completada: " + name
+            "[PATADA] " + name +
+            " | Recuperada | Reaccion: " +
+            ultimaReaccion
         );
     }
 
