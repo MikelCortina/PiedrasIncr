@@ -286,6 +286,7 @@ public class PataProcedural : MonoBehaviour
 
     private float longitudUpper;
     private float longitudLower;
+    private UnityEngine.AI.NavMeshAgent agenteRitmo;
 
     private Vector3 posicionPieActual;
 
@@ -329,6 +330,8 @@ public class PataProcedural : MonoBehaviour
 
     private void Start()
     {
+        agenteRitmo =
+    GetComponentInParent<UnityEngine.AI.NavMeshAgent>();
         if (cadera == null)
         {
             cadera = transform;
@@ -1096,8 +1099,28 @@ public class PataProcedural : MonoBehaviour
 
     private void ActualizarPaso()
     {
-        float velocidadActual =
-            velocidadPaso;
+
+        float velocidadActual = velocidadPaso;
+
+        if (agenteRitmo != null &&
+            agenteRitmo.enabled &&
+            agenteRitmo.isOnNavMesh)
+        {
+            float velocidadBot =
+                agenteRitmo.velocity.magnitude;
+
+            float ritmoNecesario =
+                velocidadBot /
+                Mathf.Max(0.05f, distanciaPaso) *
+                1.1f;
+
+            velocidadActual = Mathf.Max(
+                velocidadPaso,
+                Mathf.Min(ritmoNecesario, 10f)
+            );
+        }
+
+
 
 
         if (pasoEmergencia)
