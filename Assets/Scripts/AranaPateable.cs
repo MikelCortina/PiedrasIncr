@@ -309,14 +309,20 @@ public class AranaPateable : MonoBehaviour
 
     public void Patear(Vector3 direccion)
     {
-        if (!permitirPatadas || animando)
-            return;
+        IntentarPatear(direccion);
+    }
+
+    public bool IntentarPatear(Vector3 direccion)
+    {
+        if (!isActiveAndEnabled ||
+            !permitirPatadas || animando)
+            return false;
 
         if (Time.time - ultimaPatada < tiempoEntrePatadas)
-            return;
+            return false;
 
         if (!PuedeRecibirPatada())
-            return;
+            return false;
 
         direccionPatada = Vector3.ProjectOnPlane(
             direccion,
@@ -332,6 +338,7 @@ public class AranaPateable : MonoBehaviour
         animando = true;
 
         StartCoroutine(SecuenciaCompleta());
+        return true;
     }
 
     private bool PuedeRecibirPatada()
@@ -1109,6 +1116,29 @@ public class AranaPateable : MonoBehaviour
         if (!animando)
             return;
 
+        ConfiguracionBot configuracion =
+            GetComponent<ConfiguracionBot>();
+
+        bool pausado =
+            configuracion != null &&
+            configuracion.modoActual ==
+                ConfiguracionBot.ModoBot.Pausa;
+
+        bool trabajando =
+            configuracion != null &&
+            configuracion.modoActual ==
+                ConfiguracionBot.ModoBot.Trabajar;
+
+        bool enParking =
+            configuracion != null &&
+            configuracion.modoActual ==
+                ConfiguracionBot.ModoBot.Parking;
+
+        bool enInteraccionActual =
+            recolector != null &&
+            campoInteraccion != null &&
+            (bool)campoInteraccion.GetValue(recolector);
+
         if (visual != null)
         {
             visual.localPosition = posicionOriginal;
@@ -1141,15 +1171,33 @@ public class AranaPateable : MonoBehaviour
         if (gestor != null)
             gestor.enabled = gestorActivo;
 
-        if (recolector != null)
-            recolector.enabled = recolectorActivo;
-
         if (agente != null &&
             agente.enabled &&
             agente.isOnNavMesh)
         {
-            agente.isStopped = agenteDetenido;
+            if (pausado)
+            {
+                if (agente.hasPath)
+                    agente.ResetPath();
+
+                agente.isStopped = false;
+            }
+            else if (enInteraccionActual)
+            {
+                agente.isStopped = true;
+            }
+            else if (trabajando || enParking)
+            {
+                agente.isStopped = false;
+            }
+            else
+            {
+                agente.isStopped = agenteDetenido;
+            }
         }
+
+        if (recolector != null)
+            recolector.enabled = recolectorActivo;
 
         animando = false;
 
