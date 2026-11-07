@@ -1934,31 +1934,31 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.03
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.40000004
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: zonaPiedras
@@ -1966,31 +1966,31 @@ PrefabInstance:
       objectReference: {fileID: 453169513}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: radioBusqueda
-      value: 50
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaEntrega
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaSondeoBorde
-      value: 0.8000001
+      value: 0.40000004
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: avanceSondeoBorde
-      value: 0.45
+      value: 0.225
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRecogida
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: velocidadDescenso
-      value: 0.6
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: velocidadEscalada
-      value: 0.65
+      value: 0.325
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: gestorPuntosEntrega
@@ -1998,135 +1998,135 @@ PrefabInstance:
       objectReference: {fileID: 2036585489}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: arcoMaximoCoronacion
-      value: 0.025000002
+      value: 0.012500001
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: radioNavMeshDescenso
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaArcoLanzamiento
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaArcoSalidaBorde
-      value: 0.18
+      value: 0.09
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaArcoZonaPiedras
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaAvance
-      value: 0.15
+      value: 0.075
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: acercamientoVisualPared
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaMaximaArcoEntrega
-      value: 0.45
+      value: 0.225
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaLlegadaParking
-      value: 0.6
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: profundidadVisualAgujero
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: radioBuscarNavMeshSalida
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: elevacionVisualTransicion
-      value: 0.18
+      value: 0.09
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaEntregaProcesadora
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaEntregaZonaPiedras
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: radioNavMeshPiedraProcesada
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaEntradaSueloSuperior
-      value: 0.20000002
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaLlegadaBordeDescenso
-      value: 0.35
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaMaximaPiedraANavMesh
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaMaximaPruebaEscalada
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaRaycastSueloSuperior
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: toleranciaLlegadaSueloDescenso
       value: 0.10000001
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaLlegadaBordeDescenso
+      value: 0.175
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaMaximaPiedraANavMesh
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaMaximaPruebaEscalada
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaRaycastSueloSuperior
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: toleranciaLlegadaSueloDescenso
+      value: 0.050000004
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: separacionOrigenRaycastEscalada
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaLlegadaConexionEscalada
-      value: 0.5500001
+      value: 0.27500004
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaLlegadaEsperaProcesadora
-      value: 0.8000001
+      value: 0.40000004
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaComprobacionParedEscalada
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaInicioSalidaNaturalDescenso
-      value: 0.5500001
+      value: 0.27500004
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.03
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.40000004
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 3806787779178427219, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Name
@@ -2138,15 +2138,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Height
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Radius
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Acceleration
-      value: 8
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5890737661735227951, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: velocidadMovimiento
@@ -2154,15 +2154,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2206,115 +2206,115 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.03
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.40000004
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.03
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.40000004
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.03
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.40000004
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.5
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.03
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.40000004
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 3
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.12
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.35
+      value: 0.175
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -13427,7 +13427,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6414746210936452670, guid: 4827b6c14479f6d4196f7d58e2fba286, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 99.009995
+      value: 98.75998
       objectReference: {fileID: 0}
     - target: {fileID: 6414746210936452670, guid: 4827b6c14479f6d4196f7d58e2fba286, type: 3}
       propertyPath: m_LocalRotation.w
@@ -35002,6 +35002,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: PUSHILIN_Beanstalk (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 1433422525616787423, guid: 444ac5b011303154f8911f036af46659, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.028858438
+      objectReference: {fileID: 0}
+    - target: {fileID: 1433422525616787423, guid: 444ac5b011303154f8911f036af46659, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.005709834
+      objectReference: {fileID: 0}
+    - target: {fileID: 1433422525616787423, guid: 444ac5b011303154f8911f036af46659, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.0779736
+      objectReference: {fileID: 0}
     - target: {fileID: 1987422259746422407, guid: 444ac5b011303154f8911f036af46659, type: 3}
       propertyPath: m_LocalScale.x
       value: 3
@@ -48500,31 +48512,42 @@ MonoBehaviour:
   precisionMirada: 0.65
   tiempoEntrePatadas: 1
   comprobarObstaculos: 0
+  permitirCaidasLaterales: 1
+  predominioLateral: 0.85
+  anguloCaidaLateral: 93
+  torsionImpacto: 12
   duracionReaccion: 0.13
   inclinacionGolpe: 18
   aplastamientoGolpe: 0.12
   duracionVoltereta: 0.65
   alturaVoltereta: 0.9
   desplazamientoPatada: 0.35
-  torsionVoltereta: 15
   tiempoBocaArriba: 1.8
   balanceoBocaArriba: 10
   amplitudPatas: 30
   frecuenciaPatas: 5
-  "peque\xF1osSaltos": 0.045
+  pequenosSaltos: 0.045
   duracionPreparacionSalto: 0.18
   duracionRecuperacion: 0.75
   alturaSalto: 0.8
-  alturaRebote: 0.13
   duracionAterrizaje: 0.4
+  alturaRebote: 0.13
   aplastamientoAterrizaje: 0.16
   tambaleoFinal: 12
+  probabilidadEnfado: 0.65
+  duracionEnfado: 1.4
+  amplitudAmenaza: 45
+  giroMaximoMirada: 35
+  duracionMareo: 1.1
   sonidoGolpe: {fileID: 0}
   sonidoCaida: {fileID: 0}
   sonidoRecuperacion: {fileID: 0}
+  sonidoEnfado: {fileID: 0}
   particulasGolpe: {fileID: 0}
   particulasAterrizaje: {fileID: 0}
   volumen: 0.8
+  ultimaCaida: Ninguna
+  ultimaReaccion: Ninguna
 --- !u!1 &590909000 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5192281034274402202, guid: 5d8f748b96cb19e47a064dee827d72f3, type: 3}
@@ -56053,6 +56076,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &688416460 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6733177361254619370, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+  m_PrefabInstance: {fileID: 1008225799}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &688416462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 688416460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 71c93f70af112e34ab5753d5063a5e7a, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!4 &689305749 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2812148250496405602, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
@@ -86538,6 +86592,154 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
   m_PrefabInstance: {fileID: 1379436643}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1008225799
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 971.3184
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 419.18442
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 167.98122
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1439730007547781893, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 919132149155446097, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_Name
+      value: nAVE2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129496810705857465, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.5616913
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -6.3048944
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -96.41653
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.6992545
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.6992542
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.10508741
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.10508733
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3316992658331686828, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 17.093
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 8.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.74998474
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.6999252
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.69992435
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.10052524
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.100525245
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666261585234168772, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -16.346
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: -516098083770646512, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+    - {fileID: -5568371526223589888, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+    - {fileID: 8513859187771203891, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+    - {fileID: -7029948723529949830, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+    - {fileID: 8821623529969584324, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6733177361254619370, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 688416462}
+    - targetCorrespondingSourceObject: {fileID: 8700725330082129686, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1783212733}
+  m_SourcePrefab: {fileID: 100100000, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
 --- !u!1001 &1008424316
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -117894,7 +118096,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6167137521046869604, guid: 5ed1868a9ef3ca64abeb40e5cff4f802, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 103.833725
+      value: 103.58371
       objectReference: {fileID: 0}
     - target: {fileID: 6167137521046869604, guid: 5ed1868a9ef3ca64abeb40e5cff4f802, type: 3}
       propertyPath: m_LocalRotation.w
@@ -124517,7 +124719,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6414746210936452670, guid: 4827b6c14479f6d4196f7d58e2fba286, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 104.78999
+      value: 104.53998
       objectReference: {fileID: 0}
     - target: {fileID: 6414746210936452670, guid: 4827b6c14479f6d4196f7d58e2fba286, type: 3}
       propertyPath: m_LocalRotation.w
@@ -139565,33 +139767,37 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 800895445664901034, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: intensidad
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.022499999
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.3
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 2.2499998
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.089999996
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 1999707635449540995, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: zonaPiedras
@@ -139599,31 +139805,31 @@ PrefabInstance:
       objectReference: {fileID: 453169513}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: radioBusqueda
-      value: 37.5
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaEntrega
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaSondeoBorde
-      value: 0.6
+      value: 0.40000004
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: avanceSondeoBorde
-      value: 0.33749998
+      value: 0.225
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRecogida
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: velocidadDescenso
-      value: 0.45000002
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: velocidadEscalada
-      value: 0.48749995
+      value: 0.325
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: gestorPuntosEntrega
@@ -139631,135 +139837,135 @@ PrefabInstance:
       objectReference: {fileID: 2036585489}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: arcoMaximoCoronacion
-      value: 0.01875
+      value: 0.012500001
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: radioNavMeshDescenso
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaArcoLanzamiento
-      value: 1.4999999
+      value: 0.99999994
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaArcoSalidaBorde
-      value: 0.13499999
+      value: 0.089999996
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaArcoZonaPiedras
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaAvance
-      value: 0.112500004
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: acercamientoVisualPared
-      value: 0.089999996
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: alturaMaximaArcoEntrega
-      value: 0.33749998
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaLlegadaParking
-      value: 0.45000002
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: profundidadVisualAgujero
-      value: 0.2625
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: radioBuscarNavMeshSalida
-      value: 1.1249999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: elevacionVisualTransicion
-      value: 0.13499999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaEntregaProcesadora
-      value: 1.1249999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaEntregaZonaPiedras
-      value: 1.1249999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: radioNavMeshPiedraProcesada
-      value: 2.2499998
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaEntradaSueloSuperior
-      value: 0.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaLlegadaBordeDescenso
-      value: 0.2625
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaMaximaPiedraANavMesh
-      value: 1.1249999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaMaximaPruebaEscalada
-      value: 1.4999999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: distanciaRaycastSueloSuperior
-      value: 1.1249999
-      objectReference: {fileID: 0}
-    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
-      propertyPath: toleranciaLlegadaSueloDescenso
       value: 0.075
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: acercamientoVisualPared
+      value: 0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: alturaMaximaArcoEntrega
+      value: 0.225
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaLlegadaParking
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: profundidadVisualAgujero
+      value: 0.175
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: radioBuscarNavMeshSalida
+      value: 0.74999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: elevacionVisualTransicion
+      value: 0.089999996
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaEntregaProcesadora
+      value: 0.74999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaEntregaZonaPiedras
+      value: 0.74999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: radioNavMeshPiedraProcesada
+      value: 1.4999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaEntradaSueloSuperior
+      value: 0.10000001
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaLlegadaBordeDescenso
+      value: 0.175
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaMaximaPiedraANavMesh
+      value: 0.74999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaMaximaPruebaEscalada
+      value: 0.99999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: distanciaRaycastSueloSuperior
+      value: 0.74999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
+      propertyPath: toleranciaLlegadaSueloDescenso
+      value: 0.050000004
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: separacionOrigenRaycastEscalada
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaLlegadaConexionEscalada
-      value: 0.41250005
+      value: 0.27500004
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaLlegadaEsperaProcesadora
-      value: 0.6
+      value: 0.40000004
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaComprobacionParedEscalada
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 2125939524203859989, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaInicioSalidaNaturalDescenso
-      value: 0.41250005
+      value: 0.27500004
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.022499999
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.3
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 2.2499998
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.089999996
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 3596386093721157373, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 3806787779178427219, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Name
@@ -139767,35 +139973,35 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Speed
-      value: 1.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Height
-      value: 1.4999999
+      value: 0.99999994
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Radius
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 5189899143485616949, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_Acceleration
-      value: 5.9999995
+      value: 3.9999998
       objectReference: {fileID: 0}
     - target: {fileID: 5890737661735227951, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: velocidadMovimiento
-      value: 1.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.75
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7139156253566232924, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: m_LocalPosition.x
@@ -139839,115 +140045,115 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.022499999
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.3
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 2.2499998
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.089999996
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 7453033759463002042, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.022499999
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.3
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 2.2499998
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.089999996
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 7554505180642917340, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.022499999
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.3
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 2.2499998
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.089999996
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 8264183466689194497, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaPaso
-      value: 0.37499997
+      value: 0.24999999
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: offsetSuelo
-      value: 0.022499999
+      value: 0.015
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: alturaRaycast
-      value: 1.1249999
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaPaso
-      value: 0.3
+      value: 0.20000002
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaRaycast
-      value: 2.2499998
+      value: 1.4999999
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMinimaPasoGiro
-      value: 0.089999996
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 8691824010867128030, guid: 7684cc7bfd6588840bc7b53cbfaed493, type: 3}
       propertyPath: distanciaMaximaAnticipacion
-      value: 0.2625
+      value: 0.175
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -153085,7 +153291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef33849105df41c4fac9e36557bc3f6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  saltarIntroParaPruebas: 0
+  saltarIntroParaPruebas: 1
   movimientoNave: {fileID: 238560949}
   puntoAparcamientoNave: {fileID: 142909715}
   vibrarNaveEnVuelo: 1
@@ -155896,6 +156102,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7803034315633525276, guid: 2e3726af24bc1a04f8e75d8591cd0ca4, type: 3}
   m_PrefabInstance: {fileID: 1034210330}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1783212731 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8700725330082129686, guid: 6859ec22de544c04db5b0e98cb8fe6e4, type: 3}
+  m_PrefabInstance: {fileID: 1008225799}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1783212733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1783212731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 0
+    nuevoColor: {r: 1, g: 1, b: 1, a: 0}
+    nuevaTextura: {fileID: 2800000, guid: 441a58f8d68815d459a4bbadf430892d, type: 3}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
 --- !u!198 &1786870233 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 7201155072910359822, guid: 3dad045c4148e924fb9135571d3da8e7, type: 3}
@@ -160202,7 +160439,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b1195319650fb4c9e83f1e8dc6e7c6ec, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 272.01
+      value: 272.15924
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b1195319650fb4c9e83f1e8dc6e7c6ec, type: 3}
       propertyPath: m_LocalPosition.y
@@ -160210,7 +160447,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b1195319650fb4c9e83f1e8dc6e7c6ec, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -10.01
+      value: -10.210575
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b1195319650fb4c9e83f1e8dc6e7c6ec, type: 3}
       propertyPath: m_LocalRotation.w
@@ -185784,7 +186021,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2142845868773058643, guid: c3018290a04aac044b522a051e12293d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 109.565
+      value: 109.31499
       objectReference: {fileID: 0}
     - target: {fileID: 2142845868773058643, guid: c3018290a04aac044b522a051e12293d, type: 3}
       propertyPath: m_LocalRotation.w
@@ -195614,3 +195851,4 @@ SceneRoots:
   - {fileID: 23948171}
   - {fileID: 444394609}
   - {fileID: 2039175473}
+  - {fileID: 1008225799}

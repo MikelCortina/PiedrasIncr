@@ -369,10 +369,32 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2249360115773205722, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3975168586191481722}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2675161419066520480, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 800895445664901034}
   m_SourcePrefab: {fileID: 100100000, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
 --- !u!4 &8638689324685581712 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2249360115773205722, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
   m_PrefabInstance: {fileID: 7554118980005278026}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5617547925732852458 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2675161419066520480, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
+  m_PrefabInstance: {fileID: 7554118980005278026}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &800895445664901034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5617547925732852458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddb1de97d6ee45c1a65016139472b163, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CaraLedArana
+  indiceMaterial: 1
+  apagarNeonDelSlot: 1

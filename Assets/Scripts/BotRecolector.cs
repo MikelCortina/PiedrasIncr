@@ -1509,6 +1509,39 @@ public class BotRecolector : MonoBehaviour
     }
 
 
+    // La piedra se cuelga de PuntoAgarre con su tamaño real aunque la jerarquía del bot tenga escala,
+    // y el bot pasa a ser el único que la escala: si una máquina la estaba encogiendo o aún
+    // estaba creciendo, deja de hacerlo.
+    private void ColgarPiedraDelAgarre(Rigidbody piedra)
+    {
+        if (piedra == null || puntoAgarre == null)
+            return;
+
+        Vector3 tamanoReal = EscalaPiedra.De(piedra).TomarControl(this);
+
+        piedra.transform.SetParent(puntoAgarre, false);
+
+        Vector3 escalaPadre = puntoAgarre.lossyScale;
+        piedra.transform.localScale = new Vector3(
+            tamanoReal.x / Mathf.Max(Mathf.Abs(escalaPadre.x), 0.0001f),
+            tamanoReal.y / Mathf.Max(Mathf.Abs(escalaPadre.y), 0.0001f),
+            tamanoReal.z / Mathf.Max(Mathf.Abs(escalaPadre.z), 0.0001f)
+        );
+    }
+
+
+    // Al soltarla vuelve a su tamaño real. Con SetParent(null, true) se quedaba con la escala que
+    // tuviera en ese momento en el mundo (el cuerpo comprimido por una patada, etc.) para siempre.
+    private void SoltarPiedraDelAgarre(Rigidbody piedra)
+    {
+        if (piedra == null)
+            return;
+
+        piedra.transform.SetParent(null, true);
+        EscalaPiedra.De(piedra).RestaurarBase();
+    }
+
+
     private void MantenerPiedraEnPuntoAgarre()
     {
         if (piedraObjetivo == null ||
@@ -6653,10 +6686,7 @@ public class BotRecolector : MonoBehaviour
         // COLOCAR EN EL PUNTO DE AGARRE
         // =====================================================
 
-        piedraObjetivo.transform.SetParent(
-            puntoAgarre,
-            false
-        );
+        ColgarPiedraDelAgarre(piedraObjetivo);
 
 
         piedraObjetivo.transform.localPosition =
@@ -6980,7 +7010,7 @@ public class BotRecolector : MonoBehaviour
         }
 
         if (piedraEntregada == null) { CancelarObjetivo(); yield break; }
-        piedraEntregada.transform.SetParent(null, true);
+        SoltarPiedraDelAgarre(piedraEntregada);
         piedraEntregada.isKinematic = true;
         Vector3 origen = piedraEntregada.position;
 
@@ -7329,10 +7359,7 @@ public class BotRecolector : MonoBehaviour
         // 2. SOLTAR LA PIEDRA Y PREPARAR EL LANZAMIENTO CONTROLADO
         // =====================================================
 
-        piedraEntregada.transform.SetParent(
-            null,
-            true
-        );
+        SoltarPiedraDelAgarre(piedraEntregada);
 
 
         piedraEntregada.isKinematic =
@@ -8177,10 +8204,7 @@ public class BotRecolector : MonoBehaviour
             return;
 
 
-        piedra.transform.SetParent(
-            null,
-            true
-        );
+        SoltarPiedraDelAgarre(piedra);
 
 
         Collider[] colliders =
@@ -9083,10 +9107,7 @@ public class BotRecolector : MonoBehaviour
         // SOLTAR DEL BOT
         // =====================================================
 
-        piedraEntregada.transform.SetParent(
-            null,
-            true
-        );
+        SoltarPiedraDelAgarre(piedraEntregada);
 
 
         piedraEntregada.isKinematic =
@@ -9241,10 +9262,7 @@ public class BotRecolector : MonoBehaviour
 
 
             // Volver a cogerla.
-            piedraEntregada.transform.SetParent(
-                puntoAgarre,
-                false
-            );
+            ColgarPiedraDelAgarre(piedraEntregada);
 
 
             piedraEntregada.transform.localPosition =
@@ -9729,10 +9747,7 @@ public class BotRecolector : MonoBehaviour
         }
 
 
-        piedraObjetivo.transform.SetParent(
-            puntoAgarre,
-            false
-        );
+        ColgarPiedraDelAgarre(piedraObjetivo);
 
 
         piedraObjetivo.transform.localPosition =
