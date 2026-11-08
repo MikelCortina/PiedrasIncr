@@ -143,7 +143,9 @@ public sealed class EscaladorAranaEditor : EditorWindow
         EditorGUILayout.Space(5);
 
         EditorGUILayout.HelpBox(
-            "Selecciona un Bot de la escena.\n" +
+            "Selecciona un Bot de la escena o un prefab de Bot del proyecto\n" +
+            "(p. ej. Bot Variant): en el prefab, todos los bots que se instancien\n" +
+            "salen con ese tamano y velocidad.\n" +
             "El tamano se cambia fuera de Play.\n" +
             "La velocidad tambien puede cambiarse durante Play.",
             MessageType.Info
@@ -151,7 +153,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
 
         GameObject seleccion =
             (GameObject)EditorGUILayout.ObjectField(
-                "Bot de la escena",
+                "Bot (escena o prefab)",
                 bot,
                 typeof(GameObject),
                 true
@@ -216,15 +218,20 @@ public sealed class EscaladorAranaEditor : EditorWindow
             return;
         }
 
-        if (EditorUtility.IsPersistent(bot))
+        bool esPrefab =
+            EditorUtility.IsPersistent(bot);
+
+        if (esPrefab)
         {
             EditorGUILayout.HelpBox(
-                "Selecciona una instancia del Bot " +
-                "dentro de una escena.",
-                MessageType.Error
+                "Prefab del proyecto: " +
+                AssetDatabase.GetAssetPath(bot) + "\n" +
+                "Se guarda en el prefab. Las instancias " +
+                "que ya tengan cambiado el tamano o la " +
+                "velocidad en la escena conservan su valor " +
+                "(Revert para usar el del prefab).",
+                MessageType.Info
             );
-
-            return;
         }
 
         foreach (PataProcedural pata in patas)
@@ -445,15 +452,29 @@ public sealed class EscaladorAranaEditor : EditorWindow
                     "Aplicar",
                     "Cancelar"))
                 {
-                    Aplicar(
-                        recolector,
-                        nav,
-                        config,
-                        patas,
-                        escalaActual.x,
-                        escalaObjetivo,
-                        velocidadObjetivo
-                    );
+                    if (esPrefab)
+                    {
+                        AplicarEnPrefab(
+                            AssetDatabase.GetAssetPath(bot),
+                            escalaObjetivo,
+                            velocidadObjetivo
+                        );
+                    }
+                    else
+                    {
+                        Aplicar(
+                            recolector,
+                            nav,
+                            config,
+                            patas,
+                            escalaActual.x,
+                            escalaObjetivo,
+                            velocidadObjetivo
+                        );
+                    }
+
+                    // Evita que IMGUI siga dibujando con datos ya cambiados.
+                    GUIUtility.ExitGUI();
                 }
             }
         }
@@ -513,7 +534,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
 
         if (cambiarEscala)
         {
-            Undo.RecordObject(
+            Registrar(
                 bot.transform,
                 "Escalar Bot"
             );
@@ -524,7 +545,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
             GuardarCambio(bot.transform);
 
             // NavMeshAgent
-            Undo.RecordObject(
+            Registrar(
                 nav,
                 "Escalar NavMeshAgent"
             );
@@ -544,7 +565,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
             // Patas
             foreach (PataProcedural pata in patas)
             {
-                Undo.RecordObject(
+                Registrar(
                     pata,
                     "Escalar parametros de pata"
                 );
@@ -561,7 +582,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
             }
 
             // Distancias del BotRecolector
-            Undo.RecordObject(
+            Registrar(
                 bot,
                 "Escalar distancias de trabajo"
             );
@@ -592,7 +613,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
         // VELOCIDAD INDEPENDIENTE
         // =================================================
 
-        Undo.RecordObject(
+        Registrar(
             config,
             "Cambiar velocidad configurada"
         );
@@ -602,7 +623,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
 
         GuardarCambio(config);
 
-        Undo.RecordObject(
+        Registrar(
             nav,
             "Sincronizar Speed NavMeshAgent"
         );
@@ -615,7 +636,7 @@ public sealed class EscaladorAranaEditor : EditorWindow
         // GUARDAR ESCENA
         // =================================================
 
-        if (bot.gameObject.scene.IsValid())
+        if (usarUndo && bot.gameObject.scene.IsValid())
         {
             EditorSceneManager.MarkSceneDirty(
                 bot.gameObject.scene
@@ -633,6 +654,93 @@ public sealed class EscaladorAranaEditor : EditorWindow
             velocidadNueva.ToString("0.00") +
             " m/s"
         );
+    }
+
+    // =====================================================
+    // APLICAR SOBRE UN PREFAB DEL PROYECTO
+    // =====================================================
+
+    private static bool usarUndo = true;
+
+    private static void Registrar(
+        UnityEngine.Object objeto,
+        string nombre)
+    {
+        if (usarUndo)
+            Undo.RecordObject(objeto, nombre);
+    }
+
+    // Abre el contenido del prefab aparte, aplica lo mismo que en la escena
+    // y lo guarda: los bots que se instancien de este prefab ya salen asi.
+    private static void AplicarEnPrefab(
+        string rutaPrefab,
+        float escalaNueva,
+        float velocidadNueva)
+    {
+        GameObject raiz =
+            PrefabUtility.LoadPrefabContents(rutaPrefab);
+
+        try
+        {
+            BotRecolector recolector =
+                raiz.GetComponentInChildren<BotRecolector>(true);
+
+            if (recolector == null)
+            {
+                Debug.LogError(
+                    "[ESCALADOR ARANA] " + rutaPrefab +
+                    " no tiene BotRecolector."
+                );
+
+                return;
+            }
+
+            NavMeshAgent nav =
+                recolector.GetComponent<NavMeshAgent>();
+
+            ConfiguracionBot config =
+                recolector.GetComponent<ConfiguracionBot>();
+
+            PataProcedural[] patas =
+                recolector.GetComponentsInChildren<PataProcedural>(true);
+
+            if (nav == null || config == null)
+            {
+                Debug.LogError(
+                    "[ESCALADOR ARANA] Falta NavMeshAgent " +
+                    "o ConfiguracionBot en " + rutaPrefab
+                );
+
+                return;
+            }
+
+            usarUndo = false;
+
+            Aplicar(
+                recolector,
+                nav,
+                config,
+                patas,
+                recolector.transform.localScale.x,
+                escalaNueva,
+                velocidadNueva
+            );
+
+            PrefabUtility.SaveAsPrefabAsset(
+                raiz,
+                rutaPrefab
+            );
+
+            Debug.Log(
+                "[ESCALADOR ARANA] Guardado en el prefab " +
+                rutaPrefab
+            );
+        }
+        finally
+        {
+            usarUndo = true;
+            PrefabUtility.UnloadPrefabContents(raiz);
+        }
     }
 
     // =====================================================

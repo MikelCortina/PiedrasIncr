@@ -288,6 +288,12 @@ public class PataProcedural : MonoBehaviour
     private float longitudLower;
     private UnityEngine.AI.NavMeshAgent agenteRitmo;
 
+    // Velocidad real del cuerpo (medida frame a frame): marca el ritmo de los pasos cuando el NavMeshAgent
+    // está apagado (p. ej. al salir andando del generador de arañas, donde no hay NavMesh).
+    private Vector3 posicionCuerpoAnterior;
+    private bool cuerpoMedido;
+    private float velocidadCuerpoMedida;
+
     private Vector3 posicionPieActual;
 
     private Vector3 inicioPaso;
@@ -443,6 +449,8 @@ public class PataProcedural : MonoBehaviour
             return;
         }
 
+
+        MedirVelocidadCuerpo();
 
         // Actualizamos la información del giro.
         ActualizarPrediccionGiro();
@@ -1094,6 +1102,40 @@ public class PataProcedural : MonoBehaviour
 
 
     // =====================================================
+    // VELOCIDAD DEL CUERPO
+    // =====================================================
+
+    private void MedirVelocidadCuerpo()
+    {
+        Transform cuerpo = agenteRitmo != null
+            ? agenteRitmo.transform
+            : transform.root;
+
+        Vector3 posicion = cuerpo.position;
+
+        if (cuerpoMedido && Time.deltaTime > 0f)
+        {
+            float medida =
+                Vector3.Distance(posicion, posicionCuerpoAnterior) /
+                Time.deltaTime;
+
+            // Un teletransporte (Warp) no es andar: se ignora.
+            if (medida < 20f)
+            {
+                velocidadCuerpoMedida = Mathf.Lerp(
+                    velocidadCuerpoMedida,
+                    medida,
+                    1f - Mathf.Exp(-10f * Time.deltaTime)
+                );
+            }
+        }
+
+        posicionCuerpoAnterior = posicion;
+        cuerpoMedido = true;
+    }
+
+
+    // =====================================================
     // ACTUALIZAR PASO
     // =====================================================
 
@@ -1102,12 +1144,18 @@ public class PataProcedural : MonoBehaviour
 
         float velocidadActual = velocidadPaso;
 
-        if (agenteRitmo != null &&
+        bool agenteActivo =
+            agenteRitmo != null &&
             agenteRitmo.enabled &&
-            agenteRitmo.isOnNavMesh)
+            agenteRitmo.isOnNavMesh;
+
+        // Sin agente se usa lo que se mueve de verdad el cuerpo:
+        // si no, el cuerpo avanza y los pies se quedan atrás (parece que se desliza).
+        if (agenteActivo || velocidadCuerpoMedida > 0.01f)
         {
-            float velocidadBot =
-                agenteRitmo.velocity.magnitude;
+            float velocidadBot = agenteActivo
+                ? agenteRitmo.velocity.magnitude
+                : velocidadCuerpoMedida;
 
             float ritmoNecesario =
                 velocidadBot /
