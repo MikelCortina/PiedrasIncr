@@ -194,6 +194,14 @@ public class TiendaTrabajo : MonoBehaviour
     public GestorBots gestorBots;
 
 
+    [Tooltip(
+        "Generador de arañas: si hay uno, los Bots comprados " +
+        "salen por su puerta en vez de aparecer en " +
+        "Punto Spawn Bots. Vacío = se busca en la escena."
+    )]
+    public GeneradorAranas generadorAranas;
+
+
     // =====================================================
     // BOTS - UI
     // =====================================================
@@ -296,13 +304,9 @@ public class TiendaTrabajo : MonoBehaviour
         // PROCESADORA
         // =================================================
 
-        if (maquinaErosion == null)
-        {
-            maquinaErosion =
-                FindFirstObjectByType<
-                    MaquinaErosion
-                >();
-        }
+        // Incluye inactivos: la máquina puede estar oculta
+        // hasta que se construye.
+        BuscarProcesadora();
 
 
         // =================================================
@@ -321,6 +325,15 @@ public class TiendaTrabajo : MonoBehaviour
             gestorBots =
                 FindFirstObjectByType<
                     GestorBots
+                >();
+        }
+
+
+        if (generadorAranas == null)
+        {
+            generadorAranas =
+                FindFirstObjectByType<
+                    GeneradorAranas
                 >();
         }
 
@@ -1031,7 +1044,8 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
 
-        if (puntoSpawnBots == null)
+        if (puntoSpawnBots == null &&
+            generadorAranas == null)
         {
             Debug.LogError(
                 "TiendaTrabajo: falta asignar Punto Spawn Bots."
@@ -1044,6 +1058,8 @@ public class TiendaTrabajo : MonoBehaviour
         // =================================================
         // REQUIERE PROCESADORA
         // =================================================
+
+        BuscarProcesadora();
 
         if (maquinaErosion == null ||
             !maquinaErosion
@@ -1117,8 +1133,14 @@ public class TiendaTrabajo : MonoBehaviour
         // CREAR BOT
         // =================================================
 
+        // Con generador, el Bot se crea dentro de él
+        // (inactivo) y sale por su puerta.
         GameObject nuevoBot =
-            Instantiate(
+            generadorAranas != null
+            ? generadorAranas.CrearBot(
+                prefabBot
+            )
+            : Instantiate(
                 prefabBot,
                 puntoSpawnBots.position,
                 puntoSpawnBots.rotation
@@ -1185,6 +1207,18 @@ public class TiendaTrabajo : MonoBehaviour
 
 
         // =================================================
+        // SALIR POR LA PUERTA DEL GENERADOR
+        // =================================================
+
+        if (generadorAranas != null)
+        {
+            generadorAranas.SacarBot(
+                nuevoBot
+            );
+        }
+
+
+        // =================================================
         // DEBUG
         // =================================================
 
@@ -1214,6 +1248,83 @@ public class TiendaTrabajo : MonoBehaviour
         // =================================================
 
         ActualizarTienda();
+    }
+
+
+    // =====================================================
+    // ¿SE PUEDE COMPRAR UN BOT? (para mostrarlo en la UI)
+    // =====================================================
+
+    private void BuscarProcesadora()
+    {
+        if (maquinaErosion != null)
+            return;
+
+        maquinaErosion =
+            FindFirstObjectByType<MaquinaErosion>(
+                FindObjectsInactive.Include
+            );
+    }
+
+
+    // Mismas comprobaciones que ComprarBot, pero sin comprar:
+    // devuelve el texto que debe mostrar el botón.
+    public bool PuedeComprarBot(
+        out string texto)
+    {
+        BuscarProcesadora();
+
+        if (cartera == null)
+            cartera = FindFirstObjectByType<Cartera>();
+
+        if (gestorBots == null)
+            gestorBots = GestorBots.Instancia;
+
+        if (gestorBots == null)
+            gestorBots = FindFirstObjectByType<GestorBots>();
+
+        if (maquinaErosion == null ||
+            !maquinaErosion.ProcesadoraDesbloqueada)
+        {
+            texto = "BLOQUEADO\nREQUIERE PROCESADORA";
+            return false;
+        }
+
+        if (cartera == null ||
+            gestorBots == null ||
+            prefabBot == null)
+        {
+            texto = "NO DISPONIBLE";
+            return false;
+        }
+
+        int cantidadActual =
+            gestorBots.ObtenerCantidadBots();
+
+        if (cantidadActual >= maximoBots)
+        {
+            texto =
+                "AL MÁXIMO (" + cantidadActual +
+                "/" + maximoBots + ")";
+            return false;
+        }
+
+        int precio =
+            ObtenerPrecioSiguienteBot(cantidadActual);
+
+        if (!cartera.PuedeGastar(precio))
+        {
+            texto =
+                "FALTAN MONEDAS\n" +
+                cartera.Monedas + " / " + precio;
+            return false;
+        }
+
+        texto =
+            "COMPRAR BOT-" +
+            (cantidadActual + 1).ToString("00") +
+            " - " + precio + " monedas";
+        return true;
     }
 
 
