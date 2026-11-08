@@ -422,6 +422,7 @@ public class AranaPateable : MonoBehaviour
         return true;
     }
 
+
     private void CalcularCaida()
     {
         Vector3 local =
@@ -445,13 +446,8 @@ public class AranaPateable : MonoBehaviour
 
         sentidoBalanceo = local.x >= 0f ? 1f : -1f;
 
-        anguloFinalCaida = caidaLateral
-            ? anguloCaidaLateral
-            : 180f;
-
-        anguloFinalRecuperacion = caidaLateral
-            ? 0f
-            : 360f;
+        anguloFinalCaida = 180f;
+        anguloFinalRecuperacion = 360f;
 
         if (caidaLateral)
         {
@@ -468,6 +464,7 @@ public class AranaPateable : MonoBehaviour
 
         Debug.Log("[PATADA] " + name + " | " + ultimaCaida);
     }
+
 
     private IEnumerator SecuenciaCompleta()
     {

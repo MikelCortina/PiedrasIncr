@@ -74,6 +74,13 @@ public class BotRecolector : MonoBehaviour
     public Transform puntoAgarre;
 
 
+    [Header("Desprendimiento por patada")]
+    [Min(0f)] public float impulsoHorizontalDesprendimiento = 0.85f;
+    [Min(0f)] public float impulsoVerticalDesprendimiento = 0.55f;
+    [Min(0f)] public float impulsoAngularDesprendimiento = 0.15f;
+
+
+
     [Header("Procesadora")]
 
     public MaquinaErosion maquinaErosion;
@@ -9878,6 +9885,107 @@ public class BotRecolector : MonoBehaviour
 
         }
     }
+
+
+    public bool SoltarPiedraPorPatada(Vector3 direccionGolpe)
+    {
+        if (!Application.isPlaying ||
+            !isActiveAndEnabled ||
+            estadoActual != EstadoBot.LlevandoPiedra ||
+            enInteraccion ||
+            pausaForzada ||
+            parkingForzado ||
+            agente == null ||
+            !agente.enabled ||
+            !agente.isOnNavMesh ||
+            piedraObjetivo == null ||
+            puntoAgarre == null ||
+            piedraObjetivo.transform.parent != puntoAgarre ||
+            !piedraObjetivo.isKinematic)
+        {
+            return false;
+        }
+
+        Rigidbody piedraSoltada = piedraObjetivo;
+
+        Vector3 direccionHorizontal =
+            Vector3.ProjectOnPlane(direccionGolpe, Vector3.up);
+
+        if (direccionHorizontal.sqrMagnitude < 0.0001f)
+            direccionHorizontal =
+                Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+
+        if (direccionHorizontal.sqrMagnitude < 0.0001f)
+            direccionHorizontal = Vector3.forward;
+
+        direccionHorizontal.Normalize();
+
+        if (gestorPiedras == null)
+            gestorPiedras = GestorPiedras.Instancia;
+
+        CancelarObjetivo();
+
+        if (piedraSoltada == null ||
+            piedraSoltada.isKinematic ||
+            piedraSoltada.transform.parent != null)
+        {
+            return false;
+        }
+
+        piedraSoltada.useGravity = true;
+        piedraSoltada.WakeUp();
+
+        Vector3 impulso =
+            direccionHorizontal *
+            Mathf.Max(0f, impulsoHorizontalDesprendimiento) +
+            Vector3.up *
+            Mathf.Max(0f, impulsoVerticalDesprendimiento);
+
+        piedraSoltada.AddForce(
+            impulso * piedraSoltada.mass,
+            ForceMode.Impulse
+        );
+
+        if (impulsoAngularDesprendimiento > 0f)
+        {
+            piedraSoltada.AddTorque(
+                UnityEngine.Random.onUnitSphere *
+                impulsoAngularDesprendimiento *
+                piedraSoltada.mass,
+                ForceMode.Impulse
+            );
+        }
+
+        piedrasIgnoradasHasta[piedraSoltada] =
+            Time.time +
+            Mathf.Max(0f, tiempoIgnorarPiedraInaccesible);
+
+        Debug.Log(
+            "[PATADA] " + name +
+            " | Piedra desprendida: " +
+            piedraSoltada.name
+        );
+
+        return true;
+    }
+
+    [ContextMenu("PROBAR DESPRENDIMIENTO POR PATADA")]
+    private void ProbarDesprendimientoPorPatada()
+    {
+        if (!Application.isPlaying)
+            return;
+
+        if (!SoltarPiedraPorPatada(transform.forward))
+        {
+            Debug.LogWarning(
+                "[PATADA] Desprendimiento rechazado: " +
+                name
+            );
+        }
+    }
+
+
+
 
 
 }
