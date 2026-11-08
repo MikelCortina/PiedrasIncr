@@ -11,7 +11,8 @@ using UnityEditor.Recorder.Input;
 #endif
 
 // Graba clips del Game view para el tráiler con el Unity Recorder: pulsa la tecla (9) para empezar y otra vez para parar.
-// Solo funciona en el editor (el Recorder no existe en las builds); en una build el componente no hace nada.
+// La grabación solo funciona en el editor (el Recorder no existe en las builds).
+// Capturas de pantalla: tecla (8), en PNG y a mayor resolución si se quiere. Funcionan en el editor y en las builds.
 // El indicador de grabación se muestra en el título de la pestaña Game y en la consola, no dentro del juego,
 // para que no salga en el vídeo.
 public class GrabadorTrailer : MonoBehaviour
@@ -28,6 +29,18 @@ public class GrabadorTrailer : MonoBehaviour
 
     [Header("Controles")]
     public KeyCode teclaGrabar = KeyCode.Alpha9;
+    [Tooltip("Saca una captura de pantalla (PNG) de lo que se ve en el juego.")]
+    public KeyCode teclaCaptura = KeyCode.Alpha8;
+
+    [Header("Capturas de pantalla")]
+    [Tooltip("Carpeta de las capturas, siempre fuera del repositorio: ruta absoluta o relativa a tu carpeta Imágenes.")]
+    public string carpetaCapturas = "Trailer Rock-It/Capturas";
+    public string prefijoCaptura = "Captura";
+    [Tooltip("Multiplica la resolución de la captura (2 = el doble de ancho y alto que la pantalla del juego). " +
+             "Útil para carteles o la página de la tienda.")]
+    [Range(1, 4)] public int multiplicadorResolucion = 1;
+    [Tooltip("Permite sacar capturas también en las builds (desactivado: así los jugadores no las sacan sin querer).")]
+    public bool capturasEnBuild = false;
 
     [Header("Vídeo")]
     public int ancho = 1920;
@@ -64,6 +77,8 @@ public class GrabadorTrailer : MonoBehaviour
 
     void Update()
     {
+        ComprobarCaptura();
+
         if (Input.GetKeyDown(teclaGrabar) || (teclaGrabar == KeyCode.Alpha9 && Input.GetKeyDown(KeyCode.Keypad9)))
         {
             if (EstaGrabando()) Parar();
@@ -104,6 +119,17 @@ public class GrabadorTrailer : MonoBehaviour
 
         Undo.RecordObject(this, "Carpeta de clips");
         carpetaClips = elegida;
+        EditorUtility.SetDirty(this);
+    }
+
+    [ContextMenu("Elegir carpeta de capturas…")]
+    void ElegirCarpetaCapturas()
+    {
+        string elegida = EditorUtility.OpenFolderPanel("Carpeta de las capturas", CarpetaCapturas(), "");
+        if (string.IsNullOrEmpty(elegida)) return;
+
+        Undo.RecordObject(this, "Carpeta de capturas");
+        carpetaCapturas = elegida;
         EditorUtility.SetDirty(this);
     }
 
@@ -273,5 +299,59 @@ public class GrabadorTrailer : MonoBehaviour
         TimeSpan t = TimeSpan.FromSeconds(segundos);
         return $"{(int)t.TotalMinutes:00}:{t.Seconds:00}";
     }
+#else
+    void Update()
+    {
+        if (capturasEnBuild) ComprobarCaptura();
+    }
 #endif
+
+    // =====================================================
+    // CAPTURAS DE PANTALLA
+    // =====================================================
+
+    void ComprobarCaptura()
+    {
+        bool pulsada = Input.GetKeyDown(teclaCaptura) ||
+                       (teclaCaptura == KeyCode.Alpha8 && Input.GetKeyDown(KeyCode.Keypad8));
+        if (pulsada) SacarCaptura();
+    }
+
+    // La imagen se escribe al final del fotograma (con todo ya dibujado): ScreenCapture lo hace por nosotros.
+    [ContextMenu("Sacar captura")]
+    public void SacarCaptura()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning("[GrabadorTrailer] Las capturas se sacan con el juego en marcha (Play).");
+            return;
+        }
+
+        string carpeta = CarpetaCapturas();
+        Directory.CreateDirectory(carpeta);
+
+        string ruta = Path.Combine(carpeta, $"{prefijoCaptura}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.png");
+        int multiplicador = Mathf.Clamp(multiplicadorResolucion, 1, 4);
+        ScreenCapture.CaptureScreenshot(ruta, multiplicador);
+
+        Debug.Log($"[GrabadorTrailer] 📷 Captura ({Screen.width * multiplicador}x{Screen.height * multiplicador}): {ruta}");
+#if UNITY_EDITOR
+        Notificar("📷 Captura guardada");
+#endif
+    }
+
+    // Igual que los clips: nunca dentro del repositorio del juego.
+    string CarpetaCapturas()
+    {
+        string imagenes = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+        string carpeta = Path.GetFullPath(Path.IsPathRooted(carpetaCapturas) ? carpetaCapturas : Path.Combine(imagenes, carpetaCapturas));
+        string proyecto = Path.GetFullPath(Directory.GetParent(Application.dataPath).FullName) + Path.DirectorySeparatorChar;
+
+        if (!carpeta.StartsWith(proyecto, StringComparison.OrdinalIgnoreCase))
+            return carpeta;
+
+        string porDefecto = Path.Combine(imagenes, "Trailer Rock-It", "Capturas");
+        Debug.LogWarning($"[GrabadorTrailer] '{carpeta}' está dentro del repositorio; la captura se guarda en {porDefecto}.");
+        return porDefecto;
+    }
 }
