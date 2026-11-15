@@ -13,10 +13,28 @@ public class TiendaTrabajo : MonoBehaviour
     public Cartera cartera;
     public GestorEquipamiento gestorEquipamiento;
 
+    [Header("Botas de velocidad")]
+    public MovimientoPersonaje movimientoPersonaje;
+    public Button botonComprarBotas;
+    public TextMeshProUGUI textoBotonBotas;
+    [Min(1)] public int precioBotasNivel1 = 5;
+    [Min(1)] public int precioBotasNivel2 = 10;
+    [Min(1)] public int precioBotasNivel3 = 20;
+
+
 
     // =====================================================
     // ARMA DE LA LUNA
     // =====================================================
+
+    [Header("Jetpack")]
+    public Button botonComprarJetpack;
+    public TextMeshProUGUI textoBotonJetpack;
+    [Min(1)] public int precioJetpackNivel1 = 5;
+    [Min(1)] public int precioJetpackNivel2 = 10;
+    [Min(1)] public int precioJetpackNivel3 = 20;
+    [Min(1)] public int precioJetpackNivel4 = 40;
+
 
     [Header("Arma de la Luna")]
 
@@ -341,6 +359,9 @@ public class TiendaTrabajo : MonoBehaviour
         // =================================================
         // ACTUALIZAR
         // =================================================
+
+        if (movimientoPersonaje == null)
+            movimientoPersonaje = FindFirstObjectByType<MovimientoPersonaje>();
 
         ActualizarTienda();
     }
@@ -1362,6 +1383,9 @@ public class TiendaTrabajo : MonoBehaviour
 
     private void ActualizarTienda()
     {
+        ActualizarBotas();
+        ActualizarJetpack();
+
         // =================================================
         // ARMA
         // =================================================
@@ -2097,6 +2121,143 @@ public class TiendaTrabajo : MonoBehaviour
                 .interactable =
                 true;
         }
+    }
+
+
+    public void ComprarMejoraBotas()
+    {
+        if (cartera == null || movimientoPersonaje == null)
+        {
+            Debug.LogWarning("TiendaTrabajo: faltan referencias de Cartera o MovimientoPersonaje.");
+            return;
+        }
+
+        int nivel = movimientoPersonaje.NivelBotas;
+        if (nivel >= 3)
+            return;
+
+        int precio = nivel == 0 ? precioBotasNivel1 :
+                     nivel == 1 ? precioBotasNivel2 : precioBotasNivel3;
+
+        if (precio <= 0)
+        {
+            Debug.LogWarning("TiendaTrabajo: configura un precio positivo para las botas.");
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precio))
+        {
+            Debug.Log("No tienes monedas suficientes para las botas.");
+            ActualizarTienda();
+            return;
+        }
+
+        movimientoPersonaje.MejorarBotas();
+        ActualizarTienda();
+    }
+
+    private void ActualizarBotas()
+    {
+        if (movimientoPersonaje == null)
+        {
+            if (botonComprarBotas != null)
+                botonComprarBotas.interactable = false;
+            if (textoBotonBotas != null)
+                textoBotonBotas.text = "BOTAS NO DISPONIBLES";
+            return;
+        }
+
+        int nivel = movimientoPersonaje.NivelBotas;
+        int precio = nivel == 0 ? precioBotasNivel1 :
+                     nivel == 1 ? precioBotasNivel2 : precioBotasNivel3;
+
+        if (botonComprarBotas != null)
+            botonComprarBotas.interactable = nivel < 3 && precio > 0 &&
+                cartera != null && cartera.PuedeGastar(precio);
+
+        if (textoBotonBotas == null)
+            return;
+
+        if (nivel >= 3)
+            textoBotonBotas.text = "BOTAS NIVEL MÁXIMO";
+        else if (nivel == 0)
+            textoBotonBotas.text = "COMPRAR BOTAS - " + precio + " monedas";
+        else
+            textoBotonBotas.text = "MEJORAR BOTAS NIVEL " + (nivel + 1) +
+                                  " - " + precio + " monedas";
+    }
+
+
+    public void ComprarMejoraJetpack()
+    {
+        if (cartera == null || movimientoPersonaje == null)
+        {
+            Debug.LogWarning("TiendaTrabajo: faltan referencias de Cartera o MovimientoPersonaje para el jetpack.");
+            return;
+        }
+
+        int nivel = movimientoPersonaje.NivelJetpack;
+        if (nivel >= 4)
+            return;
+
+        int precio = ObtenerPrecioJetpack(nivel);
+        if (precio <= 0)
+        {
+            Debug.LogWarning("TiendaTrabajo: configura un precio positivo para el jetpack.");
+            return;
+        }
+
+        if (!cartera.GastarMonedas(precio))
+        {
+            Debug.Log("No tienes monedas suficientes para el jetpack.");
+            ActualizarTienda();
+            return;
+        }
+
+        movimientoPersonaje.MejorarJetpack();
+        ActualizarTienda();
+    }
+
+    private int ObtenerPrecioJetpack(int nivel)
+    {
+        switch (nivel)
+        {
+            case 0: return precioJetpackNivel1;
+            case 1: return precioJetpackNivel2;
+            case 2: return precioJetpackNivel3;
+            case 3: return precioJetpackNivel4;
+            default: return 0;
+        }
+    }
+
+    private void ActualizarJetpack()
+    {
+        if (movimientoPersonaje == null)
+        {
+            if (botonComprarJetpack != null)
+                botonComprarJetpack.interactable = false;
+            if (textoBotonJetpack != null)
+                textoBotonJetpack.text = "JETPACK NO DISPONIBLE";
+            return;
+        }
+
+        int nivel = movimientoPersonaje.NivelJetpack;
+        int precio = ObtenerPrecioJetpack(nivel);
+
+        if (botonComprarJetpack != null)
+            botonComprarJetpack.interactable = nivel < 4 && precio > 0 &&
+                cartera != null && cartera.PuedeGastar(precio);
+
+        if (textoBotonJetpack == null)
+            return;
+
+        if (nivel >= 4)
+            textoBotonJetpack.text = "JETPACK NIVEL MAXIMO";
+        else if (nivel == 0)
+            textoBotonJetpack.text = "COMPRAR JETPACK - " + precio + " monedas";
+        else
+            textoBotonJetpack.text = "MEJORAR JETPACK NIVEL " + (nivel + 1) +
+                                     " - " + precio + " monedas";
     }
 
 

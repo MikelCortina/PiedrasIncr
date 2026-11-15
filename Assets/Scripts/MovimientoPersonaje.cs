@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -6,8 +7,52 @@ public class MovimientoPersonaje : MonoBehaviour
     [Header("Ajustes de Movimiento")]
     public float velocidad = 5f;
     public float gravedad = -9.81f;
-    [Tooltip("Fuerza con la que se pega al suelo al bajar rampas")]
     public float fuerzaPegadoAlSuelo = -5f;
+
+    [Header("Botas de Velocidad")]
+    [SerializeField, Range(0, 3)]
+    private int nivelBotas = 0;
+
+    [SerializeField]
+    private float[] multiplicadoresBotas =
+    {
+        1f, 1.15f, 1.30f, 1.50f
+    };
+
+    public int NivelBotas => nivelBotas;
+
+    public float VelocidadActual =>
+        velocidad * ObtenerMultiplicadorBotas();
+
+    [Header("Jetpack")]
+    [SerializeField, Range(0, 4)]
+    private int nivelJetpack = 0;
+
+    public KeyCode teclaSalto = KeyCode.Space;
+
+    [Min(0.1f)]
+    public float alturaSalto = 2f;
+
+    public SistemaConstruccion sistemaConstruccion;
+
+    [Header("Propulsion Jetpack")]
+    [Min(0f)] public float aceleracionPropulsion = 25f;
+    [Min(0f)] public float aceleracionNivel4 = 35f;
+    [Min(0f)] public float velocidadVerticalMaxima = 10f;
+
+    [Header("Combustible Jetpack")]
+    [Min(0f)] public float combustibleNivel2 = 2f;
+    [Min(0f)] public float combustibleNivel3 = 4f;
+    [Min(0f)] public float combustibleNivel4 = 6f;
+    [Min(0f)] public float velocidadRecarga = 2f;
+
+    public int NivelJetpack => nivelJetpack;
+    public float CombustibleActual => combustibleActual;
+    public float CombustibleMaximo => ObtenerCombustibleMaximo();
+    public bool EstaPropulsandose => estaPropulsandose;
+
+    private float combustibleActual;
+    private bool estaPropulsandose;
 
     [Header("Sonido de Pasos")]
     public AudioClip sonidoPasos;
@@ -24,8 +69,6 @@ public class MovimientoPersonaje : MonoBehaviour
     private Vector3 puntoSueloDetectado;
     private Collider colliderSueloDetectado;
 
-    // Ascenso: el rescate anima la posición y bloquea WASD.
-    // Levitación: WASD libre horizontal, pero sin gravedad ni cinta.
     private bool modoRescate = false;
     private bool permitirMovimientoEnRescate = false;
 
@@ -38,6 +81,14 @@ public class MovimientoPersonaje : MonoBehaviour
     private void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        if (sistemaConstruccion == null)
+        {
+            sistemaConstruccion =
+                FindFirstObjectByType<SistemaConstruccion>();
+        }
+
+        combustibleActual = ObtenerCombustibleMaximo();
 
         audioPasos = gameObject.AddComponent<AudioSource>();
         audioPasos.clip = sonidoPasos;
@@ -52,19 +103,35 @@ public class MovimientoPersonaje : MonoBehaviour
         if (controller == null || !controller.enabled)
             return;
 
+        if (Time.timeScale == 0f)
+        {
+            estaPropulsandose = false;
+            return;
+        }
+
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        Vector3 direccion = transform.right * h + transform.forward * v;
+
+        Vector3 direccion =
+            transform.right * h +
+            transform.forward * v;
+
+        float velocidadMovimiento = VelocidadActual;
 
         if (modoRescate)
         {
             velocidadCaida = Vector3.zero;
             movimientoCinta = Vector3.zero;
+            estaPropulsandose = false;
 
             if (permitirMovimientoEnRescate)
             {
-                // La levitación conserva la altura. WASD permite volver al mapa.
-                Vector3 horizontal = Vector3.ProjectOnPlane(direccion, Vector3.up) * velocidad;
+                Vector3 horizontal =
+                    Vector3.ProjectOnPlane(
+                        direccion,
+                        Vector3.up
+                    ) * velocidadMovimiento;
+
                 controller.Move(horizontal * Time.deltaTime);
             }
 
@@ -72,21 +139,192 @@ public class MovimientoPersonaje : MonoBehaviour
             return;
         }
 
-        // Se conserva el sistema original de detección de rampa y cinta.
         DetectarSueloYCinta();
+
         if (tocandoSueloExtra)
         {
-            direccion = Vector3.ProjectOnPlane(direccion, normalDelSuelo).normalized
-                        * direccion.magnitude;
+            direccion =
+                Vector3.ProjectOnPlane(
+                    direccion,
+                    normalDelSuelo
+                ).normalized * direccion.magnitude;
         }
 
-        if (controller.isGrounded && velocidadCaida.y < 0f)
+        bool enSuelo = controller.isGrounded;
+
+        if (enSuelo && velocidadCaida.y < 0f)
             velocidadCaida.y = fuerzaPegadoAlSuelo;
+
+        ManejarSalto(enSuelo);
+        ManejarPropulsion(enSuelo);
+
         velocidadCaida.y += gravedad * Time.deltaTime;
 
-        Vector3 movimientoFinal = direccion * velocidad + velocidadCaida + movimientoCinta;
+        Vector3 movimientoFinal =
+            direccion * velocidadMovimiento +
+            velocidadCaida +
+            movimientoCinta;
+
         controller.Move(movimientoFinal * Time.deltaTime);
+
         ManejarSonidoPasos(h, v);
+    }
+
+    private bool PuedeUsarJetpack()
+    {
+        if (modoRescate)
+            return false;
+
+        if (sistemaConstruccion != null &&
+            sistemaConstruccion.modoConstruccion)
+            return false;
+
+        return true;
+    }
+
+    private void ManejarSalto(bool enSuelo)
+    {
+        if (nivelJetpack < 1 || !PuedeUsarJetpack())
+            return;
+
+        if (!enSuelo)
+            return;
+
+        if (!Input.GetKeyDown(teclaSalto))
+            return;
+
+        if (gravedad >= 0f)
+            return;
+
+        velocidadCaida.y =
+            Mathf.Sqrt(alturaSalto * -2f * gravedad);
+    }
+
+    private void ManejarPropulsion(bool enSuelo)
+    {
+        estaPropulsandose = false;
+
+        if (nivelJetpack < 2)
+            return;
+
+        float combustibleMaximo = ObtenerCombustibleMaximo();
+
+        if (enSuelo)
+        {
+            combustibleActual = Mathf.MoveTowards(
+                combustibleActual,
+                combustibleMaximo,
+                velocidadRecarga * Time.deltaTime
+            );
+        }
+
+        if (!PuedeUsarJetpack())
+            return;
+
+        if (enSuelo)
+            return;
+
+        if (!Input.GetKey(teclaSalto))
+            return;
+
+        if (combustibleActual <= 0f)
+            return;
+
+        float tiempoPropulsion = Mathf.Min(
+            Time.deltaTime,
+            combustibleActual
+        );
+
+        float aceleracion = nivelJetpack >= 4
+            ? aceleracionNivel4
+            : aceleracionPropulsion;
+
+        velocidadCaida.y +=
+            aceleracion * tiempoPropulsion;
+
+        velocidadCaida.y = Mathf.Min(
+            velocidadCaida.y,
+            velocidadVerticalMaxima
+        );
+
+        combustibleActual -= tiempoPropulsion;
+        combustibleActual = Mathf.Max(0f, combustibleActual);
+
+        estaPropulsandose = true;
+    }
+
+    private float ObtenerCombustibleMaximo()
+    {
+        switch (nivelJetpack)
+        {
+            case 2:
+                return combustibleNivel2;
+
+            case 3:
+                return combustibleNivel3;
+
+            case 4:
+                return combustibleNivel4;
+
+            default:
+                return 0f;
+        }
+    }
+
+    public float ObtenerMultiplicadorBotas()
+    {
+        if (multiplicadoresBotas == null ||
+            multiplicadoresBotas.Length == 0)
+            return 1f;
+
+        int indice = Mathf.Clamp(
+            nivelBotas,
+            0,
+            multiplicadoresBotas.Length - 1
+        );
+
+        return Mathf.Max(
+            0f,
+            multiplicadoresBotas[indice]
+        );
+    }
+
+    public void EstablecerNivelBotas(int nivel)
+    {
+        nivelBotas = Mathf.Clamp(nivel, 0, 3);
+    }
+
+    public bool MejorarBotas()
+    {
+        if (nivelBotas >= 3)
+            return false;
+
+        nivelBotas++;
+
+        Debug.Log(
+            "Botas nivel " + nivelBotas +
+            " - Velocidad: " + VelocidadActual
+        );
+
+        return true;
+    }
+
+    public void EstablecerNivelJetpack(int nivel)
+    {
+        nivelJetpack = Mathf.Clamp(nivel, 0, 4);
+        combustibleActual = ObtenerCombustibleMaximo();
+        estaPropulsandose = false;
+    }
+
+    public bool MejorarJetpack()
+    {
+        if (nivelJetpack >= 4)
+            return false;
+
+        EstablecerNivelJetpack(nivelJetpack + 1);
+
+        Debug.Log("Jetpack nivel " + nivelJetpack);
+        return true;
     }
 
     private void DetectarSueloYCinta()
@@ -95,19 +333,30 @@ public class MovimientoPersonaje : MonoBehaviour
         float distanciaRayo = (controller.height / 2f) + 0.3f;
         Vector3 origen = transform.position + controller.center;
 
-        if (Physics.SphereCast(origen, radioEsfera, Vector3.down, out RaycastHit hit,
-                distanciaRayo, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        if (Physics.SphereCast(
+            origen,
+            radioEsfera,
+            Vector3.down,
+            out RaycastHit hit,
+            distanciaRayo,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore))
         {
             tocandoSueloExtra = true;
             normalDelSuelo = hit.normal;
             puntoSueloDetectado = hit.point;
             colliderSueloDetectado = hit.collider;
 
-            CintaTransportadora cinta = hit.collider.GetComponentInParent<CintaTransportadora>();
+            CintaTransportadora cinta =
+                hit.collider.GetComponentInParent<CintaTransportadora>();
+
             if (cinta != null)
             {
-                Vector3 direccionMundo = cinta.DireccionEn(hit.point);
-                movimientoCinta = direccionMundo * cinta.velocidad;
+                Vector3 direccionMundo =
+                    cinta.DireccionEn(hit.point);
+
+                movimientoCinta =
+                    direccionMundo * cinta.velocidad;
             }
             else
             {
@@ -123,34 +372,30 @@ public class MovimientoPersonaje : MonoBehaviour
         }
     }
 
-    // Llamado al comenzar la subida ANIMADA. NO cambia transform.position.
     public void ComenzarAscensoRescate()
     {
         modoRescate = true;
         permitirMovimientoEnRescate = false;
         velocidadCaida = Vector3.zero;
         movimientoCinta = Vector3.zero;
+        combustibleActual = ObtenerCombustibleMaximo();
+        estaPropulsandose = false;
         tocandoSueloExtra = false;
         colliderSueloDetectado = null;
         normalDelSuelo = Vector3.up;
         ApagarPasos();
     }
 
-    // Llamado al terminar la subida: ahora WASD sí puede mover al jugador.
     public void ComenzarLevitacionRescate()
     {
         modoRescate = true;
         permitirMovimientoEnRescate = true;
         velocidadCaida = Vector3.zero;
         movimientoCinta = Vector3.zero;
+        estaPropulsandose = false;
         ApagarPasos();
     }
 
-
-    /// <summary>
-    /// Limpia velocidades, suelo y modos especiales despues de recolocar al
-    /// jugador desde un guardado. No cambia su posicion ni su orientacion.
-    /// </summary>
     public void RestablecerEstadoTrasCarga()
     {
         modoRescate = false;
@@ -161,47 +406,69 @@ public class MovimientoPersonaje : MonoBehaviour
         tocandoSueloExtra = false;
         puntoSueloDetectado = Vector3.zero;
         colliderSueloDetectado = null;
+        combustibleActual = ObtenerCombustibleMaximo();
+        estaPropulsandose = false;
         ApagarPasos();
     }
 
-    // Solo se llama cuando se ha pulsado la tecla de aterrizar sobre suelo.
     public void TerminarLevitacionRescate()
     {
         modoRescate = false;
         permitirMovimientoEnRescate = false;
         velocidadCaida = Vector3.zero;
         movimientoCinta = Vector3.zero;
+        estaPropulsandose = false;
     }
 
     private void ApagarPasos()
     {
-        if (audioPasos == null) return;
+        if (audioPasos == null)
+            return;
+
         audioPasos.volume = 0f;
-        if (audioPasos.isPlaying) audioPasos.Pause();
+
+        if (audioPasos.isPlaying)
+            audioPasos.Pause();
     }
 
     private void ManejarSonidoPasos(float h, float v)
     {
-        bool pulsandoTeclas = Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f;
-        bool deberiaCaminar = pulsandoTeclas && controller.isGrounded && !modoRescate;
+        bool pulsandoTeclas =
+            Mathf.Abs(h) > 0.1f ||
+            Mathf.Abs(v) > 0.1f;
 
-        if (sonidoPasos != null && audioPasos != null)
+        bool deberiaCaminar =
+            pulsandoTeclas &&
+            controller.isGrounded &&
+            !modoRescate;
+
+        if (sonidoPasos == null || audioPasos == null)
+            return;
+
+        if (deberiaCaminar)
         {
-            if (deberiaCaminar)
+            if (!audioPasos.isPlaying)
+                audioPasos.Play();
+
+            audioPasos.volume = Mathf.Lerp(
+                audioPasos.volume,
+                volumenPasos,
+                velocidadFade * Time.deltaTime
+            );
+        }
+        else
+        {
+            audioPasos.volume = Mathf.Lerp(
+                audioPasos.volume,
+                0f,
+                velocidadFade * Time.deltaTime
+            );
+
+            if (audioPasos.volume < 0.01f &&
+                audioPasos.isPlaying)
             {
-                if (!audioPasos.isPlaying) audioPasos.Play();
-                audioPasos.volume = Mathf.Lerp(audioPasos.volume, volumenPasos,
-                    velocidadFade * Time.deltaTime);
-            }
-            else
-            {
-                audioPasos.volume = Mathf.Lerp(audioPasos.volume, 0f,
-                    velocidadFade * Time.deltaTime);
-                if (audioPasos.volume < 0.01f && audioPasos.isPlaying)
-                {
-                    audioPasos.volume = 0f;
-                    audioPasos.Pause();
-                }
+                audioPasos.volume = 0f;
+                audioPasos.Pause();
             }
         }
     }
