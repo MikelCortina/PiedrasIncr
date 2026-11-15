@@ -148,6 +148,8 @@ public class CambioCamaraIntro : MonoBehaviour
     [Range(0f, 1f)] public float puntoCorteCamaraInterior = 0.5f;
     [Tooltip("Punto donde la nave se detiene. Con palanca asignada, aquí empieza la espera; sin palanca, aquí termina la intro.")]
     [Range(0f, 1f)] public float puntoFinIntroduccion = 0.99f;
+    [Header("Meteorito Inicial")]
+    public MeteoritoInicial meteoritoInicial;
 
     [Header("Salida con Palanca")]
     [Tooltip("Palanca de la cabina que el jugador debe bajar para salir. Vacía = la intro termina sola como antes.")]
@@ -543,11 +545,14 @@ public class CambioCamaraIntro : MonoBehaviour
                 ActivarCamaraInterior();
             }
 
+
             if (progreso >= puntoFinIntroduccion)
             {
+                if (meteoritoInicial != null)
+                    meteoritoInicial.LanzarMeteorito();
+
                 if (palancaSalida == null)
                 {
-                    // Comportamiento antiguo: sin palanca, la intro termina sola.
                     finalizando = true;
                     StartCoroutine(FinalizarIntroduccion());
                     return;
@@ -555,6 +560,7 @@ public class CambioCamaraIntro : MonoBehaviour
 
                 EmpezarEsperaPalanca();
             }
+
         }
         else if (!palancaDesbloqueada && ManillaEnReposo())
         {
