@@ -92,6 +92,14 @@ public class AranaPateable : MonoBehaviour
     private MonoBehaviour balanceoCuerpo;
 
     private bool animando;
+
+    // Boca arriba tras la patada (y mientras se enfada): la cara LED se pone enfadada.
+    public bool EstaVolcada { get; private set; }
+    public bool EstaAnimando => animando;
+
+    // Dormida (Pausa/Parking y quieta): se puede patear y al levantarse se pone a trabajar.
+    private SuenoArana sueno;
+    private bool despertarAlRecuperarse;
     private bool recolectorActivo;
     private bool gestorActivo;
     private bool balanceoActivo;
@@ -143,6 +151,10 @@ public class AranaPateable : MonoBehaviour
     {
         recolector = GetComponent<BotRecolector>();
         agente = GetComponent<NavMeshAgent>();
+
+        sueno = GetComponent<SuenoArana>();
+        if (sueno == null)
+            sueno = gameObject.AddComponent<SuenoArana>();
 
         gestor = GetComponentInChildren<GestorPatasArana>(true);
         patas = GetComponentsInChildren<PataProcedural>(true);
@@ -334,6 +346,8 @@ public class AranaPateable : MonoBehaviour
 
         CalcularCaida();
 
+        despertarAlRecuperarse = sueno != null && sueno.Dormida;
+
         ultimaPatada = Time.time;
         animando = true;
 
@@ -395,7 +409,8 @@ public class AranaPateable : MonoBehaviour
             estado == BotRecolector.EstadoBot.Esperando ||
             estado == BotRecolector.EstadoBot.YendoAPiedra;
 
-        if (!estadoSeguro)
+        // Dormida vale siempre (ya se comprueba abajo que no lleve piedra).
+        if (!estadoSeguro && !(sueno != null && sueno.Dormida))
         {
             Debug.Log(
                 "[PATADA] Bloqueada durante: " + estado
@@ -544,6 +559,7 @@ public class AranaPateable : MonoBehaviour
         }
 
         ReproducirSonido(sonidoCaida);
+        EstaVolcada = true;
 
         tiempo = 0f;
 
@@ -642,6 +658,7 @@ public class AranaPateable : MonoBehaviour
         }
 
         EmitirParticulas(particulasAterrizaje);
+        EstaVolcada = false;
 
         tiempo = 0f;
 
@@ -690,6 +707,7 @@ public class AranaPateable : MonoBehaviour
     private IEnumerator ReaccionEnfadada()
     {
         ultimaReaccion = "Enfadada";
+        EstaVolcada = true; // sigue enfadada mientras amenaza al jugador
 
         ReproducirSonido(sonidoEnfado);
 
@@ -1110,6 +1128,8 @@ public class AranaPateable : MonoBehaviour
 
     private void RestaurarAnimacion()
     {
+        EstaVolcada = false;
+
         if (!animando)
             return;
 
@@ -1203,6 +1223,15 @@ public class AranaPateable : MonoBehaviour
             " | Recuperada | Reaccion: " +
             ultimaReaccion
         );
+
+        // Estaba dormida: la patada la despierta y se pone a trabajar.
+        if (despertarAlRecuperarse)
+        {
+            despertarAlRecuperarse = false;
+
+            if (sueno != null && isActiveAndEnabled)
+                sueno.Despertar();
+        }
     }
 
     private void OnDisable()

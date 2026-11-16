@@ -113,6 +113,13 @@ public class CaraLedArana : MonoBehaviour
     private Vector2 mapaOrigen, mapaEjeS, mapaEjeT;
     private Material triste, sonriente;
     private bool? sonriendo;
+    private int caraActual = -1;           // 0 triste, 1 sonriente, 2 enfadada, 3 dormida
+    private Material enfadada;
+    private AranaPateable aranaPateable;
+    private bool generandoEnfadada;        // la textura que se genera ahora es la enfadada
+    private Material dormida;
+    private SuenoArana sueno;
+    private bool generandoDormida;         // la textura que se genera ahora es la dormida
 
     // ---------------------------------------------------------------- Vista previa en el editor
 
@@ -299,6 +306,8 @@ public class CaraLedArana : MonoBehaviour
 
         BotRecolector bot = GetComponentInParent<BotRecolector>();
         if (puntoAgarre == null && bot != null) puntoAgarre = bot.puntoAgarre;
+        aranaPateable = GetComponentInParent<AranaPateable>();
+        sueno = GetComponentInParent<SuenoArana>();
 
         if (superponerQuad)
         {
@@ -338,10 +347,35 @@ public class CaraLedArana : MonoBehaviour
 
         bool lleva = expresion == Expresion.SiempreSonriente ||
                      (expresion == Expresion.SegunPiedra && LlevaPiedra());
-        if (sonriendo == lleva) return;
 
-        sonriendo = lleva;
-        Aplicar(lleva ? sonriente : triste);
+        // Dada la vuelta por una patada: enfadada (manda sobre llevar piedra o no).
+        bool volcada = expresion == Expresion.SegunPiedra && aranaPateable != null && aranaPateable.EstaVolcada;
+        // Dormida (Pausa/Parking y quieta): ojos cerrados.
+        bool durmiendo = expresion == Expresion.SegunPiedra && sueno != null && sueno.Dormida;
+        int cara = volcada ? 2 : durmiendo ? 3 : (lleva ? 1 : 0);
+        if (caraActual == cara) return;
+
+        caraActual = cara;
+        sonriendo = cara == 1;
+        Aplicar(cara == 3 ? MaterialDormido() : cara == 2 ? MaterialEnfadado() : cara == 1 ? sonriente : triste);
+    }
+
+    Material MaterialDormido()
+    {
+        if (dormida != null) return dormida;
+        generandoDormida = true;
+        try { dormida = ObtenerMaterial(false); }
+        finally { generandoDormida = false; }
+        return dormida;
+    }
+
+    Material MaterialEnfadado()
+    {
+        if (enfadada != null) return enfadada;
+        generandoEnfadada = true;
+        try { enfadada = ObtenerMaterial(false); }
+        finally { generandoEnfadada = false; }
+        return enfadada;
     }
 
     void Aplicar(Material material)
@@ -790,7 +824,7 @@ public class CaraLedArana : MonoBehaviour
             material = new Material(shader);
         }
 
-        material.name = sonrisa ? "CaraLed_Sonriente" : "CaraLed_Triste";
+        material.name = generandoDormida ? "CaraLed_Dormida" : generandoEnfadada ? "CaraLed_Enfadada" : sonrisa ? "CaraLed_Sonriente" : "CaraLed_Triste";
         Texture2D textura = GenerarTextura(sonrisa);
         if (!Application.isPlaying)
         {
@@ -941,8 +975,23 @@ public class CaraLedArana : MonoBehaviour
         float aspecto = girada ? (float)filas / columnas : (float)columnas / filas;
         Vector2 escala = new Vector2(aspecto, 1f);
 
+        // Dormida: ojos cerrados (arco hacia abajo) y una boca corta y recta.
+        if (generandoDormida)
+        {
+            if (EnOjoCerrado(uv, ojoIzquierdo, escala) || EnOjoCerrado(uv, ojoDerecho, escala)) return true;
+            return Mathf.Abs(uv.x - 0.5f) <= anchoBoca * 0.18f && Mathf.Abs(uv.y - alturaBoca) <= grosorBoca * 0.8f;
+        }
+
         if (Vector2.Scale(uv - ojoIzquierdo, escala).magnitude <= radioOjo * aspecto) return true;
         if (Vector2.Scale(uv - ojoDerecho, escala).magnitude <= radioOjo * aspecto) return true;
+
+        // Enfadada: cejas en V sobre los ojos (el extremo de dentro más bajo) y boca hacia abajo.
+        if (generandoEnfadada)
+        {
+            float lado = ojoDerecho.x >= ojoIzquierdo.x ? 1f : -1f; // hacia dónde está el centro desde el ojo izquierdo
+            if (EnCeja(uv, ojoIzquierdo, lado, escala) || EnCeja(uv, ojoDerecho, -lado, escala)) return true;
+            sonrisa = false;
+        }
 
         float medio = anchoBoca * 0.5f;
         float relativo = (uv.x - 0.5f) / medio; // -1..1 a lo ancho de la boca
@@ -954,9 +1003,33 @@ public class CaraLedArana : MonoBehaviour
         return Mathf.Abs(uv.y - yBoca) <= grosorBoca;
     }
 
+    // Ceja: segmento sobre el ojo, alto por fuera y bajo hacia el centro de la cara.
+    bool EnCeja(Vector2 uv, Vector2 ojo, float haciaCentro, Vector2 escala)
+    {
+        Vector2 fuera = ojo + new Vector2(-haciaCentro * radioOjo * 1.5f, radioOjo * 2.4f);
+        Vector2 dentro = ojo + new Vector2(haciaCentro * radioOjo * 1.2f, radioOjo * 1.3f);
+
+        Vector2 a = Vector2.Scale(fuera, escala), b = Vector2.Scale(dentro, escala), p = Vector2.Scale(uv, escala);
+        Vector2 ab = b - a;
+        float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(ab.sqrMagnitude, 1e-6f));
+        return (p - (a + ab * t)).magnitude <= grosorBoca;
+    }
+
+    // Ojo cerrado: un arco con forma de U aplastada a la altura del ojo.
+    bool EnOjoCerrado(Vector2 uv, Vector2 ojo, Vector2 escala)
+    {
+        Vector2 p = Vector2.Scale(uv - ojo, escala);
+        float ancho = radioOjo * escala.x * 1.3f;
+        if (Mathf.Abs(p.x) > ancho) return false;
+
+        float x = p.x / ancho;
+        float yArco = -radioOjo * 0.45f * (1f - x * x);
+        return Mathf.Abs(p.y - yArco) <= grosorBoca * 0.75f;
+    }
+
     string Clave(bool sonrisa)
     {
-        return string.Join("|", sonrisa, columnas, filas, pixelesPorLed, tamanoLed, colorFondo, colorHueco, colorLineas,
+        return string.Join("|", sonrisa, generandoEnfadada, generandoDormida, columnas, filas, pixelesPorLed, tamanoLed, colorFondo, colorHueco, colorLineas,
             intensidad, ojoIzquierdo, ojoDerecho, radioOjo, alturaBoca, anchoBoca, curvaBoca, grosorBoca,
             rotacion, espejoHorizontal, espejoVertical, escalaUV, desplazamientoUV,
             mapaGirado, mapaOrigen, mapaEjeS, mapaEjeT, superponerQuad,

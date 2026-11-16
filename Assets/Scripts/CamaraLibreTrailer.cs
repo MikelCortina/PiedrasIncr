@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Cámara libre para grabar el tráiler: con la tecla (F2) se suelta la cámara principal del jugador y se vuela por la escena.
-// Mientras está activa se ocultan los Canvas (HUD) y se desactivan el control del jugador y de su cámara.
+// Mientras está activa se oculta el Canvas del HUD (el que se llama "Canvas") y se desactivan el control del jugador y de su cámara.
 // Al desactivarla todo vuelve exactamente como estaba.
 // Controles: WASD mover, E / Q subir / bajar, ratón mirar, Shift rápido, Ctrl lento, rueda del ratón = velocidad.
 public class CamaraLibreTrailer : MonoBehaviour
@@ -27,8 +27,10 @@ public class CamaraLibreTrailer : MonoBehaviour
     public float suavizadoRotacion = 8f;
 
     [Header("Qué se desactiva")]
-    [Tooltip("Oculta todos los Canvas raíz de la escena mientras la cámara libre está activa.")]
+    [Tooltip("Oculta el Canvas con el nombre de abajo mientras la cámara libre está activa (los demás se quedan como están).")]
     public bool ocultarCanvas = true;
+    [Tooltip("Nombre exacto del GameObject del Canvas que se oculta.")]
+    public string nombreCanvas = "Canvas";
     [Tooltip("Componentes extra a desactivar (otros HUD, scripts de control...). El control del jugador y de su cámara se desactivan solos.")]
     public Behaviour[] componentesADesactivar;
 
@@ -89,7 +91,7 @@ public class CamaraLibreTrailer : MonoBehaviour
         {
             foreach (Canvas canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
             {
-                if (!canvas.isRootCanvas || !canvas.enabled) continue;
+                if (!canvas.isRootCanvas || !canvas.enabled || canvas.name != nombreCanvas) continue;
                 canvas.enabled = false;
                 canvasOcultos.Add(canvas);
             }

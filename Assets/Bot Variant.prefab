@@ -701,6 +701,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2675161419066520480, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
       insertIndex: -1
       addedObject: {fileID: 800895445664901034}
+    - targetCorrespondingSourceObject: {fileID: 6629846623742214681, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4471926305817734021}
   m_SourcePrefab: {fileID: 100100000, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
 --- !u!1 &5617547925732852458 stripped
 GameObject:
@@ -745,6 +748,65 @@ MonoBehaviour:
   curvaBoca: 0.14
   grosorBoca: 0.06
   materialBase: {fileID: 0}
+--- !u!1 &3806787779178427219 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6629846623742214681, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
+  m_PrefabInstance: {fileID: 7554118980005278026}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4471926305817734021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3806787779178427219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75e4081cbba19384382de5a41fe88b35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AranaPateable
+  permitirPatadas: 1
+  camaraJugador: {fileID: 0}
+  alcancePatada: 3.5
+  precisionMirada: 0.65
+  tiempoEntrePatadas: 1
+  comprobarObstaculos: 0
+  permitirCaidasLaterales: 1
+  predominioLateral: 0.85
+  anguloCaidaLateral: 93
+  torsionImpacto: 12
+  duracionReaccion: 0.13
+  inclinacionGolpe: 18
+  aplastamientoGolpe: 0.12
+  duracionVoltereta: 0.65
+  alturaVoltereta: 0.9
+  desplazamientoPatada: 0.35
+  tiempoBocaArriba: 1.8
+  balanceoBocaArriba: 10
+  amplitudPatas: 30
+  frecuenciaPatas: 5
+  pequenosSaltos: 0.045
+  duracionPreparacionSalto: 0.18
+  duracionRecuperacion: 0.75
+  alturaSalto: 0.8
+  duracionAterrizaje: 0.4
+  alturaRebote: 0.13
+  aplastamientoAterrizaje: 0.16
+  tambaleoFinal: 12
+  probabilidadEnfado: 0.65
+  duracionEnfado: 1.4
+  amplitudAmenaza: 45
+  giroMaximoMirada: 35
+  duracionMareo: 1.1
+  sonidoGolpe: {fileID: 0}
+  sonidoCaida: {fileID: 0}
+  sonidoRecuperacion: {fileID: 0}
+  sonidoEnfado: {fileID: 0}
+  particulasGolpe: {fileID: 0}
+  particulasAterrizaje: {fileID: 0}
+  volumen: 0.8
+  ultimaCaida: Ninguna
+  ultimaReaccion: Ninguna
 --- !u!4 &8638689324685581712 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2249360115773205722, guid: ba05800ab18cfeb4387eea6c86f93659, type: 3}
