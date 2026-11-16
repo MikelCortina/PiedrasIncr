@@ -1,5 +1,7 @@
+
 using UnityEngine;
 using System.Collections.Generic;
+using PiedrasIncr.Audio;
 
 [RequireComponent(typeof(AudioSource))]
 public class SistemaPatada : MonoBehaviour
@@ -259,8 +261,8 @@ public class SistemaPatada : MonoBehaviour
             golpeReal = true;
         }
 
-        if (golpeReal && sonidoPatada != null)
-            audioSource.PlayOneShot(sonidoPatada, volumenPatada);
+        if (golpeReal)
+            AudioManager.Play("Patada", transform.position);
     }
 
     private void ReproducirEfectosPatada(Vector3 puntoImpacto)
@@ -271,8 +273,7 @@ public class SistemaPatada : MonoBehaviour
             particulasPatada.Play();
         }
 
-        if (sonidoPatada != null)
-            audioSource.PlayOneShot(sonidoPatada, volumenPatada);
+        AudioManager.Play("Patada", puntoImpacto);
     }
 
     private void OnDrawGizmosSelected()
