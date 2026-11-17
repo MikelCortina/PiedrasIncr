@@ -85,6 +85,37 @@ public class MaquinaErosion : MonoBehaviour
 
 
     // =====================================================
+    // PIEDRA PROCESADA
+    // =====================================================
+
+    [Header("Piedra Procesada")]
+
+    [Tooltip(
+        "Colores del interior de la piedra al salir " +
+        "de la máquina (shader Balatro). El 2 es el " +
+        "que más se ve."
+    )]
+    [ColorUsage(true, true)]
+    public Color colorInteriorProcesada1 =
+        new Color(0.001f, 0.003f, 0.004f, 1f);
+
+    [ColorUsage(true, true)]
+    public Color colorInteriorProcesada2 =
+        new Color(0.2f, 1.1f, 1.4f, 1f);
+
+    [ColorUsage(true, true)]
+    public Color colorInteriorProcesada3 =
+        new Color(0.008f, 0.012f, 0.015f, 1f);
+
+    [Tooltip(
+        "Nombre del objeto hijo de la piedra que " +
+        "hace de interior."
+    )]
+    public string nombreInteriorPiedra =
+        "PerfectSphere";
+
+
+    // =====================================================
     // DESBLOQUEO
     // =====================================================
 
@@ -892,6 +923,19 @@ public class MaquinaErosion : MonoBehaviour
 
             yield break;
         }
+
+
+        // =================================================
+        // MARCAR COMO PROCESADA
+        // =================================================
+
+        PiedraProcesada.Marcar(
+            rb.gameObject,
+            colorInteriorProcesada1,
+            colorInteriorProcesada2,
+            colorInteriorProcesada3,
+            nombreInteriorPiedra
+        );
 
 
         // =================================================

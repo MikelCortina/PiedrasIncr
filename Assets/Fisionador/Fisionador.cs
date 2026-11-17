@@ -20,6 +20,9 @@ public class Fisionador : MonoBehaviour
     [Tooltip("Etiqueta (Tag) que deben tener las piedras para ser detectadas")]
     public string tagPiedra = "Piedra";
 
+    [Tooltip("Si está activo, solo cuentan las piedras que han pasado por la desgastadora")]
+    public bool soloPiedrasProcesadas = true;
+
     [Header("Pantalla LED (Contador de Piedras)")]
     [Tooltip("Texto TextMeshPro donde se mostrará cuántas piedras faltan")]
     public TMP_Text textoPantalla;
@@ -195,6 +198,9 @@ public class Fisionador : MonoBehaviour
 
         if (otro.CompareTag(tagPiedra))
         {
+            if (soloPiedrasProcesadas && !PiedraProcesada.EstaProcesada(otro))
+                return;
+
             Destroy(otro.gameObject);
             piedrasActuales++;
             ActualizarPantalla();

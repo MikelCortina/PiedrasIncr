@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96506607f7a6bd44aad1b3319e201e93, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::PiedrasIncr.Audio.SoundLibrary
+  sonidos:
+  - nombre: Patada
+    clips:
+    - {fileID: 8300000, guid: 273826e6f7012554d930422887e37e81, type: 3}
+    evitarRepetir: 1
+    bus: 0
+    volumenMin: 1
+    volumenMax: 1
+    pitchMin: 1
+    pitchMax: 1
+    bucle: 0
+    mezclaEspacial: 1
+    distanciaMin: 1
+    distanciaMax: 30
+    atenuacion: 0
+    maxInstancias: 4
+    intervaloMinimo: 0
+    prioridad: 128
+    fadeIn: 0
+    fadeOut: 0
