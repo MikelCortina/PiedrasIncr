@@ -25,6 +25,22 @@ namespace PiedrasIncr.Options
         public OptionsCycleRow fpsRow;
         public Slider masterSlider;
         public TMP_Text masterValue;
+        public Slider sfxSlider;
+        public TMP_Text sfxValue;
+        public Slider musicSlider;
+        public TMP_Text musicValue;
+        public Slider uiSlider;
+        public TMP_Text uiValue;
+        public Slider ambientSlider;
+        public TMP_Text ambientValue;
+        public OptionsCycleRow paletteRow;
+        public Slider redSlider;
+        public Slider greenSlider;
+        public Slider blueSlider;
+        public TMP_Text redValue;
+        public TMP_Text greenValue;
+        public TMP_Text blueValue;
+        public Image palettePreview;
         public Button applyButton;
         public Button cancelButton;
         public Button resetButton;
@@ -37,13 +53,18 @@ namespace PiedrasIncr.Options
         [Header("Tecla de apertura")]
         public KeyCode shortcut = KeyCode.F10;
 
-        private static readonly string[] Titles = { "GENERAL", "PANTALLA", "GRÁFICOS", "AUDIO" };
+        private static readonly string[] Titles = { "GENERAL", "PANTALLA", "GRÁFICOS", "AUDIO", "APARIENCIA" };
         private static readonly string[] Descriptions =
         {
-            "COMPORTAMIENTO Y TELEMETRÍA",
-            "MONITOR Y MODO DE VENTANA",
-            "RENDIMIENTO Y RENDERIZADO",
-            "VOLUMEN GENERAL DEL JUEGO"
+            "PREFERENCIAS DE JUEGO",
+            "PANTALLA Y RESOLUCIÓN",
+            "CALIDAD Y RENDIMIENTO",
+            "VOLUMEN Y MEZCLA",
+            "PERSONALIZACIÓN DEL MENÚ"
+        };
+        private static readonly string[] PaletteNames =
+        {
+            "CIAN ELÉCTRICO", "ÁMBAR", "VIOLETA", "ESMERALDA", "CORAL", "PERSONALIZADO"
         };
 
         private readonly List<Vector2Int> resolutions = new List<Vector2Int>();
@@ -85,9 +106,24 @@ namespace PiedrasIncr.Options
             Bind(qualityRow, () => CycleQuality(-1), () => CycleQuality(1));
             Bind(vsyncRow, () => CycleVSync(-1), () => CycleVSync(1));
             Bind(fpsRow, () => CycleFps(-1), () => CycleFps(1));
+            Bind(paletteRow, () => CyclePalette(-1), () => CyclePalette(1));
 
             if (masterSlider != null)
-                masterSlider.onValueChanged.AddListener(PreviewVolume);
+                masterSlider.onValueChanged.AddListener(value => PreviewVolume(0, value));
+            if (sfxSlider != null)
+                sfxSlider.onValueChanged.AddListener(value => PreviewVolume(1, value));
+            if (musicSlider != null)
+                musicSlider.onValueChanged.AddListener(value => PreviewVolume(2, value));
+            if (uiSlider != null)
+                uiSlider.onValueChanged.AddListener(value => PreviewVolume(3, value));
+            if (ambientSlider != null)
+                ambientSlider.onValueChanged.AddListener(value => PreviewVolume(4, value));
+            if (redSlider != null)
+                redSlider.onValueChanged.AddListener(value => PreviewCustomColor(0, value));
+            if (greenSlider != null)
+                greenSlider.onValueChanged.AddListener(value => PreviewCustomColor(1, value));
+            if (blueSlider != null)
+                blueSlider.onValueChanged.AddListener(value => PreviewCustomColor(2, value));
             if (applyButton != null)
                 applyButton.onClick.AddListener(ApplyChanges);
             if (cancelButton != null)
@@ -110,6 +146,12 @@ namespace PiedrasIncr.Options
                         categoryButtons[i].onClick.AddListener(() => SetPage(index));
                 }
             }
+            ApplyTheme(PiedrasOptionsService.Current);
+        }
+
+        private void Start()
+        {
+            PiedrasOptionsService.ActivateAudio();
         }
 
         private void ResolveMissingRows()
@@ -121,6 +163,7 @@ namespace PiedrasIncr.Options
             if (qualityRow == null) qualityRow = Resolve(2, "Ajuste_CALIDAD GRAFICA");
             if (vsyncRow == null) vsyncRow = Resolve(2, "Ajuste_SINCRONIZACION VERTICAL");
             if (fpsRow == null) fpsRow = Resolve(2, "Ajuste_LIMITE DE FPS");
+            if (paletteRow == null) paletteRow = Resolve(4, "Ajuste_PALETA DE COLOR");
         }
 
         private OptionsCycleRow Resolve(int page, string name)
@@ -219,7 +262,7 @@ namespace PiedrasIncr.Options
             overlay.SetActive(true);
             SetPage(0);
             UpdateControls();
-            SetStatus("F10 / ESC: CERRAR    |    APLICAR PARA GUARDAR");
+            SetStatus("ESC · VOLVER      " + shortcut + " · CERRAR      APLICAR · GUARDAR");
             if (EventSystem.current != null && categoryButtons != null && categoryButtons.Length > 0)
                 EventSystem.current.SetSelectedGameObject(categoryButtons[0].gameObject);
         }
@@ -263,19 +306,7 @@ namespace PiedrasIncr.Options
             if (pageDescription != null && selectedPage < Descriptions.Length)
                 pageDescription.text = Descriptions[selectedPage];
 
-            if (categoryButtons == null)
-                return;
-            for (int i = 0; i < categoryButtons.Length; i++)
-            {
-                Button button = categoryButtons[i];
-                if (button == null)
-                    continue;
-                Image image = button.GetComponent<Image>();
-                if (image != null)
-                    image.color = i == selectedPage
-                        ? new Color(0.07f, 0.34f, 0.41f, 1f)
-                        : new Color(0.076f, 0.125f, 0.18f, 1f);
-            }
+            ApplyTheme(draft != null ? draft : PiedrasOptionsService.Current);
         }
 
         private void ToggleShowFps()
@@ -336,13 +367,131 @@ namespace PiedrasIncr.Options
             UpdateControls();
         }
 
-        private void PreviewVolume(float value)
+        private void CyclePalette(int direction)
+        {
+            if (draft == null) return;
+            draft.palette = (draft.palette + direction + PaletteNames.Length) % PaletteNames.Length;
+            UpdatePaletteControls();
+            ApplyTheme(draft);
+        }
+
+        private void PreviewCustomColor(int channel, float value)
+        {
+            if (draft == null || !opened) return;
+            Color current = PiedrasOptionsService.GetAccent(draft);
+            if (draft.palette != 5)
+            {
+                draft.customR = Mathf.RoundToInt(current.r * 255f);
+                draft.customG = Mathf.RoundToInt(current.g * 255f);
+                draft.customB = Mathf.RoundToInt(current.b * 255f);
+            }
+            draft.palette = 5;
+            int component = Mathf.Clamp(Mathf.RoundToInt(value), 0, 255);
+            if (channel == 0) draft.customR = component;
+            if (channel == 1) draft.customG = component;
+            if (channel == 2) draft.customB = component;
+            UpdatePaletteControls();
+            ApplyTheme(draft);
+        }
+
+        private void UpdatePaletteControls()
+        {
+            if (draft == null) return;
+            int index = Mathf.Clamp(draft.palette, 0, PaletteNames.Length - 1);
+            paletteRow?.SetValue(PaletteNames[index]);
+            Color color = PiedrasOptionsService.GetAccent(draft);
+            int red = Mathf.RoundToInt(color.r * 255f);
+            int green = Mathf.RoundToInt(color.g * 255f);
+            int blue = Mathf.RoundToInt(color.b * 255f);
+            if (redSlider != null) redSlider.SetValueWithoutNotify(red);
+            if (greenSlider != null) greenSlider.SetValueWithoutNotify(green);
+            if (blueSlider != null) blueSlider.SetValueWithoutNotify(blue);
+            if (redValue != null) redValue.text = red.ToString();
+            if (greenValue != null) greenValue.text = green.ToString();
+            if (blueValue != null) blueValue.text = blue.ToString();
+            if (palettePreview != null) palettePreview.color = color;
+        }
+
+        private void ApplyTheme(OptionsData data)
+        {
+            if (overlay == null) return;
+            Color accent = PiedrasOptionsService.GetAccent(data);
+            Color card = Color.Lerp(new Color32(17, 36, 51, 255), accent, 0.055f);
+            Color track = Color.Lerp(new Color32(29, 55, 70, 255), accent, 0.12f);
+            Color buttonShade = Color.Lerp(new Color32(25, 54, 68, 255), accent, 0.12f);
+            Color selectedShade = Color.Lerp(new Color32(13, 38, 53, 255), accent, 0.33f);
+            Color panel = Color.Lerp(new Color32(11, 28, 42, 255), accent, 0.035f);
+            foreach (Image image in overlay.GetComponentsInChildren<Image>(true))
+            {
+                string id = image.gameObject.name;
+                if (id == "LineaSuperior" || id == "SidebarAccent" || id == "MarcaSeccion" || id == "LineaSeccion" || id == "ConfirmacionLinea" || id == "Fill")
+                    image.color = accent;
+                else if (id == "Pista")
+                    image.color = track;
+                else if (id == "PanelPrincipal" || id == "AreaOpciones")
+                    image.color = panel;
+                else if (id == "Cabecera")
+                    image.color = Color.Lerp(new Color32(15, 33, 48, 255), accent, 0.04f);
+                else if (id.StartsWith("Ajuste_") || id.StartsWith("Audio") || id.StartsWith("ColorCanal_") || id == "VistaPreviaColor")
+                    image.color = card;
+                else if (id.StartsWith("Categoria_"))
+                {
+                    int current;
+                    image.color = int.TryParse(id.Substring(10), out current) && current == selectedPage ? selectedShade : new Color32(19, 38, 55, 255);
+                }
+                else if (id == "Anterior" || id == "Siguiente" || id == "Aplicar" || id == "ConfirmarPantalla")
+                    image.color = buttonShade;
+                else if (id == "MuestraColor")
+                    image.color = accent;
+            }
+            foreach (TMP_Text label in overlay.GetComponentsInChildren<TMP_Text>(true))
+            {
+                string id = label.gameObject.name;
+                if (id == "Marca" || id == "EstadoSistema" || id == "Valor" || id == "AudioValue" || id == "ValorCanal" || id == "TextoAyudaTema")
+                    label.color = accent;
+            }
+            foreach (Button button in overlay.GetComponentsInChildren<Button>(true))
+            {
+                ColorBlock colors = button.colors;
+                colors.highlightedColor = Color.Lerp(Color.white, accent, 0.28f);
+                colors.pressedColor = Color.Lerp(accent, Color.black, 0.15f);
+                colors.selectedColor = Color.Lerp(Color.white, accent, 0.4f);
+                button.colors = colors;
+            }
+            if (fpsCounter != null) fpsCounter.color = accent;
+            if (palettePreview != null) palettePreview.color = accent;
+        }
+
+        private void PreviewVolume(int channel, float value)
         {
             if (!opened || draft == null) return;
-            draft.masterVolume = Mathf.Clamp01(value);
-            AudioListener.volume = draft.masterVolume;
-            if (masterValue != null)
-                masterValue.text = Mathf.RoundToInt(draft.masterVolume * 100f) + "%";
+            value = Mathf.Clamp01(value);
+            switch (channel)
+            {
+                case 0: draft.masterVolume = value; break;
+                case 1: draft.sfxVolume = value; break;
+                case 2: draft.musicVolume = value; break;
+                case 3: draft.uiVolume = value; break;
+                case 4: draft.ambientVolume = value; break;
+            }
+            PiedrasOptionsService.PreviewAudio(draft);
+            UpdateAudioControls();
+        }
+
+        private void UpdateAudioControls()
+        {
+            if (draft == null) return;
+            SetVolumeControl(masterSlider, masterValue, draft.masterVolume);
+            SetVolumeControl(sfxSlider, sfxValue, draft.sfxVolume);
+            SetVolumeControl(musicSlider, musicValue, draft.musicVolume);
+            SetVolumeControl(uiSlider, uiValue, draft.uiVolume);
+            SetVolumeControl(ambientSlider, ambientValue, draft.ambientVolume);
+        }
+
+        private static void SetVolumeControl(Slider slider, TMP_Text label, float volume)
+        {
+            if (slider != null) slider.SetValueWithoutNotify(volume);
+            if (label != null) label.text = Mathf.RoundToInt(volume * 100f) + "%";
         }
 
         private void UpdateControls()
@@ -362,19 +511,18 @@ namespace PiedrasIncr.Options
             }
             vsyncRow?.SetValue(draft.vSync == 0 ? "NO" : draft.vSync == 1 ? "SI" : "CADA 2");
             fpsRow?.SetValue(draft.fpsLimit < 0 ? "SIN LÍMITE" : draft.fpsLimit + " FPS");
-            if (masterSlider != null)
-                masterSlider.SetValueWithoutNotify(draft.masterVolume);
-            if (masterValue != null)
-                masterValue.text = Mathf.RoundToInt(draft.masterVolume * 100f) + "%";
+            UpdateAudioControls();
+            UpdatePaletteControls();
+            ApplyTheme(draft);
         }
 
         private void ResetDefaults()
         {
             if (draft == null || waitingDisplay) return;
             draft = PiedrasOptionsService.Defaults;
-            AudioListener.volume = draft.masterVolume;
+            PiedrasOptionsService.PreviewAudio(draft);
             UpdateControls();
-            SetStatus("VALORES PREDETERMINADOS CARGADOS. PULSA APLICAR PARA GUARDARLOS.");
+            SetStatus("Se han restaurado los ajustes originales. Pulsa Aplicar para guardarlos.");
         }
 
         private void ApplyChanges()
@@ -420,18 +568,19 @@ namespace PiedrasIncr.Options
                 draft = beforeDisplay.Copy();
             }
             UpdateControls();
-            SetStatus("CAMBIOS DE PANTALLA REVERTIDOS");
+            SetStatus("Se ha restaurado la configuración de pantalla anterior.");
         }
 
         private void SaveAndClose(OptionsData data)
         {
             if (!PiedrasOptionsService.Save(data))
             {
-                if (beforeDisplay != null)
-                    PiedrasOptionsService.Apply(beforeDisplay, true);
-                SetStatus("ERROR AL GUARDAR. NO SE HAN CONSERVADO LOS CAMBIOS.");
+                PiedrasOptionsService.Apply(PiedrasOptionsService.Current, true);
+                ApplyTheme(PiedrasOptionsService.Current);
+                SetStatus("No se pudieron guardar los cambios. Inténtalo de nuevo.");
                 return;
             }
+            ApplyTheme(PiedrasOptionsService.Current);
             CloseInternal();
         }
 
@@ -441,6 +590,7 @@ namespace PiedrasIncr.Options
             if (waitingDisplay)
                 RevertDisplay();
             PiedrasOptionsService.Apply(PiedrasOptionsService.Current, false);
+            ApplyTheme(PiedrasOptionsService.Current);
             CloseInternal();
         }
 

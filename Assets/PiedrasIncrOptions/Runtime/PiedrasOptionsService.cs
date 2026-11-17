@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using PiedrasIncr.Audio;
 using UnityEngine;
 
 namespace PiedrasIncr.Options
@@ -8,7 +9,7 @@ namespace PiedrasIncr.Options
     [Serializable]
     public sealed class OptionsData
     {
-        public int version = 2;
+        public int version = 4;
         public int width;
         public int height;
         public int windowMode;
@@ -16,8 +17,16 @@ namespace PiedrasIncr.Options
         public int vSync;
         public int fpsLimit;
         public float masterVolume = 1f;
+        public float sfxVolume = 1f;
+        public float musicVolume = 1f;
+        public float uiVolume = 1f;
+        public float ambientVolume = 1f;
         public bool showFps;
         public bool pauseInMenu = true;
+        public int palette;
+        public int customR = 71;
+        public int customG = 216;
+        public int customB = 227;
 
         public OptionsData Copy()
         {
@@ -27,11 +36,12 @@ namespace PiedrasIncr.Options
 
     public static class PiedrasOptionsService
     {
-        private const int Version = 2;
+        private const int Version = 4;
         private static readonly int[] FpsChoices = { -1, 30, 60, 90, 120, 144, 165, 240 };
         private static OptionsData defaults;
         private static OptionsData current;
         private static bool initialized;
+        private static bool audioReady;
 
         public static event Action<OptionsData> Changed;
         public static IReadOnlyList<int> FpsOptions => FpsChoices;
@@ -67,6 +77,7 @@ namespace PiedrasIncr.Options
         private static void Bootstrap()
         {
             initialized = false;
+            audioReady = false;
             Changed = null;
             Initialize();
         }
@@ -104,6 +115,20 @@ namespace PiedrasIncr.Options
                     loaded.showFps = false;
                     loaded.pauseInMenu = true;
                 }
+                if (loaded.version < 3)
+                {
+                    loaded.sfxVolume = AudioManager.GetBusVolume(AudioBus.SFX);
+                    loaded.musicVolume = AudioManager.GetBusVolume(AudioBus.Musica);
+                    loaded.uiVolume = AudioManager.GetBusVolume(AudioBus.UI);
+                    loaded.ambientVolume = AudioManager.GetBusVolume(AudioBus.Ambiente);
+                }
+                if (loaded.version < 4)
+                {
+                    loaded.palette = 0;
+                    loaded.customR = 71;
+                    loaded.customG = 216;
+                    loaded.customB = 227;
+                }
                 loaded.version = Version;
                 return loaded;
             }
@@ -125,9 +150,17 @@ namespace PiedrasIncr.Options
             result.windowMode = Mathf.Clamp(result.windowMode, 0, 1);
             result.quality = Mathf.Clamp(result.quality, 0, Mathf.Max(0, QualitySettings.names.Length - 1));
             result.vSync = Mathf.Clamp(result.vSync, 0, 2);
+            result.palette = Mathf.Clamp(result.palette, 0, 5);
+            result.customR = Mathf.Clamp(result.customR, 0, 255);
+            result.customG = Mathf.Clamp(result.customG, 0, 255);
+            result.customB = Mathf.Clamp(result.customB, 0, 255);
             if (float.IsNaN(result.masterVolume) || float.IsInfinity(result.masterVolume))
                 result.masterVolume = defaults.masterVolume;
             result.masterVolume = Mathf.Clamp01(result.masterVolume);
+            result.sfxVolume = SafeVolume(result.sfxVolume);
+            result.musicVolume = SafeVolume(result.musicVolume);
+            result.uiVolume = SafeVolume(result.uiVolume);
+            result.ambientVolume = SafeVolume(result.ambientVolume);
 
             if (Array.IndexOf(FpsChoices, result.fpsLimit) < 0)
                 result.fpsLimit = defaults.fpsLimit;
@@ -139,6 +172,29 @@ namespace PiedrasIncr.Options
             }
 
             return result;
+        }
+
+        private static float SafeVolume(float value)
+        {
+            return float.IsNaN(value) || float.IsInfinity(value) ? 1f : Mathf.Clamp01(value);
+        }
+
+        public static void ActivateAudio()
+        {
+            Initialize();
+            audioReady = true;
+            PreviewAudio(current);
+        }
+
+        public static void PreviewAudio(OptionsData data)
+        {
+            if (data == null) return;
+            AudioListener.volume = SafeVolume(data.masterVolume);
+            AudioManager.SetMasterVolume(1f);
+            AudioManager.SetBusVolume(AudioBus.SFX, SafeVolume(data.sfxVolume));
+            AudioManager.SetBusVolume(AudioBus.Musica, SafeVolume(data.musicVolume));
+            AudioManager.SetBusVolume(AudioBus.UI, SafeVolume(data.uiVolume));
+            AudioManager.SetBusVolume(AudioBus.Ambiente, SafeVolume(data.ambientVolume));
         }
 
         private static void InitializeIfNeeded()
@@ -154,6 +210,8 @@ namespace PiedrasIncr.Options
             QualitySettings.vSyncCount = valid.vSync;
             Application.targetFrameRate = valid.fpsLimit;
             AudioListener.volume = valid.masterVolume;
+            if (audioReady)
+                PreviewAudio(valid);
 #if !UNITY_EDITOR
             if (applyDisplay)
             {
@@ -204,6 +262,8 @@ namespace PiedrasIncr.Options
                 }
 
                 current = valid.Copy();
+                PreviewAudio(current);
+                PlayerPrefs.Save();
                 Changed?.Invoke(current.Copy());
                 return true;
             }
@@ -228,6 +288,19 @@ namespace PiedrasIncr.Options
             File.Copy(path, backup, true);
             File.Copy(temporary, path, true);
             File.Delete(temporary);
+        }
+
+        public static Color GetAccent(OptionsData data)
+        {
+            switch (data == null ? 0 : Mathf.Clamp(data.palette, 0, 5))
+            {
+                case 1: return new Color32(255, 190, 86, 255);
+                case 2: return new Color32(203, 139, 250, 255);
+                case 3: return new Color32(90, 220, 166, 255);
+                case 4: return new Color32(255, 126, 119, 255);
+                case 5: return new Color32((byte)Mathf.Clamp(data.customR, 0, 255), (byte)Mathf.Clamp(data.customG, 0, 255), (byte)Mathf.Clamp(data.customB, 0, 255), 255);
+                default: return new Color32(71, 216, 227, 255);
+            }
         }
 
         public static List<Vector2Int> GetResolutions()
@@ -267,8 +340,16 @@ namespace PiedrasIncr.Options
                 vSync = Mathf.Clamp(QualitySettings.vSyncCount, 0, 2),
                 fpsLimit = fps,
                 masterVolume = AudioListener.volume,
+                sfxVolume = AudioManager.GetBusVolume(AudioBus.SFX),
+                musicVolume = AudioManager.GetBusVolume(AudioBus.Musica),
+                uiVolume = AudioManager.GetBusVolume(AudioBus.UI),
+                ambientVolume = AudioManager.GetBusVolume(AudioBus.Ambiente),
                 showFps = false,
-                pauseInMenu = true
+                pauseInMenu = true,
+                palette = 0,
+                customR = 71,
+                customG = 216,
+                customB = 227
             };
         }
     }

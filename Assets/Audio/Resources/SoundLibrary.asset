@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96506607f7a6bd44aad1b3319e201e93, type: 3}
   m_Name: SoundLibrary
   m_EditorClassIdentifier: Assembly-CSharp::PiedrasIncr.Audio.SoundLibrary
+  mixer: {fileID: 24100000, guid: 3c0c43fb9c7445546bbe1e9a9e5619a1, type: 2}
+  grupoSFX: {fileID: 7606925738234987897, guid: 3c0c43fb9c7445546bbe1e9a9e5619a1, type: 2}
+  grupoUI: {fileID: 3406564229145733616, guid: 3c0c43fb9c7445546bbe1e9a9e5619a1, type: 2}
+  grupoMusica: {fileID: -1612876852462266860, guid: 3c0c43fb9c7445546bbe1e9a9e5619a1, type: 2}
+  grupoAmbiente: {fileID: 2865983209756252701, guid: 3c0c43fb9c7445546bbe1e9a9e5619a1, type: 2}
   sonidos:
   - nombre: Patada
     clips:
