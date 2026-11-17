@@ -70,9 +70,13 @@ namespace PiedrasIncr.Options
         private readonly List<Vector2Int> resolutions = new List<Vector2Int>();
         private readonly List<Behaviour> suspended = new List<Behaviour>();
         private static readonly HashSet<string> BlockedGameplayScripts = new HashSet<string>
-        {
-            "SistemaPatada", "GolpeadorCentroPantalla", "ArmaLanzadora", "ThirdPersonSwordCamera"
-        };
+{
+    "SistemaPatada",
+    "GolpeadorCentroPantalla",
+    "ArmaLanzadora",
+    "ThirdPersonSwordCamera",
+    "CamaraPrimeraPersona"
+};
 
         private OptionsData draft;
         private OptionsData beforeDisplay;
@@ -93,6 +97,10 @@ namespace PiedrasIncr.Options
         private void Awake()
         {
             PiedrasOptionsService.Initialize();
+            Transform estadoSistema = transform.Find("Overlay/PanelPrincipal/Cabecera/EstadoSistema");
+
+            if (estadoSistema != null)
+                estadoSistema.gameObject.SetActive(false);
             if (overlay != null)
                 overlay.SetActive(false);
             if (confirmationPanel != null)

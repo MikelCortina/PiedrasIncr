@@ -225,8 +225,6 @@ namespace PiedrasIncr.Options.Editor
             Button closeTop = ButtonOf("CerrarCabecera", header.transform, "X", ColorOf(35, 60, 74), Bright,
                 new Vector2(0.925f, 0.29f), new Vector2(0.976f, 0.75f));
             menu.closeTopButton = closeTop;
-            Label("EstadoSistema", header.transform, "TU EXPERIENCIA", 17, Accent, TextAlignmentOptions.MidlineRight,
-                new Vector2(0.70f, 0.65f), new Vector2(0.91f, 0.94f));
 
             Image sidebar = Block("Navegacion", shell.transform, Side);
             Stretch(sidebar.rectTransform, new Vector2(0.019f, 0.123f), new Vector2(0.257f, 0.816f));
