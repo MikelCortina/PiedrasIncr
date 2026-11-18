@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb36481e51009c4459fe9f23d1ad4673, type: 3}
+  m_Name: botro_demo_avanzado
+  m_EditorClassIdentifier: Assembly-CSharp::PiedrasIncr.Dialogue.DialogueConversation
+  id: botro_demo_avanzado
+  title: DEMO - Progreso avanzado
+  character: {fileID: 11400000, guid: 2f46d1b845745394ca1f70eeb29f9b08, type: 2}
+  priority: 30
+  draft: 0
+  startId: 4a65dbc4c4f54e7c9e6650c17dde1b8d
+  conditions:
+    logic: 0
+    not: 0
+    conditions:
+    - type: 4
+      not: 0
+      amount: 0
+    - type: 0
+      not: 0
+      amount: 50
+  nodes:
+  - id: 4a65dbc4c4f54e7c9e6650c17dde1b8d
+    type: 0
+    speaker: 0
+    text: "\xA1Oye! Ya tienes la procesadora desbloqueada y al menos 50 monedas.
+      Vas progresando r\xE1pido."
+    pending: 0
+    nextId: f57d39b28f584160b77af06782d9c268
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 100, y: 100}
+  - id: f57d39b28f584160b77af06782d9c268
+    type: 2
+    speaker: 0
+    text: 
+    pending: 0
+    nextId: 
+    trueId: a3a6a142e84f4696b459e36cc163dd67
+    falseId: 8a89d66374a6402e940aabb73efaf024
+    conditions:
+      logic: 0
+      not: 0
+      conditions:
+      - type: 1
+        not: 1
+        amount: 0
+    choices: []
+    graphPosition: {x: 400, y: 100}
+  - id: a3a6a142e84f4696b459e36cc163dd67
+    type: 0
+    speaker: 0
+    text: "Eso s\xED, todav\xEDa no tienes el martillo. Cuando lo desbloquees podr\xE1s
+      utilizar el modo construcci\xF3n."
+    pending: 0
+    nextId: 0ad6cd6fbc7a4b80a53cda5fef744454
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 700, y: 50}
+  - id: 8a89d66374a6402e940aabb73efaf024
+    type: 0
+    speaker: 0
+    text: "\xA1Y encima tienes el martillo! Ya puedes aprovechar el modo construcci\xF3n."
+    pending: 0
+    nextId: 0ad6cd6fbc7a4b80a53cda5fef744454
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 700, y: 250}
+  - id: 0ad6cd6fbc7a4b80a53cda5fef744454
+    type: 3
+    speaker: 0
+    text: 
+    pending: 0
+    nextId: 
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 1000, y: 150}
