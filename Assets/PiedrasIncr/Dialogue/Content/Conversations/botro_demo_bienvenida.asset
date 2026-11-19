@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb36481e51009c4459fe9f23d1ad4673, type: 3}
+  m_Name: botro_demo_bienvenida
+  m_EditorClassIdentifier: Assembly-CSharp::PiedrasIncr.Dialogue.DialogueConversation
+  id: botro_demo_bienvenida
+  title: DEMO - Bienvenida
+  character: {fileID: 11400000, guid: 2f46d1b845745394ca1f70eeb29f9b08, type: 2}
+  priority: 0
+  draft: 0
+  startId: ff6d416d2cf14032a7c59ac7f4d9cfda
+  conditions:
+    logic: 0
+    not: 0
+    conditions: []
+  nodes:
+  - id: ff6d416d2cf14032a7c59ac7f4d9cfda
+    type: 0
+    speaker: 0
+    text: "\xA1Eh, t\xFA! S\xED, t\xFA. Soy Botro. \xBFAcabas de aterrizar o llevas
+      un rato dando vueltas?"
+    pending: 0
+    nextId: 9fe4ba4610984c2ead5f0ccc970f89e3
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 100, y: 100}
+  - id: 9fe4ba4610984c2ead5f0ccc970f89e3
+    type: 1
+    speaker: 0
+    text: "\xBFQu\xE9 quieres saber?"
+    pending: 0
+    nextId: 
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices:
+    - text: "\xBFPara qu\xE9 sirven las monedas?"
+      nextId: 4bb7ccd439844924b49cf23071e1b1dc
+    - text: "Nada, solo quer\xEDa saludar."
+      nextId: a4da557959034495a5c601e5fbd3bbeb
+    graphPosition: {x: 400, y: 100}
+  - id: 4bb7ccd439844924b49cf23071e1b1dc
+    type: 0
+    speaker: 0
+    text: Las monedas sirven para conseguir mejoras. Echa un vistazo a la tienda
+      y sigue explorando.
+    pending: 0
+    nextId: 3c9e4a372fd14cea93d980ea4de6610e
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 700, y: 50}
+  - id: a4da557959034495a5c601e5fbd3bbeb
+    type: 0
+    speaker: 0
+    text: "Perfecto. Si necesitas algo, ya sabes d\xF3nde encontrarme."
+    pending: 0
+    nextId: 3c9e4a372fd14cea93d980ea4de6610e
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 700, y: 250}
+  - id: 3c9e4a372fd14cea93d980ea4de6610e
+    type: 3
+    speaker: 0
+    text: 
+    pending: 0
+    nextId: 
+    trueId: 
+    falseId: 
+    conditions:
+      logic: 0
+      not: 0
+      conditions: []
+    choices: []
+    graphPosition: {x: 1000, y: 150}
