@@ -220,7 +220,10 @@ public class SistemaPatada : MonoBehaviour
 
             DeformacionPiedra scriptPiedra = rbPiedra.GetComponent<DeformacionPiedra>();
             if (scriptPiedra != null)
+            {
                 scriptPiedra.Despertar();
+                scriptPiedra.Desgaste.AplicarGolpePatada();
+            }
 
             Vector3 dirCamara = camaraTrans.forward;
             float anguloCamara = Mathf.Asin(Mathf.Clamp(dirCamara.y, -1f, 1f)) * Mathf.Rad2Deg;

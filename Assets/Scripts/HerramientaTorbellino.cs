@@ -149,6 +149,27 @@ public class HerramientaTorbellino : MonoBehaviour
     public Vector3 NormalTorbellino => normalActualTorbellino;
     public bool TorbellinoActivo => torbellinoActivo;
 
+    [Header("Mejora - Nivel del Excel (EconomiaDemo)")]
+    [Tooltip("Si está activo, el torbellino lleva como máximo tantas piedras como su nivel (1-5).")]
+    public bool limitarPiedrasPorNivel = true;
+    [SerializeField, Range(1, 5)] private int nivelCapacidad = 1;
+    public int NivelCapacidad => nivelCapacidad;
+    public int MaximoPiedras => limitarPiedrasPorNivel ? nivelCapacidad : int.MaxValue;
+    public bool CapacidadAlMaximo() => nivelCapacidad >= 5;
+
+    public bool MejorarCapacidad()
+    {
+        if (nivelCapacidad >= 5) return false;
+        nivelCapacidad++;
+        EstablecerNivelRadio(Mathf.Min(nivelCapacidad, 4));
+        return true;
+    }
+
+    public void RestaurarNivelCapacidad(int nivel)
+    {
+        nivelCapacidad = Mathf.Clamp(nivel, 1, 5);
+    }
+
     private Camera camaraPrincipal;
 
     private bool torbellinoActivo = false;
@@ -578,7 +599,7 @@ public class HerramientaTorbellino : MonoBehaviour
             if (col.CompareTag(tagPiedra))
             {
                 Rigidbody rb = col.GetComponent<Rigidbody>();
-                if (rb != null && !piedrasAtrapadas.Contains(rb))
+                if (rb != null && !piedrasAtrapadas.Contains(rb) && piedrasAtrapadas.Count < MaximoPiedras)
                 {
                     piedrasAtrapadas.Add(rb);
 
@@ -598,6 +619,9 @@ public class HerramientaTorbellino : MonoBehaviour
 
         foreach (Rigidbody rb in piedrasAtrapadas)
         {
+            DesgastePiedra desgaste = rb.GetComponent<DesgastePiedra>();
+            if (desgaste != null) desgaste.AplicarTorbellino(Time.fixedDeltaTime);
+
             Vector3 posicionPlana = new Vector3(rb.position.x, 0f, rb.position.z);
             Vector3 centroPlano = new Vector3(centroTorbellino.x, 0f, centroTorbellino.z);
 

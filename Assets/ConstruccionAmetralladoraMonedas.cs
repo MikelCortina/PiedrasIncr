@@ -156,10 +156,21 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
     public bool NivelMaximo => construida && nivelActual >= 3;
     public int MonedasAportadas => monedasAportadas;
 
+    [Header("Economía demo v2")]
+    [Tooltip("Precios y efectos por nivel de EconomiaDemo (Excel: ArmaLunar). Si el nivel 1 cuesta 0, se construye sola al empezar.")]
+    public bool usarEconomiaDemo = true;
+    public const string IdEconomia = EconomiaDemo.Ids.ArmaLunar;
+
     public int PrecioActual
     {
         get
         {
+            if (usarEconomiaDemo)
+            {
+                if (!construida) return ProveedorEconomia.Actual.Coste(IdEconomia, 1);
+                if (nivelActual < 3) return ProveedorEconomia.Actual.Coste(IdEconomia, nivelActual + 1);
+                return 0;
+            }
             if (!construida) return Mathf.Max(1, precioConstruccion);
             if (nivelActual == 1) return Mathf.Max(1, precioNivel2);
             if (nivelActual == 2) return Mathf.Max(1, precioNivel3);
@@ -400,7 +411,10 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
     private void CompletarEtapa()
     {
+        int costePagado = PrecioActual;
+        int nivelComprado = construida ? nivelActual + 1 : 1;
         monedasAportadas = 0;
+        if (nivelComprado <= 3) EventosEconomia.NotificarCompra(IdEconomia, nivelComprado, costePagado);
         if (!construida)
         {
             construida = true;
@@ -459,6 +473,15 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
         if (!construida || ametralladora == null) return;
         EstadisticasNivel stats = nivelActual == 1 ? nivel1 : nivelActual == 2 ? nivel2 : nivel3;
         if (stats == null) return;
+
+        if (usarEconomiaDemo)
+        {
+            ametralladora.cadenciaDisparo = Mathf.Max(0.01f, ProveedorEconomia.Actual.IntervaloArmaLunar(nivelActual));
+            ametralladora.alcance = Mathf.Max(1f, stats.alcance);
+            ametralladora.velocidadGiro = Mathf.Max(0.01f, stats.velocidadGiro);
+            ametralladora.velocidadMaximaProyectil = Mathf.Max(1f, stats.velocidadMaximaProyectil);
+            return;
+        }
 
         ametralladora.cadenciaDisparo = Mathf.Max(0.01f, stats.cadenciaDisparo);
         ametralladora.alcance = Mathf.Max(1f, stats.alcance);

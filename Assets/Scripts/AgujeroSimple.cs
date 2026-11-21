@@ -23,7 +23,13 @@ public class AgujeroSimple : MonoBehaviour
     [Header("Conexión con la Pantalla")]
     public ContadorGasolinera contadorFuelo;
 
-    [Header("Recompensas (Tramos de Pureza)")]
+    [Header("Economía demo v2")]
+    [Tooltip("Excel v2: el agujero solo da gasolina. Actívalo para recuperar las monedas por tramos antiguas.")]
+    public bool darMonedasPorTramos = false;
+
+    public static event System.Action<AgujeroSimple, float, float> OnPiedraTragada;
+
+    [Header("Recompensas antiguas (solo si darMonedasPorTramos)")]
     public GameObject prefabDinero;
     public Transform puntoDeExpulsion;
 
@@ -65,6 +71,7 @@ public class AgujeroSimple : MonoBehaviour
 
     void Start()
     {
+        if (contadorFuelo == null) contadorFuelo = FindAnyObjectByType<ContadorGasolinera>();
         if (modeloVisual != null) escalaOriginal = modeloVisual.localScale;
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
@@ -100,23 +107,22 @@ public class AgujeroSimple : MonoBehaviour
         if (piedra == null) return;
 
         DeformacionPiedra scriptPiedra = piedra.GetComponentInParent<DeformacionPiedra>();
-        int cantidadMonedas = premioMalo;
+        int cantidadMonedas = 0;
         float pureza = 0f;
 
         bool esPiedraAceptable = false;
-        float incrementoCombustible = 0f; // Guardamos cuánto fuel va a dar, pero aún no lo sumamos
+        float incrementoCombustible = 0f;
 
         if (scriptPiedra != null)
         {
             pureza = scriptPiedra.ObtenerPorcentajeDesgasteHaciaEsfera();
-            cantidadMonedas = CalcularRecompensa(pureza);
+            if (darMonedasPorTramos) cantidadMonedas = CalcularRecompensa(pureza);
 
-            if (pureza >= umbralAceptable)
-            {
-                esPiedraAceptable = true;
-                incrementoCombustible = (pureza / 100f) * 0.1f; // Calculamos la cantidad
-            }
+            incrementoCombustible = ProveedorEconomia.Actual.GasolinaPorPiedra(pureza / 100f);
+            esPiedraAceptable = incrementoCombustible > 0f;
         }
+
+        if (OnPiedraTragada != null) OnPiedraTragada(this, pureza / 100f, incrementoCombustible);
 
         Destroy(piedra);
 
@@ -134,7 +140,7 @@ public class AgujeroSimple : MonoBehaviour
             else
             {
                 // Si por algún motivo no hay tuberías configuradas, sumamos el fuel directamente
-                if (contadorFuelo != null) contadorFuelo.AgregarFuelo(incrementoCombustible);
+                if (contadorFuelo != null) contadorFuelo.AgregarFraccion(incrementoCombustible);
             }
         }
 
@@ -175,7 +181,7 @@ public class AgujeroSimple : MonoBehaviour
         // --- NUEVO: Una vez que el bucle 'for' ha terminado (todas las tuberías han hecho su animación), sumamos el fuel ---
         if (contadorFuelo != null && fuelASumar > 0f)
         {
-            contadorFuelo.AgregarFuelo(fuelASumar);
+            contadorFuelo.AgregarFraccion(fuelASumar);
         }
     }
 

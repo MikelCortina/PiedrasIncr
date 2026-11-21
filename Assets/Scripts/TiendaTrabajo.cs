@@ -13,13 +13,41 @@ public class TiendaTrabajo : MonoBehaviour
     public Cartera cartera;
     public GestorEquipamiento gestorEquipamiento;
 
+    [Header("Economía demo v2")]
+    [Tooltip("Lee los precios de EconomiaDemo (Excel). El botón del Arma de la Luna compra y mejora el Fusil Monedas (1-5) y el de Radio sube el nivel del Torbellino (2-5).")]
+    public bool usarEconomiaDemo = true;
+
+    private EconomiaDemo Eco => ProveedorEconomia.Actual;
+
+    private int P(string id, int nivel, int respaldo)
+    {
+        return usarEconomiaDemo ? Eco.CosteOPorDefecto(id, nivel, respaldo) : respaldo;
+    }
+
+    private int Ep_precioBotasNivel1 => P(EconomiaDemo.Ids.Botas, 1, precioBotasNivel1);
+    private int Ep_precioBotasNivel2 => P(EconomiaDemo.Ids.Botas, 2, precioBotasNivel2);
+    private int Ep_precioBotasNivel3 => P(EconomiaDemo.Ids.Botas, 3, precioBotasNivel3);
+    private int Ep_precioJetpackNivel1 => P(EconomiaDemo.Ids.Jetpack, 1, precioJetpackNivel1);
+    private int Ep_precioJetpackNivel2 => P(EconomiaDemo.Ids.Jetpack, 2, precioJetpackNivel2);
+    private int Ep_precioJetpackNivel3 => P(EconomiaDemo.Ids.Jetpack, 3, precioJetpackNivel3);
+    private int Ep_precioJetpackNivel4 => P(EconomiaDemo.Ids.Jetpack, 4, precioJetpackNivel4);
+    private int Ep_precioTorbellino => P(EconomiaDemo.Ids.Torbellino, 1, precioTorbellino);
+    private int Ep_precioAlcanceNivel2 => P(EconomiaDemo.Ids.TorbellinoAlcance, 2, precioAlcanceNivel2);
+    private int Ep_precioAlcanceNivel3 => P(EconomiaDemo.Ids.TorbellinoAlcance, 3, precioAlcanceNivel3);
+    private int Ep_precioMovilidadNivel2 => P(EconomiaDemo.Ids.TorbellinoMovilidad, 2, precioMovilidadNivel2);
+    private int Ep_precioMovilidadNivel3 => P(EconomiaDemo.Ids.TorbellinoMovilidad, 3, precioMovilidadNivel3);
+    private int Ep_precioImanNivel2 => P(EconomiaDemo.Ids.ImanAlcance, 2, precioImanNivel2);
+    private int Ep_precioImanNivel3 => P(EconomiaDemo.Ids.ImanAlcance, 3, precioImanNivel3);
+    private int Ep_precioIman => P(EconomiaDemo.Ids.Iman, 1, precioIman);
+    private int Ep_precioMartillo => P(EconomiaDemo.Ids.Martillo, 1, precioMartillo);
+
     [Header("Botas de velocidad")]
     public MovimientoPersonaje movimientoPersonaje;
     public Button botonComprarBotas;
     public TextMeshProUGUI textoBotonBotas;
-    [Min(1)] public int precioBotasNivel1 = 5;
-    [Min(1)] public int precioBotasNivel2 = 10;
-    [Min(1)] public int precioBotasNivel3 = 20;
+    [HideInInspector] [Min(1)] public int precioBotasNivel1 = 5;
+    [HideInInspector] [Min(1)] public int precioBotasNivel2 = 10;
+    [HideInInspector] [Min(1)] public int precioBotasNivel3 = 20;
 
 
 
@@ -30,10 +58,10 @@ public class TiendaTrabajo : MonoBehaviour
     [Header("Jetpack")]
     public Button botonComprarJetpack;
     public TextMeshProUGUI textoBotonJetpack;
-    [Min(1)] public int precioJetpackNivel1 = 5;
-    [Min(1)] public int precioJetpackNivel2 = 10;
-    [Min(1)] public int precioJetpackNivel3 = 20;
-    [Min(1)] public int precioJetpackNivel4 = 40;
+    [HideInInspector] [Min(1)] public int precioJetpackNivel1 = 5;
+    [HideInInspector] [Min(1)] public int precioJetpackNivel2 = 10;
+    [HideInInspector] [Min(1)] public int precioJetpackNivel3 = 20;
+    [HideInInspector] [Min(1)] public int precioJetpackNivel4 = 40;
 
 
     [Header("Arma de la Luna")]
@@ -50,7 +78,7 @@ public class TiendaTrabajo : MonoBehaviour
 
     [Header("Torbellino - Compra")]
 
-    public int precioTorbellino = 1;
+    [HideInInspector] public int precioTorbellino = 1;
 
     public Button botonComprarTorbellino;
     public TextMeshProUGUI textoBotonTorbellino;
@@ -90,8 +118,8 @@ public class TiendaTrabajo : MonoBehaviour
     public Button botonMejorarAlcance;
     public TextMeshProUGUI textoBotonAlcance;
 
-    public int precioAlcanceNivel2 = 5;
-    public int precioAlcanceNivel3 = 10;
+    [HideInInspector] public int precioAlcanceNivel2 = 5;
+    [HideInInspector] public int precioAlcanceNivel3 = 10;
 
 
     // =====================================================
@@ -103,8 +131,8 @@ public class TiendaTrabajo : MonoBehaviour
     public Button botonMejorarMovilidad;
     public TextMeshProUGUI textoBotonMovilidad;
 
-    public int precioMovilidadNivel2 = 5;
-    public int precioMovilidadNivel3 = 10;
+    [HideInInspector] public int precioMovilidadNivel2 = 5;
+    [HideInInspector] public int precioMovilidadNivel3 = 10;
 
 
     // =====================================================
@@ -118,13 +146,13 @@ public class TiendaTrabajo : MonoBehaviour
     public Button botonMejorarIman;
     public TextMeshProUGUI textoBotonIman;
 
-    public int precioImanNivel2 = 5;
-    public int precioImanNivel3 = 10;
+    [HideInInspector] public int precioImanNivel2 = 5;
+    [HideInInspector] public int precioImanNivel3 = 10;
 
 
     [Header("Imán - Compra")]
 
-    public int precioIman = 3;
+    [HideInInspector] public int precioIman = 3;
 
     public Button botonComprarIman;
     public TextMeshProUGUI textoBotonComprarIman;
@@ -182,7 +210,7 @@ public class TiendaTrabajo : MonoBehaviour
 
     [Header("Martillo - Compra")]
 
-    public int precioMartillo = 10;
+    [HideInInspector] public int precioMartillo = 10;
 
     public Button botonComprarMartillo;
     public TextMeshProUGUI textoBotonMartillo;
@@ -373,6 +401,12 @@ public class TiendaTrabajo : MonoBehaviour
 
     public void ComprarArmaLuna()
     {
+        if (usarEconomiaDemo)
+        {
+            ComprarFusilDemo();
+            return;
+        }
+
         if (cartera == null ||
             gestorEquipamiento == null)
         {
@@ -401,6 +435,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         gestorEquipamiento
             .DesbloquearArmaLanzadora();
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, 1, precioArmaLuna);
 
 
         Debug.Log(
@@ -433,7 +470,7 @@ public class TiendaTrabajo : MonoBehaviour
 
 
         if (!cartera.GastarMonedas(
-                precioTorbellino))
+                Ep_precioTorbellino))
         {
             Debug.Log(
                 "No tienes monedas suficientes " +
@@ -446,6 +483,12 @@ public class TiendaTrabajo : MonoBehaviour
 
         gestorEquipamiento
             .DesbloquearTorbellino();
+
+
+        if (herramientaTorbellino != null) herramientaTorbellino.RestaurarNivelCapacidad(1);
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Torbellino, 1, Ep_precioTorbellino);
 
 
         Debug.Log(
@@ -463,6 +506,12 @@ public class TiendaTrabajo : MonoBehaviour
 
     public void ComprarMejoraRadioTorbellino()
     {
+        if (usarEconomiaDemo)
+        {
+            ComprarNivelTorbellinoDemo();
+            return;
+        }
+
         if (cartera == null ||
             gestorEquipamiento == null ||
             herramientaTorbellino == null)
@@ -592,14 +641,14 @@ public class TiendaTrabajo : MonoBehaviour
             .NivelAlcance == 1)
         {
             precio =
-                precioAlcanceNivel2;
+                Ep_precioAlcanceNivel2;
         }
         else if (
             herramientaTorbellino
                 .NivelAlcance == 2)
         {
             precio =
-                precioAlcanceNivel3;
+                Ep_precioAlcanceNivel3;
         }
         else
         {
@@ -621,6 +670,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         herramientaTorbellino
             .MejorarAlcance();
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.TorbellinoAlcance, herramientaTorbellino.NivelAlcance, precio);
 
 
         Debug.Log(
@@ -678,14 +730,14 @@ public class TiendaTrabajo : MonoBehaviour
             .NivelMovilidad == 1)
         {
             precio =
-                precioMovilidadNivel2;
+                Ep_precioMovilidadNivel2;
         }
         else if (
             herramientaTorbellino
                 .NivelMovilidad == 2)
         {
             precio =
-                precioMovilidadNivel3;
+                Ep_precioMovilidadNivel3;
         }
         else
         {
@@ -707,6 +759,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         herramientaTorbellino
             .MejorarMovilidad();
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.TorbellinoMovilidad, herramientaTorbellino.NivelMovilidad, precio);
 
 
         Debug.Log(
@@ -741,7 +796,7 @@ public class TiendaTrabajo : MonoBehaviour
 
 
         if (!cartera.GastarMonedas(
-                precioIman))
+                Ep_precioIman))
         {
             Debug.Log(
                 "No tienes monedas suficientes " +
@@ -754,6 +809,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         recolectorMagnetico
             .DesbloquearIman();
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Iman, 1, Ep_precioIman);
 
 
         Debug.Log(
@@ -807,14 +865,14 @@ public class TiendaTrabajo : MonoBehaviour
             .NivelAlcance == 1)
         {
             precio =
-                precioImanNivel2;
+                Ep_precioImanNivel2;
         }
         else if (
             recolectorMagnetico
                 .NivelAlcance == 2)
         {
             precio =
-                precioImanNivel3;
+                Ep_precioImanNivel3;
         }
         else
         {
@@ -836,6 +894,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         recolectorMagnetico
             .MejorarAlcance();
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.ImanAlcance, recolectorMagnetico.NivelAlcance, precio);
 
 
         Debug.Log(
@@ -972,7 +1033,7 @@ public class TiendaTrabajo : MonoBehaviour
 
 
         if (!cartera.GastarMonedas(
-                precioMartillo))
+                Ep_precioMartillo))
         {
             Debug.Log(
                 "No tienes monedas suficientes " +
@@ -985,6 +1046,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         gestorEquipamiento
             .DesbloquearMartillo();
+
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Martillo, 1, Ep_precioMartillo);
 
 
         Debug.Log(
@@ -1148,6 +1212,8 @@ public class TiendaTrabajo : MonoBehaviour
 
             return;
         }
+
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Bot, cantidadActual + 1, precio);
 
 
         // =================================================
@@ -1356,6 +1422,11 @@ public class TiendaTrabajo : MonoBehaviour
     private int ObtenerPrecioSiguienteBot(
         int cantidadActual)
     {
+        if (usarEconomiaDemo && Eco.Tiene(EconomiaDemo.Ids.Bot))
+        {
+            return Eco.CosteOPorDefecto(EconomiaDemo.Ids.Bot, cantidadActual + 1, precioBotFallback);
+        }
+
         if (preciosBots != null &&
             cantidadActual >= 0 &&
             cantidadActual <
@@ -1382,6 +1453,96 @@ public class TiendaTrabajo : MonoBehaviour
     // =====================================================
 
     private void ActualizarTienda()
+    {
+        ActualizarTiendaBase();
+        if (usarEconomiaDemo) ActualizarBotonesDemo();
+    }
+
+    private ArmaLanzadora FusilMonedas => gestorEquipamiento != null ? gestorEquipamiento.armaLanzadora : null;
+
+    private void ComprarFusilDemo()
+    {
+        if (cartera == null || gestorEquipamiento == null) return;
+        ArmaLanzadora fusil = FusilMonedas;
+
+        if (!gestorEquipamiento.ArmaLanzadoraDesbloqueada())
+        {
+            int coste = Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1);
+            if (!cartera.GastarMonedas(coste))
+            {
+                Debug.Log("No tienes monedas suficientes para el Fusil Monedas.");
+                return;
+            }
+            gestorEquipamiento.DesbloquearArmaLanzadora();
+            if (fusil != null) fusil.RestaurarNivelFusil(1);
+            EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, 1, coste);
+        }
+        else
+        {
+            if (fusil == null || fusil.NivelFusil >= Eco.NivelesMax(EconomiaDemo.Ids.FusilMonedas)) return;
+            int nivel = fusil.NivelFusil + 1;
+            int coste = Eco.Coste(EconomiaDemo.Ids.FusilMonedas, nivel);
+            if (!cartera.GastarMonedas(coste))
+            {
+                Debug.Log("No tienes monedas suficientes para mejorar el Fusil Monedas.");
+                return;
+            }
+            fusil.MejorarFusil();
+            EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, nivel, coste);
+        }
+
+        ActualizarTienda();
+    }
+
+    private void ComprarNivelTorbellinoDemo()
+    {
+        if (cartera == null || gestorEquipamiento == null || herramientaTorbellino == null) return;
+        if (!gestorEquipamiento.TorbellinoDesbloqueado() || herramientaTorbellino.CapacidadAlMaximo()) return;
+
+        int nivel = herramientaTorbellino.NivelCapacidad + 1;
+        int coste = Eco.Coste(EconomiaDemo.Ids.Torbellino, nivel);
+        if (!cartera.GastarMonedas(coste))
+        {
+            Debug.Log("No tienes monedas suficientes para mejorar el Torbellino.");
+            return;
+        }
+
+        herramientaTorbellino.MejorarCapacidad();
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Torbellino, nivel, coste);
+        ActualizarTienda();
+    }
+
+    private void ActualizarBotonesDemo()
+    {
+        if (gestorEquipamiento == null) return;
+
+        bool fusilComprado = gestorEquipamiento.ArmaLanzadoraDesbloqueada();
+        ArmaLanzadora fusil = FusilMonedas;
+        int nivelFusil = fusilComprado && fusil != null ? fusil.NivelFusil : 0;
+        bool fusilMaximo = fusilComprado && (fusil == null || nivelFusil >= Eco.NivelesMax(EconomiaDemo.Ids.FusilMonedas));
+        if (textoBotonArma != null)
+        {
+            if (!fusilComprado) textoBotonArma.text = "COMPRAR FUSIL MONEDAS - " + Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1) + " monedas";
+            else if (fusilMaximo) textoBotonArma.text = "FUSIL NIVEL MÁXIMO";
+            else textoBotonArma.text = "MEJORAR FUSIL NIVEL " + (nivelFusil + 1) + " - " + Eco.Coste(EconomiaDemo.Ids.FusilMonedas, nivelFusil + 1) + " monedas";
+        }
+        if (botonComprarArma != null) botonComprarArma.interactable = !fusilMaximo;
+
+        if (herramientaTorbellino != null && gestorEquipamiento.TorbellinoDesbloqueado())
+        {
+            int nivel = herramientaTorbellino.NivelCapacidad;
+            bool maximo = herramientaTorbellino.CapacidadAlMaximo();
+            if (textoBotonRadio != null)
+            {
+                textoBotonRadio.text = maximo
+                    ? "TORBELLINO NIVEL MÁXIMO (5 PIEDRAS)"
+                    : "MEJORAR TORBELLINO NIVEL " + (nivel + 1) + " (" + (nivel + 1) + " piedras) - " + Eco.Coste(EconomiaDemo.Ids.Torbellino, nivel + 1) + " monedas";
+            }
+            if (botonMejorarRadio != null) botonMejorarRadio.interactable = !maximo;
+        }
+    }
+
+    private void ActualizarTiendaBase()
     {
         ActualizarBotas();
         ActualizarJetpack();
@@ -1442,7 +1603,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonTorbellino.text =
                     "COMPRAR TORBELLINO - " +
-                    precioTorbellino +
+                    Ep_precioTorbellino +
                     " monedas";
             }
 
@@ -1482,7 +1643,7 @@ public class TiendaTrabajo : MonoBehaviour
                     martilloComprado
                     ? "COMPRADO"
                     : "COMPRAR MARTILLO - " +
-                      precioMartillo +
+                      Ep_precioMartillo +
                       " monedas";
             }
 
@@ -1531,7 +1692,7 @@ public class TiendaTrabajo : MonoBehaviour
                 {
                     textoBotonComprarIman.text =
                         "COMPRAR IMÁN - " +
-                        precioIman +
+                        Ep_precioIman +
                         " monedas";
                 }
             }
@@ -1718,7 +1879,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonAlcance.text =
                     "MEJORAR ALCANCE NIVEL 2 - " +
-                    precioAlcanceNivel2 +
+                    Ep_precioAlcanceNivel2 +
                     " monedas";
             }
 
@@ -1737,7 +1898,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonAlcance.text =
                     "MEJORAR ALCANCE NIVEL 3 - " +
-                    precioAlcanceNivel3 +
+                    Ep_precioAlcanceNivel3 +
                     " monedas";
             }
 
@@ -1776,7 +1937,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonMovilidad.text =
                     "MEJORAR MOVILIDAD NIVEL 2 - " +
-                    precioMovilidadNivel2 +
+                    Ep_precioMovilidadNivel2 +
                     " monedas";
             }
 
@@ -1796,7 +1957,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonMovilidad.text =
                     "MEJORAR MOVILIDAD NIVEL 3 - " +
-                    precioMovilidadNivel3 +
+                    Ep_precioMovilidadNivel3 +
                     " monedas";
             }
 
@@ -1844,7 +2005,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonIman.text =
                     "MEJORAR ALCANCE NIVEL 2 - " +
-                    precioImanNivel2 +
+                    Ep_precioImanNivel2 +
                     " monedas";
             }
 
@@ -1864,7 +2025,7 @@ public class TiendaTrabajo : MonoBehaviour
             {
                 textoBotonIman.text =
                     "MEJORAR ALCANCE NIVEL 3 - " +
-                    precioImanNivel3 +
+                    Ep_precioImanNivel3 +
                     " monedas";
             }
 
@@ -2136,8 +2297,8 @@ public class TiendaTrabajo : MonoBehaviour
         if (nivel >= 3)
             return;
 
-        int precio = nivel == 0 ? precioBotasNivel1 :
-                     nivel == 1 ? precioBotasNivel2 : precioBotasNivel3;
+        int precio = nivel == 0 ? Ep_precioBotasNivel1 :
+                     nivel == 1 ? Ep_precioBotasNivel2 : Ep_precioBotasNivel3;
 
         if (precio <= 0)
         {
@@ -2153,6 +2314,7 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
         movimientoPersonaje.MejorarBotas();
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Botas, movimientoPersonaje.NivelBotas, precio);
         ActualizarTienda();
     }
 
@@ -2168,8 +2330,8 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
         int nivel = movimientoPersonaje.NivelBotas;
-        int precio = nivel == 0 ? precioBotasNivel1 :
-                     nivel == 1 ? precioBotasNivel2 : precioBotasNivel3;
+        int precio = nivel == 0 ? Ep_precioBotasNivel1 :
+                     nivel == 1 ? Ep_precioBotasNivel2 : Ep_precioBotasNivel3;
 
         if (botonComprarBotas != null)
             botonComprarBotas.interactable = nivel < 3 && precio > 0 &&
@@ -2215,6 +2377,7 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
         movimientoPersonaje.MejorarJetpack();
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Jetpack, movimientoPersonaje.NivelJetpack, precio);
         ActualizarTienda();
     }
 
@@ -2222,10 +2385,10 @@ public class TiendaTrabajo : MonoBehaviour
     {
         switch (nivel)
         {
-            case 0: return precioJetpackNivel1;
-            case 1: return precioJetpackNivel2;
-            case 2: return precioJetpackNivel3;
-            case 3: return precioJetpackNivel4;
+            case 0: return Ep_precioJetpackNivel1;
+            case 1: return Ep_precioJetpackNivel2;
+            case 2: return Ep_precioJetpackNivel3;
+            case 3: return Ep_precioJetpackNivel4;
             default: return 0;
         }
     }

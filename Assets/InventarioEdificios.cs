@@ -23,6 +23,21 @@ public class InventarioEdificios : MonoBehaviour
 
         public int Unidades => unidades;
 
+        [SerializeField, Min(0)]
+        private int compradasTotal = 0;
+
+        public int CompradasTotal => compradasTotal;
+
+        internal void RegistrarCompra()
+        {
+            compradasTotal++;
+        }
+
+        internal void RestaurarCompradasTotal(int cantidad)
+        {
+            compradasTotal = Mathf.Max(0, cantidad);
+        }
+
         public void AjustarValores()
         {
             precioMonedas = Mathf.Max(1, precioMonedas);
@@ -68,6 +83,55 @@ public class InventarioEdificios : MonoBehaviour
 
     [Header("Cartera del jugador")]
     public Cartera cartera;
+
+    [Header("Economía demo v2")]
+    [Tooltip("Cintas (Rampa) y Paredes: la unidad k cuesta EconomiaDemo.Coste(id, k), hasta el máximo del Excel (10).")]
+    public bool usarEconomiaDemo = true;
+
+    public static string IdEconomia(SistemaConstruccion.TipoEdificio tipo)
+    {
+        switch (tipo)
+        {
+            case SistemaConstruccion.TipoEdificio.Rampa: return EconomiaDemo.Ids.Cinta;
+            case SistemaConstruccion.TipoEdificio.Pared: return EconomiaDemo.Ids.Pared;
+            default: return null;
+        }
+    }
+
+    private bool UsaEconomia(SistemaConstruccion.TipoEdificio tipo)
+    {
+        string id = IdEconomia(tipo);
+        return usarEconomiaDemo && id != null && ProveedorEconomia.Actual.Tiene(id);
+    }
+
+    public int PrecioSiguiente(SistemaConstruccion.TipoEdificio tipo)
+    {
+        Articulo a = Obtener(tipo);
+        if (a == null) return -1;
+        if (!UsaEconomia(tipo)) return a.precioMonedas;
+
+        string id = IdEconomia(tipo);
+        int k = a.CompradasTotal + 1;
+        if (k > ProveedorEconomia.Actual.NivelesMax(id)) return -1;
+        return ProveedorEconomia.Actual.Coste(id, k);
+    }
+
+    public bool Agotado(SistemaConstruccion.TipoEdificio tipo)
+    {
+        return Obtener(tipo) != null && PrecioSiguiente(tipo) < 0;
+    }
+
+    public int CompradasTotal(SistemaConstruccion.TipoEdificio tipo)
+    {
+        Articulo a = Obtener(tipo);
+        return a != null ? a.CompradasTotal : 0;
+    }
+
+    public void RestaurarCompradasTotal(SistemaConstruccion.TipoEdificio tipo, int cantidad)
+    {
+        Articulo a = Obtener(tipo);
+        if (a != null) a.RestaurarCompradasTotal(cantidad);
+    }
 
     [Header("Pruebas / tráiler")]
     [Tooltip("Se puede colocar cualquier estructura sin haberla comprado y sin gastar unidades.")]
@@ -206,16 +270,32 @@ public class InventarioEdificios : MonoBehaviour
             return false;
         }
 
-        if (!cartera.GastarMonedas(a.precioMonedas))
+        int precio = PrecioSiguiente(tipo);
+
+        if (precio < 0)
+        {
+            mensaje =
+                tipo + ": ya has comprado el máximo (" +
+                a.CompradasTotal + ").";
+
+            return false;
+        }
+
+        if (!cartera.GastarMonedas(precio))
         {
             mensaje =
                 "No tienes monedas suficientes. Cuesta " +
-                a.precioMonedas + ".";
+                precio + ".";
 
             return false;
         }
 
         a.Añadir();
+        a.RegistrarCompra();
+
+        string idEconomia = IdEconomia(tipo);
+        if (idEconomia != null)
+            EventosEconomia.NotificarCompra(idEconomia, a.CompradasTotal, precio);
 
         mensaje =
             "Comprado: " + tipo +

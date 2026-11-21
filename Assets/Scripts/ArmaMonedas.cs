@@ -82,6 +82,14 @@ public class ArmaLanzadora : MonoBehaviour
     [Header("Economía")]
     public Cartera cartera;
 
+    [Header("Mejora - Fusil Monedas (EconomiaDemo)")]
+    [SerializeField, Range(1, 5)] private int nivelFusil = 1;
+    [Tooltip("Por cada nivel por encima del 1, aspira y dispara este porcentaje más rápido.")]
+    [Range(0f, 1f)] public float mejoraVelocidadPorNivel = 0.15f;
+    public int NivelFusil => nivelFusil;
+    public float TasaRecogidaFragmentos => ProveedorEconomia.Actual.TasaRecogida(nivelFusil);
+    private float FactorVelocidadNivel => 1f + mejoraVelocidadPorNivel * (nivelFusil - 1);
+
     [Min(1)]
     public int costePorDisparo = 1;
 
@@ -223,6 +231,11 @@ public class ArmaLanzadora : MonoBehaviour
         {
             ControlarEmisionParticulasAspiradora(false);
             monedasAspiradas.Clear();
+            if (aspirandoFragmentos)
+            {
+                GestorFragmentos.Instancia.SoltarAtraidos();
+                aspirandoFragmentos = false;
+            }
         }
 
         if (armaEquipada && sonidoEquipar != null && audioSource != null)
@@ -231,9 +244,34 @@ public class ArmaLanzadora : MonoBehaviour
         }
     }
 
+    public bool MejorarFusil()
+    {
+        if (nivelFusil >= 5) return false;
+        nivelFusil++;
+        return true;
+    }
+
+    public void RestaurarNivelFusil(int nivel)
+    {
+        nivelFusil = Mathf.Clamp(nivel, 1, 5);
+    }
+
+    private bool aspirandoFragmentos;
+
     void ManejarAspiradora()
     {
         bool aspirando = Input.GetKey(teclaAspirar);
+
+        if (aspirando && puntoDisparo != null)
+        {
+            GestorFragmentos.Instancia.AspirarEnCono(puntoDisparo.position, puntoDisparo.forward, distanciaMaximaAspiracion, anguloAspiracion, velocidadAspiracion * FactorVelocidadNivel, TasaRecogidaFragmentos, distanciaRecoleccion + 0.05f);
+            aspirandoFragmentos = true;
+        }
+        else if (aspirandoFragmentos)
+        {
+            GestorFragmentos.Instancia.SoltarAtraidos();
+            aspirandoFragmentos = false;
+        }
 
         if (aspirando)
         {
@@ -334,7 +372,7 @@ public class ArmaLanzadora : MonoBehaviour
             // Mover hacia el cañón suavemente
             obj.transform.position = Vector3.MoveTowards(
                 obj.transform.position, puntoDisparo.position,
-                velocidadAspiracion * Time.deltaTime);
+                velocidadAspiracion * FactorVelocidadNivel * Time.deltaTime);
 
             // Girar locamente mientras vuelan
             Vector3 direccionVuelo = (puntoDisparo.position - obj.transform.position).normalized;
@@ -403,7 +441,7 @@ public class ArmaLanzadora : MonoBehaviour
     {
         if (Input.GetKey(teclaDisparo) && Time.time >= tiempoProximoDisparo)
         {
-            tiempoProximoDisparo = Time.time + cadenciaDisparo;
+            tiempoProximoDisparo = Time.time + cadenciaDisparo / FactorVelocidadNivel;
             Disparar();
         }
     }

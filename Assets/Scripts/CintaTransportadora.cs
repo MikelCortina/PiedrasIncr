@@ -5,6 +5,8 @@ public class CintaTransportadora : MonoBehaviour
 {
     [Header("Ajustes de la Cinta")]
     public float velocidad = 5f;
+    [Tooltip("Usa la velocidad de EconomiaDemo (hoja SIMULADOR: 1 m/s) en lugar del campo 'velocidad'.")]
+    public bool usarVelocidadEconomia = true;
     [Tooltip("Cambia esto (ej: X=1, o Y=1) si la flecha verde en la escena no apunta hacia adelante")]
     public Vector3 direccionLocal = Vector3.forward;
 
@@ -47,6 +49,7 @@ public class CintaTransportadora : MonoBehaviour
 
     void Start()
     {
+        if (usarVelocidadEconomia) velocidad = ProveedorEconomia.Actual.velocidadCinta;
         curva = GetComponentInParent<CurvaturaRampa>();
 
         // Una piedra apoyada en otra malla de la rampa también debe avanzar.

@@ -1,0 +1,3080 @@
+From 336b9fddbb448ed45a902155336c11db37b10294 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 21 Nov 2026 10:08:12 +0000
+Subject: [PATCH] =?UTF-8?q?Econom=C3=ADa=20demo=20v2:=20F0-F4=20(EconomiaD?=
+ =?UTF-8?q?emo,=20desgaste,=20fragmentos,=20gasolina,=20precios)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+F0: EconomiaDemo (ScriptableObject con los números del Excel), asset en
+Resources, ProveedorEconomia y test en Tools > PiedrasIncr > Economia.
+F1: DesgastePiedra (golpe de patada + metros rodando, torbellino 1,5 %/s,
+choques sin desgaste); la malla sigue el % de desgaste; cinta a 1 m/s.
+F2: EmisorFragmentos + GestorFragmentos (pooling, 40 por piedra, bonus de
+esfera perfecta, recogida a mano 60 % y con Fusil 70-100 % por nivel).
+F3: el agujero solo da gasolina (desgaste^2) y el contador muestra litros.
+F4: precios de TiendaTrabajo, diana, Arma Lunar, cintas y paredes desde
+EconomiaDemo; Fusil y Torbellino con niveles 1-5; OnCompraRealizada;
+UIProximoObjetivo ("te faltan X monedas").
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01QVBH3Ha7EnAKjMZKK69ag4
+---
+ Assets/ConstruccionAmetralladoraMonedas.cs    |  23 ++
+ Assets/ConstruccionDianaBloopMonedas.cs       |  28 ++
+ Assets/Editor/PiedrasIncrEconomiaDemoTests.cs | 123 ++++++
+ .../PiedrasIncrEconomiaDemoTests.cs.meta      |  11 +
+ Assets/InventarioEdificios.cs                 |  84 +++-
+ Assets/Materials/Led/ContadorGasolinera.cs    | 109 ++++-
+ Assets/Scripts/AgujeroSimple.cs               |  28 +-
+ Assets/Scripts/ArmaMonedas.cs                 |  42 +-
+ Assets/Scripts/CintaTransportadora.cs         |   3 +
+ Assets/Scripts/DeformacionPiedra.cs           | 116 +++---
+ Assets/Scripts/Economia.meta                  |   8 +
+ Assets/Scripts/Economia/DesgastePiedra.cs     | 179 +++++++++
+ .../Scripts/Economia/DesgastePiedra.cs.meta   |  11 +
+ Assets/Scripts/Economia/EconomiaDemo.cs       | 315 +++++++++++++++
+ Assets/Scripts/Economia/EconomiaDemo.cs.meta  |  11 +
+ Assets/Scripts/Economia/EmisorFragmentos.cs   |  70 ++++
+ .../Scripts/Economia/EmisorFragmentos.cs.meta |  11 +
+ Assets/Scripts/Economia/EventosEconomia.cs    |  17 +
+ .../Scripts/Economia/EventosEconomia.cs.meta  |  11 +
+ Assets/Scripts/Economia/GestorFragmentos.cs   | 376 ++++++++++++++++++
+ .../Scripts/Economia/GestorFragmentos.cs.meta |  11 +
+ Assets/Scripts/Economia/NivelesMejoras.cs     | 118 ++++++
+ .../Scripts/Economia/NivelesMejoras.cs.meta   |  11 +
+ Assets/Scripts/Economia/ProveedorEconomia.cs  |  73 ++++
+ .../Economia/ProveedorEconomia.cs.meta        |  11 +
+ Assets/Scripts/Economia/Resources.meta        |   8 +
+ .../Economia/Resources/EconomiaDemo.asset     |  14 +
+ .../Resources/EconomiaDemo.asset.meta         |   8 +
+ Assets/Scripts/Economia/UIProximoObjetivo.cs  |  64 +++
+ .../Economia/UIProximoObjetivo.cs.meta        |  11 +
+ Assets/Scripts/HerramientaTorbellino.cs       |  26 +-
+ Assets/Scripts/SistemaPatada.cs               |   3 +
+ Assets/Scripts/TiendaTrabajo.cs               | 247 ++++++++++--
+ Assets/TiendaEdificiosTrigger.cs              |   8 +-
+ 34 files changed, 2061 insertions(+), 128 deletions(-)
+ create mode 100644 Assets/Editor/PiedrasIncrEconomiaDemoTests.cs
+ create mode 100644 Assets/Editor/PiedrasIncrEconomiaDemoTests.cs.meta
+ create mode 100644 Assets/Scripts/Economia.meta
+ create mode 100644 Assets/Scripts/Economia/DesgastePiedra.cs
+ create mode 100644 Assets/Scripts/Economia/DesgastePiedra.cs.meta
+ create mode 100644 Assets/Scripts/Economia/EconomiaDemo.cs
+ create mode 100644 Assets/Scripts/Economia/EconomiaDemo.cs.meta
+ create mode 100644 Assets/Scripts/Economia/EmisorFragmentos.cs
+ create mode 100644 Assets/Scripts/Economia/EmisorFragmentos.cs.meta
+ create mode 100644 Assets/Scripts/Economia/EventosEconomia.cs
+ create mode 100644 Assets/Scripts/Economia/EventosEconomia.cs.meta
+ create mode 100644 Assets/Scripts/Economia/GestorFragmentos.cs
+ create mode 100644 Assets/Scripts/Economia/GestorFragmentos.cs.meta
+ create mode 100644 Assets/Scripts/Economia/NivelesMejoras.cs
+ create mode 100644 Assets/Scripts/Economia/NivelesMejoras.cs.meta
+ create mode 100644 Assets/Scripts/Economia/ProveedorEconomia.cs
+ create mode 100644 Assets/Scripts/Economia/ProveedorEconomia.cs.meta
+ create mode 100644 Assets/Scripts/Economia/Resources.meta
+ create mode 100644 Assets/Scripts/Economia/Resources/EconomiaDemo.asset
+ create mode 100644 Assets/Scripts/Economia/Resources/EconomiaDemo.asset.meta
+ create mode 100644 Assets/Scripts/Economia/UIProximoObjetivo.cs
+ create mode 100644 Assets/Scripts/Economia/UIProximoObjetivo.cs.meta
+
+diff --git a/Assets/ConstruccionAmetralladoraMonedas.cs b/Assets/ConstruccionAmetralladoraMonedas.cs
+index 5479615..1655b01 100644
+--- a/Assets/ConstruccionAmetralladoraMonedas.cs
++++ b/Assets/ConstruccionAmetralladoraMonedas.cs
+@@ -156,10 +156,21 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
+     public bool NivelMaximo => construida && nivelActual >= 3;
+     public int MonedasAportadas => monedasAportadas;
+ 
++    [Header("Economía demo v2")]
++    [Tooltip("Precios y efectos por nivel de EconomiaDemo (Excel: ArmaLunar). Si el nivel 1 cuesta 0, se construye sola al empezar.")]
++    public bool usarEconomiaDemo = true;
++    public const string IdEconomia = EconomiaDemo.Ids.ArmaLunar;
++
+     public int PrecioActual
+     {
+         get
+         {
++            if (usarEconomiaDemo)
++            {
++                if (!construida) return ProveedorEconomia.Actual.Coste(IdEconomia, 1);
++                if (nivelActual < 3) return ProveedorEconomia.Actual.Coste(IdEconomia, nivelActual + 1);
++                return 0;
++            }
+             if (!construida) return Mathf.Max(1, precioConstruccion);
+             if (nivelActual == 1) return Mathf.Max(1, precioNivel2);
+             if (nivelActual == 2) return Mathf.Max(1, precioNivel3);
+@@ -400,7 +411,10 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
+ 
+     private void CompletarEtapa()
+     {
++        int costePagado = PrecioActual;
++        int nivelComprado = construida ? nivelActual + 1 : 1;
+         monedasAportadas = 0;
++        if (nivelComprado <= 3) EventosEconomia.NotificarCompra(IdEconomia, nivelComprado, costePagado);
+         if (!construida)
+         {
+             construida = true;
+@@ -460,6 +474,15 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
+         EstadisticasNivel stats = nivelActual == 1 ? nivel1 : nivelActual == 2 ? nivel2 : nivel3;
+         if (stats == null) return;
+ 
++        if (usarEconomiaDemo)
++        {
++            ametralladora.cadenciaDisparo = Mathf.Max(0.01f, ProveedorEconomia.Actual.IntervaloArmaLunar(nivelActual));
++            ametralladora.alcance = Mathf.Max(1f, stats.alcance);
++            ametralladora.velocidadGiro = Mathf.Max(0.01f, stats.velocidadGiro);
++            ametralladora.velocidadMaximaProyectil = Mathf.Max(1f, stats.velocidadMaximaProyectil);
++            return;
++        }
++
+         ametralladora.cadenciaDisparo = Mathf.Max(0.01f, stats.cadenciaDisparo);
+         ametralladora.alcance = Mathf.Max(1f, stats.alcance);
+         ametralladora.velocidadGiro = Mathf.Max(0.01f, stats.velocidadGiro);
+diff --git a/Assets/ConstruccionDianaBloopMonedas.cs b/Assets/ConstruccionDianaBloopMonedas.cs
+index 8cce3a6..0616640 100644
+--- a/Assets/ConstruccionDianaBloopMonedas.cs
++++ b/Assets/ConstruccionDianaBloopMonedas.cs
+@@ -147,10 +147,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
+     public bool NivelMaximo => construida && nivelActual >= 3;
+     public int MonedasAportadas => monedasAportadas;
+ 
++    [Header("Economía demo v2")]
++    [Tooltip("Precios y efectos por nivel de EconomiaDemo (Excel: Lanzapiedras). Si el nivel 1 cuesta 0, se construye sola al empezar.")]
++    public bool usarEconomiaDemo = true;
++    public const string IdEconomia = EconomiaDemo.Ids.Lanzapiedras;
++
+     public int PrecioActual
+     {
+         get
+         {
++            if (usarEconomiaDemo)
++            {
++                if (!construida) return ProveedorEconomia.Actual.Coste(IdEconomia, 1);
++                if (nivelActual < 3) return ProveedorEconomia.Actual.Coste(IdEconomia, nivelActual + 1);
++                return 0;
++            }
+             if (!construida) return Mathf.Max(1, precioConstruccion);
+             if (nivelActual == 1) return Mathf.Max(1, precioNivel2);
+             if (nivelActual == 2) return Mathf.Max(1, precioNivel3);
+@@ -242,6 +253,13 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
+             rotacionOriginalAntena = antenaVisual.localRotation;
+         }
+ 
++        if (usarEconomiaDemo && !construida && PrecioActual <= 0)
++        {
++            construida = true;
++            nivelActual = 1;
++            monedasAportadas = 0;
++        }
++
+         if (construida) monedasAportadas = Mathf.Clamp(monedasAportadas, 0, PrecioActual);
+ 
+         // Inicializamos el valor de la pantalla
+@@ -405,7 +423,10 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
+ 
+     private void CompletarEtapa()
+     {
++        int costePagado = PrecioActual;
++        int nivelComprado = construida ? nivelActual + 1 : 1;
+         monedasAportadas = 0;
++        if (nivelComprado <= 3) EventosEconomia.NotificarCompra(IdEconomia, nivelComprado, costePagado);
+         if (!construida)
+         {
+             construida = true;
+@@ -486,6 +507,13 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
+         EstadisticasNivel stats = nivelActual == 1 ? nivel1 : nivelActual == 2 ? nivel2 : nivel3;
+         if (stats == null) return;
+ 
++        if (usarEconomiaDemo)
++        {
++            dianaBloop.tiempoCooldown = Mathf.Max(0.05f, ProveedorEconomia.Actual.EsperaLanzapiedras(nivelActual));
++            dianaBloop.piedrasPorActivacion = Mathf.Clamp(ProveedorEconomia.Actual.PiedrasPorGolpeLanzapiedras(nivelActual), 1, 3);
++            return;
++        }
++
+         dianaBloop.tiempoCooldown = Mathf.Max(0.05f, stats.tiempoCooldown);
+         dianaBloop.piedrasPorActivacion = Mathf.Clamp(stats.piedrasPorActivacion, 1, 3);
+     }
+diff --git a/Assets/Editor/PiedrasIncrEconomiaDemoTests.cs b/Assets/Editor/PiedrasIncrEconomiaDemoTests.cs
+new file mode 100644
+index 0000000..63a64d2
+--- /dev/null
++++ b/Assets/Editor/PiedrasIncrEconomiaDemoTests.cs
+@@ -0,0 +1,123 @@
++#if UNITY_EDITOR
++using System.Text;
++using UnityEditor;
++using UnityEngine;
++
++public static class PiedrasIncrEconomiaDemoTests
++{
++    private static readonly int[] Fusil = { 8, 14, 26, 47, 84 };
++    private static readonly int[] Torbellino = { 20, 38, 72, 137, 261 };
++    private static readonly int[] Lanzapiedras = { 0, 30, 75 };
++    private static readonly int[] ArmaLunar = { 90, 153, 260 };
++    private static readonly int[] Fisionador = { 300 };
++    private static readonly int[] MisilGrande = { 8 };
++    private static readonly int[] Cinta = { 40, 52, 68, 88, 114, 149, 193, 251, 326, 424 };
++    private static readonly int[] Pared = { 5, 7, 8, 11, 14, 19, 24, 31, 41, 53 };
++
++    [MenuItem("Tools/PiedrasIncr/Economia/Probar EconomiaDemo (precios del Excel)")]
++    public static void Run()
++    {
++        StringBuilder log = new StringBuilder();
++        int fallos = 0;
++
++        EconomiaDemo porDefecto = ScriptableObject.CreateInstance<EconomiaDemo>();
++        try
++        {
++            log.Append("== Valores por defecto (hojas SIMULADOR / MEJORAS / PROGRESION + extras actuales de la escena)\n");
++            fallos += Comprobar(porDefecto, log);
++        }
++        finally
++        {
++            Object.DestroyImmediate(porDefecto);
++        }
++
++        string[] guids = AssetDatabase.FindAssets("t:EconomiaDemo");
++        for (int i = 0; i < guids.Length; i++)
++        {
++            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
++            EconomiaDemo asset = AssetDatabase.LoadAssetAtPath<EconomiaDemo>(path);
++            if (asset == null) continue;
++            log.Append("\n== Asset ").Append(path).Append(" (si lo habéis ajustado en F11, aquí es normal que falle)\n");
++            fallos += Comprobar(asset, log);
++        }
++        if (guids.Length == 0) log.Append("\n(No hay ningún asset EconomiaDemo en el proyecto todavía.)\n");
++
++        string titulo = fallos == 0 ? "EconomiaDemo: todas las comprobaciones han pasado." : "EconomiaDemo: " + fallos + " comprobaciones han fallado.";
++        if (fallos == 0) Debug.Log(titulo + "\n\n" + log);
++        else Debug.LogError(titulo + "\n\n" + log);
++        EditorUtility.DisplayDialog("EconomiaDemo", titulo + "\n\nEl detalle está en la consola.", "Aceptar");
++    }
++
++    private static int Comprobar(EconomiaDemo e, StringBuilder log)
++    {
++        int fallos = 0;
++        fallos += Tabla(e, EconomiaDemo.Ids.FusilMonedas, Fusil, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Torbellino, Torbellino, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Lanzapiedras, Lanzapiedras, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.ArmaLunar, ArmaLunar, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Fisionador, Fisionador, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.MisilGrande, MisilGrande, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Cinta, Cinta, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Pared, Pared, log);
++
++        fallos += Check(e.PagaCon(EconomiaDemo.Ids.MisilGrande) == PagoMejora.EsferasPerfectas, "Misil grande se paga con esferas perfectas", log);
++        fallos += Check(e.PagaCon(EconomiaDemo.Ids.Fisionador) == PagoMejora.Monedas, "Fisionador se paga con monedas", log);
++        fallos += Check(e.FragmentosPorPiedra == 40, "40 fragmentos por piedra (" + e.FragmentosPorPiedra + ")", log);
++        fallos += Check(Cerca(e.FraccionALitros(e.GasolinaPorPiedra(0.5f)), 25f, 0.01f), "Piedra al 50 % → 25 L (" + e.FraccionALitros(e.GasolinaPorPiedra(0.5f)).ToString("0.###") + ")", log);
++        fallos += Check(Cerca(e.FraccionALitros(e.GasolinaPorPiedra(1f)), 100f, 0.01f), "Piedra al 100 % → 100 L (" + e.FraccionALitros(e.GasolinaPorPiedra(1f)).ToString("0.###") + ")", log);
++        fallos += Check(Cerca(e.EsperaLanzapiedras(1), 5f, 0.001f) && Cerca(e.EsperaLanzapiedras(2), 4f, 0.001f) && Cerca(e.EsperaLanzapiedras(3), 3f, 0.001f), "Lanzapiedras espera 5 / 4 / 3 s", log);
++        fallos += Check(e.PiedrasPorGolpeLanzapiedras(1) == 1 && e.PiedrasPorGolpeLanzapiedras(3) == 3, "Lanzapiedras: N piedras por golpe", log);
++        fallos += Check(Cerca(e.IntervaloArmaLunar(1), 30f, 0.01f) && Cerca(e.IntervaloArmaLunar(2), 24f, 0.01f) && Cerca(e.IntervaloArmaLunar(3), 19.2f, 0.01f), "Arma Lunar cada 30 / 24 / 19,2 s", log);
++        fallos += Check(Cerca(e.TasaRecogida(0), 0.6f, 0.0001f) && Cerca(e.TasaRecogida(1), 0.7f, 0.0001f) && Cerca(e.TasaRecogida(5), 1f, 0.0001f), "Recogida 60 % a mano, 70 %…100 % con Fusil", log);
++        fallos += Check(e.esferasParaMisil == 8, "8 esferas para el misil", log);
++
++        int total = 0;
++        int pasos = 0;
++        for (int i = 0; i < e.ordenCompras.Count; i++)
++        {
++            PasoCompra paso = e.ordenCompras[i];
++            pasos++;
++            if (e.PagaCon(paso.id) == PagoMejora.Monedas) total += e.Coste(paso.id, paso.nivel);
++        }
++        fallos += Check(pasos == 28 && total == 2106, "PROGRESION: " + pasos + " compras, " + total + " monedas (Excel: 28 compras, 2.106 monedas)", log);
++
++        fallos += Tabla(e, EconomiaDemo.Ids.Botas, new[] { 5, 10, 20 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Jetpack, new[] { 5, 10, 20, 40 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Iman, new[] { 3 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.ImanAlcance, new[] { 0, 5, 10 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.TorbellinoAlcance, new[] { 0, 5, 10 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.TorbellinoMovilidad, new[] { 0, 5, 10 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Martillo, new[] { 10 }, log);
++        fallos += Tabla(e, EconomiaDemo.Ids.Bot, new[] { 100, 150, 200, 250 }, log);
++        return fallos;
++    }
++
++    private static int Tabla(EconomiaDemo e, string id, int[] esperado, StringBuilder log)
++    {
++        int max = e.NivelesMax(id);
++        StringBuilder obtenido = new StringBuilder();
++        bool ok = max == esperado.Length;
++        for (int nivel = 1; nivel <= max; nivel++)
++        {
++            int coste = e.Coste(id, nivel);
++            if (nivel > 1) obtenido.Append('/');
++            obtenido.Append(coste);
++            if (nivel > esperado.Length || coste != esperado[nivel - 1]) ok = false;
++        }
++        StringBuilder esperadoTexto = new StringBuilder();
++        for (int i = 0; i < esperado.Length; i++) { if (i > 0) esperadoTexto.Append('/'); esperadoTexto.Append(esperado[i]); }
++        return Check(ok, id + ": " + obtenido + (ok ? string.Empty : "   (Excel: " + esperadoTexto + ")"), log);
++    }
++
++    private static bool Cerca(float a, float b, float margen)
++    {
++        return Mathf.Abs(a - b) <= margen;
++    }
++
++    private static int Check(bool ok, string texto, StringBuilder log)
++    {
++        log.Append(ok ? "[OK]    " : "[FALLO] ").Append(texto).Append('\n');
++        return ok ? 0 : 1;
++    }
++}
++#endif
+diff --git a/Assets/Editor/PiedrasIncrEconomiaDemoTests.cs.meta b/Assets/Editor/PiedrasIncrEconomiaDemoTests.cs.meta
+new file mode 100644
+index 0000000..dfb05c1
+--- /dev/null
++++ b/Assets/Editor/PiedrasIncrEconomiaDemoTests.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: 3d28e4e23060471d81d39604d0eb9b00
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/InventarioEdificios.cs b/Assets/InventarioEdificios.cs
+index 90bd83b..73fa820 100644
+--- a/Assets/InventarioEdificios.cs
++++ b/Assets/InventarioEdificios.cs
+@@ -23,6 +23,21 @@ public class InventarioEdificios : MonoBehaviour
+ 
+         public int Unidades => unidades;
+ 
++        [SerializeField, Min(0)]
++        private int compradasTotal = 0;
++
++        public int CompradasTotal => compradasTotal;
++
++        internal void RegistrarCompra()
++        {
++            compradasTotal++;
++        }
++
++        internal void RestaurarCompradasTotal(int cantidad)
++        {
++            compradasTotal = Mathf.Max(0, cantidad);
++        }
++
+         public void AjustarValores()
+         {
+             precioMonedas = Mathf.Max(1, precioMonedas);
+@@ -69,6 +84,55 @@ public class InventarioEdificios : MonoBehaviour
+     [Header("Cartera del jugador")]
+     public Cartera cartera;
+ 
++    [Header("Economía demo v2")]
++    [Tooltip("Cintas (Rampa) y Paredes: la unidad k cuesta EconomiaDemo.Coste(id, k), hasta el máximo del Excel (10).")]
++    public bool usarEconomiaDemo = true;
++
++    public static string IdEconomia(SistemaConstruccion.TipoEdificio tipo)
++    {
++        switch (tipo)
++        {
++            case SistemaConstruccion.TipoEdificio.Rampa: return EconomiaDemo.Ids.Cinta;
++            case SistemaConstruccion.TipoEdificio.Pared: return EconomiaDemo.Ids.Pared;
++            default: return null;
++        }
++    }
++
++    private bool UsaEconomia(SistemaConstruccion.TipoEdificio tipo)
++    {
++        string id = IdEconomia(tipo);
++        return usarEconomiaDemo && id != null && ProveedorEconomia.Actual.Tiene(id);
++    }
++
++    public int PrecioSiguiente(SistemaConstruccion.TipoEdificio tipo)
++    {
++        Articulo a = Obtener(tipo);
++        if (a == null) return -1;
++        if (!UsaEconomia(tipo)) return a.precioMonedas;
++
++        string id = IdEconomia(tipo);
++        int k = a.CompradasTotal + 1;
++        if (k > ProveedorEconomia.Actual.NivelesMax(id)) return -1;
++        return ProveedorEconomia.Actual.Coste(id, k);
++    }
++
++    public bool Agotado(SistemaConstruccion.TipoEdificio tipo)
++    {
++        return Obtener(tipo) != null && PrecioSiguiente(tipo) < 0;
++    }
++
++    public int CompradasTotal(SistemaConstruccion.TipoEdificio tipo)
++    {
++        Articulo a = Obtener(tipo);
++        return a != null ? a.CompradasTotal : 0;
++    }
++
++    public void RestaurarCompradasTotal(SistemaConstruccion.TipoEdificio tipo, int cantidad)
++    {
++        Articulo a = Obtener(tipo);
++        if (a != null) a.RestaurarCompradasTotal(cantidad);
++    }
++
+     [Header("Pruebas / tráiler")]
+     [Tooltip("Se puede colocar cualquier estructura sin haberla comprado y sin gastar unidades.")]
+     public bool construccionInfinita = false;
+@@ -206,16 +270,32 @@ public class InventarioEdificios : MonoBehaviour
+             return false;
+         }
+ 
+-        if (!cartera.GastarMonedas(a.precioMonedas))
++        int precio = PrecioSiguiente(tipo);
++
++        if (precio < 0)
++        {
++            mensaje =
++                tipo + ": ya has comprado el máximo (" +
++                a.CompradasTotal + ").";
++
++            return false;
++        }
++
++        if (!cartera.GastarMonedas(precio))
+         {
+             mensaje =
+                 "No tienes monedas suficientes. Cuesta " +
+-                a.precioMonedas + ".";
++                precio + ".";
+ 
+             return false;
+         }
+ 
+         a.Añadir();
++        a.RegistrarCompra();
++
++        string idEconomia = IdEconomia(tipo);
++        if (idEconomia != null)
++            EventosEconomia.NotificarCompra(idEconomia, a.CompradasTotal, precio);
+ 
+         mensaje =
+             "Comprado: " + tipo +
+diff --git a/Assets/Materials/Led/ContadorGasolinera.cs b/Assets/Materials/Led/ContadorGasolinera.cs
+index f940503..a158714 100644
+--- a/Assets/Materials/Led/ContadorGasolinera.cs
++++ b/Assets/Materials/Led/ContadorGasolinera.cs
+@@ -1,50 +1,115 @@
+-using UnityEngine;
++using System;
+ using TMPro;
++using UnityEngine;
+ 
+ public class ContadorGasolinera : MonoBehaviour
+ {
+     public TextMeshProUGUI textoLED;
++    [Tooltip("Opcional: texto aparte para el porcentaje pequeño. Si está vacío, va debajo de los litros en textoLED.")]
++    public TextMeshProUGUI textoPorcentaje;
++    [Tooltip("Opcional: texto del aviso animado \"+100 L\".")]
++    public TextMeshProUGUI textoIncremento;
++
++    [Header("Animación")]
++    [Tooltip("Litros por segundo que sube el contador en pantalla.")]
++    [Min(1f)] public float litrosPorSegundo = 120f;
++    [Min(0.1f)] public float duracionIncremento = 1.5f;
++    public float subidaIncremento = 40f;
+ 
+-    [Tooltip("Velocidad a la que sube el porcentaje visualmente por segundo")]
+-    public float velocidadAnimacion = 0.5f;
++    [Header("Obsoleto")]
++    [HideInInspector] public float velocidadAnimacion = 0.5f;
+ 
+-    // El combustible real que tenemos
+-    private float combustibleObjetivo = 0f;
++    public static event Action<float, float> OnGasolinaAnadida;
+ 
+-    // El combustible falso que usamos solo para la animación en pantalla
+-    private float combustibleMostrado = 0f;
++    private float fraccionObjetivo;
++    private float litrosMostrados;
++    private float tiempoIncremento = -1f;
++    private Vector3 posicionIncremento;
++
++    public float FraccionActual { get { return fraccionObjetivo; } }
++    public float LitrosActuales { get { return ProveedorEconomia.Actual.FraccionALitros(fraccionObjetivo); } }
+ 
+     void Start()
+     {
++        if (textoIncremento != null)
++        {
++            posicionIncremento = textoIncremento.rectTransform.anchoredPosition;
++            textoIncremento.gameObject.SetActive(false);
++        }
++        litrosMostrados = LitrosActuales;
+         ActualizarPantalla();
+     }
+ 
+     void Update()
+     {
+-        // Si el número de la pantalla aún no ha alcanzado al número real, lo subimos poco a poco
+-        if (combustibleMostrado != combustibleObjetivo)
++        float objetivo = LitrosActuales;
++        if (!Mathf.Approximately(litrosMostrados, objetivo))
+         {
+-            // Mathf.MoveTowards acerca el valor progresivamente sin pasarse
+-            combustibleMostrado = Mathf.MoveTowards(combustibleMostrado, combustibleObjetivo, velocidadAnimacion * Time.deltaTime);
++            float velocidad = Mathf.Max(litrosPorSegundo, Mathf.Abs(objetivo - litrosMostrados) * 2f);
++            litrosMostrados = Mathf.MoveTowards(litrosMostrados, objetivo, velocidad * Time.deltaTime);
+             ActualizarPantalla();
+         }
++
++        if (textoIncremento != null && tiempoIncremento >= 0f)
++        {
++            tiempoIncremento += Time.deltaTime;
++            float t = tiempoIncremento / duracionIncremento;
++            textoIncremento.rectTransform.anchoredPosition = posicionIncremento + Vector3.up * (subidaIncremento * t);
++            textoIncremento.alpha = 1f - t;
++            if (t >= 1f)
++            {
++                tiempoIncremento = -1f;
++                textoIncremento.gameObject.SetActive(false);
++            }
++        }
+     }
+ 
+-    // El agujero llama a esta función
+-    public void AgregarFuelo(float cantidad)
++    public void AgregarFraccion(float fraccion)
+     {
+-        // Sumamos al objetivo real, no al mostrado
+-        combustibleObjetivo += cantidad;
++        if (fraccion <= 0f) return;
++        fraccionObjetivo = Mathf.Clamp01(fraccionObjetivo + fraccion);
++        float litros = ProveedorEconomia.Actual.FraccionALitros(fraccion);
++        MostrarIncremento(litros);
++        if (OnGasolinaAnadida != null) OnGasolinaAnadida(fraccion, fraccionObjetivo);
++    }
+ 
+-        // Evitamos que el porcentaje pase de 100%
+-        if (combustibleObjetivo > 100f)
+-        {
+-            combustibleObjetivo = 100f;
+-        }
++    [Obsolete("Usa AgregarFraccion (fracción 0-1 del tanque).")]
++    public void AgregarFuelo(float cantidadPorcentaje)
++    {
++        AgregarFraccion(cantidadPorcentaje / 100f);
++    }
++
++    public void Restaurar(float fraccion)
++    {
++        fraccionObjetivo = Mathf.Clamp01(fraccion);
++        litrosMostrados = LitrosActuales;
++        ActualizarPantalla();
++    }
++
++    private void MostrarIncremento(float litros)
++    {
++        if (textoIncremento == null) return;
++        textoIncremento.text = "+" + litros.ToString(litros < 10f ? "0.0" : "0") + " L";
++        textoIncremento.alpha = 1f;
++        textoIncremento.rectTransform.anchoredPosition = posicionIncremento;
++        textoIncremento.gameObject.SetActive(true);
++        tiempoIncremento = 0f;
+     }
+ 
+     private void ActualizarPantalla()
+     {
+-        textoLED.text = "Fuel: " + combustibleMostrado.ToString("F2") + "%";
++        if (textoLED == null) return;
++        float porcentaje = ProveedorEconomia.Actual.tanqueLitrosVisual > 0f ? litrosMostrados / ProveedorEconomia.Actual.tanqueLitrosVisual * 100f : 0f;
++        string litros = litrosMostrados.ToString("N0") + " L";
++        string pct = porcentaje.ToString("0.000") + " %";
++        if (textoPorcentaje != null)
++        {
++            textoLED.text = litros;
++            textoPorcentaje.text = pct;
++        }
++        else
++        {
++            textoLED.text = litros + "\n<size=45%>" + pct + "</size>";
++        }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/Assets/Scripts/AgujeroSimple.cs b/Assets/Scripts/AgujeroSimple.cs
+index 2e85328..2a29d73 100644
+--- a/Assets/Scripts/AgujeroSimple.cs
++++ b/Assets/Scripts/AgujeroSimple.cs
+@@ -23,7 +23,13 @@ public class AgujeroSimple : MonoBehaviour
+     [Header("Conexión con la Pantalla")]
+     public ContadorGasolinera contadorFuelo;
+ 
+-    [Header("Recompensas (Tramos de Pureza)")]
++    [Header("Economía demo v2")]
++    [Tooltip("Excel v2: el agujero solo da gasolina. Actívalo para recuperar las monedas por tramos antiguas.")]
++    public bool darMonedasPorTramos = false;
++
++    public static event System.Action<AgujeroSimple, float, float> OnPiedraTragada;
++
++    [Header("Recompensas antiguas (solo si darMonedasPorTramos)")]
+     public GameObject prefabDinero;
+     public Transform puntoDeExpulsion;
+ 
+@@ -65,6 +71,7 @@ public class AgujeroSimple : MonoBehaviour
+ 
+     void Start()
+     {
++        if (contadorFuelo == null) contadorFuelo = FindAnyObjectByType<ContadorGasolinera>();
+         if (modeloVisual != null) escalaOriginal = modeloVisual.localScale;
+         if (audioSource == null) audioSource = GetComponent<AudioSource>();
+ 
+@@ -100,24 +107,23 @@ public class AgujeroSimple : MonoBehaviour
+         if (piedra == null) return;
+ 
+         DeformacionPiedra scriptPiedra = piedra.GetComponentInParent<DeformacionPiedra>();
+-        int cantidadMonedas = premioMalo;
++        int cantidadMonedas = 0;
+         float pureza = 0f;
+ 
+         bool esPiedraAceptable = false;
+-        float incrementoCombustible = 0f; // Guardamos cuánto fuel va a dar, pero aún no lo sumamos
++        float incrementoCombustible = 0f;
+ 
+         if (scriptPiedra != null)
+         {
+             pureza = scriptPiedra.ObtenerPorcentajeDesgasteHaciaEsfera();
+-            cantidadMonedas = CalcularRecompensa(pureza);
++            if (darMonedasPorTramos) cantidadMonedas = CalcularRecompensa(pureza);
+ 
+-            if (pureza >= umbralAceptable)
+-            {
+-                esPiedraAceptable = true;
+-                incrementoCombustible = (pureza / 100f) * 0.1f; // Calculamos la cantidad
+-            }
++            incrementoCombustible = ProveedorEconomia.Actual.GasolinaPorPiedra(pureza / 100f);
++            esPiedraAceptable = incrementoCombustible > 0f;
+         }
+ 
++        if (OnPiedraTragada != null) OnPiedraTragada(this, pureza / 100f, incrementoCombustible);
++
+         Destroy(piedra);
+ 
+         if (particulasTragar != null) particulasTragar.Play();
+@@ -134,7 +140,7 @@ public class AgujeroSimple : MonoBehaviour
+             else
+             {
+                 // Si por algún motivo no hay tuberías configuradas, sumamos el fuel directamente
+-                if (contadorFuelo != null) contadorFuelo.AgregarFuelo(incrementoCombustible);
++                if (contadorFuelo != null) contadorFuelo.AgregarFraccion(incrementoCombustible);
+             }
+         }
+ 
+@@ -175,7 +181,7 @@ public class AgujeroSimple : MonoBehaviour
+         // --- NUEVO: Una vez que el bucle 'for' ha terminado (todas las tuberías han hecho su animación), sumamos el fuel ---
+         if (contadorFuelo != null && fuelASumar > 0f)
+         {
+-            contadorFuelo.AgregarFuelo(fuelASumar);
++            contadorFuelo.AgregarFraccion(fuelASumar);
+         }
+     }
+ 
+diff --git a/Assets/Scripts/ArmaMonedas.cs b/Assets/Scripts/ArmaMonedas.cs
+index 8ba7244..2e6d02e 100644
+--- a/Assets/Scripts/ArmaMonedas.cs
++++ b/Assets/Scripts/ArmaMonedas.cs
+@@ -82,6 +82,14 @@ public class ArmaLanzadora : MonoBehaviour
+     [Header("Economía")]
+     public Cartera cartera;
+ 
++    [Header("Mejora - Fusil Monedas (EconomiaDemo)")]
++    [SerializeField, Range(1, 5)] private int nivelFusil = 1;
++    [Tooltip("Por cada nivel por encima del 1, aspira y dispara este porcentaje más rápido.")]
++    [Range(0f, 1f)] public float mejoraVelocidadPorNivel = 0.15f;
++    public int NivelFusil => nivelFusil;
++    public float TasaRecogidaFragmentos => ProveedorEconomia.Actual.TasaRecogida(nivelFusil);
++    private float FactorVelocidadNivel => 1f + mejoraVelocidadPorNivel * (nivelFusil - 1);
++
+     [Min(1)]
+     public int costePorDisparo = 1;
+ 
+@@ -223,6 +231,11 @@ public class ArmaLanzadora : MonoBehaviour
+         {
+             ControlarEmisionParticulasAspiradora(false);
+             monedasAspiradas.Clear();
++            if (aspirandoFragmentos)
++            {
++                GestorFragmentos.Instancia.SoltarAtraidos();
++                aspirandoFragmentos = false;
++            }
+         }
+ 
+         if (armaEquipada && sonidoEquipar != null && audioSource != null)
+@@ -231,10 +244,35 @@ public class ArmaLanzadora : MonoBehaviour
+         }
+     }
+ 
++    public bool MejorarFusil()
++    {
++        if (nivelFusil >= 5) return false;
++        nivelFusil++;
++        return true;
++    }
++
++    public void RestaurarNivelFusil(int nivel)
++    {
++        nivelFusil = Mathf.Clamp(nivel, 1, 5);
++    }
++
++    private bool aspirandoFragmentos;
++
+     void ManejarAspiradora()
+     {
+         bool aspirando = Input.GetKey(teclaAspirar);
+ 
++        if (aspirando && puntoDisparo != null)
++        {
++            GestorFragmentos.Instancia.AspirarEnCono(puntoDisparo.position, puntoDisparo.forward, distanciaMaximaAspiracion, anguloAspiracion, velocidadAspiracion * FactorVelocidadNivel, TasaRecogidaFragmentos, distanciaRecoleccion + 0.05f);
++            aspirandoFragmentos = true;
++        }
++        else if (aspirandoFragmentos)
++        {
++            GestorFragmentos.Instancia.SoltarAtraidos();
++            aspirandoFragmentos = false;
++        }
++
+         if (aspirando)
+         {
+             // Partículas de aspirado activo
+@@ -334,7 +372,7 @@ public class ArmaLanzadora : MonoBehaviour
+             // Mover hacia el cañón suavemente
+             obj.transform.position = Vector3.MoveTowards(
+                 obj.transform.position, puntoDisparo.position,
+-                velocidadAspiracion * Time.deltaTime);
++                velocidadAspiracion * FactorVelocidadNivel * Time.deltaTime);
+ 
+             // Girar locamente mientras vuelan
+             Vector3 direccionVuelo = (puntoDisparo.position - obj.transform.position).normalized;
+@@ -403,7 +441,7 @@ public class ArmaLanzadora : MonoBehaviour
+     {
+         if (Input.GetKey(teclaDisparo) && Time.time >= tiempoProximoDisparo)
+         {
+-            tiempoProximoDisparo = Time.time + cadenciaDisparo;
++            tiempoProximoDisparo = Time.time + cadenciaDisparo / FactorVelocidadNivel;
+             Disparar();
+         }
+     }
+diff --git a/Assets/Scripts/CintaTransportadora.cs b/Assets/Scripts/CintaTransportadora.cs
+index e902313..f1b9434 100644
+--- a/Assets/Scripts/CintaTransportadora.cs
++++ b/Assets/Scripts/CintaTransportadora.cs
+@@ -5,6 +5,8 @@ public class CintaTransportadora : MonoBehaviour
+ {
+     [Header("Ajustes de la Cinta")]
+     public float velocidad = 5f;
++    [Tooltip("Usa la velocidad de EconomiaDemo (hoja SIMULADOR: 1 m/s) en lugar del campo 'velocidad'.")]
++    public bool usarVelocidadEconomia = true;
+     [Tooltip("Cambia esto (ej: X=1, o Y=1) si la flecha verde en la escena no apunta hacia adelante")]
+     public Vector3 direccionLocal = Vector3.forward;
+ 
+@@ -47,6 +49,7 @@ public class CintaTransportadora : MonoBehaviour
+ 
+     void Start()
+     {
++        if (usarVelocidadEconomia) velocidad = ProveedorEconomia.Actual.velocidadCinta;
+         curva = GetComponentInParent<CurvaturaRampa>();
+ 
+         // Una piedra apoyada en otra malla de la rampa también debe avanzar.
+diff --git a/Assets/Scripts/DeformacionPiedra.cs b/Assets/Scripts/DeformacionPiedra.cs
+index 6a82b5b..43ea728 100644
+--- a/Assets/Scripts/DeformacionPiedra.cs
++++ b/Assets/Scripts/DeformacionPiedra.cs
+@@ -20,11 +20,13 @@ public class DeformacionPiedra : MonoBehaviour
+     [Tooltip("Segundos mínimos entre dos deformaciones por choque de la misma piedra")]
+     [Min(0f)] public float tiempoEntreDeformaciones = 0.08f;
+ 
+-    [Header("Desgaste por arrastre (rozando el suelo, p. ej. en el torbellino)")]
+-    [Tooltip("Velocidad mínima a la que la piedra se desgasta mientras roza algo que no es otra piedra")]
+-    [Min(0f)] public float velocidadMinimaErosionArrastre = 3f;
+-    [Tooltip("Segundos entre desgastes mientras roza (más bajo = se desgasta más rápido)")]
+-    [Min(0f)] public float intervaloErosionArrastre = 0.1f;
++    [Header("Desgaste por arrastre (obsoleto: el desgaste lo calcula DesgastePiedra con EconomiaDemo)")]
++    [HideInInspector, Min(0f)] public float velocidadMinimaErosionArrastre = 3f;
++    [HideInInspector, Min(0f)] public float intervaloErosionArrastre = 0.1f;
++
++    [Header("Forma según el desgaste")]
++    [Tooltip("Cambio mínimo de desgaste (0-1) para volver a recalcular la malla. Evita rehacerla en cada paso de física.")]
++    [Range(0.001f, 0.05f)] public float pasoDesgasteVisual = 0.005f;
+ 
+     [Header("Ajustes de Erosión")]
+     public float radioDeImpacto = 0.5f;
+@@ -96,9 +98,43 @@ public class DeformacionPiedra : MonoBehaviour
+     private Vector3[] puntosCollider;
+     private float proximaActualizacionCollider;
+     private float ultimaDeformacion = -999f;
+-    // El desgaste solo cambia al deformar: se cachea en vez de copiar todos los vértices en cada consulta.
+-    private float desgasteCacheado;
+-    private bool desgasteSucio = true;
++    private DesgastePiedra desgastePiedra;
++    private Vector3[] verticesOriginales;
++    private float ultimoDesgasteVisual = -1f;
++
++    public DesgastePiedra Desgaste
++    {
++        get
++        {
++            if (desgastePiedra == null) AsegurarDesgaste();
++            return desgastePiedra;
++        }
++    }
++
++    void Awake()
++    {
++        AsegurarDesgaste();
++    }
++
++    void AsegurarDesgaste()
++    {
++        if (desgastePiedra != null) return;
++        desgastePiedra = GetComponent<DesgastePiedra>();
++        if (desgastePiedra == null) desgastePiedra = gameObject.AddComponent<DesgastePiedra>();
++        desgastePiedra.OnDesgasteCambiado += AlCambiarDesgaste;
++        desgastePiedra.OnDesgasteRestaurado += AlRestaurarDesgaste;
++        if (GetComponent<EmisorFragmentos>() == null) gameObject.AddComponent<EmisorFragmentos>();
++    }
++
++    void AlRestaurarDesgaste(float valor)
++    {
++        AplicarDesgasteVisual(valor, true);
++    }
++
++    void AlCambiarDesgaste(float antes, float despues)
++    {
++        AplicarDesgasteVisual(despues, false);
++    }
+ 
+     void Start()
+     {
+@@ -106,7 +142,7 @@ public class DeformacionPiedra : MonoBehaviour
+         filtroMalla = GetComponent<MeshFilter>();
+         malla = filtroMalla.sharedMesh;
+         vertices = malla.vertices;
+-        desgasteSucio = true;
++        verticesOriginales = (Vector3[])vertices.Clone();
+ 
+         rb = GetComponent<Rigidbody>();
+         rb.collisionDetectionMode = modoDeteccionColision;
+@@ -115,6 +151,8 @@ public class DeformacionPiedra : MonoBehaviour
+         if (colliderMalla != null) colliderMalla.convex = true;
+ 
+         CalcularRadioObjetivo();
++        AsegurarDesgaste();
++        AplicarDesgasteVisual(desgastePiedra.Desgaste, true);
+ 
+         posicionAnterior = transform.position;
+         rotacionAnterior = transform.rotation;
+@@ -243,11 +281,6 @@ public class DeformacionPiedra : MonoBehaviour
+             EmitirPolvo(contacto.point, contacto.normal, fuerzaMinimaParticulas, fuerzaMaximaParticulas, fuerzaChoque, minParticulasPorGolpe, maxParticulasPorGolpe);
+         }
+ 
+-        if (fuerzaChoque < fuerzaMinimaChoque) return;
+-        if (colision.gameObject.CompareTag("Piedra")) return;
+-
+-        ContactPoint contactoDeformacion = colision.GetContact(0);
+-        DeformarMalla(transform.InverseTransformPoint(contactoDeformacion.point));
+     }
+ 
+     void OnCollisionStay(Collision colision)
+@@ -261,11 +294,6 @@ public class DeformacionPiedra : MonoBehaviour
+ 
+         float velocidadActual = rb.linearVelocity.magnitude;
+ 
+-        // Al no reconstruir el collider en cada golpe, el contacto sigue como Stay y ya no se repite
+-        // OnCollisionEnter: el desgaste mientras se arrastra se hace aquí, con su propio ritmo.
+-        if (velocidadActual >= velocidadMinimaErosionArrastre && Time.time - ultimaDeformacion >= intervaloErosionArrastre)
+-            DeformarMalla(transform.InverseTransformPoint(colision.GetContact(0).point));
+-
+         if (particulasPolvo == null) return;
+ 
+         if (velocidadActual > velocidadMinimaDeslizamiento)
+@@ -345,20 +373,31 @@ public class DeformacionPiedra : MonoBehaviour
+ 
+     public void PulirUniformemente(float cantidadDesgaste)
+     {
+-        bool mallaModificada = false;
++        float rango = Mathf.Max(0.0001f, radioDeImpacto * 2f);
++        Desgaste.AnadirDesgaste(cantidadDesgaste / rango);
++    }
+ 
+-        for (int i = 0; i < vertices.Length; i++)
+-        {
+-            float distCentro = vertices[i].magnitude;
++    void AplicarDesgasteVisual(float desgaste, bool forzar)
++    {
++        if (verticesOriginales == null || vertices == null) return;
++        if (!forzar && desgaste < 1f && Mathf.Abs(desgaste - ultimoDesgasteVisual) < pasoDesgasteVisual) return;
+ 
+-            if (distCentro > radioObjetivoMinimo)
++        float d = Mathf.Clamp01(desgaste);
++        bool mallaModificada = false;
++        for (int i = 0; i < verticesOriginales.Length; i++)
++        {
++            Vector3 original = verticesOriginales[i];
++            float radioOriginal = original.magnitude;
++            if (radioOriginal <= radioObjetivoMinimo) continue;
++            Vector3 nuevo = original * (Mathf.Lerp(radioOriginal, radioObjetivoMinimo, d) / radioOriginal);
++            if (vertices[i] != nuevo)
+             {
+-                float nuevaDist = Mathf.Max(distCentro - cantidadDesgaste, radioObjetivoMinimo);
+-                vertices[i] = vertices[i].normalized * nuevaDist;
++                vertices[i] = nuevo;
+                 mallaModificada = true;
+             }
+         }
+ 
++        ultimoDesgasteVisual = d;
+         if (mallaModificada) ActualizarMalla();
+     }
+ 
+@@ -379,7 +418,6 @@ public class DeformacionPiedra : MonoBehaviour
+         malla.RecalculateBounds();
+         filtroMalla.sharedMesh = malla;
+ 
+-        desgasteSucio = true;
+         colliderPendiente = true;
+     }
+ 
+@@ -442,28 +480,16 @@ public class DeformacionPiedra : MonoBehaviour
+ 
+     public float ObtenerPorcentajeDesgasteHaciaEsfera()
+     {
+-        if (malla == null) return 0f;
+-        if (!desgasteSucio) return desgasteCacheado;
+-
+-        Vector3[] verts = vertices ?? malla.vertices;
+-        if (verts.Length == 0) return 0f;
+-
+-        float sumaDistanciasActuales = 0f;
+-        foreach (Vector3 v in verts)
+-        {
+-            sumaDistanciasActuales += v.magnitude;
+-        }
+-        float radioActualPromedio = sumaDistanciasActuales / verts.Length;
+-        float radioMaximoInicial = radioObjetivoMinimo + (radioDeImpacto * 2f);
+-        float progreso = Mathf.InverseLerp(radioMaximoInicial, radioObjetivoMinimo, radioActualPromedio);
+-
+-        desgasteCacheado = Mathf.Clamp01(progreso) * 100f;
+-        desgasteSucio = false;
+-        return desgasteCacheado;
++        return Desgaste.Desgaste * 100f;
+     }
+ 
+     void OnDestroy()
+     {
++        if (desgastePiedra != null)
++        {
++            desgastePiedra.OnDesgasteCambiado -= AlCambiarDesgaste;
++            desgastePiedra.OnDesgasteRestaurado -= AlRestaurarDesgaste;
++        }
+         if (mallaCollider != null) Destroy(mallaCollider);
+ 
+         if (GestorAudioPiedras.Instancia != null)
+diff --git a/Assets/Scripts/Economia.meta b/Assets/Scripts/Economia.meta
+new file mode 100644
+index 0000000..7799b37
+--- /dev/null
++++ b/Assets/Scripts/Economia.meta
+@@ -0,0 +1,8 @@
++fileFormatVersion: 2
++guid: 04cfca3ee85b489fb2eb41c0439c6ce0
++folderAsset: yes
++DefaultImporter:
++  externalObjects: {}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/DesgastePiedra.cs b/Assets/Scripts/Economia/DesgastePiedra.cs
+new file mode 100644
+index 0000000..2c3ff89
+--- /dev/null
++++ b/Assets/Scripts/Economia/DesgastePiedra.cs
+@@ -0,0 +1,179 @@
++using System;
++using UnityEngine;
++
++[DisallowMultipleComponent]
++public class DesgastePiedra : MonoBehaviour
++{
++    [Header("Estado (0 = piedra nueva, 1 = esfera perfecta)")]
++    [SerializeField, Range(0f, 1f)] private float desgaste;
++    [SerializeField] private bool esferaPerfectaAlcanzada;
++
++    [Header("Desgaste por distancia")]
++    [Tooltip("Por debajo de esta velocidad la piedra no cuenta como rodando o arrastrada.")]
++    [Min(0f)] public float velocidadMinimaRodando = 0.3f;
++    [Tooltip("Segundos que se sigue considerando 'en contacto' tras el último contacto con suelo o cinta.")]
++    [Min(0f)] public float margenContacto = 0.1f;
++    [Tooltip("Saltos mayores en un solo paso de física se ignoran (teletransportes, rescates).")]
++    [Min(0.1f)] public float maximoMetrosPorPaso = 3f;
++
++    public event Action<float, float> OnDesgasteCambiado;
++    public event Action OnEsferaPerfecta;
++    public event Action<float> OnDesgasteRestaurado;
++
++    public static event Action<DesgastePiedra> OnAlgunaEsferaPerfecta;
++    public static event Action<DesgastePiedra, float, float> OnAlgunDesgasteCambiado;
++
++    public float Desgaste { get { return desgaste; } }
++    public bool EsEsferaPerfecta { get { return desgaste >= 1f; } }
++    public bool EsferaPerfectaAlcanzada { get { return esferaPerfectaAlcanzada; } }
++    public float MetrosContados { get; private set; }
++
++    public static int PatadasMedidas { get; private set; }
++    public static float MediaMetrosPorPatada { get { return PatadasMedidas > 0 ? metrosTotalesPatadas / PatadasMedidas : 0f; } }
++    public static float MediaDesgastePorPatada { get { return PatadasMedidas > 0 ? desgasteTotalPatadas / PatadasMedidas : 0f; } }
++    private static float metrosTotalesPatadas;
++    private static float desgasteTotalPatadas;
++
++    private Rigidbody rb;
++    private Vector3 posicionAnterior;
++    private bool tienePosicionAnterior;
++    private float ultimoContacto = -999f;
++    private float enTorbellinoHasta = -999f;
++    private bool midiendoPatada;
++    private float metrosPatada;
++    private float desgasteInicioPatada;
++    private float tiempoQuieta;
++
++    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
++    private static void ReiniciarEventos()
++    {
++        OnAlgunaEsferaPerfecta = null;
++        OnAlgunDesgasteCambiado = null;
++        PatadasMedidas = 0;
++        metrosTotalesPatadas = 0f;
++        desgasteTotalPatadas = 0f;
++    }
++
++    private void Awake()
++    {
++        rb = GetComponent<Rigidbody>();
++    }
++
++    private void OnEnable()
++    {
++        tienePosicionAnterior = false;
++    }
++
++    public void AnadirDesgaste(float cantidad)
++    {
++        if (cantidad <= 0f || desgaste >= 1f) return;
++        float antes = desgaste;
++        desgaste = Mathf.Min(1f, desgaste + cantidad);
++        if (desgaste > 0.99999f) desgaste = 1f;
++        Notificar(antes);
++    }
++
++    public void AplicarGolpePatada()
++    {
++        if (midiendoPatada) TerminarMedicionPatada();
++        midiendoPatada = true;
++        metrosPatada = 0f;
++        tiempoQuieta = 0f;
++        desgasteInicioPatada = desgaste;
++        AnadirDesgaste(ProveedorEconomia.Actual.golpePatada);
++    }
++
++    private void TerminarMedicionPatada()
++    {
++        midiendoPatada = false;
++        PatadasMedidas++;
++        metrosTotalesPatadas += metrosPatada;
++        desgasteTotalPatadas += desgaste - desgasteInicioPatada;
++        if (Debug.isDebugBuild && PatadasMedidas % 10 == 0)
++        {
++            Debug.Log("DesgastePiedra: " + PatadasMedidas + " patadas medidas · media " + MediaMetrosPorPatada.ToString("0.0") + " m rodando · " + (MediaDesgastePorPatada * 100f).ToString("0.00") + " % de desgaste por patada (Excel: 20 m · 2,5 %).");
++        }
++    }
++
++    public void AplicarTorbellino(float deltaTime)
++    {
++        enTorbellinoHasta = Time.fixedTime + Mathf.Max(margenContacto, Time.fixedDeltaTime * 2f);
++        AnadirDesgaste(ProveedorEconomia.Actual.desgasteTorbellinoPorSegundo * deltaTime);
++    }
++
++    public void Restaurar(float valor, bool esferaYaPremiada)
++    {
++        desgaste = Mathf.Clamp01(valor);
++        esferaPerfectaAlcanzada = esferaYaPremiada || desgaste >= 1f;
++        midiendoPatada = false;
++        if (OnDesgasteRestaurado != null) OnDesgasteRestaurado(desgaste);
++    }
++
++    private void Notificar(float antes)
++    {
++        if (Mathf.Approximately(antes, desgaste)) return;
++
++        if (OnDesgasteCambiado != null) OnDesgasteCambiado(antes, desgaste);
++        if (OnAlgunDesgasteCambiado != null) OnAlgunDesgasteCambiado(this, antes, desgaste);
++
++        if (desgaste >= 1f && !esferaPerfectaAlcanzada)
++        {
++            esferaPerfectaAlcanzada = true;
++            if (OnEsferaPerfecta != null) OnEsferaPerfecta();
++            if (OnAlgunaEsferaPerfecta != null) OnAlgunaEsferaPerfecta(this);
++        }
++    }
++
++    private void FixedUpdate()
++    {
++        if (rb == null || rb.isKinematic)
++        {
++            tienePosicionAnterior = false;
++            if (midiendoPatada) TerminarMedicionPatada();
++            return;
++        }
++
++        if (midiendoPatada)
++        {
++            tiempoQuieta = rb.linearVelocity.magnitude < velocidadMinimaRodando ? tiempoQuieta + Time.fixedDeltaTime : 0f;
++            if (tiempoQuieta > 0.5f || Time.fixedTime <= enTorbellinoHasta) TerminarMedicionPatada();
++        }
++
++        Vector3 posicion = rb.position;
++        if (!tienePosicionAnterior)
++        {
++            posicionAnterior = posicion;
++            tienePosicionAnterior = true;
++            return;
++        }
++
++        float metros = Vector3.Distance(posicion, posicionAnterior);
++        posicionAnterior = posicion;
++
++        if (desgaste >= 1f) return;
++        if (Time.fixedTime <= enTorbellinoHasta) return;
++        if (Time.fixedTime - ultimoContacto > margenContacto) return;
++        if (metros > maximoMetrosPorPaso) return;
++        if (rb.linearVelocity.magnitude < velocidadMinimaRodando) return;
++
++        MetrosContados += metros;
++        if (midiendoPatada) metrosPatada += metros;
++        AnadirDesgaste(ProveedorEconomia.Actual.desgastePorMetro * metros);
++    }
++
++    private void OnCollisionStay(Collision colision)
++    {
++        RegistrarContacto(colision);
++    }
++
++    private void OnCollisionEnter(Collision colision)
++    {
++        RegistrarContacto(colision);
++    }
++
++    private void RegistrarContacto(Collision colision)
++    {
++        if (colision.gameObject.CompareTag("Player")) return;
++        ultimoContacto = Time.fixedTime;
++    }
++}
+diff --git a/Assets/Scripts/Economia/DesgastePiedra.cs.meta b/Assets/Scripts/Economia/DesgastePiedra.cs.meta
+new file mode 100644
+index 0000000..6cf7227
+--- /dev/null
++++ b/Assets/Scripts/Economia/DesgastePiedra.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: dd841e5da0854283b5687d74a1026ba0
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/EconomiaDemo.cs b/Assets/Scripts/Economia/EconomiaDemo.cs
+new file mode 100644
+index 0000000..ce54b4f
+--- /dev/null
++++ b/Assets/Scripts/Economia/EconomiaDemo.cs
+@@ -0,0 +1,315 @@
++using System;
++using System.Collections.Generic;
++using UnityEngine;
++
++[Serializable]
++public class PasoCompra
++{
++    public string id;
++    public int nivel;
++    public float minutoPrevisto;
++
++    public PasoCompra()
++    {
++    }
++
++    public PasoCompra(string id, int nivel, float minutoPrevisto)
++    {
++        this.id = id;
++        this.nivel = nivel;
++        this.minutoPrevisto = minutoPrevisto;
++    }
++}
++
++public enum PagoMejora
++{
++    Monedas,
++    EsferasPerfectas
++}
++
++[Serializable]
++public class PrecioMejora
++{
++    public string id;
++    public int costeBase;
++    public float multiplicador = 1f;
++    public int nivelesMax = 1;
++    public PagoMejora pagaCon = PagoMejora.Monedas;
++    public bool primerNivelGratis;
++    [Tooltip("Opcional: precio exacto de cada nivel. Si tiene valores, sustituye a base × mult^(N-1).")]
++    public int[] costesFijos;
++    [Tooltip("Compras que no están en el Excel (se miden en F10/F11).")]
++    public bool extra;
++
++    public PrecioMejora()
++    {
++    }
++
++    public PrecioMejora(string id, int costeBase, float multiplicador, int nivelesMax, PagoMejora pagaCon = PagoMejora.Monedas, bool primerNivelGratis = false)
++    {
++        this.id = id;
++        this.costeBase = costeBase;
++        this.multiplicador = multiplicador;
++        this.nivelesMax = nivelesMax;
++        this.pagaCon = pagaCon;
++        this.primerNivelGratis = primerNivelGratis;
++    }
++}
++
++[CreateAssetMenu(fileName = "EconomiaDemo", menuName = "PiedrasIncr/Economia Demo")]
++public class EconomiaDemo : ScriptableObject
++{
++    public static class Ids
++    {
++        public const string FusilMonedas = "FusilMonedas";
++        public const string Torbellino = "Torbellino";
++        public const string Lanzapiedras = "Lanzapiedras";
++        public const string ArmaLunar = "ArmaLunar";
++        public const string Fisionador = "Fisionador";
++        public const string MisilGrande = "MisilGrande";
++        public const string Cinta = "Cinta";
++        public const string Pared = "Pared";
++        public const string Botas = "Botas";
++        public const string Jetpack = "Jetpack";
++        public const string Iman = "Iman";
++        public const string ImanAlcance = "ImanAlcance";
++        public const string TorbellinoAlcance = "TorbellinoAlcance";
++        public const string TorbellinoMovilidad = "TorbellinoMovilidad";
++        public const string Martillo = "Martillo";
++        public const string Bot = "Bot";
++    }
++
++    public static string NombreVisible(string id)
++    {
++        switch (id)
++        {
++            case Ids.FusilMonedas: return "Fusil Monedas";
++            case Ids.Torbellino: return "Torbellino";
++            case Ids.Lanzapiedras: return "Lanzapiedras";
++            case Ids.ArmaLunar: return "Arma Lunar";
++            case Ids.Fisionador: return "Fisionador";
++            case Ids.MisilGrande: return "Misil grande";
++            case Ids.Cinta: return "Cinta";
++            case Ids.Pared: return "Pared";
++            case Ids.Botas: return "Botas";
++            case Ids.Jetpack: return "Jetpack";
++            case Ids.Iman: return "Imán";
++            case Ids.ImanAlcance: return "Alcance del imán";
++            case Ids.TorbellinoAlcance: return "Alcance del torbellino";
++            case Ids.TorbellinoMovilidad: return "Movilidad del torbellino";
++            case Ids.Martillo: return "Martillo";
++            case Ids.Bot: return "Bot";
++            default: return id;
++        }
++    }
++
++    [Header("Piedra y desgaste")]
++    public float golpePatada = 0.005f;
++    public float desgastePorMetro = 0.001f;
++    public float desgasteTorbellinoPorSegundo = 0.015f;
++
++    [Header("Fragmentos")]
++    public float fragmentoCada = 0.025f;
++    public int monedasPorFragmento = 1;
++    public int bonusEsferaPerfecta = 10;
++    [Range(0f, 1f)] public float recogidaAMano = 0.6f;
++    public float[] recogidaPorNivelFusil = { 0.7f, 0.8f, 0.9f, 1f, 1f };
++
++    [Header("Gasolina")]
++    public float gasolinaMaxPorPiedra = 0.0001f;
++    public float curvaK = 2f;
++    public float tanqueLitrosVisual = 1000000f;
++
++    [Header("Final")]
++    public int esferasParaMisil = 8;
++
++    [Header("Lanzapiedras")]
++    public float esperaNivel1 = 5f;
++    public float menosPorNivel = 1f;
++
++    [Header("Arma Lunar")]
++    public float cadaNivel1 = 30f;
++    public float cadenciaExtraPorNivel = 0.25f;
++
++    [Header("Cinta")]
++    public float velocidadCinta = 1f;
++
++    [Header("Precios (coste nivel N = base × mult^(N-1))")]
++    public List<PrecioMejora> precios = PreciosDelExcel();
++
++    [Header("Orden de compras previsto (hoja PROGRESION)")]
++    public List<PasoCompra> ordenCompras = OrdenDelExcel();
++
++    public static List<PasoCompra> OrdenDelExcel()
++    {
++        return new List<PasoCompra>
++        {
++            new PasoCompra(Ids.FusilMonedas, 1, 2.9f), new PasoCompra(Ids.Torbellino, 1, 4.8f), new PasoCompra(Ids.Pared, 1, 5.1f),
++            new PasoCompra(Ids.Pared, 2, 5.5f), new PasoCompra(Ids.Lanzapiedras, 2, 7.2f), new PasoCompra(Ids.FusilMonedas, 2, 7.8f),
++            new PasoCompra(Ids.Pared, 3, 8.1f), new PasoCompra(Ids.Cinta, 1, 9.5f), new PasoCompra(Ids.Torbellino, 2, 10.7f),
++            new PasoCompra(Ids.FusilMonedas, 3, 11.3f), new PasoCompra(Ids.Pared, 4, 11.6f), new PasoCompra(Ids.ArmaLunar, 1, 13.6f),
++            new PasoCompra(Ids.Cinta, 2, 14.4f), new PasoCompra(Ids.Torbellino, 3, 15.5f), new PasoCompra(Ids.Pared, 5, 15.7f),
++            new PasoCompra(Ids.Cinta, 3, 16.4f), new PasoCompra(Ids.Lanzapiedras, 3, 17.2f), new PasoCompra(Ids.FusilMonedas, 4, 17.7f),
++            new PasoCompra(Ids.Torbellino, 4, 19.0f), new PasoCompra(Ids.ArmaLunar, 2, 20.1f), new PasoCompra(Ids.Cinta, 4, 20.7f),
++            new PasoCompra(Ids.Pared, 6, 20.9f), new PasoCompra(Ids.Cinta, 5, 21.7f), new PasoCompra(Ids.Torbellino, 5, 23.5f),
++            new PasoCompra(Ids.ArmaLunar, 3, 25.0f), new PasoCompra(Ids.Cinta, 6, 25.8f), new PasoCompra(Ids.Fisionador, 1, 27.5f),
++            new PasoCompra(Ids.MisilGrande, 1, 29.7f)
++        };
++    }
++
++    public static List<PrecioMejora> PreciosDelExcel()
++    {
++        return new List<PrecioMejora>
++        {
++            new PrecioMejora(Ids.FusilMonedas, 8, 1.8f, 5),
++            new PrecioMejora(Ids.Torbellino, 20, 1.9f, 5),
++            new PrecioMejora(Ids.Lanzapiedras, 30, 2.5f, 3, PagoMejora.Monedas, true),
++            new PrecioMejora(Ids.ArmaLunar, 90, 1.7f, 3),
++            new PrecioMejora(Ids.Fisionador, 300, 1f, 1),
++            new PrecioMejora(Ids.MisilGrande, 8, 1f, 1, PagoMejora.EsferasPerfectas),
++            new PrecioMejora(Ids.Cinta, 40, 1.3f, 10),
++            new PrecioMejora(Ids.Pared, 5, 1.3f, 10),
++            Extra(new PrecioMejora(Ids.Botas, 5, 2f, 3)),
++            Extra(new PrecioMejora(Ids.Jetpack, 5, 2f, 4)),
++            Extra(new PrecioMejora(Ids.Iman, 3, 1f, 1)),
++            Extra(new PrecioMejora(Ids.ImanAlcance, 5, 2f, 3, PagoMejora.Monedas, true)),
++            Extra(new PrecioMejora(Ids.TorbellinoAlcance, 5, 2f, 3, PagoMejora.Monedas, true)),
++            Extra(new PrecioMejora(Ids.TorbellinoMovilidad, 5, 2f, 3, PagoMejora.Monedas, true)),
++            Extra(new PrecioMejora(Ids.Martillo, 10, 1f, 1)),
++            Extra(new PrecioMejora(Ids.Bot, 100, 1f, 4) { costesFijos = new[] { 100, 150, 200, 250 } })
++        };
++    }
++
++    private static PrecioMejora Extra(PrecioMejora precio)
++    {
++        precio.extra = true;
++        return precio;
++    }
++
++    public bool Tiene(string id)
++    {
++        return BuscarPrecio(id) != null;
++    }
++
++    public int CosteOPorDefecto(string id, int nivel, int porDefecto)
++    {
++        PrecioMejora precio = BuscarPrecio(id);
++        if (precio == null || nivel < 1 || nivel > precio.nivelesMax) return porDefecto;
++        return Coste(id, nivel);
++    }
++
++    public static int CalcularCoste(int costeBase, float multiplicador, int exponente)
++    {
++        double valor = costeBase * Math.Pow(multiplicador, exponente);
++        valor = Math.Round(valor, 4);
++        return (int)Math.Round(valor, 0, MidpointRounding.AwayFromZero);
++    }
++
++    public PrecioMejora BuscarPrecio(string id)
++    {
++        if (string.IsNullOrEmpty(id) || precios == null) return null;
++        for (int i = 0; i < precios.Count; i++)
++        {
++            if (precios[i] != null && string.Equals(precios[i].id, id, StringComparison.Ordinal)) return precios[i];
++        }
++        return null;
++    }
++
++    public int NivelesMax(string id)
++    {
++        PrecioMejora precio = BuscarPrecio(id);
++        return precio != null ? precio.nivelesMax : 0;
++    }
++
++    public PagoMejora PagaCon(string id)
++    {
++        PrecioMejora precio = BuscarPrecio(id);
++        return precio != null ? precio.pagaCon : PagoMejora.Monedas;
++    }
++
++    public int Coste(string id, int nivel)
++    {
++        PrecioMejora precio = BuscarPrecio(id);
++        if (precio == null)
++        {
++            Debug.LogWarning("EconomiaDemo: no hay precio para '" + id + "'.", this);
++            return -1;
++        }
++
++        if (nivel < 1 || nivel > precio.nivelesMax)
++        {
++            Debug.LogWarning("EconomiaDemo: nivel " + nivel + " fuera de rango para '" + id + "' (1.." + precio.nivelesMax + ").", this);
++            return -1;
++        }
++
++        if (precio.costesFijos != null && precio.costesFijos.Length > 0)
++        {
++            return precio.costesFijos[Mathf.Min(nivel, precio.costesFijos.Length) - 1];
++        }
++
++        if (precio.primerNivelGratis)
++        {
++            if (nivel == 1) return 0;
++            return CalcularCoste(precio.costeBase, precio.multiplicador, nivel - 2);
++        }
++
++        return CalcularCoste(precio.costeBase, precio.multiplicador, nivel - 1);
++    }
++
++    public int FragmentosPorPiedra
++    {
++        get { return fragmentoCada > 0f ? Mathf.RoundToInt(1f / fragmentoCada) : 0; }
++    }
++
++    public float TasaRecogida(int nivelFusil)
++    {
++        if (nivelFusil <= 0 || recogidaPorNivelFusil == null || recogidaPorNivelFusil.Length == 0) return recogidaAMano;
++        int indice = Mathf.Min(nivelFusil, recogidaPorNivelFusil.Length) - 1;
++        return recogidaPorNivelFusil[indice];
++    }
++
++    public float GasolinaPorPiedra(float desgaste)
++    {
++        return gasolinaMaxPorPiedra * Mathf.Pow(Mathf.Clamp01(desgaste), curvaK);
++    }
++
++    public float FraccionALitros(float fraccionTanque)
++    {
++        return fraccionTanque * tanqueLitrosVisual;
++    }
++
++    public int PiedrasPorGolpeLanzapiedras(int nivel)
++    {
++        return Mathf.Max(1, nivel);
++    }
++
++    public float EsperaLanzapiedras(int nivel)
++    {
++        return Mathf.Max(0f, esperaNivel1 - menosPorNivel * (Mathf.Max(1, nivel) - 1));
++    }
++
++    public float IntervaloArmaLunar(int nivel)
++    {
++        return cadaNivel1 / Mathf.Pow(1f + cadenciaExtraPorNivel, Mathf.Max(1, nivel) - 1);
++    }
++
++    [ContextMenu("Restaurar precios y orden del Excel")]
++    private void RestaurarPreciosDelExcel()
++    {
++        precios = PreciosDelExcel();
++        ordenCompras = OrdenDelExcel();
++    }
++
++    private void OnValidate()
++    {
++        if (precios == null) return;
++        HashSet<string> vistos = new HashSet<string>();
++        for (int i = 0; i < precios.Count; i++)
++        {
++            PrecioMejora precio = precios[i];
++            if (precio == null || string.IsNullOrEmpty(precio.id)) continue;
++            if (!vistos.Add(precio.id)) Debug.LogWarning("EconomiaDemo: el id de precio '" + precio.id + "' está repetido.", this);
++            if (precio.nivelesMax < 1) precio.nivelesMax = 1;
++        }
++    }
++}
+diff --git a/Assets/Scripts/Economia/EconomiaDemo.cs.meta b/Assets/Scripts/Economia/EconomiaDemo.cs.meta
+new file mode 100644
+index 0000000..3ed0d56
+--- /dev/null
++++ b/Assets/Scripts/Economia/EconomiaDemo.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: 62cdda54ec9e4e0fab4c63dd9cc83aae
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/EmisorFragmentos.cs b/Assets/Scripts/Economia/EmisorFragmentos.cs
+new file mode 100644
+index 0000000..ec88633
+--- /dev/null
++++ b/Assets/Scripts/Economia/EmisorFragmentos.cs
+@@ -0,0 +1,70 @@
++using UnityEngine;
++
++[DisallowMultipleComponent]
++public class EmisorFragmentos : MonoBehaviour
++{
++    [SerializeField] private float siguienteFragmento = -1f;
++    [SerializeField] private int fragmentosSoltados;
++
++    private DesgastePiedra desgaste;
++
++    public float SiguienteFragmento { get { return siguienteFragmento; } }
++    public int FragmentosSoltados { get { return fragmentosSoltados; } }
++
++    private void Awake()
++    {
++        desgaste = GetComponent<DesgastePiedra>();
++        if (desgaste == null) desgaste = gameObject.AddComponent<DesgastePiedra>();
++        if (siguienteFragmento < 0f) siguienteFragmento = ProveedorEconomia.Actual.fragmentoCada;
++    }
++
++    private void OnEnable()
++    {
++        desgaste.OnDesgasteCambiado += AlCambiarDesgaste;
++        desgaste.OnEsferaPerfecta += AlSerEsferaPerfecta;
++        desgaste.OnDesgasteRestaurado += AlRestaurar;
++    }
++
++    private void OnDisable()
++    {
++        desgaste.OnDesgasteCambiado -= AlCambiarDesgaste;
++        desgaste.OnEsferaPerfecta -= AlSerEsferaPerfecta;
++        desgaste.OnDesgasteRestaurado -= AlRestaurar;
++    }
++
++    private void AlCambiarDesgaste(float antes, float despues)
++    {
++        EconomiaDemo economia = ProveedorEconomia.Actual;
++        float paso = Mathf.Max(0.0001f, economia.fragmentoCada);
++        int maximo = economia.FragmentosPorPiedra;
++        int nuevos = 0;
++
++        while (fragmentosSoltados < maximo && despues + 0.00001f >= (fragmentosSoltados + 1) * paso)
++        {
++            fragmentosSoltados++;
++            nuevos++;
++        }
++        siguienteFragmento = (fragmentosSoltados + 1) * paso;
++
++        if (nuevos > 0) GestorFragmentos.Instancia.Soltar(transform.position, nuevos, false);
++    }
++
++    private void AlSerEsferaPerfecta()
++    {
++        int bonus = ProveedorEconomia.Actual.bonusEsferaPerfecta;
++        GestorFragmentos.Instancia.CelebrarEsferaPerfecta(transform.position, bonus);
++    }
++
++    private void AlRestaurar(float valor)
++    {
++        float paso = Mathf.Max(0.0001f, ProveedorEconomia.Actual.fragmentoCada);
++        fragmentosSoltados = Mathf.Min(ProveedorEconomia.Actual.FragmentosPorPiedra, Mathf.FloorToInt((valor + 0.00001f) / paso));
++        siguienteFragmento = (fragmentosSoltados + 1) * paso;
++    }
++
++    public void Restaurar(float siguiente, int soltados)
++    {
++        siguienteFragmento = siguiente;
++        fragmentosSoltados = soltados;
++    }
++}
+diff --git a/Assets/Scripts/Economia/EmisorFragmentos.cs.meta b/Assets/Scripts/Economia/EmisorFragmentos.cs.meta
+new file mode 100644
+index 0000000..a62f8b2
+--- /dev/null
++++ b/Assets/Scripts/Economia/EmisorFragmentos.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: da923f33c67b4719958a7dd2cb13926c
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/EventosEconomia.cs b/Assets/Scripts/Economia/EventosEconomia.cs
+new file mode 100644
+index 0000000..66f5618
+--- /dev/null
++++ b/Assets/Scripts/Economia/EventosEconomia.cs
+@@ -0,0 +1,17 @@
++using System;
++
++public static class EventosEconomia
++{
++    public static event Action<string, int, int> OnCompraRealizada;
++
++    public static void NotificarCompra(string id, int nivel, int coste)
++    {
++        if (OnCompraRealizada != null) OnCompraRealizada(id, nivel, coste);
++    }
++
++    [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
++    private static void Reiniciar()
++    {
++        OnCompraRealizada = null;
++    }
++}
+diff --git a/Assets/Scripts/Economia/EventosEconomia.cs.meta b/Assets/Scripts/Economia/EventosEconomia.cs.meta
+new file mode 100644
+index 0000000..2154006
+--- /dev/null
++++ b/Assets/Scripts/Economia/EventosEconomia.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: de42f5553a2143b18e68112a80767678
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/GestorFragmentos.cs b/Assets/Scripts/Economia/GestorFragmentos.cs
+new file mode 100644
+index 0000000..2492e61
+--- /dev/null
++++ b/Assets/Scripts/Economia/GestorFragmentos.cs
+@@ -0,0 +1,376 @@
++using System;
++using System.Collections;
++using System.Collections.Generic;
++using UnityEngine;
++
++[DefaultExecutionOrder(-500)]
++public class GestorFragmentos : MonoBehaviour
++{
++    [Header("Fragmento")]
++    [Tooltip("Prefab opcional (Rigidbody + Collider). Si está vacío se crea un cubito brillante.")]
++    public GameObject prefabFragmento;
++    [Min(0.01f)] public float tamanoFragmento = 0.12f;
++    public Color colorFragmento = new Color(0.75f, 0.9f, 1f);
++    public Color colorMonedaBonus = new Color(1f, 0.8f, 0.2f);
++    [Min(1)] public int maximoVivos = 150;
++    [Tooltip("Segundos hasta que un fragmento no recogido desaparece.")]
++    [Min(1f)] public float vidaFragmento = 25f;
++    [Min(0f)] public float parpadeoFinal = 4f;
++
++    [Header("Salida")]
++    public float impulsoArriba = 4f;
++    public float impulsoLateral = 1.5f;
++    [Min(0f)] public float inmunidadRecogida = 0.6f;
++
++    [Header("Recogida a mano")]
++    [Tooltip("El jugador recoge los fragmentos al pasar a esta distancia.")]
++    [Min(0.1f)] public float radioRecogidaMano = 1.6f;
++    [Min(0f)] public float velocidadAtraccionMano = 12f;
++
++    [Header("Sonido")]
++    public AudioClip sonidoClink;
++    public AudioClip sonidoEsferaPerfecta;
++    [Range(0f, 1f)] public float volumenClink = 0.5f;
++    [Min(0f)] public float ventanaCombo = 0.45f;
++    [Min(0f)] public float subidaTonoPorCombo = 0.06f;
++    [Min(1f)] public float tonoMaximo = 2f;
++
++    [Header("Brillo de esfera perfecta")]
++    public Color colorBrillo = new Color(1f, 0.85f, 0.4f);
++    [Min(0f)] public float intensidadBrillo = 6f;
++    [Min(0.05f)] public float duracionBrillo = 1.2f;
++
++    public static event Action<int> OnMonedasPorFragmentos;
++    public static event Action<Vector3> OnEsferaPerfectaCelebrada;
++
++    public int FragmentosVivos { get { return vivos.Count; } }
++    public int FragmentosRecogidos { get; private set; }
++    public int MonedasGeneradas { get; private set; }
++
++    private static GestorFragmentos instancia;
++
++    public static GestorFragmentos Instancia
++    {
++        get
++        {
++            if (instancia == null)
++            {
++                instancia = FindAnyObjectByType<GestorFragmentos>();
++                if (instancia == null) instancia = new GameObject("GestorFragmentos").AddComponent<GestorFragmentos>();
++            }
++            return instancia;
++        }
++    }
++
++    private class Vivo
++    {
++        public GameObject objeto;
++        public Rigidbody rb;
++        public Renderer render;
++        public float nacimiento;
++        public bool bonus;
++        public bool atraido;
++        public float tasaAtraccion;
++    }
++
++    private readonly List<Vivo> vivos = new List<Vivo>();
++    private readonly Stack<Vivo> libres = new Stack<Vivo>();
++    private MaterialPropertyBlock bloque;
++    private AudioSource audioSource;
++    private Transform jugador;
++    private Cartera cartera;
++    private float acumulador;
++    private int combo;
++    private float ultimoClink = -999f;
++
++    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
++    private static void Reiniciar()
++    {
++        instancia = null;
++        OnMonedasPorFragmentos = null;
++        OnEsferaPerfectaCelebrada = null;
++    }
++
++    private void Awake()
++    {
++        if (instancia != null && instancia != this)
++        {
++            Destroy(this);
++            return;
++        }
++        instancia = this;
++        bloque = new MaterialPropertyBlock();
++        audioSource = GetComponent<AudioSource>();
++        if (audioSource == null)
++        {
++            audioSource = gameObject.AddComponent<AudioSource>();
++            audioSource.playOnAwake = false;
++            audioSource.spatialBlend = 0f;
++        }
++    }
++
++    private void OnDestroy()
++    {
++        if (instancia == this) instancia = null;
++    }
++
++    public void Soltar(Vector3 posicion, int cantidad, bool bonus)
++    {
++        for (int i = 0; i < cantidad; i++)
++        {
++            Vivo vivo = Obtener();
++            vivo.bonus = bonus;
++            vivo.atraido = false;
++            vivo.nacimiento = Time.time;
++            Transform t = vivo.objeto.transform;
++            t.position = posicion + Vector3.up * 0.4f + UnityEngine.Random.insideUnitSphere * 0.2f;
++            t.rotation = UnityEngine.Random.rotation;
++            float escala = bonus ? tamanoFragmento * 1.3f : tamanoFragmento;
++            t.localScale = Vector3.one * escala;
++            Pintar(vivo, bonus ? colorMonedaBonus : colorFragmento, 1f);
++            vivo.objeto.SetActive(true);
++            if (vivo.rb != null)
++            {
++                vivo.rb.isKinematic = false;
++                Vector2 lateral = UnityEngine.Random.insideUnitCircle * impulsoLateral;
++                vivo.rb.AddForce(new Vector3(lateral.x, impulsoArriba * UnityEngine.Random.Range(0.8f, 1.2f), lateral.y), ForceMode.VelocityChange);
++                vivo.rb.AddTorque(UnityEngine.Random.insideUnitSphere * 8f, ForceMode.VelocityChange);
++            }
++            vivos.Add(vivo);
++        }
++    }
++
++    public void CelebrarEsferaPerfecta(Vector3 posicion, int monedasBonus)
++    {
++        StartCoroutine(LluviaBonus(posicion, monedasBonus));
++        StartCoroutine(Brillo(posicion));
++        if (sonidoEsferaPerfecta != null) AudioSource.PlayClipAtPoint(sonidoEsferaPerfecta, posicion, 1f);
++        if (OnEsferaPerfectaCelebrada != null) OnEsferaPerfectaCelebrada(posicion);
++    }
++
++    private IEnumerator LluviaBonus(Vector3 posicion, int cantidad)
++    {
++        for (int i = 0; i < cantidad; i++)
++        {
++            Soltar(posicion + Vector3.up * 0.5f, 1, true);
++            yield return new WaitForSeconds(0.06f);
++        }
++    }
++
++    private IEnumerator Brillo(Vector3 posicion)
++    {
++        GameObject objeto = new GameObject("BrilloEsferaPerfecta");
++        objeto.transform.position = posicion + Vector3.up * 0.5f;
++        Light luz = objeto.AddComponent<Light>();
++        luz.type = LightType.Point;
++        luz.color = colorBrillo;
++        luz.range = 6f;
++        float t = 0f;
++        while (t < duracionBrillo)
++        {
++            t += Time.deltaTime;
++            luz.intensity = intensidadBrillo * (1f - t / duracionBrillo);
++            yield return null;
++        }
++        Destroy(objeto);
++    }
++
++    public int AspirarEnCono(Vector3 origen, Vector3 direccion, float distancia, float anguloGrados, float velocidad, float tasaRecogida, float distanciaRecogida)
++    {
++        int recogidos = 0;
++        float distanciaCuadrada = distancia * distancia;
++        for (int i = vivos.Count - 1; i >= 0; i--)
++        {
++            Vivo vivo = vivos[i];
++            if (Time.time - vivo.nacimiento < inmunidadRecogida) continue;
++            Vector3 hacia = vivo.objeto.transform.position - origen;
++            float d2 = hacia.sqrMagnitude;
++            if (d2 > distanciaCuadrada) continue;
++            if (d2 > 9f && Vector3.Angle(direccion, hacia) > anguloGrados) continue;
++
++            vivo.atraido = true;
++            vivo.tasaAtraccion = tasaRecogida;
++            if (vivo.rb != null) vivo.rb.isKinematic = true;
++            vivo.objeto.transform.position = Vector3.MoveTowards(vivo.objeto.transform.position, origen, velocidad * Time.deltaTime);
++
++            if ((vivo.objeto.transform.position - origen).sqrMagnitude <= distanciaRecogida * distanciaRecogida)
++            {
++                Recoger(i, tasaRecogida);
++                recogidos++;
++            }
++        }
++        return recogidos;
++    }
++
++    public void SoltarAtraidos()
++    {
++        for (int i = 0; i < vivos.Count; i++)
++        {
++            if (!vivos[i].atraido) continue;
++            vivos[i].atraido = false;
++            if (vivos[i].rb != null) vivos[i].rb.isKinematic = false;
++        }
++    }
++
++    private void Update()
++    {
++        if (jugador == null)
++        {
++            MovimientoPersonaje movimiento = FindAnyObjectByType<MovimientoPersonaje>();
++            if (movimiento != null) jugador = movimiento.transform;
++        }
++
++        float ahora = Time.time;
++        float tasaMano = ProveedorEconomia.Actual.recogidaAMano;
++        float radio2 = radioRecogidaMano * radioRecogidaMano;
++
++        for (int i = vivos.Count - 1; i >= 0; i--)
++        {
++            Vivo vivo = vivos[i];
++            if (vivo.objeto == null)
++            {
++                vivos.RemoveAt(i);
++                continue;
++            }
++
++            float edad = ahora - vivo.nacimiento;
++            if (edad >= vidaFragmento)
++            {
++                Devolver(i);
++                continue;
++            }
++
++            if (!vivo.atraido && edad > vidaFragmento - parpadeoFinal)
++            {
++                bool visible = Mathf.Repeat(edad * 8f, 1f) > 0.35f;
++                if (vivo.render != null) vivo.render.enabled = visible;
++            }
++
++            if (vivo.atraido || jugador == null || edad < inmunidadRecogida) continue;
++
++            Vector3 centroJugador = jugador.position + Vector3.up * 0.8f;
++            Vector3 hacia = centroJugador - vivo.objeto.transform.position;
++            if (hacia.sqrMagnitude > radio2) continue;
++
++            if (hacia.sqrMagnitude < 0.25f)
++            {
++                Recoger(i, tasaMano);
++                continue;
++            }
++
++            if (vivo.rb != null) vivo.rb.isKinematic = true;
++            vivo.objeto.transform.position = Vector3.MoveTowards(vivo.objeto.transform.position, centroJugador, velocidadAtraccionMano * Time.deltaTime);
++        }
++    }
++
++    private void Recoger(int indice, float tasa)
++    {
++        Vivo vivo = vivos[indice];
++        bool bonus = vivo.bonus;
++        Devolver(indice);
++        FragmentosRecogidos++;
++
++        int monedas = 0;
++        if (bonus)
++        {
++            monedas = 1;
++        }
++        else
++        {
++            acumulador += Mathf.Clamp01(tasa) * ProveedorEconomia.Actual.monedasPorFragmento;
++            while (acumulador >= 1f)
++            {
++                acumulador -= 1f;
++                monedas++;
++            }
++        }
++
++        if (monedas > 0)
++        {
++            if (cartera == null) cartera = FindAnyObjectByType<Cartera>();
++            if (cartera != null) cartera.AnadirMonedas(monedas);
++            MonedasGeneradas += monedas;
++            if (OnMonedasPorFragmentos != null) OnMonedasPorFragmentos(monedas);
++        }
++
++        ReproducirClink();
++    }
++
++    private void ReproducirClink()
++    {
++        if (sonidoClink == null || audioSource == null) return;
++        combo = Time.time - ultimoClink <= ventanaCombo ? combo + 1 : 0;
++        ultimoClink = Time.time;
++        audioSource.pitch = Mathf.Min(tonoMaximo, 1f + combo * subidaTonoPorCombo);
++        audioSource.PlayOneShot(sonidoClink, volumenClink);
++    }
++
++    private Vivo Obtener()
++    {
++        if (vivos.Count >= maximoVivos) Devolver(0);
++
++        while (libres.Count > 0)
++        {
++            Vivo libre = libres.Pop();
++            if (libre.objeto != null) return libre;
++        }
++
++        GameObject objeto = prefabFragmento != null ? Instantiate(prefabFragmento) : CrearFragmentoBasico();
++        objeto.name = "Fragmento";
++        objeto.transform.SetParent(transform, true);
++        Vivo nuevo = new Vivo();
++        nuevo.objeto = objeto;
++        nuevo.rb = objeto.GetComponent<Rigidbody>();
++        nuevo.render = objeto.GetComponentInChildren<Renderer>();
++        return nuevo;
++    }
++
++    private GameObject CrearFragmentoBasico()
++    {
++        GameObject objeto = GameObject.CreatePrimitive(PrimitiveType.Cube);
++        objeto.layer = 2;
++        Rigidbody rb = objeto.AddComponent<Rigidbody>();
++        rb.mass = 0.05f;
++        rb.linearDamping = 0.2f;
++        rb.angularDamping = 0.5f;
++        rb.interpolation = RigidbodyInterpolation.Interpolate;
++        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
++        return objeto;
++    }
++
++    private void Devolver(int indice)
++    {
++        Vivo vivo = vivos[indice];
++        vivos.RemoveAt(indice);
++        if (vivo.objeto == null) return;
++        if (vivo.render != null) vivo.render.enabled = true;
++        if (vivo.rb != null)
++        {
++            if (!vivo.rb.isKinematic)
++            {
++                vivo.rb.linearVelocity = Vector3.zero;
++                vivo.rb.angularVelocity = Vector3.zero;
++            }
++            vivo.rb.isKinematic = true;
++        }
++        vivo.atraido = false;
++        vivo.objeto.SetActive(false);
++        libres.Push(vivo);
++    }
++
++    private void Pintar(Vivo vivo, Color color, float brillo)
++    {
++        if (vivo.render == null) return;
++        vivo.render.GetPropertyBlock(bloque);
++        bloque.SetColor("_BaseColor", color * brillo);
++        bloque.SetColor("_Color", color * brillo);
++        bloque.SetColor("_EmissionColor", color * 0.8f);
++        vivo.render.SetPropertyBlock(bloque);
++    }
++
++    public void PagarFragmentosDelSuelo()
++    {
++        float tasa = ProveedorEconomia.Actual.recogidaAMano;
++        for (int i = vivos.Count - 1; i >= 0; i--) Recoger(i, vivos[i].bonus ? 1f : tasa);
++    }
++}
+diff --git a/Assets/Scripts/Economia/GestorFragmentos.cs.meta b/Assets/Scripts/Economia/GestorFragmentos.cs.meta
+new file mode 100644
+index 0000000..5f272ca
+--- /dev/null
++++ b/Assets/Scripts/Economia/GestorFragmentos.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: d245ea6fb9f14da2bbd7444dad77591b
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/NivelesMejoras.cs b/Assets/Scripts/Economia/NivelesMejoras.cs
+new file mode 100644
+index 0000000..e1e6329
+--- /dev/null
++++ b/Assets/Scripts/Economia/NivelesMejoras.cs
+@@ -0,0 +1,118 @@
++using System;
++using System.Collections.Generic;
++using UnityEngine;
++
++public static class NivelesMejoras
++{
++    private static readonly Dictionary<string, Func<int>> proveedores = new Dictionary<string, Func<int>>();
++    private static GestorEquipamiento gestor;
++    private static ConstruccionDianaBloopMonedas diana;
++    private static ConstruccionAmetralladoraMonedas armaLunar;
++    private static InventarioEdificios inventario;
++    private static MovimientoPersonaje movimiento;
++    private static RecolectorMagnetico iman;
++    private static HerramientaTorbellino torbellino;
++
++    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
++    private static void Reiniciar()
++    {
++        proveedores.Clear();
++        gestor = null;
++        diana = null;
++        armaLunar = null;
++        inventario = null;
++        movimiento = null;
++        iman = null;
++        torbellino = null;
++    }
++
++    public static void Registrar(string id, Func<int> proveedor)
++    {
++        if (string.IsNullOrEmpty(id)) return;
++        if (proveedor == null) proveedores.Remove(id);
++        else proveedores[id] = proveedor;
++    }
++
++    private static T Buscar<T>(ref T cache) where T : UnityEngine.Object
++    {
++        if (cache == null) cache = UnityEngine.Object.FindAnyObjectByType<T>();
++        return cache;
++    }
++
++    public static int Nivel(string id)
++    {
++        Func<int> proveedor;
++        if (proveedores.TryGetValue(id, out proveedor)) return proveedor();
++
++        switch (id)
++        {
++            case EconomiaDemo.Ids.FusilMonedas:
++            {
++                GestorEquipamiento g = Buscar(ref gestor);
++                if (g == null || !g.ArmaLanzadoraDesbloqueada()) return 0;
++                return g.armaLanzadora != null ? g.armaLanzadora.NivelFusil : 1;
++            }
++            case EconomiaDemo.Ids.Torbellino:
++            {
++                GestorEquipamiento g = Buscar(ref gestor);
++                if (g == null || !g.TorbellinoDesbloqueado()) return 0;
++                HerramientaTorbellino t = g.herramientaTorbellino != null ? g.herramientaTorbellino : Buscar(ref torbellino);
++                return t != null ? t.NivelCapacidad : 1;
++            }
++            case EconomiaDemo.Ids.Lanzapiedras:
++            {
++                ConstruccionDianaBloopMonedas d = Buscar(ref diana);
++                return d != null ? d.NivelActual : 0;
++            }
++            case EconomiaDemo.Ids.ArmaLunar:
++            {
++                ConstruccionAmetralladoraMonedas a = Buscar(ref armaLunar);
++                return a != null ? a.NivelActual : 0;
++            }
++            case EconomiaDemo.Ids.Cinta:
++            {
++                InventarioEdificios inv = Buscar(ref inventario);
++                return inv != null ? inv.CompradasTotal(SistemaConstruccion.TipoEdificio.Rampa) : 0;
++            }
++            case EconomiaDemo.Ids.Pared:
++            {
++                InventarioEdificios inv = Buscar(ref inventario);
++                return inv != null ? inv.CompradasTotal(SistemaConstruccion.TipoEdificio.Pared) : 0;
++            }
++            case EconomiaDemo.Ids.Botas:
++            {
++                MovimientoPersonaje m = Buscar(ref movimiento);
++                return m != null ? m.NivelBotas : 0;
++            }
++            case EconomiaDemo.Ids.Jetpack:
++            {
++                MovimientoPersonaje m = Buscar(ref movimiento);
++                return m != null ? m.NivelJetpack : 0;
++            }
++            case EconomiaDemo.Ids.Martillo:
++            {
++                GestorEquipamiento g = Buscar(ref gestor);
++                return g != null && g.MartilloDesbloqueado() ? 1 : 0;
++            }
++            case EconomiaDemo.Ids.Iman:
++            {
++                RecolectorMagnetico r = Buscar(ref iman);
++                return r != null && r.ImanDesbloqueado ? 1 : 0;
++            }
++            default:
++                return 0;
++        }
++    }
++
++    public static PasoCompra SiguientePaso(EconomiaDemo economia)
++    {
++        if (economia == null || economia.ordenCompras == null) return null;
++        for (int i = 0; i < economia.ordenCompras.Count; i++)
++        {
++            PasoCompra paso = economia.ordenCompras[i];
++            if (paso == null || string.IsNullOrEmpty(paso.id)) continue;
++            if (Nivel(paso.id) < paso.nivel) return paso;
++        }
++        return null;
++    }
++}
+diff --git a/Assets/Scripts/Economia/NivelesMejoras.cs.meta b/Assets/Scripts/Economia/NivelesMejoras.cs.meta
+new file mode 100644
+index 0000000..aa3cd8b
+--- /dev/null
++++ b/Assets/Scripts/Economia/NivelesMejoras.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: 0fc97c48b2e44e15881fa36a7271685f
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/ProveedorEconomia.cs b/Assets/Scripts/Economia/ProveedorEconomia.cs
+new file mode 100644
+index 0000000..68dfe43
+--- /dev/null
++++ b/Assets/Scripts/Economia/ProveedorEconomia.cs
+@@ -0,0 +1,73 @@
++using UnityEngine;
++
++[DefaultExecutionOrder(-1000)]
++[DisallowMultipleComponent]
++public class ProveedorEconomia : MonoBehaviour
++{
++    public const string RecursoPorDefecto = "EconomiaDemo";
++
++    [SerializeField] private EconomiaDemo economia;
++
++    private static ProveedorEconomia instancia;
++    private static EconomiaDemo respaldo;
++    private static bool buscado;
++
++    public EconomiaDemo Economia
++    {
++        get { return economia; }
++    }
++
++    public static EconomiaDemo Actual
++    {
++        get
++        {
++            if (instancia != null && instancia.economia != null) return instancia.economia;
++            if (respaldo != null) return respaldo;
++
++            if (!buscado)
++            {
++                buscado = true;
++                ProveedorEconomia enEscena = FindAnyObjectByType<ProveedorEconomia>();
++                if (enEscena != null && enEscena.economia != null)
++                {
++                    instancia = enEscena;
++                    return enEscena.economia;
++                }
++            }
++
++            respaldo = Resources.Load<EconomiaDemo>(RecursoPorDefecto);
++            if (respaldo == null)
++            {
++                Debug.LogWarning("ProveedorEconomia: no hay EconomiaDemo asignada ni en Resources/" + RecursoPorDefecto + ". Se usan los valores por defecto del Excel.");
++                respaldo = ScriptableObject.CreateInstance<EconomiaDemo>();
++                respaldo.hideFlags = HideFlags.DontSave;
++            }
++            return respaldo;
++        }
++    }
++
++    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
++    private static void ReiniciarEstatico()
++    {
++        instancia = null;
++        respaldo = null;
++        buscado = false;
++    }
++
++    private void Awake()
++    {
++        if (instancia != null && instancia != this)
++        {
++            Debug.LogWarning("ProveedorEconomia: hay más de uno en la escena. Se usa el de '" + instancia.name + "'.", this);
++            return;
++        }
++
++        instancia = this;
++        if (economia == null) Debug.LogWarning("ProveedorEconomia: falta asignar EconomiaDemo; se usará Resources/" + RecursoPorDefecto + ".", this);
++    }
++
++    private void OnDestroy()
++    {
++        if (instancia == this) instancia = null;
++    }
++}
+diff --git a/Assets/Scripts/Economia/ProveedorEconomia.cs.meta b/Assets/Scripts/Economia/ProveedorEconomia.cs.meta
+new file mode 100644
+index 0000000..e8bd7fa
+--- /dev/null
++++ b/Assets/Scripts/Economia/ProveedorEconomia.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: 75e1a9a594ca4ba78aa8782587248022
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/Resources.meta b/Assets/Scripts/Economia/Resources.meta
+new file mode 100644
+index 0000000..596203f
+--- /dev/null
++++ b/Assets/Scripts/Economia/Resources.meta
+@@ -0,0 +1,8 @@
++fileFormatVersion: 2
++guid: ddc4027b7f5e47b19022b77cd11706b8
++folderAsset: yes
++DefaultImporter:
++  externalObjects: {}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/Resources/EconomiaDemo.asset b/Assets/Scripts/Economia/Resources/EconomiaDemo.asset
+new file mode 100644
+index 0000000..61a0b0f
+--- /dev/null
++++ b/Assets/Scripts/Economia/Resources/EconomiaDemo.asset
+@@ -0,0 +1,14 @@
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 62cdda54ec9e4e0fab4c63dd9cc83aae, type: 3}
++  m_Name: EconomiaDemo
++  m_EditorClassIdentifier: Assembly-CSharp::EconomiaDemo
+diff --git a/Assets/Scripts/Economia/Resources/EconomiaDemo.asset.meta b/Assets/Scripts/Economia/Resources/EconomiaDemo.asset.meta
+new file mode 100644
+index 0000000..f064ccc
+--- /dev/null
++++ b/Assets/Scripts/Economia/Resources/EconomiaDemo.asset.meta
+@@ -0,0 +1,8 @@
++fileFormatVersion: 2
++guid: ece8fc02a5e24a5993f05df7be6ce947
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/Economia/UIProximoObjetivo.cs b/Assets/Scripts/Economia/UIProximoObjetivo.cs
+new file mode 100644
+index 0000000..152014e
+--- /dev/null
++++ b/Assets/Scripts/Economia/UIProximoObjetivo.cs
+@@ -0,0 +1,64 @@
++using TMPro;
++using UnityEngine;
++using UnityEngine.UI;
++
++public class UIProximoObjetivo : MonoBehaviour
++{
++    [Header("Referencias")]
++    public TMP_Text texto;
++    [Tooltip("Opcional: Image en modo Filled que se llena según las monedas que llevas.")]
++    public Image barra;
++    public Cartera cartera;
++
++    [Header("Ajustes")]
++    [Min(0.05f)] public float intervaloRefresco = 0.25f;
++    public string textoSinObjetivos = "¡Lo tienes todo!";
++
++    private float siguienteRefresco;
++
++    private void OnEnable()
++    {
++        siguienteRefresco = 0f;
++    }
++
++    private void Update()
++    {
++        if (Time.unscaledTime < siguienteRefresco) return;
++        siguienteRefresco = Time.unscaledTime + intervaloRefresco;
++        Refrescar();
++    }
++
++    public void Refrescar()
++    {
++        EconomiaDemo economia = ProveedorEconomia.Actual;
++        if (cartera == null) cartera = FindAnyObjectByType<Cartera>();
++
++        PasoCompra paso = NivelesMejoras.SiguientePaso(economia);
++        if (paso == null)
++        {
++            if (texto != null) texto.text = textoSinObjetivos;
++            if (barra != null) barra.fillAmount = 1f;
++            return;
++        }
++
++        string nombre = EconomiaDemo.NombreVisible(paso.id) + (economia.NivelesMax(paso.id) > 1 ? " " + paso.nivel : string.Empty);
++        int coste = economia.Coste(paso.id, paso.nivel);
++
++        if (economia.PagaCon(paso.id) == PagoMejora.EsferasPerfectas)
++        {
++            if (texto != null) texto.text = "Próximo objetivo: " + nombre + " · " + coste + " esferas perfectas";
++            if (barra != null) barra.fillAmount = 0f;
++            return;
++        }
++
++        int monedas = cartera != null ? cartera.Monedas : 0;
++        int faltan = Mathf.Max(0, coste - monedas);
++        if (texto != null)
++        {
++            texto.text = faltan > 0
++                ? "Próximo: " + nombre + " · te faltan " + faltan + (faltan == 1 ? " moneda" : " monedas")
++                : "¡Ya puedes comprar " + nombre + "! (" + coste + " monedas)";
++        }
++        if (barra != null) barra.fillAmount = coste > 0 ? Mathf.Clamp01((float)monedas / coste) : 1f;
++    }
++}
+diff --git a/Assets/Scripts/Economia/UIProximoObjetivo.cs.meta b/Assets/Scripts/Economia/UIProximoObjetivo.cs.meta
+new file mode 100644
+index 0000000..c21bb8f
+--- /dev/null
++++ b/Assets/Scripts/Economia/UIProximoObjetivo.cs.meta
+@@ -0,0 +1,11 @@
++fileFormatVersion: 2
++guid: c7830e96858c46208aa785869587b09f
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+diff --git a/Assets/Scripts/HerramientaTorbellino.cs b/Assets/Scripts/HerramientaTorbellino.cs
+index f580716..0024317 100644
+--- a/Assets/Scripts/HerramientaTorbellino.cs
++++ b/Assets/Scripts/HerramientaTorbellino.cs
+@@ -149,6 +149,27 @@ public class HerramientaTorbellino : MonoBehaviour
+     public Vector3 NormalTorbellino => normalActualTorbellino;
+     public bool TorbellinoActivo => torbellinoActivo;
+ 
++    [Header("Mejora - Nivel del Excel (EconomiaDemo)")]
++    [Tooltip("Si está activo, el torbellino lleva como máximo tantas piedras como su nivel (1-5).")]
++    public bool limitarPiedrasPorNivel = true;
++    [SerializeField, Range(1, 5)] private int nivelCapacidad = 1;
++    public int NivelCapacidad => nivelCapacidad;
++    public int MaximoPiedras => limitarPiedrasPorNivel ? nivelCapacidad : int.MaxValue;
++    public bool CapacidadAlMaximo() => nivelCapacidad >= 5;
++
++    public bool MejorarCapacidad()
++    {
++        if (nivelCapacidad >= 5) return false;
++        nivelCapacidad++;
++        EstablecerNivelRadio(Mathf.Min(nivelCapacidad, 4));
++        return true;
++    }
++
++    public void RestaurarNivelCapacidad(int nivel)
++    {
++        nivelCapacidad = Mathf.Clamp(nivel, 1, 5);
++    }
++
+     private Camera camaraPrincipal;
+ 
+     private bool torbellinoActivo = false;
+@@ -578,7 +599,7 @@ public class HerramientaTorbellino : MonoBehaviour
+             if (col.CompareTag(tagPiedra))
+             {
+                 Rigidbody rb = col.GetComponent<Rigidbody>();
+-                if (rb != null && !piedrasAtrapadas.Contains(rb))
++                if (rb != null && !piedrasAtrapadas.Contains(rb) && piedrasAtrapadas.Count < MaximoPiedras)
+                 {
+                     piedrasAtrapadas.Add(rb);
+ 
+@@ -598,6 +619,9 @@ public class HerramientaTorbellino : MonoBehaviour
+ 
+         foreach (Rigidbody rb in piedrasAtrapadas)
+         {
++            DesgastePiedra desgaste = rb.GetComponent<DesgastePiedra>();
++            if (desgaste != null) desgaste.AplicarTorbellino(Time.fixedDeltaTime);
++
+             Vector3 posicionPlana = new Vector3(rb.position.x, 0f, rb.position.z);
+             Vector3 centroPlano = new Vector3(centroTorbellino.x, 0f, centroTorbellino.z);
+ 
+diff --git a/Assets/Scripts/SistemaPatada.cs b/Assets/Scripts/SistemaPatada.cs
+index c551113..0056f2c 100644
+--- a/Assets/Scripts/SistemaPatada.cs
++++ b/Assets/Scripts/SistemaPatada.cs
+@@ -220,7 +220,10 @@ public class SistemaPatada : MonoBehaviour
+ 
+             DeformacionPiedra scriptPiedra = rbPiedra.GetComponent<DeformacionPiedra>();
+             if (scriptPiedra != null)
++            {
+                 scriptPiedra.Despertar();
++                scriptPiedra.Desgaste.AplicarGolpePatada();
++            }
+ 
+             Vector3 dirCamara = camaraTrans.forward;
+             float anguloCamara = Mathf.Asin(Mathf.Clamp(dirCamara.y, -1f, 1f)) * Mathf.Rad2Deg;
+diff --git a/Assets/Scripts/TiendaTrabajo.cs b/Assets/Scripts/TiendaTrabajo.cs
+index 2f04468..61a339c 100644
+--- a/Assets/Scripts/TiendaTrabajo.cs
++++ b/Assets/Scripts/TiendaTrabajo.cs
+@@ -13,13 +13,41 @@ public class TiendaTrabajo : MonoBehaviour
+     public Cartera cartera;
+     public GestorEquipamiento gestorEquipamiento;
+ 
++    [Header("Economía demo v2")]
++    [Tooltip("Lee los precios de EconomiaDemo (Excel). El botón del Arma de la Luna compra y mejora el Fusil Monedas (1-5) y el de Radio sube el nivel del Torbellino (2-5).")]
++    public bool usarEconomiaDemo = true;
++
++    private EconomiaDemo Eco => ProveedorEconomia.Actual;
++
++    private int P(string id, int nivel, int respaldo)
++    {
++        return usarEconomiaDemo ? Eco.CosteOPorDefecto(id, nivel, respaldo) : respaldo;
++    }
++
++    private int Ep_precioBotasNivel1 => P(EconomiaDemo.Ids.Botas, 1, precioBotasNivel1);
++    private int Ep_precioBotasNivel2 => P(EconomiaDemo.Ids.Botas, 2, precioBotasNivel2);
++    private int Ep_precioBotasNivel3 => P(EconomiaDemo.Ids.Botas, 3, precioBotasNivel3);
++    private int Ep_precioJetpackNivel1 => P(EconomiaDemo.Ids.Jetpack, 1, precioJetpackNivel1);
++    private int Ep_precioJetpackNivel2 => P(EconomiaDemo.Ids.Jetpack, 2, precioJetpackNivel2);
++    private int Ep_precioJetpackNivel3 => P(EconomiaDemo.Ids.Jetpack, 3, precioJetpackNivel3);
++    private int Ep_precioJetpackNivel4 => P(EconomiaDemo.Ids.Jetpack, 4, precioJetpackNivel4);
++    private int Ep_precioTorbellino => P(EconomiaDemo.Ids.Torbellino, 1, precioTorbellino);
++    private int Ep_precioAlcanceNivel2 => P(EconomiaDemo.Ids.TorbellinoAlcance, 2, precioAlcanceNivel2);
++    private int Ep_precioAlcanceNivel3 => P(EconomiaDemo.Ids.TorbellinoAlcance, 3, precioAlcanceNivel3);
++    private int Ep_precioMovilidadNivel2 => P(EconomiaDemo.Ids.TorbellinoMovilidad, 2, precioMovilidadNivel2);
++    private int Ep_precioMovilidadNivel3 => P(EconomiaDemo.Ids.TorbellinoMovilidad, 3, precioMovilidadNivel3);
++    private int Ep_precioImanNivel2 => P(EconomiaDemo.Ids.ImanAlcance, 2, precioImanNivel2);
++    private int Ep_precioImanNivel3 => P(EconomiaDemo.Ids.ImanAlcance, 3, precioImanNivel3);
++    private int Ep_precioIman => P(EconomiaDemo.Ids.Iman, 1, precioIman);
++    private int Ep_precioMartillo => P(EconomiaDemo.Ids.Martillo, 1, precioMartillo);
++
+     [Header("Botas de velocidad")]
+     public MovimientoPersonaje movimientoPersonaje;
+     public Button botonComprarBotas;
+     public TextMeshProUGUI textoBotonBotas;
+-    [Min(1)] public int precioBotasNivel1 = 5;
+-    [Min(1)] public int precioBotasNivel2 = 10;
+-    [Min(1)] public int precioBotasNivel3 = 20;
++    [HideInInspector] [Min(1)] public int precioBotasNivel1 = 5;
++    [HideInInspector] [Min(1)] public int precioBotasNivel2 = 10;
++    [HideInInspector] [Min(1)] public int precioBotasNivel3 = 20;
+ 
+ 
+ 
+@@ -30,10 +58,10 @@ public class TiendaTrabajo : MonoBehaviour
+     [Header("Jetpack")]
+     public Button botonComprarJetpack;
+     public TextMeshProUGUI textoBotonJetpack;
+-    [Min(1)] public int precioJetpackNivel1 = 5;
+-    [Min(1)] public int precioJetpackNivel2 = 10;
+-    [Min(1)] public int precioJetpackNivel3 = 20;
+-    [Min(1)] public int precioJetpackNivel4 = 40;
++    [HideInInspector] [Min(1)] public int precioJetpackNivel1 = 5;
++    [HideInInspector] [Min(1)] public int precioJetpackNivel2 = 10;
++    [HideInInspector] [Min(1)] public int precioJetpackNivel3 = 20;
++    [HideInInspector] [Min(1)] public int precioJetpackNivel4 = 40;
+ 
+ 
+     [Header("Arma de la Luna")]
+@@ -50,7 +78,7 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+     [Header("Torbellino - Compra")]
+ 
+-    public int precioTorbellino = 1;
++    [HideInInspector] public int precioTorbellino = 1;
+ 
+     public Button botonComprarTorbellino;
+     public TextMeshProUGUI textoBotonTorbellino;
+@@ -90,8 +118,8 @@ public class TiendaTrabajo : MonoBehaviour
+     public Button botonMejorarAlcance;
+     public TextMeshProUGUI textoBotonAlcance;
+ 
+-    public int precioAlcanceNivel2 = 5;
+-    public int precioAlcanceNivel3 = 10;
++    [HideInInspector] public int precioAlcanceNivel2 = 5;
++    [HideInInspector] public int precioAlcanceNivel3 = 10;
+ 
+ 
+     // =====================================================
+@@ -103,8 +131,8 @@ public class TiendaTrabajo : MonoBehaviour
+     public Button botonMejorarMovilidad;
+     public TextMeshProUGUI textoBotonMovilidad;
+ 
+-    public int precioMovilidadNivel2 = 5;
+-    public int precioMovilidadNivel3 = 10;
++    [HideInInspector] public int precioMovilidadNivel2 = 5;
++    [HideInInspector] public int precioMovilidadNivel3 = 10;
+ 
+ 
+     // =====================================================
+@@ -118,13 +146,13 @@ public class TiendaTrabajo : MonoBehaviour
+     public Button botonMejorarIman;
+     public TextMeshProUGUI textoBotonIman;
+ 
+-    public int precioImanNivel2 = 5;
+-    public int precioImanNivel3 = 10;
++    [HideInInspector] public int precioImanNivel2 = 5;
++    [HideInInspector] public int precioImanNivel3 = 10;
+ 
+ 
+     [Header("Imán - Compra")]
+ 
+-    public int precioIman = 3;
++    [HideInInspector] public int precioIman = 3;
+ 
+     public Button botonComprarIman;
+     public TextMeshProUGUI textoBotonComprarIman;
+@@ -182,7 +210,7 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+     [Header("Martillo - Compra")]
+ 
+-    public int precioMartillo = 10;
++    [HideInInspector] public int precioMartillo = 10;
+ 
+     public Button botonComprarMartillo;
+     public TextMeshProUGUI textoBotonMartillo;
+@@ -373,6 +401,12 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+     public void ComprarArmaLuna()
+     {
++        if (usarEconomiaDemo)
++        {
++            ComprarFusilDemo();
++            return;
++        }
++
+         if (cartera == null ||
+             gestorEquipamiento == null)
+         {
+@@ -403,6 +437,9 @@ public class TiendaTrabajo : MonoBehaviour
+             .DesbloquearArmaLanzadora();
+ 
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, 1, precioArmaLuna);
++
++
+         Debug.Log(
+             "¡Arma de la Luna comprada!"
+         );
+@@ -433,7 +470,7 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+ 
+         if (!cartera.GastarMonedas(
+-                precioTorbellino))
++                Ep_precioTorbellino))
+         {
+             Debug.Log(
+                 "No tienes monedas suficientes " +
+@@ -448,6 +485,12 @@ public class TiendaTrabajo : MonoBehaviour
+             .DesbloquearTorbellino();
+ 
+ 
++        if (herramientaTorbellino != null) herramientaTorbellino.RestaurarNivelCapacidad(1);
++
++
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Torbellino, 1, Ep_precioTorbellino);
++
++
+         Debug.Log(
+             "¡Torbellino comprado!"
+         );
+@@ -463,6 +506,12 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+     public void ComprarMejoraRadioTorbellino()
+     {
++        if (usarEconomiaDemo)
++        {
++            ComprarNivelTorbellinoDemo();
++            return;
++        }
++
+         if (cartera == null ||
+             gestorEquipamiento == null ||
+             herramientaTorbellino == null)
+@@ -592,14 +641,14 @@ public class TiendaTrabajo : MonoBehaviour
+             .NivelAlcance == 1)
+         {
+             precio =
+-                precioAlcanceNivel2;
++                Ep_precioAlcanceNivel2;
+         }
+         else if (
+             herramientaTorbellino
+                 .NivelAlcance == 2)
+         {
+             precio =
+-                precioAlcanceNivel3;
++                Ep_precioAlcanceNivel3;
+         }
+         else
+         {
+@@ -623,6 +672,9 @@ public class TiendaTrabajo : MonoBehaviour
+             .MejorarAlcance();
+ 
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.TorbellinoAlcance, herramientaTorbellino.NivelAlcance, precio);
++
++
+         Debug.Log(
+             "Alcance mejorado a nivel " +
+             herramientaTorbellino
+@@ -678,14 +730,14 @@ public class TiendaTrabajo : MonoBehaviour
+             .NivelMovilidad == 1)
+         {
+             precio =
+-                precioMovilidadNivel2;
++                Ep_precioMovilidadNivel2;
+         }
+         else if (
+             herramientaTorbellino
+                 .NivelMovilidad == 2)
+         {
+             precio =
+-                precioMovilidadNivel3;
++                Ep_precioMovilidadNivel3;
+         }
+         else
+         {
+@@ -709,6 +761,9 @@ public class TiendaTrabajo : MonoBehaviour
+             .MejorarMovilidad();
+ 
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.TorbellinoMovilidad, herramientaTorbellino.NivelMovilidad, precio);
++
++
+         Debug.Log(
+             "Movilidad mejorada a nivel " +
+             herramientaTorbellino
+@@ -741,7 +796,7 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+ 
+         if (!cartera.GastarMonedas(
+-                precioIman))
++                Ep_precioIman))
+         {
+             Debug.Log(
+                 "No tienes monedas suficientes " +
+@@ -756,6 +811,9 @@ public class TiendaTrabajo : MonoBehaviour
+             .DesbloquearIman();
+ 
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Iman, 1, Ep_precioIman);
++
++
+         Debug.Log(
+             "¡Imán comprado!"
+         );
+@@ -807,14 +865,14 @@ public class TiendaTrabajo : MonoBehaviour
+             .NivelAlcance == 1)
+         {
+             precio =
+-                precioImanNivel2;
++                Ep_precioImanNivel2;
+         }
+         else if (
+             recolectorMagnetico
+                 .NivelAlcance == 2)
+         {
+             precio =
+-                precioImanNivel3;
++                Ep_precioImanNivel3;
+         }
+         else
+         {
+@@ -838,6 +896,9 @@ public class TiendaTrabajo : MonoBehaviour
+             .MejorarAlcance();
+ 
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.ImanAlcance, recolectorMagnetico.NivelAlcance, precio);
++
++
+         Debug.Log(
+             "Imán mejorado a nivel " +
+             recolectorMagnetico
+@@ -972,7 +1033,7 @@ public class TiendaTrabajo : MonoBehaviour
+ 
+ 
+         if (!cartera.GastarMonedas(
+-                precioMartillo))
++                Ep_precioMartillo))
+         {
+             Debug.Log(
+                 "No tienes monedas suficientes " +
+@@ -987,6 +1048,9 @@ public class TiendaTrabajo : MonoBehaviour
+             .DesbloquearMartillo();
+ 
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Martillo, 1, Ep_precioMartillo);
++
++
+         Debug.Log(
+             "¡Martillo comprado!"
+         );
+@@ -1149,6 +1213,8 @@ public class TiendaTrabajo : MonoBehaviour
+             return;
+         }
+ 
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Bot, cantidadActual + 1, precio);
++
+ 
+         // =================================================
+         // CREAR BOT
+@@ -1356,6 +1422,11 @@ public class TiendaTrabajo : MonoBehaviour
+     private int ObtenerPrecioSiguienteBot(
+         int cantidadActual)
+     {
++        if (usarEconomiaDemo && Eco.Tiene(EconomiaDemo.Ids.Bot))
++        {
++            return Eco.CosteOPorDefecto(EconomiaDemo.Ids.Bot, cantidadActual + 1, precioBotFallback);
++        }
++
+         if (preciosBots != null &&
+             cantidadActual >= 0 &&
+             cantidadActual <
+@@ -1382,6 +1453,96 @@ public class TiendaTrabajo : MonoBehaviour
+     // =====================================================
+ 
+     private void ActualizarTienda()
++    {
++        ActualizarTiendaBase();
++        if (usarEconomiaDemo) ActualizarBotonesDemo();
++    }
++
++    private ArmaLanzadora FusilMonedas => gestorEquipamiento != null ? gestorEquipamiento.armaLanzadora : null;
++
++    private void ComprarFusilDemo()
++    {
++        if (cartera == null || gestorEquipamiento == null) return;
++        ArmaLanzadora fusil = FusilMonedas;
++
++        if (!gestorEquipamiento.ArmaLanzadoraDesbloqueada())
++        {
++            int coste = Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1);
++            if (!cartera.GastarMonedas(coste))
++            {
++                Debug.Log("No tienes monedas suficientes para el Fusil Monedas.");
++                return;
++            }
++            gestorEquipamiento.DesbloquearArmaLanzadora();
++            if (fusil != null) fusil.RestaurarNivelFusil(1);
++            EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, 1, coste);
++        }
++        else
++        {
++            if (fusil == null || fusil.NivelFusil >= Eco.NivelesMax(EconomiaDemo.Ids.FusilMonedas)) return;
++            int nivel = fusil.NivelFusil + 1;
++            int coste = Eco.Coste(EconomiaDemo.Ids.FusilMonedas, nivel);
++            if (!cartera.GastarMonedas(coste))
++            {
++                Debug.Log("No tienes monedas suficientes para mejorar el Fusil Monedas.");
++                return;
++            }
++            fusil.MejorarFusil();
++            EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, nivel, coste);
++        }
++
++        ActualizarTienda();
++    }
++
++    private void ComprarNivelTorbellinoDemo()
++    {
++        if (cartera == null || gestorEquipamiento == null || herramientaTorbellino == null) return;
++        if (!gestorEquipamiento.TorbellinoDesbloqueado() || herramientaTorbellino.CapacidadAlMaximo()) return;
++
++        int nivel = herramientaTorbellino.NivelCapacidad + 1;
++        int coste = Eco.Coste(EconomiaDemo.Ids.Torbellino, nivel);
++        if (!cartera.GastarMonedas(coste))
++        {
++            Debug.Log("No tienes monedas suficientes para mejorar el Torbellino.");
++            return;
++        }
++
++        herramientaTorbellino.MejorarCapacidad();
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Torbellino, nivel, coste);
++        ActualizarTienda();
++    }
++
++    private void ActualizarBotonesDemo()
++    {
++        if (gestorEquipamiento == null) return;
++
++        bool fusilComprado = gestorEquipamiento.ArmaLanzadoraDesbloqueada();
++        ArmaLanzadora fusil = FusilMonedas;
++        int nivelFusil = fusilComprado && fusil != null ? fusil.NivelFusil : 0;
++        bool fusilMaximo = fusilComprado && (fusil == null || nivelFusil >= Eco.NivelesMax(EconomiaDemo.Ids.FusilMonedas));
++        if (textoBotonArma != null)
++        {
++            if (!fusilComprado) textoBotonArma.text = "COMPRAR FUSIL MONEDAS - " + Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1) + " monedas";
++            else if (fusilMaximo) textoBotonArma.text = "FUSIL NIVEL MÁXIMO";
++            else textoBotonArma.text = "MEJORAR FUSIL NIVEL " + (nivelFusil + 1) + " - " + Eco.Coste(EconomiaDemo.Ids.FusilMonedas, nivelFusil + 1) + " monedas";
++        }
++        if (botonComprarArma != null) botonComprarArma.interactable = !fusilMaximo;
++
++        if (herramientaTorbellino != null && gestorEquipamiento.TorbellinoDesbloqueado())
++        {
++            int nivel = herramientaTorbellino.NivelCapacidad;
++            bool maximo = herramientaTorbellino.CapacidadAlMaximo();
++            if (textoBotonRadio != null)
++            {
++                textoBotonRadio.text = maximo
++                    ? "TORBELLINO NIVEL MÁXIMO (5 PIEDRAS)"
++                    : "MEJORAR TORBELLINO NIVEL " + (nivel + 1) + " (" + (nivel + 1) + " piedras) - " + Eco.Coste(EconomiaDemo.Ids.Torbellino, nivel + 1) + " monedas";
++            }
++            if (botonMejorarRadio != null) botonMejorarRadio.interactable = !maximo;
++        }
++    }
++
++    private void ActualizarTiendaBase()
+     {
+         ActualizarBotas();
+         ActualizarJetpack();
+@@ -1442,7 +1603,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonTorbellino.text =
+                     "COMPRAR TORBELLINO - " +
+-                    precioTorbellino +
++                    Ep_precioTorbellino +
+                     " monedas";
+             }
+ 
+@@ -1482,7 +1643,7 @@ public class TiendaTrabajo : MonoBehaviour
+                     martilloComprado
+                     ? "COMPRADO"
+                     : "COMPRAR MARTILLO - " +
+-                      precioMartillo +
++                      Ep_precioMartillo +
+                       " monedas";
+             }
+ 
+@@ -1531,7 +1692,7 @@ public class TiendaTrabajo : MonoBehaviour
+                 {
+                     textoBotonComprarIman.text =
+                         "COMPRAR IMÁN - " +
+-                        precioIman +
++                        Ep_precioIman +
+                         " monedas";
+                 }
+             }
+@@ -1718,7 +1879,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonAlcance.text =
+                     "MEJORAR ALCANCE NIVEL 2 - " +
+-                    precioAlcanceNivel2 +
++                    Ep_precioAlcanceNivel2 +
+                     " monedas";
+             }
+ 
+@@ -1737,7 +1898,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonAlcance.text =
+                     "MEJORAR ALCANCE NIVEL 3 - " +
+-                    precioAlcanceNivel3 +
++                    Ep_precioAlcanceNivel3 +
+                     " monedas";
+             }
+ 
+@@ -1776,7 +1937,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonMovilidad.text =
+                     "MEJORAR MOVILIDAD NIVEL 2 - " +
+-                    precioMovilidadNivel2 +
++                    Ep_precioMovilidadNivel2 +
+                     " monedas";
+             }
+ 
+@@ -1796,7 +1957,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonMovilidad.text =
+                     "MEJORAR MOVILIDAD NIVEL 3 - " +
+-                    precioMovilidadNivel3 +
++                    Ep_precioMovilidadNivel3 +
+                     " monedas";
+             }
+ 
+@@ -1844,7 +2005,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonIman.text =
+                     "MEJORAR ALCANCE NIVEL 2 - " +
+-                    precioImanNivel2 +
++                    Ep_precioImanNivel2 +
+                     " monedas";
+             }
+ 
+@@ -1864,7 +2025,7 @@ public class TiendaTrabajo : MonoBehaviour
+             {
+                 textoBotonIman.text =
+                     "MEJORAR ALCANCE NIVEL 3 - " +
+-                    precioImanNivel3 +
++                    Ep_precioImanNivel3 +
+                     " monedas";
+             }
+ 
+@@ -2136,8 +2297,8 @@ public class TiendaTrabajo : MonoBehaviour
+         if (nivel >= 3)
+             return;
+ 
+-        int precio = nivel == 0 ? precioBotasNivel1 :
+-                     nivel == 1 ? precioBotasNivel2 : precioBotasNivel3;
++        int precio = nivel == 0 ? Ep_precioBotasNivel1 :
++                     nivel == 1 ? Ep_precioBotasNivel2 : Ep_precioBotasNivel3;
+ 
+         if (precio <= 0)
+         {
+@@ -2153,6 +2314,7 @@ public class TiendaTrabajo : MonoBehaviour
+         }
+ 
+         movimientoPersonaje.MejorarBotas();
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Botas, movimientoPersonaje.NivelBotas, precio);
+         ActualizarTienda();
+     }
+ 
+@@ -2168,8 +2330,8 @@ public class TiendaTrabajo : MonoBehaviour
+         }
+ 
+         int nivel = movimientoPersonaje.NivelBotas;
+-        int precio = nivel == 0 ? precioBotasNivel1 :
+-                     nivel == 1 ? precioBotasNivel2 : precioBotasNivel3;
++        int precio = nivel == 0 ? Ep_precioBotasNivel1 :
++                     nivel == 1 ? Ep_precioBotasNivel2 : Ep_precioBotasNivel3;
+ 
+         if (botonComprarBotas != null)
+             botonComprarBotas.interactable = nivel < 3 && precio > 0 &&
+@@ -2215,6 +2377,7 @@ public class TiendaTrabajo : MonoBehaviour
+         }
+ 
+         movimientoPersonaje.MejorarJetpack();
++        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Jetpack, movimientoPersonaje.NivelJetpack, precio);
+         ActualizarTienda();
+     }
+ 
+@@ -2222,10 +2385,10 @@ public class TiendaTrabajo : MonoBehaviour
+     {
+         switch (nivel)
+         {
+-            case 0: return precioJetpackNivel1;
+-            case 1: return precioJetpackNivel2;
+-            case 2: return precioJetpackNivel3;
+-            case 3: return precioJetpackNivel4;
++            case 0: return Ep_precioJetpackNivel1;
++            case 1: return Ep_precioJetpackNivel2;
++            case 2: return Ep_precioJetpackNivel3;
++            case 3: return Ep_precioJetpackNivel4;
+             default: return 0;
+         }
+     }
+diff --git a/Assets/TiendaEdificiosTrigger.cs b/Assets/TiendaEdificiosTrigger.cs
+index 4204a3a..c756faf 100644
+--- a/Assets/TiendaEdificiosTrigger.cs
++++ b/Assets/TiendaEdificiosTrigger.cs
+@@ -188,11 +188,13 @@ public class TiendaEdificiosTrigger : MonoBehaviour
+             }
+ 
+             bool lleno = articulo.Unidades >= articulo.maximoEnMochila;
+-            if (fila.botonComprar != null) fila.botonComprar.interactable = !lleno;
++            int precio = inventario.PrecioSiguiente(fila.tipo);
++            bool agotado = precio < 0;
++            if (fila.botonComprar != null) fila.botonComprar.interactable = !lleno && !agotado;
+             if (fila.textoBoton != null)
+             {
+-                fila.textoBoton.text = fila.tipo + "  |  " + articulo.precioMonedas +
+-                    (articulo.precioMonedas == 1 ? " moneda" : " monedas") +
++                string textoPrecio = agotado ? "AGOTADO" : precio + (precio == 1 ? " moneda" : " monedas");
++                fila.textoBoton.text = fila.tipo + "  |  " + textoPrecio +
+                     "  |  " + articulo.Unidades + "/" + articulo.maximoEnMochila +
+                     (lleno ? "  (LLENO)" : "");
+             }
+-- 
+2.43.0
+

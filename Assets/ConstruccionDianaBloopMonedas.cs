@@ -147,10 +147,21 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     public bool NivelMaximo => construida && nivelActual >= 3;
     public int MonedasAportadas => monedasAportadas;
 
+    [Header("Economía demo v2")]
+    [Tooltip("Precios y efectos por nivel de EconomiaDemo (Excel: Lanzapiedras). Si el nivel 1 cuesta 0, se construye sola al empezar.")]
+    public bool usarEconomiaDemo = true;
+    public const string IdEconomia = EconomiaDemo.Ids.Lanzapiedras;
+
     public int PrecioActual
     {
         get
         {
+            if (usarEconomiaDemo)
+            {
+                if (!construida) return ProveedorEconomia.Actual.Coste(IdEconomia, 1);
+                if (nivelActual < 3) return ProveedorEconomia.Actual.Coste(IdEconomia, nivelActual + 1);
+                return 0;
+            }
             if (!construida) return Mathf.Max(1, precioConstruccion);
             if (nivelActual == 1) return Mathf.Max(1, precioNivel2);
             if (nivelActual == 2) return Mathf.Max(1, precioNivel3);
@@ -240,6 +251,13 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         {
             escalaOriginalAntena = antenaVisual.localScale;
             rotacionOriginalAntena = antenaVisual.localRotation;
+        }
+
+        if (usarEconomiaDemo && !construida && PrecioActual <= 0)
+        {
+            construida = true;
+            nivelActual = 1;
+            monedasAportadas = 0;
         }
 
         if (construida) monedasAportadas = Mathf.Clamp(monedasAportadas, 0, PrecioActual);
@@ -405,7 +423,10 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
 
     private void CompletarEtapa()
     {
+        int costePagado = PrecioActual;
+        int nivelComprado = construida ? nivelActual + 1 : 1;
         monedasAportadas = 0;
+        if (nivelComprado <= 3) EventosEconomia.NotificarCompra(IdEconomia, nivelComprado, costePagado);
         if (!construida)
         {
             construida = true;
@@ -485,6 +506,13 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         if (!construida || dianaBloop == null) return;
         EstadisticasNivel stats = nivelActual == 1 ? nivel1 : nivelActual == 2 ? nivel2 : nivel3;
         if (stats == null) return;
+
+        if (usarEconomiaDemo)
+        {
+            dianaBloop.tiempoCooldown = Mathf.Max(0.05f, ProveedorEconomia.Actual.EsperaLanzapiedras(nivelActual));
+            dianaBloop.piedrasPorActivacion = Mathf.Clamp(ProveedorEconomia.Actual.PiedrasPorGolpeLanzapiedras(nivelActual), 1, 3);
+            return;
+        }
 
         dianaBloop.tiempoCooldown = Mathf.Max(0.05f, stats.tiempoCooldown);
         dianaBloop.piedrasPorActivacion = Mathf.Clamp(stats.piedrasPorActivacion, 1, 3);

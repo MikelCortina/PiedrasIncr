@@ -188,11 +188,13 @@ public class TiendaEdificiosTrigger : MonoBehaviour
             }
 
             bool lleno = articulo.Unidades >= articulo.maximoEnMochila;
-            if (fila.botonComprar != null) fila.botonComprar.interactable = !lleno;
+            int precio = inventario.PrecioSiguiente(fila.tipo);
+            bool agotado = precio < 0;
+            if (fila.botonComprar != null) fila.botonComprar.interactable = !lleno && !agotado;
             if (fila.textoBoton != null)
             {
-                fila.textoBoton.text = fila.tipo + "  |  " + articulo.precioMonedas +
-                    (articulo.precioMonedas == 1 ? " moneda" : " monedas") +
+                string textoPrecio = agotado ? "AGOTADO" : precio + (precio == 1 ? " moneda" : " monedas");
+                fila.textoBoton.text = fila.tipo + "  |  " + textoPrecio +
                     "  |  " + articulo.Unidades + "/" + articulo.maximoEnMochila +
                     (lleno ? "  (LLENO)" : "");
             }
