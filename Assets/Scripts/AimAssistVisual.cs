@@ -548,8 +548,10 @@ public class AimAssistVisual : MonoBehaviour
         }
     }
 
+    // Primitivas del estilo cartel LED. Públicas para que otros HUD (p. ej. el Fisionador) se vean igual.
+
     // Borde de neón: línea nítida y dos capas de halo por fuera.
-    void BordeNeon(Rect r, Color color, float e, float radio)
+    public static void BordeNeon(Rect r, Color color, float e, float radio)
     {
         for (int i = 2; i >= 1; i--)
         {
@@ -561,7 +563,7 @@ public class AimAssistVisual : MonoBehaviour
     }
 
     // Esquinas en "L" por fuera de la placa, como un visor.
-    void EsquinasHUD(Rect r, Color color, float e)
+    public static void EsquinasHUD(Rect r, Color color, float e)
     {
         float largo = 12f * e, grosor = 2f * e, separacion = 5f * e;
         float izquierda = r.x - separacion, derecha = r.xMax + separacion;
@@ -598,35 +600,40 @@ public class AimAssistVisual : MonoBehaviour
     // Texto luminoso: copias desplazadas y tenues alrededor (halo) y el texto nítido encima.
     void TextoNeon(Rect r, string texto, float tamano, TextAnchor anclaje, Color color, float halo)
     {
-        estiloTexto.fontSize = Mathf.Max(8, Mathf.RoundToInt(tamano));
-        estiloTexto.alignment = anclaje;
+        TextoNeon(estiloTexto, r, texto, tamano, anclaje, color, halo);
+    }
+
+    public static void TextoNeon(GUIStyle estilo, Rect r, string texto, float tamano, TextAnchor anclaje, Color color, float halo)
+    {
+        estilo.fontSize = Mathf.Max(8, Mathf.RoundToInt(tamano));
+        estilo.alignment = anclaje;
 
         Color guardado = GUI.color;
         if (halo > 0f)
         {
             float d = Mathf.Max(1f, tamano * 0.05f);
             GUI.color = ConAlfa(color, color.a * 0.22f * halo);
-            GUI.Label(new Rect(r.x - d, r.y, r.width, r.height), texto, estiloTexto);
-            GUI.Label(new Rect(r.x + d, r.y, r.width, r.height), texto, estiloTexto);
-            GUI.Label(new Rect(r.x, r.y - d, r.width, r.height), texto, estiloTexto);
-            GUI.Label(new Rect(r.x, r.y + d, r.width, r.height), texto, estiloTexto);
+            GUI.Label(new Rect(r.x - d, r.y, r.width, r.height), texto, estilo);
+            GUI.Label(new Rect(r.x + d, r.y, r.width, r.height), texto, estilo);
+            GUI.Label(new Rect(r.x, r.y - d, r.width, r.height), texto, estilo);
+            GUI.Label(new Rect(r.x, r.y + d, r.width, r.height), texto, estilo);
         }
         GUI.color = color;
-        GUI.Label(r, texto, estiloTexto);
+        GUI.Label(r, texto, estilo);
         GUI.color = guardado;
     }
 
-    static void Rectangulo(Rect r, Color color, float radio)
+    public static void Rectangulo(Rect r, Color color, float radio)
     {
         GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, color, 0f, radio);
     }
 
-    static void Borde(Rect r, Color color, float grosor, float radio)
+    public static void Borde(Rect r, Color color, float grosor, float radio)
     {
         GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, color, grosor, radio);
     }
 
-    static Color ConAlfa(Color color, float alfa)
+    public static Color ConAlfa(Color color, float alfa)
     {
         color.a = alfa;
         return color;

@@ -167,6 +167,7 @@ public class TiendaEdificiosTrigger : MonoBehaviour
     private void Comprar(SistemaConstruccion.TipoEdificio tipo)
     {
         if (!abierta || inventario == null || !PuedeUsarTienda()) return;
+        if (!TipoPermitido(tipo)) return;
         bool exito = inventario.ComprarUnidad(tipo, out string mensaje);
         if (textoResultado != null) textoResultado.text = mensaje;
         if (!exito) Debug.Log("Tienda edificios: " + mensaje, this);
@@ -179,6 +180,13 @@ public class TiendaEdificiosTrigger : MonoBehaviour
         foreach (FilaCompra fila in filas)
         {
             if (fila == null) continue;
+
+            // Demo: las filas de tipos recortados se ocultan.
+            bool permitido = TipoPermitido(fila.tipo);
+            if (fila.botonComprar != null && fila.botonComprar.gameObject.activeSelf != permitido)
+                fila.botonComprar.gameObject.SetActive(permitido);
+            if (!permitido) continue;
+
             InventarioEdificios.Articulo articulo = inventario.Obtener(fila.tipo);
             if (articulo == null)
             {
@@ -199,6 +207,11 @@ public class TiendaEdificiosTrigger : MonoBehaviour
                     (lleno ? "  (LLENO)" : "");
             }
         }
+    }
+
+    private bool TipoPermitido(SistemaConstruccion.TipoEdificio tipo)
+    {
+        return sistemaConstruccion == null || sistemaConstruccion.EsTipoPermitido(tipo);
     }
 
     private void OnDisable()

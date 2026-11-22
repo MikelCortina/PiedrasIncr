@@ -2009,7 +2009,8 @@ public class BotRecolector : MonoBehaviour
                         .DestinoTrabajo
                         .Procesadora)
             {
-                if (maquinaErosion == null ||
+                // Sin procesadora disponible (demo) se llevará al agujero.
+                if (ProcesadoraDisponible() &&
                     !maquinaErosion.PuedeAceptarPiedra(
                         piedra))
                 {
@@ -8854,6 +8855,15 @@ public class BotRecolector : MonoBehaviour
             );
         }
     }
+    // La procesadora cuenta solo si existe, está activa en escena y desbloqueada.
+    // En la demo (Desgastadora desactivada) siempre es false.
+    private bool ProcesadoraDisponible()
+    {
+        return maquinaErosion != null &&
+               maquinaErosion.isActiveAndEnabled &&
+               maquinaErosion.ProcesadoraDesbloqueada;
+    }
+
     private ConfiguracionBot.DestinoTrabajo
     CalcularDestinoPiedra(
         Rigidbody piedra)
@@ -8895,9 +8905,9 @@ public class BotRecolector : MonoBehaviour
         if (configuracionBot.destinoTrabajo ==
             ConfiguracionBot.DestinoTrabajo.Procesadora)
         {
-            return ConfiguracionBot
-                .DestinoTrabajo
-                .Procesadora;
+            return ProcesadoraDisponible()
+                ? ConfiguracionBot.DestinoTrabajo.Procesadora
+                : ConfiguracionBot.DestinoTrabajo.Agujero;
         }
 
 
@@ -8922,7 +8932,7 @@ public class BotRecolector : MonoBehaviour
 
 
         // Todavía merece procesarse.
-        if (maquinaErosion != null &&
+        if (ProcesadoraDisponible() &&
             maquinaErosion
                 .PuedeAceptarPiedra(
                     piedra))

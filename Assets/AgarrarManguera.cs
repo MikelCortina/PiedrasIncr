@@ -30,6 +30,14 @@ public class AgarrarManguera : MonoBehaviour
     [Tooltip("Desactiva también esta boquilla al conectar, aunque no esté en la lista de objetos a desactivar")]
     public bool desactivarBoquillaAlConectar = true;
 
+    /// <summary>Se lanza al enchufar la manguera a la nave.</summary>
+    public static event System.Action OnMangueraConectada;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarEventos() { OnMangueraConectada = null; }
+
+    public bool Conectada => conectada;
+
     private Rigidbody rb;
     private bool agarrada = false;
     private bool conectada = false;
@@ -144,6 +152,7 @@ public class AgarrarManguera : MonoBehaviour
             mangueraFisica.TensarAlConectar();
 
         Debug.Log("MANGUERA CONECTADA A LA NAVE");
+        OnMangueraConectada?.Invoke();
 
         if (retrasoCambioAlConectar > 0f)
             StartCoroutine(CambiarTrasRetraso(mangueraFisica));

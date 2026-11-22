@@ -33,6 +33,14 @@ public class LluviaMeteoritos : MonoBehaviour
 
     private Coroutine rutinaLluvia;
 
+    // Piedra configurada en el Inspector: se vuelve a ella cuando una fase no trae la suya.
+    private GameObject prefabPiedraBase;
+
+    void Awake()
+    {
+        prefabPiedraBase = prefabPiedra;
+    }
+
     void Start()
     {
         if (sistemaActivo)
@@ -219,6 +227,14 @@ public class LluviaMeteoritos : MonoBehaviour
     {
         tiempoEntreSpawns = Mathf.Max(0.1f, nuevoTiempoEntreSpawns);
         cantidadPorOleada = Mathf.Max(1, nuevaCantidadPorOleada);
+    }
+
+    /// <summary>Igual que la anterior, pero cambia también la piedra que cae (null = la original).</summary>
+    public void ConfigurarLluvia(float nuevoTiempoEntreSpawns, int nuevaCantidadPorOleada, GameObject prefabFase)
+    {
+        if (prefabPiedraBase == null) prefabPiedraBase = prefabPiedra;
+        prefabPiedra = prefabFase != null ? prefabFase : prefabPiedraBase;
+        ConfigurarLluvia(nuevoTiempoEntreSpawns, nuevaCantidadPorOleada);
     }
 
     public void ActivarLluvia(bool activar)

@@ -17,6 +17,26 @@ public class GestorPiedras : MonoBehaviour
 
     public event Action<Rigidbody> OnPiedraRegistrada;
 
+    /// <summary>Piedras de juego que siguen en la escena.</summary>
+    public int CantidadPiedras
+    {
+        get
+        {
+            LimpiarReferenciasInvalidas();
+            return piedrasRegistradas.Count;
+        }
+    }
+
+    /// <summary>Piedras registradas (solo lectura).</summary>
+    public IEnumerable<Rigidbody> Piedras
+    {
+        get
+        {
+            LimpiarReferenciasInvalidas();
+            return piedrasRegistradas;
+        }
+    }
+
 
     // =====================================================
     // DATOS

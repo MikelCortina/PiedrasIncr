@@ -44,6 +44,10 @@ public class GuardadoPartidaJuego : MonoBehaviour
     private double segundosAcumulados;
     private float inicioSesion;
 
+    /// <summary>Tiempo total jugado en esta partida (lo guardado + la sesión actual).</summary>
+    public double SegundosJugados =>
+        segundosAcumulados + Math.Max(0.0, Time.timeSinceLevelLoad - inicioSesion);
+
     // Solicitudes que sobreviven a la recarga
     // de la escena.
     private static int ranuraCargaPendiente;
@@ -399,7 +403,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
             new SaveStorage();
 
         // Comprobar tanto guardados validos como
-        // archivos que pudieran estar da�ados.
+        // archivos que pudieran estar dañados.
         if (RanuraTieneArchivos(
             almacenamiento,
             numeroRanura))

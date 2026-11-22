@@ -53,6 +53,31 @@ public class SistemaConstruccion : MonoBehaviour
     private int indiceEdificioActual = 0;
     private int indiceVarianteActual = 0;
 
+    [Header("Demo (recorte de alcance)")]
+    [Tooltip("En modo demo solo se pueden seleccionar, comprar y colocar los tipos de la lista. " +
+             "No se borran valores del enum: el guardado los usa.")]
+    public bool modoDemo = true;
+    public List<TipoEdificio> tiposPermitidosEnDemo =
+        new List<TipoEdificio> { TipoEdificio.Rampa, TipoEdificio.Pared };
+
+    public bool EsTipoPermitido(TipoEdificio tipo)
+    {
+        return !modoDemo ||
+               (tiposPermitidosEnDemo != null && tiposPermitidosEnDemo.Contains(tipo));
+    }
+
+    // Primer índice del catálogo (empezando en 'desde', circular) cuyo tipo está permitido; -1 si ninguno.
+    int BuscarIndicePermitido(int desde)
+    {
+        if (edificios == null || edificios.Length == 0) return -1;
+        for (int i = 0; i < edificios.Length; i++)
+        {
+            int indice = ((desde + i) % edificios.Length + edificios.Length) % edificios.Length;
+            if (EsTipoPermitido(edificios[indice].tipo)) return indice;
+        }
+        return -1;
+    }
+
     [Header("Referencias")]
     public Camera camaraPrincipal;
 
@@ -245,7 +270,9 @@ public class SistemaConstruccion : MonoBehaviour
 
     void CambiarEdificioActual()
     {
-        indiceEdificioActual = (indiceEdificioActual + 1) % edificios.Length;
+        int siguiente = BuscarIndicePermitido(indiceEdificioActual + 1);
+        if (siguiente < 0) return;
+        indiceEdificioActual = siguiente;
         DestruirHolograma();
 
         cooldownHolograma = 0f;
@@ -255,6 +282,12 @@ public class SistemaConstruccion : MonoBehaviour
     void CrearHolograma()
     {
         if (!conservarRotacion) rotacionManualOffset = 0f;
+
+        // Si el índice actual apunta a un tipo recortado, saltamos al primero permitido.
+        int permitido = BuscarIndicePermitido(indiceEdificioActual);
+        if (permitido < 0) return;
+        indiceEdificioActual = permitido;
+
         InfoEdificio edificioActual = edificios[indiceEdificioActual];
 
         if (edificioActual.prefabsHologramas.Length > 0)
@@ -798,6 +831,9 @@ public class SistemaConstruccion : MonoBehaviour
     bool PuedeColocarActual()
     {
         if (inventarioEdificios == null || edificios == null || edificios.Length == 0)
+            return false;
+
+        if (!EsTipoPermitido(edificios[indiceEdificioActual].tipo))
             return false;
 
         // Una estructura solo puede colocarse si antes se ha comprado.

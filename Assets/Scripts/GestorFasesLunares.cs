@@ -39,6 +39,8 @@ public class GestorFasesLunares : MonoBehaviour
         public bool lluviaActiva = true;
         public float tiempoEntreSpawns = 2f;
         [Min(1)] public int cantidadPorOleada = 1;
+        [Tooltip("Piedra que cae en esta fase (p. ej. 'Piedra nivel 2' tras agrietarse). Vacío = la del LluviaMeteoritos.")]
+        public GameObject prefabPiedraFase;
     }
 
     [Header("Fases")]
@@ -109,6 +111,9 @@ public class GestorFasesLunares : MonoBehaviour
         AplicarFaseActual();
     }
 
+    // Teclas de depuración (K avanzar, R resetear, L alinear): solo en el Editor y en Development Build.
+    // Los campos de las teclas siguen fuera del #if para no cambiar la serialización entre builds.
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void Update()
     {
         if (Input.GetKeyDown(teclaAvanzarFase) && !enTransicion)
@@ -135,6 +140,7 @@ public class GestorFasesLunares : MonoBehaviour
             ResetearFase();
         }
     }
+#endif
 
     private void ResetearFase()
     {
@@ -387,9 +393,44 @@ public class GestorFasesLunares : MonoBehaviour
         if (lluviaMeteoritos != null)
         {
             FaseLunar fase = fases[faseActual];
-            lluviaMeteoritos.ConfigurarLluvia(fase.tiempoEntreSpawns, fase.cantidadPorOleada);
+            lluviaMeteoritos.ConfigurarLluvia(fase.tiempoEntreSpawns, fase.cantidadPorOleada, fase.prefabPiedraFase);
             lluviaMeteoritos.ActivarLluvia(fase.lluviaActiva);
         }
+    }
+
+    [Header("Reacción al Arma Lunar (sin cambiar de fase)")]
+    [Tooltip("Sonido raro de la luna. Vacío = el sonido de impacto del misil.")]
+    public AudioClip sonidoReaccionLuna;
+    public float duracionReaccionLuna = 1.5f;
+    public float magnitudReaccionLuna = 0.25f;
+    public bool particulasEnReaccion = true;
+
+    /// <summary>La luna se resiente (temblor, grieta de partículas y sonido) sin avanzar de fase.</summary>
+    public void ReaccionarSinAvanzar()
+    {
+        if (enTransicion || fases == null || fases.Length == 0) return;
+
+        FaseLunar fase = fases[faseActual];
+
+        AudioClip clip = sonidoReaccionLuna != null ? sonidoReaccionLuna : sonidoImpactoMisil;
+        if (clip != null && audioSource != null) audioSource.PlayOneShot(clip);
+
+        if (particulasEnReaccion && fase.particulasExplosion != null)
+            foreach (ParticleSystem ps in fase.particulasExplosion)
+                if (ps != null) ps.Play();
+
+        Transform[] objetos = fase.objetosVibracion;
+        if (objetos == null || objetos.Length == 0) return;
+
+        Vector3[] posiciones = new Vector3[objetos.Length];
+        Quaternion[] rotaciones = new Quaternion[objetos.Length];
+        for (int i = 0; i < objetos.Length; i++)
+        {
+            if (objetos[i] == null) continue;
+            posiciones[i] = objetos[i].localPosition;
+            rotaciones[i] = objetos[i].localRotation;
+        }
+        StartCoroutine(RutinaVibrarObjetos(objetos, posiciones, rotaciones, duracionReaccionLuna, magnitudReaccionLuna));
     }
 
     public void DispararMisilDesdeCargador()

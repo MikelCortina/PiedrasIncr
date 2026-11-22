@@ -214,6 +214,21 @@ public class CambioCamaraIntro : MonoBehaviour
     public float duracionPantallaNegra = 2f;
     public float duracionFundido = 0.3f;
 
+    // Eventos de la intro (los escucha SecuenciaIntro). Se lanzan también si la intro se salta.
+    public static event System.Action OnNaveAterrizada;
+    public static event System.Action OnPuertaAbierta;
+    public static event System.Action OnIntroTerminada;
+    public static bool IntroTerminada { get; private set; }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarEventos()
+    {
+        OnNaveAterrizada = null;
+        OnPuertaAbierta = null;
+        OnIntroTerminada = null;
+        IntroTerminada = false;
+    }
+
     private bool cambioRealizado;
     private bool finalizando;
     private bool omitiendoIntroEstaSesion;
@@ -744,6 +759,7 @@ public class CambioCamaraIntro : MonoBehaviour
     private void EmpezarEsperaPalanca()
     {
         esperandoPalanca = true;
+        OnNaveAterrizada?.Invoke();
 
         if (apagarAlarmaAlLlegar && interiorNave != null)
             StartCoroutine(ApagarAlarma());
@@ -800,6 +816,7 @@ public class CambioCamaraIntro : MonoBehaviour
 
         palancaActivada = true;
         palancaSalida.SetBloqueada(true);
+        OnPuertaAbierta?.Invoke();
 
         StartCoroutine(SecuenciaSalidaPalanca());
     }
@@ -1349,6 +1366,9 @@ public class CambioCamaraIntro : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        IntroTerminada = true;
+        OnIntroTerminada?.Invoke();
     }
 
     private IEnumerator Fundido(float desde, float hasta, float duracion)

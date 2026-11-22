@@ -39,6 +39,12 @@ public class SistemaPatada : MonoBehaviour
         public Vector3 puntoImpacto;
     }
 
+    /// <summary>Se lanza cada vez que una patada golpea una piedra (tutorial, logros...).</summary>
+    public static event System.Action<Rigidbody> OnPiedraPateada;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarEventos() { OnPiedraPateada = null; }
+
     private void Start()
     {
         audioSource = GetComponent<AudioSource>();
@@ -249,6 +255,7 @@ public class SistemaPatada : MonoBehaviour
                 Vector3.up * Mathf.Sin(anguloPatada * Mathf.Deg2Rad);
 
             rbPiedra.AddForce(direccionFinal * fuerzaPatada, ForceMode.Impulse);
+            OnPiedraPateada?.Invoke(rbPiedra);
             rbPiedra.AddTorque(new Vector3(
                 Random.Range(-5f, 5f),
                 Random.Range(-5f, 5f),

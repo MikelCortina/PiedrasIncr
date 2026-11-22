@@ -247,6 +247,25 @@ public class TiendaTrabajo : MonoBehaviour
     )]
     public GeneradorAranas generadorAranas;
 
+    [Header("Demo (recorte de alcance)")]
+    [Tooltip("Desactivado en la demo: no hay Desgastadora, así que los bots se compran sin ella.")]
+    public bool botsRequierenProcesadora = false;
+
+    // Solo cuenta si existe, está activa y desbloqueada (la demo la desactiva).
+    private bool ProcesadoraDisponible =>
+        maquinaErosion != null &&
+        maquinaErosion.isActiveAndEnabled &&
+        maquinaErosion.ProcesadoraDesbloqueada;
+
+    private bool BotBloqueadoPorProcesadora =>
+        botsRequierenProcesadora && !ProcesadoraDisponible;
+
+    // Generador de Arañas desactivado = fuera de la demo: se usa puntoSpawnBots.
+    private GeneradorAranas GeneradorActivo =>
+        generadorAranas != null && generadorAranas.isActiveAndEnabled
+            ? generadorAranas
+            : null;
+
 
     // =====================================================
     // BOTS - UI
@@ -947,8 +966,7 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
 
-        if (!maquinaErosion
-            .ProcesadoraDesbloqueada)
+        if (!ProcesadoraDisponible)
         {
             Debug.Log(
                 "Primero tienes que desbloquear " +
@@ -1130,7 +1148,7 @@ public class TiendaTrabajo : MonoBehaviour
 
 
         if (puntoSpawnBots == null &&
-            generadorAranas == null)
+            GeneradorActivo == null)
         {
             Debug.LogError(
                 "TiendaTrabajo: falta asignar Punto Spawn Bots."
@@ -1146,9 +1164,7 @@ public class TiendaTrabajo : MonoBehaviour
 
         BuscarProcesadora();
 
-        if (maquinaErosion == null ||
-            !maquinaErosion
-                .ProcesadoraDesbloqueada)
+        if (BotBloqueadoPorProcesadora)
         {
             Debug.Log(
                 "Primero tienes que desbloquear " +
@@ -1222,9 +1238,11 @@ public class TiendaTrabajo : MonoBehaviour
 
         // Con generador, el Bot se crea dentro de él
         // (inactivo) y sale por su puerta.
+        GeneradorAranas generador = GeneradorActivo;
+
         GameObject nuevoBot =
-            generadorAranas != null
-            ? generadorAranas.CrearBot(
+            generador != null
+            ? generador.CrearBot(
                 prefabBot
             )
             : Instantiate(
@@ -1297,9 +1315,9 @@ public class TiendaTrabajo : MonoBehaviour
         // SALIR POR LA PUERTA DEL GENERADOR
         // =================================================
 
-        if (generadorAranas != null)
+        if (generador != null)
         {
-            generadorAranas.SacarBot(
+            generador.SacarBot(
                 nuevoBot
             );
         }
@@ -1370,8 +1388,7 @@ public class TiendaTrabajo : MonoBehaviour
         if (gestorBots == null)
             gestorBots = FindFirstObjectByType<GestorBots>();
 
-        if (maquinaErosion == null ||
-            !maquinaErosion.ProcesadoraDesbloqueada)
+        if (BotBloqueadoPorProcesadora)
         {
             texto = "BLOQUEADO\nREQUIERE PROCESADORA";
             return false;
@@ -1720,9 +1737,9 @@ public class TiendaTrabajo : MonoBehaviour
 
         if (maquinaErosion != null)
         {
+            // Desactivada en escena (demo) = panel de mejoras oculto.
             bool procesadoraDesbloqueada =
-                maquinaErosion
-                    .ProcesadoraDesbloqueada;
+                ProcesadoraDisponible;
 
 
             // =================================================
@@ -2138,12 +2155,10 @@ public class TiendaTrabajo : MonoBehaviour
     private void ActualizarCompraBot()
     {
         // =================================================
-        // PRIMERO: REQUIERE PROCESADORA
+        // PRIMERO: REQUIERE PROCESADORA (desactivado en la demo)
         // =================================================
 
-        if (maquinaErosion == null ||
-            !maquinaErosion
-                .ProcesadoraDesbloqueada)
+        if (BotBloqueadoPorProcesadora)
         {
             if (textoBotonBot != null)
             {
