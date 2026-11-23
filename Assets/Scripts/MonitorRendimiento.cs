@@ -10,6 +10,11 @@ public class MonitorRendimiento : MonoBehaviour
 
     void Start()
     {
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+        // F12: herramienta de depuracion; en la build final de la demo queda apagada.
+        enabled = false;
+        return;
+#endif
         // Llamamos a la función de contar piedras cada 0.5 segundos.
         // Hacerlo en cada fotograma (Update) arruinaría el rendimiento de tu PC.
         InvokeRepeating(nameof(ContarPiedras), 0.5f, 0.5f);

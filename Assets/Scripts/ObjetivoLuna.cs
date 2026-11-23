@@ -44,6 +44,14 @@ public class DebugInfoPiedra : MonoBehaviour
 
     private void Start()
     {
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+        if (textoDebug != null) textoDebug.enabled = false;
+#endif
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+        // F12: herramienta de depuracion; en la build final de la demo queda apagada.
+        enabled = false;
+        return;
+#endif
         rb =
             GetComponent<Rigidbody>();
 

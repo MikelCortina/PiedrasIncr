@@ -7,6 +7,11 @@ public class VelocidadDebug : MonoBehaviour
 
     void Start()
     {
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+        // F12: herramienta de depuracion; en la build final de la demo queda apagada.
+        enabled = false;
+        return;
+#endif
         // Cogemos el Rigidbody de la piedra
         rb = GetComponent<Rigidbody>();
     }
