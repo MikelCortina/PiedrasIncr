@@ -179,6 +179,21 @@ public class Fisionador : MonoBehaviour
         ProveedorEconomia.Actual.CosteOPorDefecto(EconomiaDemo.Ids.Fisionador, 1, precioDesbloqueo);
 
     public int EsferasActuales => piedrasActuales;
+    public bool Desbloqueado => desbloqueado;
+    public bool Completado => completado;
+
+    // Misiles expulsados que el jugador aún no ha cargado en el lanzador (el cargador los destruye).
+    private readonly List<GameObject> misilesSueltos = new List<GameObject>();
+
+    /// <summary>Misiles grandes que siguen en el mundo sin lanzar (para el guardado).</summary>
+    public int MisilesPendientes
+    {
+        get
+        {
+            misilesSueltos.RemoveAll(m => m == null);
+            return misilesSueltos.Count;
+        }
+    }
 
     private GameObject PrefabMisil
     {
@@ -375,6 +390,37 @@ public class Fisionador : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Guardado (F9): restaura compra, esferas dentro y misiles sin lanzar, sin cobrar,
+    /// sin sonidos y sin lanzar OnCompraRealizada.
+    /// </summary>
+    public void RestaurarEstado(bool estaDesbloqueado, int esferas, bool estaCompletado, int misilesPendientes)
+    {
+        desbloqueado = estaDesbloqueado;
+        completado = estaCompletado && !repetirTrasMisil;
+        piedrasActuales = completado ? 0 : Mathf.Clamp(esferas, 0, Mathf.Max(0, EsferasNecesarias - 1));
+        popContador = 0f;
+        rechazoHasta = -999f;
+        misilHasta = -999f;
+
+        AplicarEstadoVisualDesbloqueo();
+        ActualizarProgresoSecundario();
+        if (objetoSecundario != null) objetoSecundario.localPosition = posicionObjetivoSecundario;
+        ActualizarPantalla();
+
+        foreach (GameObject misil in misilesSueltos)
+            if (misil != null) Destroy(misil);
+        misilesSueltos.Clear();
+
+        GameObject prefab = PrefabMisil;
+        if (prefab == null || puntoExpulsion == null) return;
+        for (int i = 0; i < misilesPendientes; i++)
+        {
+            Vector3 posicion = puntoExpulsion.position + Vector3.up * (1.5f * i);
+            misilesSueltos.Add(Instantiate(prefab, posicion, puntoExpulsion.rotation));
+        }
+    }
+
     /// <summary>Desbloquea sin cobrar (restaurar partida, trucos de testeo).</summary>
     public void Desbloquear()
     {
@@ -479,6 +525,7 @@ public class Fisionador : MonoBehaviour
         if (prefab != null && puntoExpulsion != null)
         {
             GameObject misil = Instantiate(prefab, puntoExpulsion.position, puntoExpulsion.rotation);
+            misilesSueltos.Add(misil);
             StartCoroutine(RutinaCrecimientoYExpulsion(misil));
         }
         else

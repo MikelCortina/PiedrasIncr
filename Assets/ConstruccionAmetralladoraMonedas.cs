@@ -858,4 +858,31 @@ public class ConstruccionAmetralladoraMonedas : MonoBehaviour
 
         enTransicion = false;
     }
+
+    // =========================================================================
+    // GUARDADO (F9)
+    // =========================================================================
+
+    /// <summary>
+    /// Restaura construcción, nivel y monedas ya aportadas sin cobrar, sin animar y sin lanzar
+    /// OnCompraRealizada. Pensado para cargar partida (se llama después de Start).
+    /// </summary>
+    public void RestaurarEstado(bool estaConstruida, int nivel, int aportadas)
+    {
+        StopAllCoroutines();
+        corrutinaBloopAntena = null;
+        corrutinaBloopEstructura = null;
+        enTransicion = false;
+        piezasEnAnimacion = 0;
+
+        construida = estaConstruida;
+        nivelActual = Mathf.Clamp(nivel, 1, 3);
+        monedasAportadas = NivelMaximo ? 0 : Mathf.Clamp(aportadas, 0, Mathf.Max(0, PrecioActual));
+        valorMostradoEnPantalla = NivelMaximo ? 0f : MonedasRestantes;
+
+        // Antes de Start aún no hay escalas registradas: Start aplicará el aspecto.
+        if (escalasOriginales.Count > 0) SincronizarAspecto(false);
+        AplicarEstadisticas();
+        ActualizarPresentacion();
+    }
 }

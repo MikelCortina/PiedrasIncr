@@ -745,7 +745,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
             );
         }
 
-        return new GameSaveSceneReferences
+        GameSaveSceneReferences referencias = new GameSaveSceneReferences
         {
             jugador =
                 BuscarUnico<MovimientoPersonaje>().gameObject,
@@ -769,6 +769,14 @@ public class GuardadoPartidaJuego : MonoBehaviour
 
             inventario = inventario
         };
+
+        // Demo (F9): componentes opcionales.
+        referencias.demo = DemoSceneReferences.Buscar(
+            referencias.inventario,
+            referencias.torbellino
+        );
+
+        return referencias;
     }
 
     // =====================================

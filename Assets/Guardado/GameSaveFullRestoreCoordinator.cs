@@ -175,6 +175,20 @@ public static class GameSaveFullRestoreCoordinator
 #endif
 
             // ======================================
+            // 9b. RESTAURAR DEMO (F9)
+            // ======================================
+            // Va la última y no aborta la carga: cada parte
+            // que falle se avisa en la consola.
+
+            if (r.demo != null)
+            {
+                DemoSaveAdapter.Restore(
+                    r.demo,
+                    partida
+                );
+            }
+
+            // ======================================
             // 10. RESULTADO CORRECTO
             // ======================================
 

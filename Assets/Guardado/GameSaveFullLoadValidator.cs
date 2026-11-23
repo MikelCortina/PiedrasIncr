@@ -107,6 +107,10 @@ public static class GameSaveFullLoadValidator
         // Inventario.
         BuildingInventorySaveAdapter.Read(partida);
 
+        // Demo (F9). Las partidas antiguas no la traen.
+        if (partida.hasDemoData)
+            DemoSaveAdapter.Validate(partida.demo);
+
         // Edificios y conexiones.
         PlacedBuildingsSaveAdapter.Read(partida);
 

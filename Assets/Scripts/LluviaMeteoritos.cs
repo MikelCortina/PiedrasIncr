@@ -36,6 +36,9 @@ public class LluviaMeteoritos : MonoBehaviour
     // Piedra configurada en el Inspector: se vuelve a ella cuando una fase no trae la suya.
     private GameObject prefabPiedraBase;
 
+    /// <summary>Piedra normal de juego (la del Inspector), aunque la fase actual use otra. La usa el guardado.</summary>
+    public GameObject PrefabPiedraBase => prefabPiedraBase != null ? prefabPiedraBase : prefabPiedra;
+
     void Awake()
     {
         prefabPiedraBase = prefabPiedra;

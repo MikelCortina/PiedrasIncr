@@ -114,6 +114,34 @@ public class GestorFragmentos : MonoBehaviour
         if (instancia == this) instancia = null;
     }
 
+    /// <summary>
+    /// Guardado (F9): monedas que valen los fragmentos que siguen en el suelo. Los normales se pagan
+    /// a la tasa de recogida a mano y los de bonus enteros, para que guardar y cargar no dé más que recogerlos.
+    /// </summary>
+    public int MonedasPendientesEnSuelo()
+    {
+        EconomiaDemo economia = ProveedorEconomia.Actual;
+        int bonus = 0;
+        float normales = acumulador;
+        for (int i = 0; i < vivos.Count; i++)
+        {
+            Vivo vivo = vivos[i];
+            if (vivo == null || vivo.objeto == null || !vivo.objeto.activeInHierarchy) continue;
+            // Igual que Recoger: el bonus vale 1 moneda; los normales pasan por el acumulador.
+            if (vivo.bonus) bonus++;
+            else normales += Mathf.Clamp01(economia.recogidaAMano) * economia.monedasPorFragmento;
+        }
+        return bonus + Mathf.Max(0, Mathf.FloorToInt(normales + 0.0001f));
+    }
+
+    /// <summary>Guardado (F9): retira todos los fragmentos del suelo sin pagarlos (al cargar partida).</summary>
+    public void RetirarTodos()
+    {
+        for (int i = vivos.Count - 1; i >= 0; i--) Devolver(i);
+        acumulador = 0f;
+        combo = 0;
+    }
+
     public void Soltar(Vector3 posicion, int cantidad, bool bonus)
     {
         for (int i = 0; i < cantidad; i++)

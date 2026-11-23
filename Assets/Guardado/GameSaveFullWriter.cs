@@ -17,6 +17,9 @@ public sealed class GameSaveSceneReferences
     public MaquinaErosion procesadora;
     public DesbloqueoProcesadoraMonedas construccionProcesadora;
     public InventarioEdificios inventario;
+
+    // Demo (F9). Opcional: sin él no se guardan ni restauran los datos de la demo.
+    public DemoSceneReferences demo;
 }
 
 /// <summary>
@@ -52,6 +55,10 @@ public static class GameSaveFullWriter
 
         GameSaveData partida =
             CapturarDatosBase(referencias, segundosJugados);
+
+        // Los fragmentos del suelo no se guardan: se pagan como monedas.
+        if (partida.hasDemoData)
+            DemoSaveAdapter.LiquidarFragmentos(partida);
 
         // Conservar la identidad al sobrescribir
         // una partida existente de la misma escena.
@@ -176,6 +183,15 @@ public static class GameSaveFullWriter
             r.inventario,
             partida
         );
+
+        // 7. Demo (F9): piedras, tanque, mejoras del Excel, Fisionador y luna
+        if (r.demo != null)
+        {
+            DemoSaveAdapter.Capture(
+                r.demo,
+                partida
+            );
+        }
 
         return partida;
     }

@@ -70,6 +70,43 @@ public class MeteoritoVisual : MonoBehaviour
 
     private Material materialSmokeInstanciado;
     private Material materialSmokeSecundarioInstanciado;
+    private bool aterrizarAlEmpezar;
+
+    /// <summary>
+    /// Guardado (F9): la piedra se recrea ya en el suelo. Apaga estelas y humo sin partículas
+    /// de impacto, sin quemadura y sin temblor de cámara. Se puede llamar justo tras Instantiate.
+    /// </summary>
+    public void MarcarComoAterrizado()
+    {
+        aterrizarAlEmpezar = true;
+    }
+
+    private void AterrizarSinImpacto()
+    {
+        activo = false;
+
+        if (objetoHijoVisual != null) objetoHijoVisual.localScale = escalaInicialHijo * 0.5f;
+        if (materialSmokeInstanciado != null) materialSmokeInstanciado.SetColor(propiedadColorShader, colorImpacto);
+        if (materialSmokeSecundarioInstanciado != null) materialSmokeSecundarioInstanciado.SetColor(propiedadColorShader, colorImpacto);
+
+        foreach (TrailRenderer trail in estelasMeteorito)
+        {
+            if (trail == null) continue;
+            trail.time = 0f;
+            trail.Clear();
+        }
+
+        foreach (ParticleSystem ps in particulasParaApagarEnImpacto)
+            if (ps != null) ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (particulasFriccion != null) particulasFriccion.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        foreach (ParticleSystem ps in particulasImpacto)
+            if (ps != null) Destroy(ps.gameObject);
+        foreach (GameObject obj in objetosADesactivarAlImpactar)
+            if (obj != null) obj.SetActive(false);
+        foreach (GameObject obj in objetosADestruirConRetraso)
+            if (obj != null) Destroy(obj);
+    }
 
     void Start()
     {
@@ -105,6 +142,8 @@ public class MeteoritoVisual : MonoBehaviour
         {
             particulasFriccion.Play();
         }
+
+        if (aterrizarAlEmpezar) AterrizarSinImpacto();
     }
 
     void Update()

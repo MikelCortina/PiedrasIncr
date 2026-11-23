@@ -184,6 +184,11 @@ public sealed class SaveStorage
                 return false;
 
             GameSaveData candidate = JsonUtility.FromJson<GameSaveData>(envelope.payload);
+
+            // Partidas de versiones anteriores: se suben al formato actual en memoria.
+            if (!GameSaveData.Migrar(candidate))
+                return false;
+
             ValidateData(candidate, expectedSlot);
             data = candidate;
             return true;

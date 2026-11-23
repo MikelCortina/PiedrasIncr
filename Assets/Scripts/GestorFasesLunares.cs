@@ -433,6 +433,28 @@ public class GestorFasesLunares : MonoBehaviour
         StartCoroutine(RutinaVibrarObjetos(objetos, posiciones, rotaciones, duracionReaccionLuna, magnitudReaccionLuna));
     }
 
+    /// <summary>
+    /// Guardado (F9): pone la luna directamente en la fase indicada, sin misil ni animación.
+    /// </summary>
+    public void RestaurarFase(int fase)
+    {
+        if (fases == null || fases.Length == 0) return;
+
+        StopAllCoroutines();
+        enTransicion = false;
+        lunaAlineada = false;
+        faseActual = Mathf.Clamp(fase, 0, fases.Length - 1);
+
+        if (cinturonAsteroides != null)
+        {
+            cinturonAsteroides.rotacionPausada = false;
+            cinturonAsteroides.AplicarFormaInmediata(fases[faseActual].formaCinturon);
+        }
+
+        AplicarFaseActual();
+        OnFaseCambiada?.Invoke(faseActual);
+    }
+
     public void DispararMisilDesdeCargador()
     {
         if (!enTransicion && fases != null && faseActual < fases.Length - 1)
