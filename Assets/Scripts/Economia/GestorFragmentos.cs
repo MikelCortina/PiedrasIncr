@@ -7,8 +7,13 @@ using UnityEngine;
 public class GestorFragmentos : MonoBehaviour
 {
     [Header("Fragmento")]
-    [Tooltip("Prefab opcional (Rigidbody + Collider). Si está vacío se crea un cubito brillante.")]
+    [Tooltip("Prefab opcional (Rigidbody + Collider). Si está vacío se usa el modelo Fragment.")]
     public GameObject prefabFragmento;
+    [Tooltip("Modelo de los restos-moneda. Vacío = se carga 'FragmentoMoneda' de Resources (variante de Modelos/Meteorito/Fragment). " +
+             "Se le añaden Rigidbody y collider solos y se escala para que su lado mayor mida 'tamanoFragmento'.")]
+    public GameObject modeloFragmento;
+    [Tooltip("Con el modelo Fragment, tiñe los restos con colorFragmento / colorMonedaBonus. Desactivado: conservan sus materiales (neón).")]
+    public bool tintarModelo = false;
     [Min(0.01f)] public float tamanoFragmento = 0.12f;
     public Color colorFragmento = new Color(0.75f, 0.9f, 1f);
     public Color colorMonedaBonus = new Color(1f, 0.8f, 0.2f);
@@ -23,11 +28,16 @@ public class GestorFragmentos : MonoBehaviour
     [Min(0f)] public float inmunidadRecogida = 0.6f;
 
     [Header("Recogida a mano")]
-    [Tooltip("Imán automático: los restos vuelan solos hacia el jugador al pasar cerca. Desactivado: se recogen con clic izquierdo.")]
-    public bool imanAutomatico = false;
-    [Tooltip("Con el imán automático, el jugador recoge los fragmentos al pasar a esta distancia.")]
-    [Min(0.1f)] public float radioRecogidaMano = 1.6f;
-    [Min(0f)] public float velocidadAtraccionMano = 12f;
+    [Tooltip("Imán automático: los restos vuelan solos hacia el jugador al pasar cerca (el clic izquierdo sigue funcionando).")]
+    public bool imanAutomatico = true;
+    [Tooltip("Con el imán automático, los fragmentos a esta distancia del jugador empiezan a volar hacia él.")]
+    [Min(0.1f)] public float radioRecogidaMano = 2.5f;
+    [Tooltip("Velocidad con la que arrancan hacia el jugador.")]
+    [Min(0f)] public float velocidadAtraccionMano = 4f;
+    [Tooltip("Aceleración del vuelo: cuanto más dura, más rápido van (así alcanzan al jugador aunque corra).")]
+    [Min(0f)] public float aceleracionAtraccionMano = 30f;
+    [Tooltip("Velocidad máxima del vuelo hacia el jugador.")]
+    [Min(0f)] public float velocidadMaximaAtraccionMano = 25f;
 
     [Header("Sonido")]
     public AudioClip sonidoClink;
@@ -83,6 +93,9 @@ public class GestorFragmentos : MonoBehaviour
         public bool bonus;
         public bool atraido;
         public float tasaAtraccion;
+        public bool imantado;          // enganchado al jugador: vuela hacia él hasta que lo coge
+        public Collider[] colliders;   // para que el jugador no choque con ellos
+        public float velocidadIman;
     }
 
     private readonly List<Vivo> vivos = new List<Vivo>();
@@ -161,14 +174,16 @@ public class GestorFragmentos : MonoBehaviour
             Vivo vivo = Obtener();
             vivo.bonus = bonus;
             vivo.atraido = false;
+            vivo.imantado = false;
             vivo.nacimiento = Time.time;
             Transform t = vivo.objeto.transform;
             t.position = posicion + Vector3.up * 0.4f + UnityEngine.Random.insideUnitSphere * 0.2f;
             t.rotation = UnityEngine.Random.rotation;
             float escala = bonus ? tamanoFragmento * 1.3f : tamanoFragmento;
-            t.localScale = Vector3.one * escala;
+            t.localScale = Vector3.one * escala * (usandoModelo ? escalaModelo : 1f);
             Pintar(vivo, bonus ? colorMonedaBonus : colorFragmento, 1f);
             vivo.objeto.SetActive(true);
+            IgnorarJugador(vivo); // al desactivarse en el pool se pierde: se repite en cada salida
             if (vivo.rb != null)
             {
                 vivo.rb.isKinematic = false;
@@ -254,11 +269,7 @@ public class GestorFragmentos : MonoBehaviour
 
     private void Update()
     {
-        if (jugador == null)
-        {
-            MovimientoPersonaje movimiento = FindAnyObjectByType<MovimientoPersonaje>();
-            if (movimiento != null) jugador = movimiento.transform;
-        }
+        if (jugador == null) BuscarJugador();
 
         float ahora = Time.time;
         float tasaMano = ProveedorEconomia.Actual.recogidaAMano;
@@ -280,7 +291,7 @@ public class GestorFragmentos : MonoBehaviour
                 continue;
             }
 
-            if (!vivo.atraido && edad > vidaFragmento - parpadeoFinal)
+            if (!vivo.atraido && !vivo.imantado && edad > vidaFragmento - parpadeoFinal)
             {
                 bool visible = Mathf.Repeat(edad * 8f, 1f) > 0.35f;
                 if (vivo.render != null) vivo.render.enabled = visible;
@@ -290,7 +301,16 @@ public class GestorFragmentos : MonoBehaviour
 
             Vector3 centroJugador = jugador.position + Vector3.up * 0.8f;
             Vector3 hacia = centroJugador - vivo.objeto.transform.position;
-            if (hacia.sqrMagnitude > radio2) continue;
+
+            // Al pasar cerca se engancha y ya no se suelta: acelera hacia el jugador hasta llegar.
+            if (!vivo.imantado)
+            {
+                if (hacia.sqrMagnitude > radio2) continue;
+                vivo.imantado = true;
+                vivo.velocidadIman = velocidadAtraccionMano;
+                if (vivo.render != null) vivo.render.enabled = true;
+                if (vivo.rb != null) vivo.rb.isKinematic = true;
+            }
 
             if (hacia.sqrMagnitude < 0.25f)
             {
@@ -298,8 +318,8 @@ public class GestorFragmentos : MonoBehaviour
                 continue;
             }
 
-            if (vivo.rb != null) vivo.rb.isKinematic = true;
-            vivo.objeto.transform.position = Vector3.MoveTowards(vivo.objeto.transform.position, centroJugador, velocidadAtraccionMano * Time.deltaTime);
+            vivo.velocidadIman = Mathf.Min(vivo.velocidadIman + aceleracionAtraccionMano * Time.deltaTime, velocidadMaximaAtraccionMano);
+            vivo.objeto.transform.position = Vector3.MoveTowards(vivo.objeto.transform.position, centroJugador, vivo.velocidadIman * Time.deltaTime);
         }
     }
 
@@ -406,14 +426,98 @@ public class GestorFragmentos : MonoBehaviour
             if (libre.objeto != null) return libre;
         }
 
-        GameObject objeto = prefabFragmento != null ? Instantiate(prefabFragmento) : CrearFragmentoBasico();
+        GameObject objeto = prefabFragmento != null ? Instantiate(prefabFragmento) : CrearFragmentoModelo();
+        if (objeto == null) objeto = CrearFragmentoBasico();
         objeto.name = "Fragmento";
         objeto.transform.SetParent(transform, true);
         Vivo nuevo = new Vivo();
         nuevo.objeto = objeto;
         nuevo.rb = objeto.GetComponent<Rigidbody>();
         nuevo.render = objeto.GetComponentInChildren<Renderer>();
+        nuevo.colliders = objeto.GetComponentsInChildren<Collider>(true);
         return nuevo;
+    }
+
+    // ---------------------------------------------------------------- Sin choques con el jugador
+
+    private Collider[] collidersJugador;
+
+    private void BuscarJugador()
+    {
+        MovimientoPersonaje movimiento = FindAnyObjectByType<MovimientoPersonaje>();
+        if (movimiento == null) return;
+        jugador = movimiento.transform;
+        // CharacterController y cualquier otro collider del jugador (no los triggers: esos detectan, no chocan).
+        List<Collider> lista = new List<Collider>();
+        foreach (Collider c in movimiento.GetComponentsInChildren<Collider>(true))
+            if (!c.isTrigger) lista.Add(c);
+        collidersJugador = lista.ToArray();
+    }
+
+    // El jugador atraviesa los fragmentos: ni los empuja ni se sube encima de ellos.
+    private void IgnorarJugador(Vivo vivo)
+    {
+        if (jugador == null) BuscarJugador();
+        if (collidersJugador == null || vivo.colliders == null) return;
+
+        foreach (Collider propio in vivo.colliders)
+        {
+            if (propio == null) continue;
+            foreach (Collider delJugador in collidersJugador)
+                if (delJugador != null) Physics.IgnoreCollision(propio, delJugador, true);
+        }
+    }
+
+    // ---------------------------------------------------------------- Modelo Fragment
+
+    private bool modeloBuscado;
+    private bool usandoModelo;
+    private float escalaModelo = 1f;   // lleva el lado mayor del modelo a 1 (luego se multiplica por tamanoFragmento)
+
+    private GameObject CrearFragmentoModelo()
+    {
+        if (!modeloBuscado)
+        {
+            modeloBuscado = true;
+            if (modeloFragmento == null) modeloFragmento = Resources.Load<GameObject>("FragmentoMoneda");
+            if (modeloFragmento == null) Debug.LogWarning("[GestorFragmentos] No encuentro el modelo Fragment: se usan cubos.");
+        }
+        if (modeloFragmento == null) return null;
+
+        GameObject objeto = Instantiate(modeloFragmento);
+        objeto.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        objeto.transform.localScale = Vector3.one;
+
+        Renderer[] renders = objeto.GetComponentsInChildren<Renderer>(true);
+        if (renders.Length == 0)
+        {
+            Destroy(objeto);
+            return null;
+        }
+
+        // Tamaño real del modelo, para que todos los restos midan lo mismo que el cubito de antes.
+        Bounds caja = renders[0].bounds;
+        for (int i = 1; i < renders.Length; i++) caja.Encapsulate(renders[i].bounds);
+        float mayor = Mathf.Max(caja.size.x, Mathf.Max(caja.size.y, caja.size.z));
+        escalaModelo = mayor > 0.0001f ? 1f / mayor : 1f;
+        usandoModelo = true;
+
+        foreach (Transform parte in objeto.GetComponentsInChildren<Transform>(true)) parte.gameObject.layer = 2;
+
+        // Collider: el que traiga (convexo, para poder tener Rigidbody) o una caja ajustada a cada malla.
+        foreach (MeshCollider malla in objeto.GetComponentsInChildren<MeshCollider>(true)) malla.convex = true;
+        if (objeto.GetComponentInChildren<Collider>(true) == null)
+            foreach (Renderer render in renders)
+                if (render.GetComponent<MeshFilter>() != null) render.gameObject.AddComponent<BoxCollider>();
+
+        Rigidbody rb = objeto.GetComponent<Rigidbody>();
+        if (rb == null) rb = objeto.AddComponent<Rigidbody>();
+        rb.mass = 0.05f;
+        rb.linearDamping = 0.2f;
+        rb.angularDamping = 0.5f;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+        return objeto;
     }
 
     private GameObject CrearFragmentoBasico()
@@ -445,6 +549,7 @@ public class GestorFragmentos : MonoBehaviour
             vivo.rb.isKinematic = true;
         }
         vivo.atraido = false;
+        vivo.imantado = false;
         vivo.objeto.SetActive(false);
         libres.Push(vivo);
     }
@@ -452,6 +557,7 @@ public class GestorFragmentos : MonoBehaviour
     private void Pintar(Vivo vivo, Color color, float brillo)
     {
         if (vivo.render == null) return;
+        if (usandoModelo && !tintarModelo) return; // el modelo Fragment conserva sus materiales
         vivo.render.GetPropertyBlock(bloque);
         bloque.SetColor("_BaseColor", color * brillo);
         bloque.SetColor("_Color", color * brillo);

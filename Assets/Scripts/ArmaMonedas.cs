@@ -256,13 +256,16 @@ public class ArmaLanzadora : MonoBehaviour
         nivelFusil = Mathf.Clamp(nivel, 1, 5);
     }
 
+    [Tooltip("El Fusil también aspira los fragmentos que sueltan las piedras. Desactivado: solo los recoge el jugador al pasar cerca.")]
+    public bool aspirarFragmentos = false;
+
     private bool aspirandoFragmentos;
 
     void ManejarAspiradora()
     {
         bool aspirando = Input.GetKey(teclaAspirar);
 
-        if (aspirando && puntoDisparo != null)
+        if (aspirando && aspirarFragmentos && puntoDisparo != null)
         {
             GestorFragmentos.Instancia.AspirarEnCono(puntoDisparo.position, puntoDisparo.forward, distanciaMaximaAspiracion, anguloAspiracion, velocidadAspiracion * FactorVelocidadNivel, TasaRecogidaFragmentos, distanciaRecoleccion + 0.05f);
             aspirandoFragmentos = true;

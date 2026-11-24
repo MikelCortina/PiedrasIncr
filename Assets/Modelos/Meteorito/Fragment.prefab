@@ -1,0 +1,128 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &574537175284361108
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 922.712
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 397.5589
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 190.01091
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.45015728
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.80936754
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.2621495
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.27121994
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 021a70fb562c1424a9ca7ee4b9d1a58c, type: 2}
+    - target: {fileID: -7511558181221131132, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: 919132149155446097, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      propertyPath: m_Name
+      value: Fragment
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1151544059938991323}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2090704463010253158}
+  m_SourcePrefab: {fileID: 100100000, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+--- !u!1 &808470168536193733 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ce230e8a7f1f8314097d461aa0c5df04, type: 3}
+  m_PrefabInstance: {fileID: 574537175284361108}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1151544059938991323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 808470168536193733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30be7a33ad68aa243b0d5772d54b0d49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VariacionAlbedo
+  configuraciones:
+  - indiceMaterial: 1
+    nuevoColor: {r: 0.27450982, g: 0.2627451, b: 0.29803923, a: 0}
+    nuevaTextura: {fileID: 0}
+    colorSombreado: {r: 0, g: 0, b: 0, a: 0}
+    selfShadingSize: 0.5
+    edgeSize: 0.05
+    localizedShading: 1
+    colorContorno: {r: 0, g: 0, b: 0, a: 0}
+    grosorContorno: 2
+    modificarSombras: 0
+    shadowPower: 0
+    shadowColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowSharpness: 0
+--- !u!114 &2090704463010253158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 808470168536193733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a17a7125b1486449a4c3c2da0df77ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorNeon
+  ajustesPorSlot:
+  - nombre: "Pieza Ne\xF3n"
+    indiceMaterial: 0
+    colorNeon: {r: 0.9137255, g: 0.6156863, b: 0.99215686, a: 1}
+    intensidad: 0.7
+    grosorOutline: 1
+    cantidadZonasMuertas: 0
+    velocidadParpadeo: 0
+    inestabilidadFallo: 0
+    temporizadorFallo: 0
+    offsetZonasActual: 0
+    cantidadZonasActual: 0
