@@ -28,10 +28,10 @@ public class IndicadorGiroRuleta : MonoBehaviour
 
     [Header("Anillo")]
     [Min(12)] public int puntosAnillo = 44;
-    [Tooltip("Tamaño del anillo respecto a la válvula vista en pantalla.")]
+    [Tooltip("Tamaño del anillo respecto a la válvula.")]
     [Min(0.5f)] public float escalaAnillo = 1.2f;
-    [Tooltip("Separación extra entre la válvula y el anillo (píxeles a 1080p).")]
-    public float margenAnillo = 16f;
+    [Tooltip("Separación extra entre la válvula y el anillo (metros).")]
+    public float margenAnillo = 0.05f;
 
     [Header("Flechas que marcan el sentido")]
     [Min(1)] public int cometas = 2;
@@ -189,10 +189,12 @@ public class IndicadorGiroRuleta : MonoBehaviour
         if (c.z <= 0f) return;
 
         float e = Screen.height / 1080f;
-        Vector3 borde = cam.WorldToScreenPoint(centroMundo + cam.transform.right * radioMundo);
-        float radioValvula = Vector2.Distance(new Vector2(c.x, c.y), new Vector2(borde.x, borde.y));
-        float r = Mathf.Clamp(radioValvula * escalaAnillo + margenAnillo * e, 40f * e, Screen.height * 0.42f);
-        Vector2 centro = new Vector2(c.x, c.y); // coordenadas de pantalla (Y hacia arriba)
+
+        // El anillo va en el plano de la propia válvula (perpendicular a su eje de giro) y se ve en
+        // perspectiva: de frente es un círculo y en una válvula tumbada, una elipse pegada a ella.
+        if (!PrepararPlano(centroMundo)) return;
+        float r = radioMundo * escalaAnillo + margenAnillo; // metros
+        Vector2 centro = new Vector2(c.x, c.y);
 
         AimAssistVisual estilo = AimAssistVisual.Instancia;
         Color neon = estilo != null ? estilo.colorNeon : new Color(0.926f, 0.887f, 1f, 1f);
@@ -250,7 +252,7 @@ public class IndicadorGiroRuleta : MonoBehaviour
                 else if (!haGirado || progreso <= 0.001f) { texto = textoAyuda; colorTexto = neon; }
                 else { texto = Mathf.FloorToInt(progreso * 100f) + " %"; colorTexto = Color.Lerp(alto, listo, progreso); }
 
-                float yTexto = Screen.height - (centro.y - r) + 12f * e;
+                float yTexto = BordeInferiorGui(r) + 12f * e;
                 Rect rt = new Rect(centro.x - 250f * e, yTexto, 500f * e, 30f * e);
                 AimAssistVisual.TextoNeon(estiloTexto, rt, texto, 22f * e, TextAnchor.UpperCenter, AimAssistVisual.ConAlfa(colorTexto, a), 0.5f);
             }
@@ -266,11 +268,53 @@ public class IndicadorGiroRuleta : MonoBehaviour
         }
     }
 
-    // t = 0 arriba; avanza en el sentido de apertura. Devuelve coordenadas GUI (Y hacia abajo).
+    // Plano del anillo: centro de la válvula y dos ejes perpendiculares a su eje de giro.
+    private Vector3 planoCentro, planoU, planoV;
+    private float signoPlano = 1f;
+
+    private bool PrepararPlano(Vector3 centroMundo)
+    {
+        Vector3 eje = transform.TransformDirection(ruleta.ejeGiroLocal);
+        if (eje.sqrMagnitude < 0.000001f) eje = transform.forward;
+        eje.Normalize();
+
+        // "Arriba" del anillo = lo más alto que se ve de la válvula desde la cámara.
+        Vector3 u = Vector3.ProjectOnPlane(cam.transform.up, eje);
+        if (u.sqrMagnitude < 0.0001f) u = Vector3.ProjectOnPlane(cam.transform.forward, eje);
+        if (u.sqrMagnitude < 0.000001f) return false;
+        u.Normalize();
+
+        planoCentro = centroMundo;
+        planoU = u;
+        planoV = Vector3.Cross(eje, u);
+
+        // El gesto se mide en pantalla (antihorario = abrir): elegimos el sentido de recorrido del
+        // plano que, visto desde la cámara, va hacia el mismo lado.
+        Vector3 sc = cam.WorldToScreenPoint(centroMundo);
+        Vector3 su = cam.WorldToScreenPoint(centroMundo + planoU * 0.1f) - sc;
+        Vector3 sv = cam.WorldToScreenPoint(centroMundo + planoV * 0.1f) - sc;
+        float cruz = su.x * sv.y - su.y * sv.x;
+        if (Mathf.Abs(cruz) < 0.0001f) return false; // válvula vista de canto
+        signoPlano = signo * Mathf.Sign(cruz);
+        return true;
+    }
+
+    // t = 0 arriba; avanza en el sentido de apertura. r en metros. Devuelve coordenadas GUI (Y hacia abajo).
     private Vector2 PuntoAnillo(Vector2 centro, float r, float t)
     {
-        float angulo = (90f + signo * t * 360f) * Mathf.Deg2Rad;
-        return new Vector2(centro.x + Mathf.Cos(angulo) * r, Screen.height - (centro.y + Mathf.Sin(angulo) * r));
+        float angulo = signoPlano * t * 2f * Mathf.PI;
+        Vector3 mundo = planoCentro + (planoU * Mathf.Cos(angulo) + planoV * Mathf.Sin(angulo)) * r;
+        Vector3 p = cam.WorldToScreenPoint(mundo);
+        return new Vector2(p.x, Screen.height - p.y);
+    }
+
+    // Parte más baja del anillo en pantalla, para colocar el texto debajo.
+    private float BordeInferiorGui(float r)
+    {
+        float maximo = float.MinValue;
+        for (int i = 0; i < 24; i++)
+            maximo = Mathf.Max(maximo, PuntoAnillo(Vector2.zero, r, i / 24f).y);
+        return maximo;
     }
 
     // Punta de flecha en forma de "V" hecha de luces, apuntando hacia donde hay que girar.
