@@ -57,6 +57,19 @@ public class MesaTrabajo : MonoBehaviour
 
     private bool armaEstabaActiva = false;
 
+    /// <summary>El jugador está dentro del trigger de la tienda.</summary>
+    public bool JugadorCerca => jugadorCerca;
+
+    // Si hay tienda holográfica en este objeto, se usa en lugar del panel viejo.
+    private TiendaHolografica Holografica
+    {
+        get
+        {
+            TiendaHolografica holo = GetComponent<TiendaHolografica>();
+            return holo != null && holo.isActiveAndEnabled ? holo : null;
+        }
+    }
+
 
     // =====================================================
     // START
@@ -184,7 +197,9 @@ public class MesaTrabajo : MonoBehaviour
 
     public void AbrirTienda()
     {
-        if (panelTienda == null)
+        TiendaHolografica holo = Holografica;
+
+        if (panelTienda == null && holo == null)
             return;
 
 
@@ -200,9 +215,12 @@ public class MesaTrabajo : MonoBehaviour
         // MOSTRAR PANEL
         // =================================================
 
-        panelTienda.SetActive(
-            true
-        );
+        if (holo != null)
+            holo.Mostrar();
+        else
+            panelTienda.SetActive(
+                true
+            );
 
 
         if (textoInteraccion != null)
@@ -283,7 +301,13 @@ public class MesaTrabajo : MonoBehaviour
         // OCULTAR PANEL
         // =================================================
 
-        if (panelTienda != null)
+        TiendaHolografica holo = Holografica;
+
+        if (holo != null)
+        {
+            holo.Ocultar();
+        }
+        else if (panelTienda != null)
         {
             panelTienda.SetActive(
                 false

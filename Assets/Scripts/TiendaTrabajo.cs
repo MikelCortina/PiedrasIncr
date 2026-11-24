@@ -321,6 +321,20 @@ public class TiendaTrabajo : MonoBehaviour
 
     private void Start()
     {
+        Iniciar();
+    }
+
+    private bool iniciada;
+
+    /// <summary>
+    /// Busca las referencias y prepara la tienda. Se llama en Start y también desde la tienda
+    /// holográfica, porque con ella el panel viejo no se activa nunca y su Start no llegaría a ejecutarse.
+    /// </summary>
+    public void Iniciar()
+    {
+        if (iniciada) return;
+        iniciada = true;
+
         // =================================================
         // CARTERA
         // =================================================
@@ -2483,5 +2497,160 @@ public class TiendaTrabajo : MonoBehaviour
     public void RefrescarTienda()
     {
         ActualizarTienda();
+    }
+
+    // =====================================================
+    // API PARA LA TIENDA HOLOGRÁFICA
+    // Usa las mismas compras de arriba (precios del Excel, eventos, guardado):
+    // la tienda holográfica solo es otra forma de enseñarlas.
+    // =====================================================
+
+    public enum Articulo
+    {
+        Fusil, Torbellino, TorbellinoAlcance, TorbellinoMovilidad,
+        Iman, ImanAlcance, Martillo, Botas, Jetpack
+    }
+
+    public struct EstadoArticulo
+    {
+        /// <summary>Falta comprar antes otra cosa (p. ej. el Torbellino para mejorar su alcance).</summary>
+        public bool requisitoPendiente;
+        /// <summary>No se encuentra el componente del juego (no se puede comprar).</summary>
+        public bool noDisponible;
+        /// <summary>0 = sin comprar.</summary>
+        public int nivel;
+        public int nivelMax;
+        /// <summary>Precio del siguiente nivel (0 si ya está al máximo).</summary>
+        public int precio;
+
+        public bool Maximo => nivel >= nivelMax;
+        public bool SePuedeComprar => !requisitoPendiente && !noDisponible && !Maximo && precio > 0;
+    }
+
+    public int MonedasDisponibles
+    {
+        get
+        {
+            Iniciar();
+            return cartera != null ? cartera.Monedas : 0;
+        }
+    }
+
+    public EstadoArticulo Consultar(Articulo articulo)
+    {
+        Iniciar();
+        EstadoArticulo e = new EstadoArticulo();
+        bool equipo = gestorEquipamiento != null;
+
+        switch (articulo)
+        {
+            case Articulo.Fusil:
+            {
+                bool comprado = equipo && gestorEquipamiento.ArmaLanzadoraDesbloqueada();
+                e.noDisponible = !equipo;
+                e.nivelMax = usarEconomiaDemo ? Eco.NivelesMax(EconomiaDemo.Ids.FusilMonedas) : 1;
+                e.nivel = comprado ? (FusilMonedas != null ? FusilMonedas.NivelFusil : 1) : 0;
+                if (!e.Maximo)
+                    e.precio = usarEconomiaDemo ? Eco.Coste(EconomiaDemo.Ids.FusilMonedas, e.nivel + 1) : precioArmaLuna;
+                break;
+            }
+            case Articulo.Torbellino:
+            {
+                bool comprado = equipo && gestorEquipamiento.TorbellinoDesbloqueado();
+                e.noDisponible = !equipo || herramientaTorbellino == null;
+                e.nivelMax = usarEconomiaDemo ? 5 : 1;
+                e.nivel = comprado ? (herramientaTorbellino != null ? herramientaTorbellino.NivelCapacidad : 1) : 0;
+                if (!e.Maximo)
+                    e.precio = e.nivel == 0 ? Ep_precioTorbellino : Eco.Coste(EconomiaDemo.Ids.Torbellino, e.nivel + 1);
+                break;
+            }
+            case Articulo.TorbellinoAlcance:
+            case Articulo.TorbellinoMovilidad:
+            {
+                bool alcance = articulo == Articulo.TorbellinoAlcance;
+                e.noDisponible = !equipo || herramientaTorbellino == null;
+                e.requisitoPendiente = !equipo || !gestorEquipamiento.TorbellinoDesbloqueado();
+                e.nivelMax = 3;
+                e.nivel = herramientaTorbellino == null ? 1 : (alcance ? herramientaTorbellino.NivelAlcance : herramientaTorbellino.NivelMovilidad);
+                if (!e.Maximo)
+                {
+                    if (alcance) e.precio = e.nivel == 1 ? Ep_precioAlcanceNivel2 : Ep_precioAlcanceNivel3;
+                    else e.precio = e.nivel == 1 ? Ep_precioMovilidadNivel2 : Ep_precioMovilidadNivel3;
+                }
+                break;
+            }
+            case Articulo.Iman:
+            {
+                e.noDisponible = recolectorMagnetico == null;
+                e.nivelMax = 1;
+                e.nivel = recolectorMagnetico != null && recolectorMagnetico.EstaImanDesbloqueado() ? 1 : 0;
+                if (!e.Maximo) e.precio = Ep_precioIman;
+                break;
+            }
+            case Articulo.ImanAlcance:
+            {
+                e.noDisponible = recolectorMagnetico == null;
+                e.requisitoPendiente = recolectorMagnetico == null || !recolectorMagnetico.EstaImanDesbloqueado();
+                e.nivelMax = 3;
+                e.nivel = recolectorMagnetico != null ? recolectorMagnetico.NivelAlcance : 1;
+                if (!e.Maximo) e.precio = e.nivel == 1 ? Ep_precioImanNivel2 : Ep_precioImanNivel3;
+                break;
+            }
+            case Articulo.Martillo:
+            {
+                e.noDisponible = !equipo;
+                e.nivelMax = 1;
+                e.nivel = equipo && gestorEquipamiento.MartilloDesbloqueado() ? 1 : 0;
+                if (!e.Maximo) e.precio = Ep_precioMartillo;
+                break;
+            }
+            case Articulo.Botas:
+            {
+                e.noDisponible = movimientoPersonaje == null;
+                e.nivelMax = 3;
+                e.nivel = movimientoPersonaje != null ? movimientoPersonaje.NivelBotas : 0;
+                if (!e.Maximo)
+                    e.precio = e.nivel == 0 ? Ep_precioBotasNivel1 : e.nivel == 1 ? Ep_precioBotasNivel2 : Ep_precioBotasNivel3;
+                break;
+            }
+            case Articulo.Jetpack:
+            {
+                e.noDisponible = movimientoPersonaje == null;
+                e.nivelMax = 4;
+                e.nivel = movimientoPersonaje != null ? movimientoPersonaje.NivelJetpack : 0;
+                if (!e.Maximo) e.precio = ObtenerPrecioJetpack(e.nivel);
+                break;
+            }
+        }
+
+        if (e.Maximo) e.precio = 0;
+        return e;
+    }
+
+    /// <summary>Compra el siguiente nivel del artículo. Devuelve true si la compra se ha hecho.</summary>
+    public bool Comprar(Articulo articulo)
+    {
+        EstadoArticulo antes = Consultar(articulo);
+        if (!antes.SePuedeComprar) return false;
+        int monedasAntes = MonedasDisponibles;
+
+        switch (articulo)
+        {
+            case Articulo.Fusil: ComprarArmaLuna(); break;
+            case Articulo.Torbellino:
+                if (antes.nivel == 0) ComprarTorbellino();
+                else ComprarMejoraRadioTorbellino();
+                break;
+            case Articulo.TorbellinoAlcance: ComprarMejoraAlcanceTorbellino(); break;
+            case Articulo.TorbellinoMovilidad: ComprarMejoraMovilidadTorbellino(); break;
+            case Articulo.Iman: ComprarIman(); break;
+            case Articulo.ImanAlcance: ComprarMejoraAlcanceIman(); break;
+            case Articulo.Martillo: ComprarMartillo(); break;
+            case Articulo.Botas: ComprarMejoraBotas(); break;
+            case Articulo.Jetpack: ComprarMejoraJetpack(); break;
+        }
+
+        EstadoArticulo despues = Consultar(articulo);
+        return despues.nivel > antes.nivel || MonedasDisponibles < monedasAntes;
     }
 }
