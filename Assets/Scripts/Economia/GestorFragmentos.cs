@@ -23,9 +23,9 @@ public class GestorFragmentos : MonoBehaviour
     [Min(0f)] public float inmunidadRecogida = 0.6f;
 
     [Header("Recogida a mano")]
-    [Tooltip("El jugador recoge los fragmentos al pasar a esta distancia.")]
     [Tooltip("Imán automático: los restos vuelan solos hacia el jugador al pasar cerca. Desactivado: se recogen con clic izquierdo.")]
     public bool imanAutomatico = false;
+    [Tooltip("Con el imán automático, el jugador recoge los fragmentos al pasar a esta distancia.")]
     [Min(0.1f)] public float radioRecogidaMano = 1.6f;
     [Min(0f)] public float velocidadAtraccionMano = 12f;
 
