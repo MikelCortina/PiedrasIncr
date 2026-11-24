@@ -137,6 +137,12 @@ public class SecuenciaIntro : MonoBehaviour
         if (cartera != null) cartera.OnMonedasCambiadas -= AlCambiarMonedas;
     }
 
+    private void Awake()
+    {
+        // Es estático: cada partida empieza con el tutorial sin hacer.
+        TutorialTerminado = false;
+    }
+
     private void AlAterrizar() { Marcar(EvLlegada); }
     private void AlAbrirPuerta() { Marcar(EvLlegada); Marcar(EvPuerta); }
     private void AlTerminarIntro() { Marcar(EvLlegada); Marcar(EvPuerta); Marcar(EvIntroFin); }
@@ -175,20 +181,20 @@ public class SecuenciaIntro : MonoBehaviour
             cartera.OnMonedasCambiadas += AlCambiarMonedas;
         }
 
-        // Sin intro (o intro saltada para pruebas) no llegarán sus eventos.
-        if (intro == null || !intro.isActiveAndEnabled || intro.saltarIntroParaPruebas || CambioCamaraIntro.IntroTerminada)
+        // Sin intro (o intro saltada) no llegarán sus eventos.
+        if (intro == null || !intro.isActiveAndEnabled || intro.OmitirIntro || CambioCamaraIntro.IntroTerminada)
         {
             Marcar(EvLlegada);
             Marcar(EvPuerta);
             if (intro == null || CambioCamaraIntro.IntroTerminada) Marcar(EvIntroFin);
         }
 
-        Registrar("Iniciado. Intro: " + (intro == null ? "no encontrada" : (intro.saltarIntroParaPruebas ? "saltada" : "normal")) +
+        Registrar("Iniciado. Intro: " + (intro == null ? "no encontrada" : (intro.OmitirIntro ? "saltada" : "normal")) +
                   " | Jugador: " + (jugador != null ? jugador.name : "NO ENCONTRADO") +
                   " | Agujero: " + (agujero != null) + " | Gasolinera: " + (gasolinera != null) +
                   " | Botro: " + (BotroDice.Instancia != null));
 
-        if (omitirTutorial)
+        if (omitirTutorial || GuardadoPartidaJuego.InicioActual == GuardadoPartidaJuego.TipoInicio.PartidaCargada)
         {
             Terminar();
             return;

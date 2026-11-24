@@ -260,6 +260,12 @@ public class TiendaTrabajo : MonoBehaviour
     private bool BotBloqueadoPorProcesadora =>
         botsRequierenProcesadora && !ProcesadoraDisponible;
 
+    // Con el generador en la escena pero bloqueado (cubo) no se venden arañas en ningún sitio.
+    public bool GeneradorBloqueado =>
+        generadorAranas != null &&
+        generadorAranas.isActiveAndEnabled &&
+        !generadorAranas.Desbloqueado;
+
     // Generador de Arañas desactivado = fuera de la demo: se usa puntoSpawnBots.
     private GeneradorAranas GeneradorActivo =>
         generadorAranas != null && generadorAranas.isActiveAndEnabled
@@ -1162,6 +1168,19 @@ public class TiendaTrabajo : MonoBehaviour
         // REQUIERE PROCESADORA
         // =================================================
 
+        if (GeneradorBloqueado)
+        {
+            Debug.Log(
+                "El generador de arañas está bloqueado."
+            );
+
+
+            ActualizarTienda();
+
+            return;
+        }
+
+
         BuscarProcesadora();
 
         if (BotBloqueadoPorProcesadora)
@@ -1387,6 +1406,12 @@ public class TiendaTrabajo : MonoBehaviour
 
         if (gestorBots == null)
             gestorBots = FindFirstObjectByType<GestorBots>();
+
+        if (GeneradorBloqueado)
+        {
+            texto = "GENERADOR BLOQUEADO";
+            return false;
+        }
 
         if (BotBloqueadoPorProcesadora)
         {
@@ -2154,6 +2179,18 @@ public class TiendaTrabajo : MonoBehaviour
 
     private void ActualizarCompraBot()
     {
+        if (GeneradorBloqueado)
+        {
+            if (textoBotonBot != null)
+                textoBotonBot.text = "GENERADOR BLOQUEADO";
+
+            if (botonComprarBot != null)
+                botonComprarBot.interactable = false;
+
+            return;
+        }
+
+
         // =================================================
         // PRIMERO: REQUIERE PROCESADORA (desactivado en la demo)
         // =================================================

@@ -9,7 +9,7 @@ using Unity.Cinemachine;
 public class CambioCamaraIntro : MonoBehaviour
 {
     [Header("Pruebas (Editor)")]
-    [Tooltip("Activado: omite la cinemática, aparca la nave y coloca al jugador listo para jugar desde Play.")]
+    [Tooltip("Activado: omite la cinemática, aparca la nave y coloca al jugador listo para jugar al dar a Play en esta escena. No afecta a las partidas empezadas desde el menú.")]
     public bool saltarIntroParaPruebas = false;
 
     [Header("Nave")]
@@ -319,8 +319,28 @@ public class CambioCamaraIntro : MonoBehaviour
     }
 #endif
 
+    /// <summary>
+    /// Partida nueva: la intro se ve siempre. Partida cargada: nunca (el jugador aparece donde guardó).
+    /// Play directo en la escena: manda "Saltar Intro Para Pruebas", solo en el Editor.
+    /// </summary>
+    public bool OmitirIntro
+    {
+        get
+        {
+            switch (GuardadoPartidaJuego.InicioActual)
+            {
+                case GuardadoPartidaJuego.TipoInicio.NuevaPartida: return false;
+                case GuardadoPartidaJuego.TipoInicio.PartidaCargada: return true;
+                default: return saltarIntroParaPruebas && Application.isEditor;
+            }
+        }
+    }
+
     private void Awake()
     {
+        // Es estático: si no, la segunda partida de la misma sesión creería que la intro ya se ha visto.
+        IntroTerminada = false;
+
         if (camaraPrincipal == null && Camera.main != null)
             camaraPrincipal = Camera.main.transform;
 
@@ -430,11 +450,11 @@ public class CambioCamaraIntro : MonoBehaviour
             rotacionInicialCaraFrontal = caraFrontal.localRotation;
         }
 
-        // Modo de desarrollo: reutilizamos la misma finalización que la intro real,
+        // Pruebas o partida cargada: reutilizamos la misma finalización que la intro real,
         // pero sin esperar al spline, a la palanca ni a los fundidos.
-        if (saltarIntroParaPruebas && Application.isEditor)
+        if (OmitirIntro)
         {
-            SaltarIntroduccionParaPruebas();
+            SaltarIntroduccion();
             return;
         }
 
@@ -452,7 +472,7 @@ public class CambioCamaraIntro : MonoBehaviour
         StartCoroutine(FundidoImagenesIntro());
     }
 
-    private void SaltarIntroduccionParaPruebas()
+    private void SaltarIntroduccion()
     {
         // Evitar que Update/LateUpdate sigan animando la nave y las cámaras.
         finalizando = true;

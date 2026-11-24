@@ -137,7 +137,7 @@ public class BorradoRanurasGuardado : MonoBehaviour
             ranuraPendiente = numeroRanura;
 
             textoConfirmacion.text =
-                "¿Eliminar la partida de la ranura " +
+                "Â¿Eliminar la partida de la ranura " +
                 numeroRanura + "?\n\n" +
                 "Se eliminaran el guardado, " +
                 "su respaldo y el archivo temporal.\n\n" +

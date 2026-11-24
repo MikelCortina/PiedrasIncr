@@ -41,8 +41,10 @@ public class Fisionador : MonoBehaviour
     public GameObject[] objetosBloqueado;
     [Tooltip("Se activan al comprarla (la máquina en sí, neones, pantallas...).")]
     public GameObject[] objetosDesbloqueado;
-    [Tooltip("Aviso en pantalla: [E] Comprar Fisionador (300 monedas)")]
+    [Tooltip("Aviso en pantalla al acercarse: [E] Comprar Fisionador (300 monedas)")]
     public TMP_Text textoAvisoCompra;
+    [Tooltip("Desmarcado: el cartel LED flotante (FISSION / LOCKED) no se ve hasta comprar la máquina.")]
+    public bool mostrarPanelBloqueado = false;
     public ParticleSystem[] particulasDesbloqueo;
     [SoundName] public string sonidoDesbloqueo = "";
 
@@ -589,6 +591,7 @@ public class Fisionador : MonoBehaviour
     private void OnGUI()
     {
         if (!contadorEstiloLED || Event.current.type != EventType.Repaint) return;
+        if (!desbloqueado && !mostrarPanelBloqueado) return;
 
         Camera cam = Camera.main;
         if (cam == null) return;

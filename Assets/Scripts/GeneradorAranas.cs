@@ -13,6 +13,20 @@ using UnityEngine.UI;
 public class GeneradorAranas : MonoBehaviour
 {
     // =====================================================
+    // BLOQUEO
+    // =====================================================
+
+    [Header("Bloqueo")]
+    [Tooltip("Desmarcado = bloqueado: en su sitio se ve el cubo y no se puede interactuar ni comprar arañas.")]
+    public bool desbloqueado = false;
+
+    [Tooltip("Se ven mientras está bloqueado (el cubo).")]
+    public GameObject[] objetosBloqueado;
+
+    public bool Desbloqueado => desbloqueado;
+
+
+    // =====================================================
     // INTERACCIÓN
     // =====================================================
 
@@ -137,6 +151,9 @@ public class GeneradorAranas : MonoBehaviour
     private readonly Queue<GameObject> colaSalida = new Queue<GameObject>();
     private bool sacandoAranas;
 
+    // Piezas del modelo ocultas por el bloqueo (solo las que estaban visibles).
+    private readonly List<GameObject> piezasOcultas = new List<GameObject>();
+
 
     // =====================================================
     // INICIO
@@ -152,6 +169,42 @@ public class GeneradorAranas : MonoBehaviour
         CrearZonaInteraccion();
         PrepararBisagra();
         PonerCara();
+
+        // Lo último: la puerta y la pantalla se miden con el modelo completo.
+        AplicarBloqueo();
+    }
+
+    /// <summary>Muestra el generador de verdad y permite usarlo. No cobra nada.</summary>
+    public void Desbloquear()
+    {
+        if (desbloqueado) return;
+        desbloqueado = true;
+        AplicarBloqueo();
+        if (jugadorCerca && !menuAbierto) MostrarAviso(true);
+    }
+
+    // Bloqueado: se apagan las piezas del modelo (no la raíz, que tiene este script) y se ve el cubo.
+    private void AplicarBloqueo()
+    {
+        if (!desbloqueado)
+        {
+            foreach (Transform pieza in transform)
+            {
+                if (!pieza.gameObject.activeSelf) continue;
+                pieza.gameObject.SetActive(false);
+                piezasOcultas.Add(pieza.gameObject);
+            }
+        }
+        else
+        {
+            foreach (GameObject pieza in piezasOcultas)
+                if (pieza != null) pieza.SetActive(true);
+            piezasOcultas.Clear();
+        }
+
+        if (objetosBloqueado != null)
+            foreach (GameObject objeto in objetosBloqueado)
+                if (objeto != null) objeto.SetActive(!desbloqueado);
     }
 
     private void Start()
@@ -253,7 +306,7 @@ public class GeneradorAranas : MonoBehaviour
             return;
         }
 
-        if (jugadorCerca && Input.GetKeyDown(teclaInteractuar))
+        if (desbloqueado && jugadorCerca && Input.GetKeyDown(teclaInteractuar))
             AbrirMenu();
     }
 
@@ -280,6 +333,7 @@ public class GeneradorAranas : MonoBehaviour
     private void MostrarAviso(bool mostrar)
     {
         if (textoInteraccion == null) return;
+        if (mostrar && !desbloqueado) return;
 
         if (mostrar)
         {
@@ -296,7 +350,7 @@ public class GeneradorAranas : MonoBehaviour
 
     public void AbrirMenu()
     {
-        if (menuAbierto) return;
+        if (menuAbierto || !desbloqueado) return;
         if (panelCompraBots == null || tiendaTrabajo == null)
         {
             Debug.LogWarning("[GeneradorAranas] Falta asignar el Panel Compra Bots o no hay TiendaTrabajo.", this);

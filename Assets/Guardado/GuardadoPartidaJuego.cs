@@ -31,6 +31,11 @@ public class GuardadoPartidaJuego : MonoBehaviour
     [SerializeField]
     private string escenaNuevaPartida = "Piedra";
 
+    [Tooltip("Monedas con las que empieza una partida nueva desde el menú. " +
+             "El valor de la Cartera de la escena solo se usa al dar a Play directamente en ella.")]
+    [SerializeField, Min(0)]
+    private int monedasIniciales = 0;
+
     [Header("Seguridad")]
     [SerializeField]
     private bool permitirSobrescribir = false;
@@ -47,6 +52,31 @@ public class GuardadoPartidaJuego : MonoBehaviour
     /// <summary>Tiempo total jugado en esta partida (lo guardado + la sesión actual).</summary>
     public double SegundosJugados =>
         segundosAcumulados + Math.Max(0.0, Time.timeSinceLevelLoad - inicioSesion);
+
+    // =====================================
+    // COMO SE HA LLEGADO A ESTA ESCENA
+    // =====================================
+
+    public enum TipoInicio
+    {
+        // Play directamente en la escena (pruebas): se respetan
+        // los valores del Inspector.
+        Directo,
+
+        // Partida nueva desde un menú: animación de
+        // introducción y todo a cero.
+        NuevaPartida,
+
+        // Partida cargada de una ranura: sin introducción
+        // ni tutorial.
+        PartidaCargada
+    }
+
+    /// <summary>
+    /// Lo leen la intro y el tutorial en su Start.
+    /// Se decide en Awake, antes de cualquier Start.
+    /// </summary>
+    public static TipoInicio InicioActual { get; private set; }
 
     // Solicitudes que sobreviven a la recarga
     // de la escena.
@@ -65,10 +95,19 @@ public class GuardadoPartidaJuego : MonoBehaviour
 
         ranuraNuevaPendiente = 0;
         escenaNuevaPendiente = null;
+
+        InicioActual = TipoInicio.Directo;
     }
 
     private void Awake()
     {
+        if (ranuraNuevaPendiente != 0)
+            InicioActual = TipoInicio.NuevaPartida;
+        else if (ranuraCargaPendiente != 0)
+            InicioActual = TipoInicio.PartidaCargada;
+        else
+            InicioActual = TipoInicio.Directo;
+
         inicioSesion = Time.timeSinceLevelLoad;
 
         ranuraActiva = 0;
@@ -121,8 +160,6 @@ public class GuardadoPartidaJuego : MonoBehaviour
                 yield break;
             }
 
-            // Escena recien cargada:
-            // conservar sus valores iniciales.
             ranura = nuevaRanura;
 
             ranuraActiva = 0;
@@ -131,6 +168,12 @@ public class GuardadoPartidaJuego : MonoBehaviour
 
             segundosAcumulados = 0;
             inicioSesion = Time.timeSinceLevelLoad;
+
+            // Esperar a que todos los componentes hayan
+            // hecho su Start antes de ponerlos a cero.
+            yield return null;
+
+            EmpezarDesdeCero();
 
             Debug.Log(
                 "[NUEVA PARTIDA] PASO 89 SUPERADO: " +
@@ -195,6 +238,7 @@ public class GuardadoPartidaJuego : MonoBehaviour
             );
 
             CargarDesdeRanura(ranuraACargar);
+            QuitarAyudasDePrueba();
             yield break;
         }
 
@@ -202,6 +246,53 @@ public class GuardadoPartidaJuego : MonoBehaviour
             "[CARGA] PASO 88 FALLIDO: " +
             "el jugador no ha alcanzado suelo seguro."
         );
+    }
+
+    // =====================================
+    // PARTIDA NUEVA: TODO A CERO
+    // =====================================
+
+    // La escena guarda valores de prueba (monedas,
+    // herramientas desbloqueadas, construcción infinita)
+    // para poder dar a Play directamente en ella.
+    // Una partida nueva no debe heredarlos.
+    private void EmpezarDesdeCero()
+    {
+        try
+        {
+            GameSaveSceneReferences referencias =
+                ObtenerReferencias();
+
+            referencias.cartera.RestaurarMonedas(
+                monedasIniciales
+            );
+
+            referencias.equipamiento.RestaurarDesbloqueos(
+                false, false, false
+            );
+
+            QuitarAyudasDePrueba();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(
+                "[NUEVA PARTIDA] No se ha podido empezar " +
+                "desde cero: " + ex
+            );
+        }
+    }
+
+    private static void QuitarAyudasDePrueba()
+    {
+        SistemaConstruccion sistema =
+            SistemaConstruccion.Instancia;
+
+        if (sistema != null &&
+            sistema.inventarioEdificios != null)
+        {
+            sistema.inventarioEdificios
+                .construccionInfinita = false;
+        }
     }
 
     private void Update()
@@ -434,6 +525,9 @@ public class GuardadoPartidaJuego : MonoBehaviour
         ranuraNuevaPendiente = numeroRanura;
         escenaNuevaPendiente = escenaNuevaPartida;
 
+        // Por si se pide con el juego pausado.
+        Time.timeScale = 1f;
+
         Debug.Log(
             "[NUEVA PARTIDA] PASO 89 INICIANDO: " +
             "ranura=" + numeroRanura +
@@ -509,6 +603,9 @@ public class GuardadoPartidaJuego : MonoBehaviour
 
         ranuraCargaPendiente = numeroRanura;
         escenaCargaPendiente = partida.sceneName;
+
+        // Por si se pide con el juego pausado.
+        Time.timeScale = 1f;
 
         Debug.Log(
             "[CARGA] PASO 88 INICIANDO: " +

@@ -52,7 +52,7 @@ public class TerminalCompraBots : MonoBehaviour
 
         jugadorCerca = true;
 
-        if (avisoInteraccion != null)
+        if (avisoInteraccion != null && !GeneradorBloqueado)
             avisoInteraccion.SetActive(true);
     }
 
@@ -67,8 +67,17 @@ public class TerminalCompraBots : MonoBehaviour
             avisoInteraccion.SetActive(false);
     }
 
+    // Con el generador bloqueado no hay arañas que vender.
+    bool GeneradorBloqueado
+    {
+        get { return tiendaTrabajo != null && tiendaTrabajo.GeneradorBloqueado; }
+    }
+
     void AbrirTienda()
     {
+        if (GeneradorBloqueado)
+            return;
+
         if (panelCompraBots == null || tiendaTrabajo == null)
         {
             Debug.LogWarning("Faltan referencias de la tienda de bots.");
