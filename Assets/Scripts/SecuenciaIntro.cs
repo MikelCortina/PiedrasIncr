@@ -51,7 +51,7 @@ public class SecuenciaIntro : MonoBehaviour
     public string objetivoPatada = "Patea la piedra  [Clic izquierdo]";
     public string objetivoLlevar = "Lleva la piedra a patadas hasta la máquina";
     public string objetivoMeter = "Métela por la trampilla";
-    public string objetivoRestos = "Recoge los restos para conseguir monedas";
+    public string objetivoRestos = "Recoge los restos con clic izquierdo";
 
     [Header("Distancias")]
     [Tooltip("Distancia del jugador a una piedra para pasar al tutorial de patada.")]

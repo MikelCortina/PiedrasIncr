@@ -24,6 +24,8 @@ public class GestorFragmentos : MonoBehaviour
 
     [Header("Recogida a mano")]
     [Tooltip("El jugador recoge los fragmentos al pasar a esta distancia.")]
+    [Tooltip("Imán automático: los restos vuelan solos hacia el jugador al pasar cerca. Desactivado: se recogen con clic izquierdo.")]
+    public bool imanAutomatico = false;
     [Min(0.1f)] public float radioRecogidaMano = 1.6f;
     [Min(0f)] public float velocidadAtraccionMano = 12f;
 
@@ -39,6 +41,16 @@ public class GestorFragmentos : MonoBehaviour
     public Color colorBrillo = new Color(1f, 0.85f, 0.4f);
     [Min(0f)] public float intensidadBrillo = 6f;
     [Min(0.05f)] public float duracionBrillo = 1.2f;
+
+    [Header("Recogida con clic izquierdo")]
+    [Tooltip("Cada resto recogido (con clic o con el Fusil) da una moneda entera, en vez del % de la hoja ECONOMIA.")]
+    public bool unaMonedaPorFragmento = true;
+    [Tooltip("Distancia máxima desde la cámara para coger un resto con clic.")]
+    [Min(0.5f)] public float distanciaClic = 3f;
+    [Tooltip("Tolerancia de puntería: lo lejos que puede estar el resto de la línea de la mirilla.")]
+    [Min(0.05f)] public float toleranciaApuntado = 0.35f;
+    [Tooltip("Al coger uno, también se cogen los que estén pegados a él (a esta distancia).")]
+    [Min(0f)] public float radioGrupoClic = 0.5f;
 
     public static event Action<int> OnMonedasPorFragmentos;
     public static event Action<Vector3> OnEsferaPerfectaCelebrada;
@@ -115,8 +127,8 @@ public class GestorFragmentos : MonoBehaviour
     }
 
     /// <summary>
-    /// Guardado (F9): monedas que valen los fragmentos que siguen en el suelo. Los normales se pagan
-    /// a la tasa de recogida a mano y los de bonus enteros, para que guardar y cargar no dé más que recogerlos.
+    /// Guardado (F9): monedas que valen los fragmentos que siguen en el suelo, igual que si se recogieran
+    /// (enteros con "Una Moneda Por Fragmento"; si no, a la tasa de recogida a mano).
     /// </summary>
     public int MonedasPendientesEnSuelo()
     {
@@ -129,7 +141,7 @@ public class GestorFragmentos : MonoBehaviour
             if (vivo == null || vivo.objeto == null || !vivo.objeto.activeInHierarchy) continue;
             // Igual que Recoger: el bonus vale 1 moneda; los normales pasan por el acumulador.
             if (vivo.bonus) bonus++;
-            else normales += Mathf.Clamp01(economia.recogidaAMano) * economia.monedasPorFragmento;
+            else normales += (unaMonedaPorFragmento ? 1f : Mathf.Clamp01(economia.recogidaAMano)) * economia.monedasPorFragmento;
         }
         return bonus + Mathf.Max(0, Mathf.FloorToInt(normales + 0.0001f));
     }
@@ -274,7 +286,7 @@ public class GestorFragmentos : MonoBehaviour
                 if (vivo.render != null) vivo.render.enabled = visible;
             }
 
-            if (vivo.atraido || jugador == null || edad < inmunidadRecogida) continue;
+            if (!imanAutomatico || vivo.atraido || jugador == null || edad < inmunidadRecogida) continue;
 
             Vector3 centroJugador = jugador.position + Vector3.up * 0.8f;
             Vector3 hacia = centroJugador - vivo.objeto.transform.position;
@@ -291,8 +303,59 @@ public class GestorFragmentos : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Clic izquierdo: coge el resto al que apunta la mirilla (el más cercano a la cámara) y los
+    /// que estén pegados a él. Devuelve cuántos ha cogido (0 = no apuntaba a ninguno).
+    /// </summary>
+    public int RecogerApuntado(Ray rayo)
+    {
+        int elegido = -1;
+        float masCerca = float.MaxValue;
+        Vector3 direccion = rayo.direction.normalized;
+
+        for (int i = 0; i < vivos.Count; i++)
+        {
+            Vivo vivo = vivos[i];
+            if (vivo == null || vivo.objeto == null || !vivo.objeto.activeInHierarchy) continue;
+
+            Vector3 haciaResto = vivo.objeto.transform.position - rayo.origin;
+            float largo = Vector3.Dot(haciaResto, direccion);
+            if (largo < 0f || largo > distanciaClic) continue;
+
+            // Un poco más de margen cuanto más lejos, para que no haga falta puntería fina.
+            float tolerancia = toleranciaApuntado + 0.05f * largo;
+            if ((haciaResto - direccion * largo).sqrMagnitude > tolerancia * tolerancia) continue;
+
+            if (largo < masCerca)
+            {
+                masCerca = largo;
+                elegido = i;
+            }
+        }
+
+        if (elegido < 0) return 0;
+
+        Vector3 centro = vivos[elegido].objeto.transform.position;
+        float grupo2 = radioGrupoClic * radioGrupoClic;
+        int recogidos = 0;
+
+        // Hacia atrás: Recoger quita el elemento de la lista.
+        for (int i = vivos.Count - 1; i >= 0; i--)
+        {
+            Vivo vivo = vivos[i];
+            if (vivo == null || vivo.objeto == null) continue;
+            if (i != elegido && (vivo.objeto.transform.position - centro).sqrMagnitude > grupo2) continue;
+
+            Recoger(i, 1f);
+            recogidos++;
+        }
+        return recogidos;
+    }
+
     private void Recoger(int indice, float tasa)
     {
+        if (unaMonedaPorFragmento) tasa = 1f;
+
         Vivo vivo = vivos[indice];
         bool bonus = vivo.bonus;
         Devolver(indice);
