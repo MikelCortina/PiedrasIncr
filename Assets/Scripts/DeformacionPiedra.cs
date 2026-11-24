@@ -20,13 +20,11 @@ public class DeformacionPiedra : MonoBehaviour
     [Tooltip("Segundos mínimos entre dos deformaciones por choque de la misma piedra")]
     [Min(0f)] public float tiempoEntreDeformaciones = 0.08f;
 
-    [Header("Desgaste por arrastre (obsoleto: el desgaste lo calcula DesgastePiedra con EconomiaDemo)")]
-    [HideInInspector, Min(0f)] public float velocidadMinimaErosionArrastre = 3f;
-    [HideInInspector, Min(0f)] public float intervaloErosionArrastre = 0.1f;
-
-    [Header("Forma según el desgaste")]
-    [Tooltip("Cambio mínimo de desgaste (0-1) para volver a recalcular la malla. Evita rehacerla en cada paso de física.")]
-    [Range(0.001f, 0.05f)] public float pasoDesgasteVisual = 0.005f;
+    [Header("Desgaste por arrastre (rozando el suelo, p. ej. en el torbellino)")]
+    [Tooltip("Velocidad mínima a la que la piedra se desgasta mientras roza algo que no es otra piedra")]
+    [Min(0f)] public float velocidadMinimaErosionArrastre = 3f;
+    [Tooltip("Segundos entre desgastes mientras roza (más bajo = se desgasta más rápido)")]
+    [Min(0f)] public float intervaloErosionArrastre = 0.1f;
 
     [Header("Ajustes de Erosión")]
     public float radioDeImpacto = 0.5f;
@@ -98,9 +96,12 @@ public class DeformacionPiedra : MonoBehaviour
     private Vector3[] puntosCollider;
     private float proximaActualizacionCollider;
     private float ultimaDeformacion = -999f;
+    // El desgaste se calcula a partir de la forma real de la malla (sistema de desgaste original:
+    // cada golpe y cada arrastre erosiona la piedra justo en el punto de contacto).
+    // DesgastePiedra solo guarda ese valor para la economía (fragmentos, esfera perfecta, guardado).
     private DesgastePiedra desgastePiedra;
     private Vector3[] verticesOriginales;
-    private float ultimoDesgasteVisual = -1f;
+    private bool sincronizandoDesgaste;
 
     public DesgastePiedra Desgaste
     {
@@ -121,19 +122,16 @@ public class DeformacionPiedra : MonoBehaviour
         if (desgastePiedra != null) return;
         desgastePiedra = GetComponent<DesgastePiedra>();
         if (desgastePiedra == null) desgastePiedra = gameObject.AddComponent<DesgastePiedra>();
-        desgastePiedra.OnDesgasteCambiado += AlCambiarDesgaste;
+        desgastePiedra.controladoPorMalla = true;
         desgastePiedra.OnDesgasteRestaurado += AlRestaurarDesgaste;
         if (GetComponent<EmisorFragmentos>() == null) gameObject.AddComponent<EmisorFragmentos>();
     }
 
+    // Al cargar una partida solo se conoce el porcentaje: se aproxima la forma puliendo la piedra de manera uniforme.
     void AlRestaurarDesgaste(float valor)
     {
-        AplicarDesgasteVisual(valor, true);
-    }
-
-    void AlCambiarDesgaste(float antes, float despues)
-    {
-        AplicarDesgasteVisual(despues, false);
+        if (sincronizandoDesgaste) return;
+        AplicarDesgasteVisual(valor);
     }
 
     void Start()
@@ -152,7 +150,8 @@ public class DeformacionPiedra : MonoBehaviour
 
         CalcularRadioObjetivo();
         AsegurarDesgaste();
-        AplicarDesgasteVisual(desgastePiedra.Desgaste, true);
+        if (desgastePiedra.Desgaste > 0f) AplicarDesgasteVisual(desgastePiedra.Desgaste);
+        SincronizarDesgaste(false);
 
         posicionAnterior = transform.position;
         rotacionAnterior = transform.rotation;
@@ -281,6 +280,11 @@ public class DeformacionPiedra : MonoBehaviour
             EmitirPolvo(contacto.point, contacto.normal, fuerzaMinimaParticulas, fuerzaMaximaParticulas, fuerzaChoque, minParticulasPorGolpe, maxParticulasPorGolpe);
         }
 
+        if (fuerzaChoque < fuerzaMinimaChoque) return;
+        if (colision.gameObject.CompareTag("Piedra")) return;
+
+        ContactPoint contactoDeformacion = colision.GetContact(0);
+        DeformarMalla(transform.InverseTransformPoint(contactoDeformacion.point));
     }
 
     void OnCollisionStay(Collision colision)
@@ -293,6 +297,11 @@ public class DeformacionPiedra : MonoBehaviour
         if (Time.time < tiempoNacimiento + retrasoEfectosInicial) return;
 
         float velocidadActual = rb.linearVelocity.magnitude;
+
+        // Al no reconstruir el collider en cada golpe, el contacto sigue como Stay y ya no se repite
+        // OnCollisionEnter: el desgaste mientras se arrastra se hace aquí, con su propio ritmo.
+        if (velocidadActual >= velocidadMinimaErosionArrastre && Time.time - ultimaDeformacion >= intervaloErosionArrastre)
+            DeformarMalla(transform.InverseTransformPoint(colision.GetContact(0).point));
 
         if (particulasPolvo == null) return;
 
@@ -343,6 +352,7 @@ public class DeformacionPiedra : MonoBehaviour
     {
         // En el torbellino una piedra choca muchas veces por segundo: se limita la frecuencia.
         if (Time.time - ultimaDeformacion < tiempoEntreDeformaciones) return;
+        if (vertices == null) return;
 
         bool mallaModificada = false;
         float fuerzaErosionFinal = fuerzaDeErosion * multiplicadorErosion;
@@ -368,19 +378,74 @@ public class DeformacionPiedra : MonoBehaviour
         {
             ultimaDeformacion = Time.time;
             ActualizarMalla();
+            SincronizarDesgaste(true);
         }
     }
 
     public void PulirUniformemente(float cantidadDesgaste)
     {
-        float rango = Mathf.Max(0.0001f, radioDeImpacto * 2f);
-        Desgaste.AnadirDesgaste(cantidadDesgaste / rango);
+        if (vertices == null) return;
+
+        bool mallaModificada = false;
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            float distCentro = vertices[i].magnitude;
+
+            if (distCentro > radioObjetivoMinimo)
+            {
+                float nuevaDist = Mathf.Max(distCentro - cantidadDesgaste, radioObjetivoMinimo);
+                vertices[i] = vertices[i].normalized * nuevaDist;
+                mallaModificada = true;
+            }
+        }
+
+        if (mallaModificada)
+        {
+            ActualizarMalla();
+            SincronizarDesgaste(true);
+        }
     }
 
-    void AplicarDesgasteVisual(float desgaste, bool forzar)
+    // Porcentaje (0-1) de lo que le falta a la piedra para ser una esfera perfecta, medido sobre la malla.
+    float CalcularDesgasteMalla()
+    {
+        if (vertices == null || vertices.Length == 0) return 0f;
+
+        float sumaDistanciasActuales = 0f;
+        foreach (Vector3 v in vertices)
+        {
+            sumaDistanciasActuales += v.magnitude;
+        }
+        float radioActualPromedio = sumaDistanciasActuales / vertices.Length;
+        float radioMaximoInicial = radioObjetivoMinimo + (radioDeImpacto * 2f);
+        return Mathf.Clamp01(Mathf.InverseLerp(radioMaximoInicial, radioObjetivoMinimo, radioActualPromedio));
+    }
+
+    // Pasa el desgaste de la malla a DesgastePiedra (fragmentos, esfera perfecta, guardado).
+    // Sin notificar (al nacer o al cargar) se fija como punto de partida sin soltar fragmentos.
+    void SincronizarDesgaste(bool notificar)
+    {
+        DesgastePiedra estado = Desgaste;
+        float desgasteMalla = CalcularDesgasteMalla();
+        if (desgasteMalla > 0.99999f) desgasteMalla = 1f;
+        if (desgasteMalla <= estado.Desgaste) return;
+
+        if (notificar)
+        {
+            estado.AnadirDesgaste(desgasteMalla - estado.Desgaste);
+        }
+        else
+        {
+            sincronizandoDesgaste = true;
+            estado.Restaurar(desgasteMalla, estado.EsferaPerfectaAlcanzada);
+            sincronizandoDesgaste = false;
+        }
+    }
+
+    void AplicarDesgasteVisual(float desgaste)
     {
         if (verticesOriginales == null || vertices == null) return;
-        if (!forzar && desgaste < 1f && Mathf.Abs(desgaste - ultimoDesgasteVisual) < pasoDesgasteVisual) return;
 
         float d = Mathf.Clamp01(desgaste);
         bool mallaModificada = false;
@@ -397,7 +462,6 @@ public class DeformacionPiedra : MonoBehaviour
             }
         }
 
-        ultimoDesgasteVisual = d;
         if (mallaModificada) ActualizarMalla();
     }
 
@@ -487,7 +551,6 @@ public class DeformacionPiedra : MonoBehaviour
     {
         if (desgastePiedra != null)
         {
-            desgastePiedra.OnDesgasteCambiado -= AlCambiarDesgaste;
             desgastePiedra.OnDesgasteRestaurado -= AlRestaurarDesgaste;
         }
         if (mallaCollider != null) Destroy(mallaCollider);

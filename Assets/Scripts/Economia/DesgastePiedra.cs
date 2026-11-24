@@ -8,6 +8,11 @@ public class DesgastePiedra : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float desgaste;
     [SerializeField] private bool esferaPerfectaAlcanzada;
 
+    [Header("Origen del desgaste")]
+    [Tooltip("Si está activo, el desgaste lo marca la forma real de la malla (DeformacionPiedra: golpes y arrastre en el punto de contacto) " +
+             "y aquí no se suma desgaste por metros, patadas ni torbellino.")]
+    public bool controladoPorMalla;
+
     [Header("Desgaste por distancia")]
     [Tooltip("Por debajo de esta velocidad la piedra no cuenta como rodando o arrastrada.")]
     [Min(0f)] public float velocidadMinimaRodando = 0.3f;
@@ -80,7 +85,7 @@ public class DesgastePiedra : MonoBehaviour
         metrosPatada = 0f;
         tiempoQuieta = 0f;
         desgasteInicioPatada = desgaste;
-        AnadirDesgaste(ProveedorEconomia.Actual.golpePatada);
+        if (!controladoPorMalla) AnadirDesgaste(ProveedorEconomia.Actual.golpePatada);
     }
 
     private void TerminarMedicionPatada()
@@ -98,7 +103,7 @@ public class DesgastePiedra : MonoBehaviour
     public void AplicarTorbellino(float deltaTime)
     {
         enTorbellinoHasta = Time.fixedTime + Mathf.Max(margenContacto, Time.fixedDeltaTime * 2f);
-        AnadirDesgaste(ProveedorEconomia.Actual.desgasteTorbellinoPorSegundo * deltaTime);
+        if (!controladoPorMalla) AnadirDesgaste(ProveedorEconomia.Actual.desgasteTorbellinoPorSegundo * deltaTime);
     }
 
     public void Restaurar(float valor, bool esferaYaPremiada)
@@ -158,7 +163,7 @@ public class DesgastePiedra : MonoBehaviour
 
         MetrosContados += metros;
         if (midiendoPatada) metrosPatada += metros;
-        AnadirDesgaste(ProveedorEconomia.Actual.desgastePorMetro * metros);
+        if (!controladoPorMalla) AnadirDesgaste(ProveedorEconomia.Actual.desgastePorMetro * metros);
     }
 
     private void OnCollisionStay(Collision colision)
