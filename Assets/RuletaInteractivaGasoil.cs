@@ -61,6 +61,16 @@ public class RuletaInteractivaGasoil : MonoBehaviour
     // Sincronización del tiempo de retorno
     private float progresoSecundario = 0f;
 
+    // --- Lectura para el indicador de sentido de giro (IndicadorGiroRuleta) ---
+    /// <summary>Cuánto se ha girado hacia la apertura (0-1).</summary>
+    public float Progreso => anguloObjetivo > 0f ? Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo) : 0f;
+    /// <summary>True desde que llega al objetivo (se vacía, se abre y queda bloqueada).</summary>
+    public bool Abierta => estadoActual != EstadoRuleta.Girando;
+    /// <summary>Último giro que mandó el jugador (positivo = hacia abrir, negativo = al revés).</summary>
+    public float UltimoDeltaGiro { get; private set; }
+    /// <summary>Time.time del último giro del jugador.</summary>
+    public float TiempoUltimoGiro { get; private set; } = -999f;
+
     // Progreso del efecto de "Vaciado" (Descarga del LED y bajada del eje Y)
     private float progresoVaciado = 1f;
 
@@ -183,6 +193,8 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         if (estadoActual != EstadoRuleta.Girando) return;
 
         estaSiendoGirada = true;
+        UltimoDeltaGiro = deltaGiro;
+        TiempoUltimoGiro = Time.time;
 
         // TENSIÓN
         float progresoActual = Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo);
