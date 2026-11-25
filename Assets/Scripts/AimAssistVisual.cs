@@ -548,35 +548,19 @@ public class AimAssistVisual : MonoBehaviour
         }
     }
 
-    // Primitivas del estilo cartel LED. Públicas para que otros HUD (p. ej. el Fisionador) se vean igual.
+    // Primitivas del estilo cartel LED: ahora viven en EstiloNeonIMGUI. Se mantienen aquí para no romper
+    // a quien ya las llama (Fisionador, BotroDice, ControladorFinDemo, IndicadorGiroRuleta, SecuenciaIntro).
 
     // Borde de neón: línea nítida y dos capas de halo por fuera.
     public static void BordeNeon(Rect r, Color color, float e, float radio)
     {
-        for (int i = 2; i >= 1; i--)
-        {
-            float expansion = i * 2f * e;
-            Rect halo = new Rect(r.x - expansion, r.y - expansion, r.width + expansion * 2f, r.height + expansion * 2f);
-            Borde(halo, ConAlfa(color, color.a * (i == 2 ? 0.08f : 0.18f)), 2f * e, radio + expansion);
-        }
-        Borde(r, color, 1.2f * e, radio);
+        EstiloNeonIMGUI.BordeNeon(r, color, e, radio);
     }
 
     // Esquinas en "L" por fuera de la placa, como un visor.
     public static void EsquinasHUD(Rect r, Color color, float e)
     {
-        float largo = 12f * e, grosor = 2f * e, separacion = 5f * e;
-        float izquierda = r.x - separacion, derecha = r.xMax + separacion;
-        float arriba = r.y - separacion, abajo = r.yMax + separacion;
-
-        Rectangulo(new Rect(izquierda, arriba, largo, grosor), color, 0f);
-        Rectangulo(new Rect(izquierda, arriba, grosor, largo), color, 0f);
-        Rectangulo(new Rect(derecha - largo, arriba, largo, grosor), color, 0f);
-        Rectangulo(new Rect(derecha - grosor, arriba, grosor, largo), color, 0f);
-        Rectangulo(new Rect(izquierda, abajo - grosor, largo, grosor), color, 0f);
-        Rectangulo(new Rect(izquierda, abajo - largo, grosor, largo), color, 0f);
-        Rectangulo(new Rect(derecha - largo, abajo - grosor, largo, grosor), color, 0f);
-        Rectangulo(new Rect(derecha - grosor, abajo - largo, grosor, largo), color, 0f);
+        EstiloNeonIMGUI.EsquinasHUD(r, color, e);
     }
 
     Color ColorDesgaste(float porcentaje)
@@ -605,37 +589,21 @@ public class AimAssistVisual : MonoBehaviour
 
     public static void TextoNeon(GUIStyle estilo, Rect r, string texto, float tamano, TextAnchor anclaje, Color color, float halo)
     {
-        estilo.fontSize = Mathf.Max(8, Mathf.RoundToInt(tamano));
-        estilo.alignment = anclaje;
-
-        Color guardado = GUI.color;
-        if (halo > 0f)
-        {
-            float d = Mathf.Max(1f, tamano * 0.05f);
-            GUI.color = ConAlfa(color, color.a * 0.22f * halo);
-            GUI.Label(new Rect(r.x - d, r.y, r.width, r.height), texto, estilo);
-            GUI.Label(new Rect(r.x + d, r.y, r.width, r.height), texto, estilo);
-            GUI.Label(new Rect(r.x, r.y - d, r.width, r.height), texto, estilo);
-            GUI.Label(new Rect(r.x, r.y + d, r.width, r.height), texto, estilo);
-        }
-        GUI.color = color;
-        GUI.Label(r, texto, estilo);
-        GUI.color = guardado;
+        EstiloNeonIMGUI.TextoNeon(estilo, r, texto, tamano, anclaje, color, halo);
     }
 
     public static void Rectangulo(Rect r, Color color, float radio)
     {
-        GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, color, 0f, radio);
+        EstiloNeonIMGUI.Rectangulo(r, color, radio);
     }
 
     public static void Borde(Rect r, Color color, float grosor, float radio)
     {
-        GUI.DrawTexture(r, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0f, color, grosor, radio);
+        EstiloNeonIMGUI.Borde(r, color, grosor, radio);
     }
 
     public static Color ConAlfa(Color color, float alfa)
     {
-        color.a = alfa;
-        return color;
+        return EstiloNeonIMGUI.ConAlfa(color, alfa);
     }
 }

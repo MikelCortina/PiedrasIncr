@@ -124,7 +124,6 @@ public class DeformacionPiedra : MonoBehaviour
         if (desgastePiedra == null) desgastePiedra = gameObject.AddComponent<DesgastePiedra>();
         desgastePiedra.controladoPorMalla = true;
         desgastePiedra.OnDesgasteRestaurado += AlRestaurarDesgaste;
-        if (GetComponent<EmisorFragmentos>() == null) gameObject.AddComponent<EmisorFragmentos>();
     }
 
     // Al cargar una partida solo se conoce el porcentaje: se aproxima la forma puliendo la piedra de manera uniforme.

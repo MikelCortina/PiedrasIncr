@@ -46,7 +46,11 @@ public class TiendaHolografica : MonoBehaviour
     public Vector3 desplazamientoProyector = Vector3.zero;
     [Min(0.1f)] public float radioProyector = 0.55f;
 
-    [Header("Colores")]
+    [Header("Tema")]
+    [Tooltip("Usa los colores y la fuente del TemaUINeon (estilo del escáner de piedras) en vez de los de abajo.")]
+    public bool usarTemaUINeon = true;
+
+    [Header("Colores (si no se usa el tema)")]
     public Color colorHolograma = new Color(0.30f, 0.92f, 1f, 1f);
     public Color colorTexto = new Color(0.86f, 1f, 1f, 1f);
     public Color colorFondo = new Color(0.02f, 0.07f, 0.11f, 0.86f);
@@ -159,6 +163,8 @@ public class TiendaHolografica : MonoBehaviour
 
     private void Start()
     {
+        AplicarTema();
+
         if (mesa == null) mesa = GetComponent<MesaTrabajo>();
         if (tienda == null && mesa != null && mesa.panelTienda != null)
             tienda = mesa.panelTienda.GetComponentInChildren<TiendaTrabajo>(true);
@@ -189,6 +195,7 @@ public class TiendaHolografica : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (torbellinoEscuchado != null) torbellinoEscuchado.OnNivelCambiado -= AlCambiarNivelTorbellino;
         if (texturaEstudio != null) texturaEstudio.Release();
         if (estudio != null) Destroy(estudio.gameObject);
         if (lienzo != null) Destroy(lienzo.gameObject);
@@ -262,12 +269,14 @@ public class TiendaHolografica : MonoBehaviour
     {
         tarjetas.Clear();
         tarjetas.Add(new Tarjeta { nombre = "Fusil de monedas", principal = TiendaTrabajo.Articulo.Fusil });
+        // Con el nivel unificado del Torbellino no hay botones sueltos de alcance y movilidad.
+        bool torbellinoUnificado = tienda != null && tienda.herramientaTorbellino != null && tienda.herramientaTorbellino.nivelesUnificados;
         tarjetas.Add(new Tarjeta
         {
             nombre = "Torbellino",
             principal = TiendaTrabajo.Articulo.Torbellino,
-            extras = new[] { TiendaTrabajo.Articulo.TorbellinoAlcance, TiendaTrabajo.Articulo.TorbellinoMovilidad },
-            nombresExtras = new[] { "ALCANCE", "MOVILIDAD" }
+            extras = torbellinoUnificado ? null : new[] { TiendaTrabajo.Articulo.TorbellinoAlcance, TiendaTrabajo.Articulo.TorbellinoMovilidad },
+            nombresExtras = torbellinoUnificado ? null : new[] { "ALCANCE", "MOVILIDAD" }
         });
         tarjetas.Add(new Tarjeta { nombre = "Imán", principal = TiendaTrabajo.Articulo.Iman, siguiente = TiendaTrabajo.Articulo.ImanAlcance });
         tarjetas.Add(new Tarjeta { nombre = "Martillo", principal = TiendaTrabajo.Articulo.Martillo });
@@ -468,6 +477,8 @@ public class TiendaHolografica : MonoBehaviour
             {
                 float velocidad = 35f + t.giroExtra * 2.5f;
                 t.modelo.Rotate(0f, velocidad * dt, 0f, Space.Self);
+                // Vuelve a su tamaño tras el "bloop" de subir de nivel.
+                t.modelo.localScale = Vector3.Lerp(t.modelo.localScale, Vector3.one, dt * 10f);
                 t.giroExtra = Mathf.MoveTowards(t.giroExtra, 0f, dt * 600f);
             }
 
@@ -663,9 +674,28 @@ public class TiendaHolografica : MonoBehaviour
         r.anchoredPosition = posicion;
     }
 
+    // Toma los colores y la fuente del tema común (los mismos del panel de escaneo de piedras).
+    private void AplicarTema()
+    {
+        if (!usarTemaUINeon) return;
+
+        TemaUINeon tema = TemaUINeon.Actual;
+        colorHolograma = tema.colorNeonAlto;
+        colorTexto = tema.colorNeon;
+        colorFondo = tema.colorPlaca;
+        colorListo = tema.colorNeonMedio;
+        colorAviso = tema.colorNeonBajo;
+    }
+
     private TextMeshProUGUI Texto(string nombre, Transform padre, string texto, float tamano, Color color, TextAlignmentOptions alineacion, FontStyles estilo)
     {
         TextMeshProUGUI t = Crear<TextMeshProUGUI>(nombre, padre);
+        if (usarTemaUINeon)
+        {
+            TemaUINeon tema = TemaUINeon.Actual;
+            if (tema.fuenteTMP != null) t.font = tema.fuenteTMP;
+            if (tema.MaterialTexto != null) t.fontSharedMaterial = tema.MaterialTexto;
+        }
         t.text = texto;
         t.fontSize = tamano;
         t.color = color;
@@ -816,19 +846,69 @@ public class TiendaHolografica : MonoBehaviour
             Transform giro = new GameObject("Giro").transform;
             giro.SetParent(pivote, false);
 
-            GameObject copia = CrearModelo(t);
-            if (copia != null)
-            {
-                Ajustar(copia.transform, giro, 0.62f);
-                AplicarCapa(copia, capaEstudio);
-            }
             t.modelo = giro;
+            RellenarModelo(t);
 
             if (t.vista != null)
             {
                 t.vista.texture = texturaEstudio;
                 t.vista.uvRect = new Rect(col / 3f, (1 - fila) / 2f, 1f / 3f, 0.5f);
             }
+        }
+    }
+
+    // Crea (o rehace) la copia holográfica de una tarjeta dentro de su plato giratorio.
+    // El Torbellino se ve más grande cuanto mayor es su nivel (de 0,8 a 1,15 veces el tamaño de la celda).
+    private void RellenarModelo(Tarjeta t)
+    {
+        if (t.modelo == null) return;
+        for (int i = t.modelo.childCount - 1; i >= 0; i--)
+            Destroy(t.modelo.GetChild(i).gameObject);
+
+        GameObject copia = CrearModelo(t);
+        if (copia == null) return;
+
+        float tamano = 0.62f;
+        if (t.principal == TiendaTrabajo.Articulo.Torbellino && tienda != null && tienda.herramientaTorbellino != null)
+            tamano *= Mathf.Lerp(0.8f, 1.15f, (tienda.herramientaTorbellino.NivelCapacidad - 1) / 4f);
+
+        Ajustar(copia.transform, t.modelo, tamano);
+        AplicarCapa(copia, capaEstudio);
+    }
+
+    // Al subir de nivel el Torbellino, su holograma se rehace (un frame después, cuando el modelo
+    // del juego ya ha cambiado de fase) y hace un "bloop".
+    private bool rehacerTorbellino;
+    private int framePeticion;
+    private HerramientaTorbellino torbellinoEscuchado;
+
+    private void EscucharTorbellino()
+    {
+        HerramientaTorbellino h = tienda != null ? tienda.herramientaTorbellino : null;
+        if (h == torbellinoEscuchado) return;
+        if (torbellinoEscuchado != null) torbellinoEscuchado.OnNivelCambiado -= AlCambiarNivelTorbellino;
+        torbellinoEscuchado = h;
+        if (h != null) h.OnNivelCambiado += AlCambiarNivelTorbellino;
+    }
+
+    private void AlCambiarNivelTorbellino(int nivel)
+    {
+        rehacerTorbellino = true;
+        framePeticion = Time.frameCount;
+    }
+
+    private void LateUpdate()
+    {
+        EscucharTorbellino();
+        if (!rehacerTorbellino || estudio == null) return;
+        if (Time.frameCount <= framePeticion) return; // deja pasar un frame para que cambien las mallas
+        rehacerTorbellino = false;
+
+        foreach (Tarjeta t in tarjetas)
+        {
+            if (t.principal != TiendaTrabajo.Articulo.Torbellino) continue;
+            RellenarModelo(t);
+            if (t.modelo != null) t.modelo.localScale = Vector3.one * 1.25f;
         }
     }
 
@@ -853,11 +933,15 @@ public class TiendaHolografica : MonoBehaviour
 
         switch (t.principal)
         {
+            // Se copia el modelo de la herramienta (no el objeto del script, que puede ser la cámara):
+            // así da igual que esté guardada (modelo desactivado) y solo cuentan las piezas de su fase.
             case TiendaTrabajo.Articulo.Fusil:
-                fuente = modeloFusil != null ? modeloFusil : (equipo != null && equipo.armaLanzadora != null ? equipo.armaLanzadora.gameObject : null);
+                fuente = modeloFusil != null ? modeloFusil : (equipo != null && equipo.armaLanzadora != null
+                    ? (equipo.armaLanzadora.modeloArma != null ? equipo.armaLanzadora.modeloArma : equipo.armaLanzadora.gameObject) : null);
                 break;
             case TiendaTrabajo.Articulo.Torbellino:
-                fuente = modeloTorbellino != null ? modeloTorbellino : (equipo != null && equipo.herramientaTorbellino != null ? equipo.herramientaTorbellino.gameObject : null);
+                fuente = modeloTorbellino != null ? modeloTorbellino : (equipo != null && equipo.herramientaTorbellino != null
+                    ? (equipo.herramientaTorbellino.modeloHerramienta != null ? equipo.herramientaTorbellino.modeloHerramienta : equipo.herramientaTorbellino.gameObject) : null);
                 break;
             case TiendaTrabajo.Articulo.Iman: fuente = modeloIman; break;
             case TiendaTrabajo.Articulo.Martillo: fuente = modeloMartillo; break;
@@ -870,8 +954,14 @@ public class TiendaHolografica : MonoBehaviour
         return copia;
     }
 
-    // Copia solo las mallas (sin scripts ni colliders) y les pone el material holográfico.
+    // Copia solo las mallas visibles (las de la fase actual); si no hay ninguna, todas.
     private GameObject CopiarMallas(GameObject fuente)
+    {
+        return CopiarMallas(fuente, true) ?? CopiarMallas(fuente, false);
+    }
+
+    // Copia solo las mallas (sin scripts ni colliders) y les pone el material holográfico.
+    private GameObject CopiarMallas(GameObject fuente, bool soloVisibles)
     {
         GameObject raiz = new GameObject("Copia_" + fuente.name);
         Matrix4x4 aLocal = fuente.transform.worldToLocalMatrix;
@@ -880,12 +970,14 @@ public class TiendaHolografica : MonoBehaviour
         foreach (MeshFilter mf in fuente.GetComponentsInChildren<MeshFilter>(true))
         {
             if (mf.sharedMesh == null || mf.GetComponent<MeshRenderer>() == null) continue;
+            if (soloVisibles && (!VisibleDentroDe(mf.transform, fuente.transform) || !mf.GetComponent<MeshRenderer>().enabled)) continue;
             Pieza(raiz.transform, mf.sharedMesh, aLocal * mf.transform.localToWorldMatrix);
             piezas++;
         }
         foreach (SkinnedMeshRenderer smr in fuente.GetComponentsInChildren<SkinnedMeshRenderer>(true))
         {
             if (smr.sharedMesh == null) continue;
+            if (soloVisibles && (!smr.enabled || !VisibleDentroDe(smr.transform, fuente.transform))) continue;
             Mesh horneada = new Mesh();
             smr.BakeMesh(horneada);
             Pieza(raiz.transform, horneada, aLocal * Matrix4x4.TRS(smr.transform.position, smr.transform.rotation, Vector3.one));
@@ -898,6 +990,14 @@ public class TiendaHolografica : MonoBehaviour
             return null;
         }
         return raiz;
+    }
+
+    // Activo respecto a la raíz copiada (la raíz puede estar desactivada si la herramienta no está equipada).
+    private static bool VisibleDentroDe(Transform t, Transform raiz)
+    {
+        for (Transform actual = t; actual != null && actual != raiz; actual = actual.parent)
+            if (!actual.gameObject.activeSelf) return false;
+        return true;
     }
 
     private void Pieza(Transform padre, Mesh malla, Matrix4x4 m)

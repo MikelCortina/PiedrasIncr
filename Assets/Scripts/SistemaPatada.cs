@@ -69,26 +69,12 @@ public class SistemaPatada : MonoBehaviour
                 recolectorMagnetico.IntentarRecogerMonedaConClick())
                 return;
 
-            // Si apunta a un resto de piedra (cubito) cercano, lo coge en vez de patear.
-            if (IntentarRecogerFragmento())
-                return;
-
             DarPatada();
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
             DarPatada();
         }
-    }
-
-    private static bool IntentarRecogerFragmento()
-    {
-        Camera camara = Camera.main;
-        if (camara == null)
-            return false;
-
-        Ray rayo = camara.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        return GestorFragmentos.Instancia.RecogerApuntado(rayo) > 0;
     }
 
     private void DarPatada()

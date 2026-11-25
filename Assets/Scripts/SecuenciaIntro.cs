@@ -14,7 +14,7 @@ using UnityEngine;
 ///  8 Llevas la piedra             (una piedra cerca del agujero)
 ///  9 Botro: desgaste y trampilla
 /// 10 Metes la piedra              (AgujeroSimple.OnPiedraTragada)
-/// 11 Zoom a la pantalla de gasolina (+XX L)  (ContadorGasolinera.OnGasolinaAnadida)
+/// 11 Zoom a la pantalla de gasolina (+XX L)  (desactivado por defecto: 'hacerZoomGasolina')
 /// 12 Botro: "recoge los restos"   → termina al ganar la primera moneda (Cartera.OnMonedasCambiadas)
 /// Los eventos se "apuntan" aunque lleguen antes de tiempo: si el jugador se adelanta, el guion no se atasca.
 /// </summary>
@@ -60,6 +60,8 @@ public class SecuenciaIntro : MonoBehaviour
     public float distanciaPiedraAgujero = 12f;
 
     [Header("Zoom a la pantalla de gasolina")]
+    [Tooltip("Al meter la primera piedra, la cámara hace zoom a la pantalla de la gasolinera. Desactivado: no hay zoom.")]
+    public bool hacerZoomGasolina = false;
     [Tooltip("Vacío = se busca sola: el objeto que muestra la imagen de la cámara del cartel de gasoil.")]
     public Transform pantallaGasolina;
     [Tooltip("FOV máximo durante el zoom (se reduce más si hace falta para encuadrar la pantalla).")]
@@ -251,9 +253,12 @@ public class SecuenciaIntro : MonoBehaviour
         IrA(Paso.MeterPiedra, objetivoMeter);
         yield return Esperar(EvTragada);
 
-        // 11 · Zoom a la pantalla de gasolina (+XX L)
-        IrA(Paso.ZoomGasolina, "");
-        yield return ZoomGasolina();
+        // 11 · Zoom a la pantalla de gasolina (+XX L), solo si está activado
+        if (hacerZoomGasolina)
+        {
+            IrA(Paso.ZoomGasolina, "");
+            yield return ZoomGasolina();
+        }
 
         // 12 · Botro: recoge los restos → primera moneda
         IrA(Paso.BotroRestos, "");

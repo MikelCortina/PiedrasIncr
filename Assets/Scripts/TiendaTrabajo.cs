@@ -1846,6 +1846,11 @@ public class TiendaTrabajo : MonoBehaviour
         if (herramientaTorbellino == null)
             return;
 
+        // Nivel unificado: un único botón (Radio = nivel del Torbellino), sin apartados de alcance y movilidad.
+        bool unificado = herramientaTorbellino.nivelesUnificados;
+        if (botonMejorarAlcance != null) botonMejorarAlcance.gameObject.SetActive(!unificado);
+        if (botonMejorarMovilidad != null) botonMejorarMovilidad.gameObject.SetActive(!unificado);
+
 
         // =================================================
         // RADIO
@@ -2568,7 +2573,8 @@ public class TiendaTrabajo : MonoBehaviour
             case Articulo.TorbellinoMovilidad:
             {
                 bool alcance = articulo == Articulo.TorbellinoAlcance;
-                e.noDisponible = !equipo || herramientaTorbellino == null;
+                // Con el nivel unificado ya no se venden por separado.
+                e.noDisponible = !equipo || herramientaTorbellino == null || herramientaTorbellino.nivelesUnificados;
                 e.requisitoPendiente = !equipo || !gestorEquipamiento.TorbellinoDesbloqueado();
                 e.nivelMax = 3;
                 e.nivel = herramientaTorbellino == null ? 1 : (alcance ? herramientaTorbellino.NivelAlcance : herramientaTorbellino.NivelMovilidad);

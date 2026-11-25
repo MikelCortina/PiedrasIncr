@@ -8,7 +8,7 @@ using UnityEngine;
 /// Cómo queda fuera de los sistemas de juego:
 /// - Tag distinto de "Piedra": la ignoran el agarre, el agujero, el torbellino, el Fisionador y el escáner.
 /// - Capa fuera de la máscara de la patada (capaPiedra).
-/// - Sin DeformacionPiedra / DesgastePiedra / EmisorFragmentos / RegistroPiedraGlobal: no se desgasta,
+/// - Sin DeformacionPiedra / DesgastePiedra / RegistroPiedraGlobal: no se desgasta,
 ///   no da fragmentos y los bots no la ven. El prefab ya viene sin ellos; aquí se quitan por si acaso.
 /// </summary>
 [DisallowMultipleComponent]
@@ -64,7 +64,6 @@ public class PiedraNivel2 : MonoBehaviour
 
         // Seguridad: si el prefab trae componentes de juego, se quitan antes de su primer Start.
         QuitarSiExiste<RegistroPiedraGlobal>();
-        QuitarSiExiste<EmisorFragmentos>();
         QuitarSiExiste<DeformacionPiedra>();
         QuitarSiExiste<DesgastePiedra>();
         QuitarSiExiste<RescateVacioPiedra>();

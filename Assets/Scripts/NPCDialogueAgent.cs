@@ -202,20 +202,23 @@ public sealed class NPCDialogueAgent : MonoBehaviour
 
     private void OnGUI()
     {
+        // Estilo del escaner de piedras (TemaUINeon) para todo el dialogo.
+        GUISkin skinAnterior = GUI.skin;
+        GUI.skin = EstiloNeonIMGUI.Skin(TemaUINeon.Actual);
+        DibujarGUI();
+        GUI.skin = skinAnterior;
+    }
+
+    private void DibujarGUI()
+    {
         if (conversation == null)
         {
             if (!looking || character == null)
                 return;
 
-            GUI.Box(
-                new Rect(
-                    Screen.width / 2f - 135f,
-                    Screen.height - 95f,
-                    270f,
-                    35f
-                ),
-                "E - Hablar con " + character.displayName
-            );
+            Rect aviso = new Rect(Screen.width / 2f - 135f, Screen.height - 95f, 270f, 35f);
+            EstiloNeonIMGUI.PlacaNeon(aviso, TemaUINeon.Actual, TemaUINeon.Actual.colorNeonMedio, 1f, 1f);
+            GUI.Box(aviso, "E - Hablar con " + character.displayName);
 
             return;
         }
@@ -231,15 +234,15 @@ public sealed class NPCDialogueAgent : MonoBehaviour
                 ? 310f
                 : 230f;
 
-        GUILayout.BeginArea(
-            new Rect(
-                (Screen.width - width) * 0.5f,
-                Screen.height - height - 24f,
-                width,
-                height
-            ),
-            GUI.skin.window
+        Rect area = new Rect(
+            (Screen.width - width) * 0.5f,
+            Screen.height - height - 24f,
+            width,
+            height
         );
+        EstiloNeonIMGUI.PlacaNeon(area, TemaUINeon.Actual, TemaUINeon.Actual.colorNeonMedio, 1f, 1f);
+
+        GUILayout.BeginArea(area, GUI.skin.window);
 
         GUILayout.Label(
             character != null

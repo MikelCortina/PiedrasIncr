@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33eddcfcf0ee458ab7015485ad926a29, type: 3}
+  m_Name: TemaUINeon
+  m_EditorClassIdentifier: 
+  colorPlaca: {r: 0.035, g: 0.025, b: 0.09, a: 0.88}
+  colorNeon: {r: 0.926, g: 0.887, b: 1, a: 1}
+  colorNeonBajo: {r: 0.926, g: 0.075, b: 0.102, a: 1}
+  colorNeonMedio: {r: 0.579, g: 0.387, b: 0.943, a: 1}
+  colorNeonAlto: {r: 0.914, g: 0.616, b: 0.992, a: 1}
+  colorNeonListo: {r: 0.926, g: 0.887, b: 1, a: 1}
+  colorSombra: {r: 0, g: 0, b: 0, a: 0.4}
+  fuenteTMP: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  fuenteIMGUI: {fileID: 12800000, guid: 1d43eb51a5293dd4dad6075de564c3f8, type: 3}
+  forzarMayusculas: 1
+  brilloTexto: 1
+  intensidadBrilloTexto: 0.35
+  grosorBorde: 1.2
+  alfaBorde: 0.75
+  alfaHalo: {x: 0.18, y: 0.08}
+  separacionScanlines: 3
+  alfaScanlines: 0.035
+  largoEsquina: 12
+  grosorEsquina: 2
+  separacionEsquina: 5
+  desplazamientoSombra: {x: 4, y: -6}
+  colorRellenoBoton: {r: 0.579, g: 0.387, b: 0.943, a: 0.12}
+  alfaBordeBotonReposo: 0.6
+  duracionFundidoBoton: 0.08
+  velocidadFundido: 6
+  escalaPopInicial: 0.85
+  frecuenciaParpadeo: 1.6
+  fraccionParpadeoEncendido: 0.65
+  porcentajeListo: 95
+  aplicarAutomaticamente: 1
+  rutasPaneles:
+  - Canvas/PanelTienda
+  - Canvas/PanelBot
+  - Canvas/PanelComprarBots
+  - Canvas/ PanelTiendaEdificios
+  - Canvas/PanelRanurasGuardado
+  - Canvas/PanelRanurasGuardado/PanelConfirmacion
+  - Canvas/PanelConfirmacion/Caja
+  rutasSoloContenido:
+  - Canvas
+  componentesSoloContenido:
+  - PiedrasOptionsMenu

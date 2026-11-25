@@ -46,6 +46,51 @@ public class CambioConTecla : MonoBehaviour
     [Tooltip("Si se asigna, cada fase sube un nivel el radio del torbellino (hasta el 4)")]
     public HerramientaTorbellino torbellino;
     private int nivelRadioInicial = -1;
+    [Tooltip("Las fases siguen el nivel del Torbellino: nivel 1 = ninguna fase, cada nivel comprado aplica la siguiente " +
+             "(con bloop). Con niveles unificados, la tecla sube el nivel del Torbellino (prueba).")]
+    public bool seguirNivelTorbellino = true;
+
+    private bool SiguiendoNivel => seguirNivelTorbellino && torbellino != null;
+
+    private void OnEnable()
+    {
+        if (torbellino != null) torbellino.OnNivelCambiado += AlCambiarNivelTorbellino;
+    }
+
+    private void OnDisable()
+    {
+        if (torbellino != null) torbellino.OnNivelCambiado -= AlCambiarNivelTorbellino;
+    }
+
+    private void Start()
+    {
+        if (SiguiendoNivel) IrAFase(torbellino.NivelCapacidad - 1, false);
+    }
+
+    private void AlCambiarNivelTorbellino(int nivel)
+    {
+        if (SiguiendoNivel) IrAFase(nivel - 1, true);
+    }
+
+    // Aplica o deshace fases hasta dejar exactamente 'objetivo' aplicadas. Con bloop si sube.
+    public void IrAFase(int objetivo, bool conBloop)
+    {
+        objetivo = Mathf.Clamp(objetivo, 0, fases.Count);
+        bool sube = objetivo > fasesAplicadas;
+
+        while (fasesAplicadas < objetivo)
+        {
+            AplicarFase(fases[fasesAplicadas]);
+            fasesAplicadas++;
+        }
+        while (fasesAplicadas > objetivo)
+        {
+            fasesAplicadas--;
+            DeshacerFase(fases[fasesAplicadas]);
+        }
+
+        if (conBloop && sube) HacerBloop();
+    }
 
     [Header("Bloop (en cada pulsación)")]
     [Tooltip("Objeto que hace un bloop cada vez que se pulsa la tecla")]
@@ -78,6 +123,14 @@ public class CambioConTecla : MonoBehaviour
     {
         if (!Input.GetKeyDown(tecla))
             return;
+
+        // Con el nivel unificado, la tecla sube el nivel del Torbellino; las fases y el bloop llegan por el evento.
+        if (SiguiendoNivel && torbellino.nivelesUnificados)
+        {
+            GenerarPiedras();
+            if (!torbellino.MejorarCapacidad()) HacerBloop();
+            return;
+        }
 
         // El bloop y las piedras ocurren en cada pulsación, también cuando ya no quedan fases.
         HacerBloop();

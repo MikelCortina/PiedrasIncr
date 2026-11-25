@@ -57,8 +57,6 @@ public sealed class DemoSceneReferences
 /// - Restore se ejecuta al final de la carga completa. No cobra, no anima y no lanza
 ///   OnCompraRealizada. Cada parte se restaura por separado: si una falla se avisa en la
 ///   consola y el resto sigue, para que un detalle de la demo nunca impida cargar la partida.
-/// - Los fragmentos del suelo no se guardan: al guardar se pagan como monedas
-///   (LiquidarFragmentos) y al cargar se retiran.
 /// </summary>
 public static class DemoSaveAdapter
 {
@@ -152,23 +150,6 @@ public static class DemoSaveAdapter
 
         save.demo = d;
         save.hasDemoData = true;
-    }
-
-    /// <summary>
-    /// Solo al escribir en una ranura: suma a las monedas guardadas lo que valen los fragmentos
-    /// que siguen en el suelo (no cambia la cartera del jugador).
-    /// </summary>
-    public static void LiquidarFragmentos(GameSaveData save)
-    {
-        if (save == null) throw new ArgumentNullException(nameof(save));
-        if (save.economy == null) save.economy = new EconomySaveData();
-
-        GestorFragmentos gestor = UnityEngine.Object.FindAnyObjectByType<GestorFragmentos>();
-        int monedas = gestor != null ? gestor.MonedasPendientesEnSuelo() : 0;
-        if (monedas <= 0) return;
-
-        save.economy.coins = checked(save.economy.coins + monedas);
-        if (save.demo != null) save.demo.monedasPorFragmentosEnSuelo = monedas;
     }
 
     private static DemoConstruccionSaveData CapturarConstruccion(bool construida, int nivel, int aportadas)
@@ -324,12 +305,6 @@ public static class DemoSaveAdapter
         {
             if (r.fisionador != null && d.hasFisionador)
                 r.fisionador.RestaurarEstado(d.fisionadorDesbloqueado, d.esferasEnFisionador, d.fisionadorCompletado, d.misilesSinLanzar);
-        });
-
-        fallos += Intentar("fragmentos", () =>
-        {
-            GestorFragmentos gestor = UnityEngine.Object.FindAnyObjectByType<GestorFragmentos>();
-            if (gestor != null) gestor.RetirarTodos();
         });
 
         fallos += Intentar("piedras", () =>

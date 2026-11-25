@@ -47,7 +47,11 @@ public class IndicadorGiroRuleta : MonoBehaviour
     [Tooltip("Marca esto si en esta válvula la flecha señala el lado contrario al que abre.")]
     public bool invertirSentido = false;
 
-    [Header("Colores (holograma)")]
+    [Header("Tema")]
+    [Tooltip("Usa los colores y la fuente del TemaUINeon (estilo del escáner de piedras) en vez de los de abajo.")]
+    public bool usarTemaUINeon = true;
+
+    [Header("Colores (holograma, si no se usa el tema)")]
     public Color colorHolograma = new Color(0.30f, 0.92f, 1f, 1f);
     public Color colorNucleo = new Color(0.86f, 1f, 1f, 1f);
     public Color colorListo = new Color(0.45f, 1f, 0.72f, 1f);
@@ -112,6 +116,7 @@ public class IndicadorGiroRuleta : MonoBehaviour
 
     private void Start()
     {
+        AplicarTema();
         ruleta = GetComponent<RuletaInteractivaGasoil>();
         render = GetComponent<Renderer>();
         if (render == null) render = GetComponentInChildren<Renderer>();
@@ -386,15 +391,36 @@ public class IndicadorGiroRuleta : MonoBehaviour
     // PLACA DE TEXTO
     // =====================================================
 
+    // Toma los colores del tema común (los del panel de escaneo de piedras).
+    private void AplicarTema()
+    {
+        if (!usarTemaUINeon) return;
+
+        TemaUINeon tema = TemaUINeon.Actual;
+        colorHolograma = tema.colorNeonAlto;
+        colorNucleo = tema.colorNeon;
+        colorListo = tema.colorNeonMedio;
+        colorAviso = tema.colorNeonBajo;
+    }
+
+    private Color ColorPlaca(float k)
+    {
+        if (!usarTemaUINeon) return new Color(0.01f, 0.04f, 0.07f, 0.72f * k);
+        Color placa = TemaUINeon.Actual.colorPlaca;
+        placa.a *= k;
+        return placa;
+    }
+
     private void Placa(Vector2 arribaCentro, string texto, Color colorTexto, Color colorMarco, float k, float e)
     {
+        Font fuenteTema = usarTemaUINeon ? TemaUINeon.Actual.fuenteIMGUI : null;
         if (estiloTexto == null)
         {
-            estiloTexto = new GUIStyle { fontStyle = FontStyle.Bold, clipping = TextClipping.Overflow };
+            estiloTexto = new GUIStyle { font = fuenteTema, fontStyle = fuenteTema != null ? FontStyle.Normal : FontStyle.Bold, clipping = TextClipping.Overflow };
             estiloTexto.normal.textColor = Color.white;
         }
         AimAssistVisual estilo = AimAssistVisual.Instancia;
-        Font fuenteLED = estilo != null ? estilo.fuentePanel : null;
+        Font fuenteLED = fuenteTema != null ? fuenteTema : (estilo != null ? estilo.fuentePanel : null);
         if (estiloLED == null || estiloLED.font != fuenteLED)
         {
             estiloLED = new GUIStyle { font = fuenteLED, clipping = TextClipping.Overflow };
@@ -407,7 +433,7 @@ public class IndicadorGiroRuleta : MonoBehaviour
         float ancho = Mathf.Max(220f * e, anchoTexto + icono + 40f * e);
         Rect r = new Rect(arribaCentro.x - ancho * 0.5f, arribaCentro.y, ancho, 52f * e);
 
-        AimAssistVisual.Rectangulo(r, new Color(0.01f, 0.04f, 0.07f, 0.72f * k), 3f * e);
+        AimAssistVisual.Rectangulo(r, ColorPlaca(k), 3f * e);
         for (float ly = r.y + 3f * e; ly < r.yMax - 2f * e; ly += 3f * e) // líneas de barrido
             AimAssistVisual.Rectangulo(new Rect(r.x + 2f * e, ly, r.width - 4f * e, Mathf.Max(1f, 0.6f * e)), AimAssistVisual.ConAlfa(colorMarco, 0.05f * k), 0f);
         AimAssistVisual.BordeNeon(r, AimAssistVisual.ConAlfa(colorMarco, 0.45f * k), e, 3f * e);

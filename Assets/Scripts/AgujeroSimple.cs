@@ -23,15 +23,40 @@ public class AgujeroSimple : MonoBehaviour
     [Header("Conexión con la Pantalla")]
     public ContadorGasolinera contadorFuelo;
 
-    [Header("Economía demo v2")]
-    [Tooltip("Excel v2: el agujero solo da gasolina. Actívalo para recuperar las monedas por tramos antiguas.")]
-    public bool darMonedasPorTramos = false;
+    [Header("Monedas")]
+    [Tooltip("Al tragar una piedra da monedas según su pureza (tramos de abajo). Salen por la ranura del PayZone.")]
+    public bool darMonedasPorTramos = true;
 
     public static event System.Action<AgujeroSimple, float, float> OnPiedraTragada;
 
-    [Header("Recompensas antiguas (solo si darMonedasPorTramos)")]
+    [Header("Recompensas (Tramos de Pureza)")]
     public GameObject prefabDinero;
+    [Tooltip("Salida antigua, encima del agujero. Solo se usa si no se encuentra el PayZone.")]
     public Transform puntoDeExpulsion;
+
+    [Header("Salida por la ranura del PayZone")]
+    [Tooltip("Punto por el que salen las monedas: su eje Z (azul) es hacia dónde salen. " +
+             "Vacío = se crea solo en la ranura del objeto llamado como 'nombrePayzone'.")]
+    public Transform ranuraPayzone;
+    public string nombrePayzone = "Payzone";
+    [Tooltip("Posición de la ranura dentro de la caja del modelo Payzone.fbx (0..1 en X, Y, Z locales). " +
+             "Medida en el modelo: centrada, en la cara -Y (la del cartel PAY ZONE) y al 72% de la altura.")]
+    public Vector3 fraccionRanura = new Vector3(0.5f, 0.061f, 0.72f);
+    [Tooltip("Distancia delante de la ranura a la que aparecen las monedas (para no chocar con el PayZone).")]
+    public float separacionRanura = 0.12f;
+    [Tooltip("Velocidad hacia delante con la que salen por la ranura (m/s).")]
+    public float velocidadSalidaRanura = 3f;
+    [Tooltip("Velocidad hacia arriba al salir: hace una pequeña parábola (m/s).")]
+    public float elevacionSalidaRanura = 1.2f;
+    [Tooltip("Desvío lateral aleatorio al salir (m/s).")]
+    public float dispersionRanura = 0.5f;
+
+    [Header("Game Feel del PayZone (Efecto Bloop al escupir)")]
+    [Tooltip("Modelo del PayZone que se infla al escupir cada moneda. Vacío = el objeto 'nombrePayzone'.")]
+    public Transform modeloPayzone;
+    [Tooltip("Cuánto se ensancha el PayZone en cada moneda (0.15 = un 15%).")]
+    public float fuerzaBloopPayzone = 0.15f;
+    public float velocidadRecuperacionBloopPayzone = 15f;
 
     [Space(10)]
     public float umbralPerfecto = 95f;
@@ -68,6 +93,10 @@ public class AgujeroSimple : MonoBehaviour
     private float impulsoBloopActual = 0f;
 
     private bool[] tuberiaOcupada;
+    private bool ranuraBuscada;
+    private bool payzoneBuscado;
+    private Vector3 escalaOriginalPayzone;
+    private float impulsoBloopPayzone;
 
     void Start()
     {
@@ -98,6 +127,18 @@ public class AgujeroSimple : MonoBehaviour
                 escalaOriginal.x * (1f + impulsoBloopActual),
                 escalaOriginal.y,
                 escalaOriginal.z * (1f + impulsoBloopActual)
+            );
+        }
+
+        // Bloop del PayZone: se ensancha en horizontal (X/Y locales; su "arriba" es Z, modelo de Blender).
+        if (modeloPayzone != null && payzoneBuscado)
+        {
+            impulsoBloopPayzone = Mathf.Lerp(impulsoBloopPayzone, 0f, Time.deltaTime * velocidadRecuperacionBloopPayzone);
+
+            modeloPayzone.localScale = new Vector3(
+                escalaOriginalPayzone.x * (1f + impulsoBloopPayzone),
+                escalaOriginalPayzone.y * (1f + impulsoBloopPayzone),
+                escalaOriginalPayzone.z
             );
         }
     }
@@ -208,9 +249,17 @@ public class AgujeroSimple : MonoBehaviour
             if (!particulasEscupir.isPlaying) particulasEscupir.Play();
         }
 
+        Transform ranura = RanuraPayzone();
+
         for (int i = 0; i < cantidad; i++)
         {
-            if (prefabDinero != null && puntoDeExpulsion != null)
+            if (prefabDinero != null && ranura != null)
+            {
+                // Sale por la ranura del PayZone: el agujero ya no hace "bloop".
+                GameObject nuevaMoneda = Instantiate(prefabDinero, ranura.position, Random.rotation);
+                SacarPorRanura(nuevaMoneda.GetComponent<Rigidbody>(), ranura);
+            }
+            else if (prefabDinero != null && puntoDeExpulsion != null)
             {
                 GameObject nuevaMoneda = Instantiate(prefabDinero, puntoDeExpulsion.position, Random.rotation);
                 AplicarFuerzaMoneda(nuevaMoneda.GetComponent<Rigidbody>(), 1f);
@@ -233,7 +282,17 @@ public class AgujeroSimple : MonoBehaviour
     public void RebotarMoneda(GameObject moneda)
     {
         Rigidbody rb = moneda.GetComponent<Rigidbody>();
-        if (rb != null)
+
+        // Una moneda que cae al agujero vuelve a salir por la ranura del PayZone.
+        Transform ranura = RanuraPayzone();
+        if (rb != null && ranura != null)
+        {
+            moneda.transform.position = ranura.position;
+            SacarPorRanura(rb, ranura);
+            return;
+        }
+
+        if (rb != null && puntoDeExpulsion != null)
         {
             rb.linearVelocity = Vector3.zero;
             moneda.transform.position = puntoDeExpulsion.position;
@@ -258,6 +317,72 @@ public class AgujeroSimple : MonoBehaviour
 
         rb.AddForce(direccionSalida, ForceMode.Impulse);
         rb.AddTorque(Random.insideUnitSphere * Random.Range(5f, rotacionMax), ForceMode.Impulse);
+    }
+
+    // ---------------------------------------------------------------- Ranura del PayZone
+
+    private Transform RanuraPayzone()
+    {
+        if (ranuraPayzone != null || ranuraBuscada) return ranuraPayzone;
+        ranuraBuscada = true;
+
+        GameObject payzone = GameObject.Find(nombrePayzone);
+        MeshFilter malla = payzone != null ? payzone.GetComponentInChildren<MeshFilter>() : null;
+        if (malla == null || malla.sharedMesh == null)
+        {
+            Debug.LogWarning("[AgujeroSimple] No encuentro el PayZone '" + nombrePayzone + "': las monedas salen por el agujero.", this);
+            return null;
+        }
+
+        // La ranura está en la cara -Y local del modelo y su "arriba" es +Z local (modelo exportado de Blender).
+        Transform modelo = malla.transform;
+        Bounds caja = malla.sharedMesh.bounds;
+        Vector3 puntoLocal = caja.min + Vector3.Scale(caja.size, fraccionRanura);
+        Vector3 haciaFuera = modelo.TransformDirection(Vector3.down).normalized;
+        Vector3 arriba = modelo.TransformDirection(Vector3.forward).normalized;
+
+        GameObject punto = new GameObject("RanuraMonedas");
+        punto.transform.SetParent(modelo.parent, false);
+        punto.transform.position = modelo.TransformPoint(puntoLocal) + haciaFuera * separacionRanura;
+        punto.transform.rotation = Quaternion.LookRotation(haciaFuera, arriba);
+        ranuraPayzone = punto.transform;
+        return ranuraPayzone;
+    }
+
+    private void SacarPorRanura(Rigidbody rb, Transform ranura)
+    {
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            Vector3 velocidad = ranura.forward * velocidadSalidaRanura +
+                                ranura.up * elevacionSalidaRanura +
+                                ranura.right * Random.Range(-dispersionRanura, dispersionRanura);
+            rb.AddForce(velocidad, ForceMode.VelocityChange);
+            rb.AddTorque(Random.insideUnitSphere * Random.Range(1f, 4f), ForceMode.VelocityChange);
+        }
+
+        if (sonidoEscupir != null)
+            AudioSource.PlayClipAtPoint(sonidoEscupir, ranura.position, 0.5f);
+
+        HacerBloopPayzone();
+    }
+
+    private void HacerBloopPayzone()
+    {
+        if (!payzoneBuscado)
+        {
+            payzoneBuscado = true;
+            if (modeloPayzone == null)
+            {
+                GameObject payzone = GameObject.Find(nombrePayzone);
+                MeshFilter malla = payzone != null ? payzone.GetComponentInChildren<MeshFilter>() : null;
+                if (malla != null) modeloPayzone = malla.transform;
+            }
+            if (modeloPayzone != null) escalaOriginalPayzone = modeloPayzone.localScale;
+        }
+
+        impulsoBloopPayzone = fuerzaBloopPayzone;
     }
 
     private void ReproducirSonidoEscupir()

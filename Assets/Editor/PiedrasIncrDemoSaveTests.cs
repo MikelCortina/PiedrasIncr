@@ -71,17 +71,6 @@ public static class PiedrasIncrDemoSaveTests
             CheckRechaza(x => x.misilesSinLanzar = DemoSaveAdapter.MaximoMisiles + 1, "demasiados misiles");
             CheckRechaza(x => x.edificiosComprados[0].unidades = -1, "compras negativas");
 
-            // 5: los fragmentos del suelo se pagan al guardar (sin gestor en escena: 0 monedas).
-            GameSaveData conFragmentos = new GameSaveData();
-            conFragmentos.economy.coins = 10;
-            conFragmentos.demo = DatosDeEjemplo();
-            conFragmentos.hasDemoData = true;
-            if (UnityEngine.Object.FindAnyObjectByType<GestorFragmentos>() == null)
-            {
-                DemoSaveAdapter.LiquidarFragmentos(conFragmentos);
-                Check(conFragmentos.economy.coins == 10, "Sin fragmentos no deberían sumarse monedas");
-            }
-
             Debug.Log("[GUARDADO] F9 PRUEBAS SUPERADAS: datos de la demo, partidas antiguas, versiones futuras y validación.");
         }
         catch (Exception ex)

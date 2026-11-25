@@ -56,10 +56,6 @@ public static class GameSaveFullWriter
         GameSaveData partida =
             CapturarDatosBase(referencias, segundosJugados);
 
-        // Los fragmentos del suelo no se guardan: se pagan como monedas.
-        if (partida.hasDemoData)
-            DemoSaveAdapter.LiquidarFragmentos(partida);
-
         // Conservar la identidad al sobrescribir
         // una partida existente de la misma escena.
         GameSaveData anterior;

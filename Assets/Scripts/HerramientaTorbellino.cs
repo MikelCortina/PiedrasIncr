@@ -109,6 +109,8 @@ public class HerramientaTorbellino : MonoBehaviour
     [Min(0.01f)] public float escalaEfectoNivel2 = 1.25f;
     [Min(0.01f)] public float escalaEfectoNivel3 = 1.5f;
     [Min(0.01f)] public float escalaEfectoNivel4 = 1.75f;
+    [Tooltip("Nivel 5 del Torbellino (solo con niveles unificados).")]
+    [Min(0.01f)] public float escalaEfectoNivel5 = 2f;
     // Valores originales de cada sistema de partículas del efecto (se escalan sin tocar el transform).
     private ParticleSystem[] sistemasEfecto;
     private float[] tamanosOriginales;
@@ -157,17 +159,67 @@ public class HerramientaTorbellino : MonoBehaviour
     public int MaximoPiedras => limitarPiedrasPorNivel ? nivelCapacidad : int.MaxValue;
     public bool CapacidadAlMaximo() => nivelCapacidad >= 5;
 
+    [Header("Mejora unificada")]
+    [Tooltip("Un solo nivel (1-5, el del Excel) mejora a la vez capacidad, radio, alcance y movilidad. " +
+             "Sin apartados de alcance y movilidad en la tienda.")]
+    public bool nivelesUnificados = true;
+
+    // Avisa cuando cambia el nivel del Torbellino (compra, carga de partida...). Lo usan el modelo y el holograma.
+    public event System.Action<int> OnNivelCambiado;
+
     public bool MejorarCapacidad()
     {
         if (nivelCapacidad >= 5) return false;
         nivelCapacidad++;
-        EstablecerNivelRadio(Mathf.Min(nivelCapacidad, 4));
+        if (nivelesUnificados) AplicarNivelUnificado();
+        else EstablecerNivelRadio(Mathf.Min(nivelCapacidad, 4));
+        OnNivelCambiado?.Invoke(nivelCapacidad);
         return true;
     }
 
     public void RestaurarNivelCapacidad(int nivel)
     {
         nivelCapacidad = Mathf.Clamp(nivel, 1, 5);
+        if (nivelesUnificados) AplicarNivelUnificado();
+        OnNivelCambiado?.Invoke(nivelCapacidad);
+    }
+
+    // Todas las estadísticas salen del nivel del Torbellino: del 1 al 5 se reparten de forma continua
+    // entre los valores de nivel 1 y nivel 3 de alcance y movilidad, y el radio sube un paso por nivel.
+    // Los niveles sueltos (radio, alcance, movilidad) se rellenan para el guardado y la interfaz.
+    private void AplicarNivelUnificado()
+    {
+        float t = (nivelCapacidad - 1) / 4f;
+        nivelRadio = Mathf.Min(nivelCapacidad, 4);
+        nivelAlcance = 1 + Mathf.FloorToInt(t * 2f + 0.001f);
+        nivelMovilidad = nivelAlcance;
+        AplicarValoresUnificados();
+    }
+
+    // Solo los valores reales (radio, alcance, movilidad) a partir del nivel del Torbellino.
+    private void AplicarValoresUnificados()
+    {
+        float t = (nivelCapacidad - 1) / 4f;
+        AplicarNivelRadio();
+        alcanceMaximo = Mathf.Lerp(alcanceNivel1, alcanceNivel3, t);
+        multiplicadorMovilidadActual = Mathf.Lerp(movilidadNivel1, movilidadNivel3, t);
+    }
+
+    // Nivel con el que se calculan radio y efecto: el del Torbellino si está unificado (llega a 5).
+    private int NivelEfectivoRadio => nivelesUnificados ? nivelCapacidad : nivelRadio;
+
+    // Valor de un nivel; el 4 (si es 0) y el 5 siguen la progresión de los anteriores.
+    private static float ValorNivel(int nivel, float v1, float v2, float v3, float v4)
+    {
+        if (v4 <= 0f) v4 = v3 + (v3 - v2);
+        switch (nivel)
+        {
+            case 1: return v1;
+            case 2: return v2;
+            case 3: return v3;
+            case 4: return v4;
+            default: return v4 + (v4 - v3);
+        }
     }
 
     private Camera camaraPrincipal;
@@ -201,6 +253,7 @@ public class HerramientaTorbellino : MonoBehaviour
         AplicarNivelRadio();
         AplicarNivelAlcance();
         AplicarNivelMovilidad();
+        if (nivelesUnificados) AplicarNivelUnificado();
     }
 
     void Start()
@@ -208,6 +261,7 @@ public class HerramientaTorbellino : MonoBehaviour
         AplicarNivelRadio();
         AplicarNivelAlcance();
         AplicarNivelMovilidad();
+        if (nivelesUnificados) AplicarNivelUnificado();
         camaraPrincipal = Camera.main;
 
         if (neonesHerramienta != null && neonesHerramienta.Length > 0)
@@ -668,26 +722,10 @@ public class HerramientaTorbellino : MonoBehaviour
 
     private void AplicarNivelRadio()
     {
-        switch (nivelRadio)
-        {
-            case 1:
-                radioAtraccion = radioAtraccionNivel1;
-                radioOjoTornado = radioOjoNivel1;
-                break;
-            case 2:
-                radioAtraccion = radioAtraccionNivel2;
-                radioOjoTornado = radioOjoNivel2;
-                break;
-            case 3:
-                radioAtraccion = radioAtraccionNivel3;
-                radioOjoTornado = radioOjoNivel3;
-                break;
-            case 4:
-                // Sin valor propio, el nivel 4 da el mismo salto que hubo del 2 al 3.
-                radioAtraccion = radioAtraccionNivel4 > 0f ? radioAtraccionNivel4 : radioAtraccionNivel3 + (radioAtraccionNivel3 - radioAtraccionNivel2);
-                radioOjoTornado = radioOjoNivel4 > 0f ? radioOjoNivel4 : radioOjoNivel3 + (radioOjoNivel3 - radioOjoNivel2);
-                break;
-        }
+        // Sin valor propio, los niveles 4 y 5 dan el mismo salto que hubo del anterior.
+        int nivel = NivelEfectivoRadio;
+        radioAtraccion = ValorNivel(nivel, radioAtraccionNivel1, radioAtraccionNivel2, radioAtraccionNivel3, radioAtraccionNivel4);
+        radioOjoTornado = ValorNivel(nivel, radioOjoNivel1, radioOjoNivel2, radioOjoNivel3, radioOjoNivel4);
 
         EscalarEfectoRadio();
     }
@@ -711,11 +749,12 @@ public class HerramientaTorbellino : MonoBehaviour
         if (sistemasEfecto == null)
             GuardarValoresEfecto();
 
-        float escala = nivelRadio switch
+        float escala = NivelEfectivoRadio switch
         {
             2 => escalaEfectoNivel2,
             3 => escalaEfectoNivel3,
             4 => escalaEfectoNivel4,
+            >= 5 => escalaEfectoNivel5,
             _ => escalaEfectoNivel1,
         };
 
@@ -775,7 +814,7 @@ public class HerramientaTorbellino : MonoBehaviour
         return null;
     }
 
-    public bool RadioAlMaximo() { return nivelRadio >= 4; }
+    public bool RadioAlMaximo() { return nivelesUnificados ? CapacidadAlMaximo() : nivelRadio >= 4; }
 
     public bool MejorarAlcance()
     {
@@ -832,6 +871,9 @@ public class HerramientaTorbellino : MonoBehaviour
         AplicarNivelRadio();
         AplicarNivelAlcance();
         AplicarNivelMovilidad();
+        // Con niveles unificados, los valores reales salen del nivel del Torbellino
+        // (da igual el orden en que se cargue la partida); los niveles sueltos se respetan tal cual.
+        if (nivelesUnificados) AplicarValoresUnificados();
     }
 
     public bool MovilidadAlMaximo() { return nivelMovilidad >= 3; }

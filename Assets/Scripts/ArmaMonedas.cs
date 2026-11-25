@@ -87,7 +87,6 @@ public class ArmaLanzadora : MonoBehaviour
     [Tooltip("Por cada nivel por encima del 1, aspira y dispara este porcentaje más rápido.")]
     [Range(0f, 1f)] public float mejoraVelocidadPorNivel = 0.15f;
     public int NivelFusil => nivelFusil;
-    public float TasaRecogidaFragmentos => ProveedorEconomia.Actual.TasaRecogida(nivelFusil);
     private float FactorVelocidadNivel => 1f + mejoraVelocidadPorNivel * (nivelFusil - 1);
 
     [Min(1)]
@@ -231,11 +230,6 @@ public class ArmaLanzadora : MonoBehaviour
         {
             ControlarEmisionParticulasAspiradora(false);
             monedasAspiradas.Clear();
-            if (aspirandoFragmentos)
-            {
-                GestorFragmentos.Instancia.SoltarAtraidos();
-                aspirandoFragmentos = false;
-            }
         }
 
         if (armaEquipada && sonidoEquipar != null && audioSource != null)
@@ -256,25 +250,9 @@ public class ArmaLanzadora : MonoBehaviour
         nivelFusil = Mathf.Clamp(nivel, 1, 5);
     }
 
-    [Tooltip("El Fusil también aspira los fragmentos que sueltan las piedras. Desactivado: solo los recoge el jugador al pasar cerca.")]
-    public bool aspirarFragmentos = false;
-
-    private bool aspirandoFragmentos;
-
     void ManejarAspiradora()
     {
         bool aspirando = Input.GetKey(teclaAspirar);
-
-        if (aspirando && aspirarFragmentos && puntoDisparo != null)
-        {
-            GestorFragmentos.Instancia.AspirarEnCono(puntoDisparo.position, puntoDisparo.forward, distanciaMaximaAspiracion, anguloAspiracion, velocidadAspiracion * FactorVelocidadNivel, TasaRecogidaFragmentos, distanciaRecoleccion + 0.05f);
-            aspirandoFragmentos = true;
-        }
-        else if (aspirandoFragmentos)
-        {
-            GestorFragmentos.Instancia.SoltarAtraidos();
-            aspirandoFragmentos = false;
-        }
 
         if (aspirando)
         {
