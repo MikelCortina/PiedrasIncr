@@ -27,8 +27,8 @@ public class BotroDice : MonoBehaviour
     public float segundosPorLetra = 0.055f;
     [Tooltip("Letras por segundo del efecto máquina de escribir.")]
     public float letrasPorSegundo = 45f;
-    [Tooltip("Tecla para pasar a la siguiente línea antes de tiempo.")]
-    public KeyCode teclaSaltar = KeyCode.Return;
+    [Tooltip("Tecla para omitir la frase y pasar a la siguiente.")]
+    public KeyCode teclaOmitir = KeyCode.G;
 
     [Header("Sonido")]
     [SoundName] public string sonidoLinea = "";
@@ -45,6 +45,7 @@ public class BotroDice : MonoBehaviour
     {
         public string id;
         public string texto;
+        public float duracion; // <= 0: automática según la longitud
     }
 
     private readonly Queue<Linea> cola = new Queue<Linea>();
@@ -80,7 +81,8 @@ public class BotroDice : MonoBehaviour
     }
 
     /// <summary>Pone una línea de Botro en la cola.</summary>
-    public static void Decir(string id, string texto)
+    /// <param name="duracion">Segundos en pantalla si no se omite con la tecla. 0 = automático según la longitud.</param>
+    public static void Decir(string id, string texto, float duracion = 0f)
     {
         if (string.IsNullOrWhiteSpace(texto))
         {
@@ -95,7 +97,18 @@ public class BotroDice : MonoBehaviour
             return;
         }
 
-        Instancia.cola.Enqueue(new Linea { id = id, texto = texto });
+        Instancia.cola.Enqueue(new Linea { id = id, texto = texto, duracion = duracion });
+    }
+
+    /// <summary>Quita de la cola las líneas que aún no han empezado y cuyo id empieza por 'prefijo'.</summary>
+    public static void CancelarPendientes(string prefijo)
+    {
+        if (Instancia == null || Instancia.cola.Count == 0) return;
+        Linea[] pendientes = Instancia.cola.ToArray();
+        Instancia.cola.Clear();
+        foreach (Linea linea in pendientes)
+            if (linea.id == null || !linea.id.StartsWith(prefijo, StringComparison.Ordinal))
+                Instancia.cola.Enqueue(linea);
     }
 
     private void Update()
@@ -107,17 +120,29 @@ public class BotroDice : MonoBehaviour
             actual = cola.Dequeue();
             hablando = true;
             inicio = Time.time;
-            duracion = segundosBase + actual.texto.Length * segundosPorLetra;
+            duracion = actual.duracion > 0f ? Mathf.Max(0.3f, actual.duracion) : DuracionAutomatica(actual.texto);
             if (!string.IsNullOrEmpty(sonidoLinea)) AudioManager.Play(sonidoLinea);
             return;
         }
 
-        bool saltar = Input.GetKeyDown(teclaSaltar) && Time.time - inicio > 0.3f;
+        bool saltar = Input.GetKeyDown(teclaOmitir) && Time.time - inicio > 0.3f;
         if (Time.time - inicio >= duracion || saltar)
         {
             hablando = false;
             OnLineaTerminada?.Invoke(actual.id);
         }
+    }
+
+    /// <summary>Segundos que se queda una frase si no tiene duración propia.</summary>
+    public float DuracionAutomatica(string texto)
+    {
+        return segundosBase + (texto != null ? texto.Length : 0) * segundosPorLetra;
+    }
+
+    // Letras por segundo: si la duración es corta, escribe más rápido para que se lea entera.
+    private float VelocidadEscritura()
+    {
+        return Mathf.Max(letrasPorSegundo, actual.texto.Length / Mathf.Max(0.1f, duracion * 0.7f));
     }
 
     private void OnGUI()
@@ -148,7 +173,10 @@ public class BotroDice : MonoBehaviour
         float e = Screen.height / 1080f * escala;
 
         float ancho = Mathf.Min(Screen.width - 40f, 820f * e);
-        float alto_ = 112f * e;
+        // El panel crece hacia arriba con el texto (se mide la frase entera para que no salte mientras se escribe).
+        estiloTexto.fontSize = Mathf.Max(8, Mathf.RoundToInt(22f * e));
+        float altoTexto = estiloTexto.CalcHeight(new GUIContent(actual.texto), ancho - 36f * e);
+        float alto_ = Mathf.Max(112f * e, 34f * e + altoTexto + 26f * e);
         Rect r = new Rect((Screen.width - ancho) * 0.5f, Screen.height - margenInferior * e - alto_ + (1f - aparicion) * 12f * e, ancho, alto_);
 
         AimAssistVisual.Rectangulo(new Rect(r.x + 4f * e, r.y + 6f * e, r.width, r.height), new Color(0f, 0f, 0f, 0.4f * a), 4f * e);
@@ -161,15 +189,20 @@ public class BotroDice : MonoBehaviour
         float m = 18f * e;
 
         // Cabecera: nombre y un "LED" de radio que parpadea mientras escribe.
-        bool escribiendo = t * letrasPorSegundo < actual.texto.Length;
+        float velocidad = VelocidadEscritura();
+        bool escribiendo = t * velocidad < actual.texto.Length;
         bool led = !escribiendo || Mathf.Repeat(Time.time * 6f, 1f) < 0.5f;
         AimAssistVisual.Rectangulo(new Rect(r.x + m, r.y + 13f * e, 8f * e, 8f * e), AimAssistVisual.ConAlfa(alto, (led ? 1f : 0.25f) * a), 4f * e);
         AimAssistVisual.TextoNeon(estiloLED, new Rect(r.x + m + 16f * e, r.y + 8f * e, 300f * e, 18f * e), nombre, 17f * e, TextAnchor.UpperLeft, AimAssistVisual.ConAlfa(alto, a), 0.6f);
         AimAssistVisual.TextoNeon(estiloLED, new Rect(r.x + m, r.y + 8f * e, r.width - 2f * m, 18f * e), "RADIO", 15f * e, TextAnchor.UpperRight, AimAssistVisual.ConAlfa(neon, 0.4f * a), 0f);
 
         // Texto con efecto máquina de escribir.
-        int letras = Mathf.Clamp(Mathf.FloorToInt(t * letrasPorSegundo), 0, actual.texto.Length);
+        int letras = Mathf.Clamp(Mathf.FloorToInt(t * velocidad), 0, actual.texto.Length);
         string visible = actual.texto.Substring(0, letras);
-        AimAssistVisual.TextoNeon(estiloTexto, new Rect(r.x + m, r.y + 34f * e, r.width - 2f * m, r.height - 42f * e), visible, 22f * e, TextAnchor.UpperLeft, AimAssistVisual.ConAlfa(neon, a), 0.25f);
+        AimAssistVisual.TextoNeon(estiloTexto, new Rect(r.x + m, r.y + 34f * e, r.width - 2f * m, altoTexto + 4f * e), visible, 22f * e, TextAnchor.UpperLeft, AimAssistVisual.ConAlfa(neon, a), 0.25f);
+
+        // Recordatorio de la tecla para omitir.
+        AimAssistVisual.TextoNeon(estiloLED, new Rect(r.x + m, r.yMax - 22f * e, r.width - 2f * m, 16f * e), "[" + teclaOmitir + "] OMITIR",
+            13f * e, TextAnchor.LowerRight, AimAssistVisual.ConAlfa(neon, 0.45f * a), 0f);
     }
 }

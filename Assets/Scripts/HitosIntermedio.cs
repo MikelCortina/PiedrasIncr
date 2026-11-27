@@ -3,25 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// INTERMEDIO: una línea corta de Botro la primera vez que pasa cada hito (hoja INTERMEDIO, minuto aprox.).
-/// Todo por eventos de F1–F6, sin temporizadores:
-///   primera esfera perfecta (2:00) · Fusil Monedas (2:54) · Torbellino (4:48) · primeras Paredes (5:06)
-///   faltan piedras → la diana parpadea y Botro sugiere su mejora (7:12) · primera Cinta (9:30)
-///   Arma Lunar → la luna se resiente con temblor y sonido raro, SIN explicación (13:36)
-///   Fisionador "0 / 8" (27:30) · misil listo (29:42)
-/// Cada hito se dice una sola vez por partida.
+/// Detecta lo que pasa en la partida y se lo cuenta a Botro (BotroHabla.Lanzar): esferas perfectas, compras,
+/// piedras metidas, minuto de partida, pocas piedras y fin del tutorial.
+/// QUÉ dice Botro y en cuál de estos momentos está en GuionBotro (Tools > PiedrasIncr > Botro: qué dice y cuándo).
+/// Además hace los efectos que no son de Botro: la diana parpadea con pocas piedras y la luna reacciona al Arma Lunar.
 /// </summary>
 public class HitosIntermedio : MonoBehaviour
 {
-    [Header("Líneas de Botro")]
-    [TextArea(1, 3)] public string lineaEsferaPerfecta = "¡Una esfera perfecta! Esas son las que de verdad valen.";
-    [TextArea(1, 3)] public string lineaFusil = "¿Un fusil de monedas? Dispárale monedas a las máquinas y pagarás desde lejos.";
-    [TextArea(1, 3)] public string lineaTorbellino = "Con el torbellino mueves un montón de piedras a la vez. Úsalo con cabeza.";
-    [TextArea(1, 3)] public string lineaParedes = "Unas paredes bien puestas y las piedras irán justo a donde quieras.";
-    [TextArea(1, 3)] public string lineaFaltanPiedras = "Te estás quedando sin piedras... Mira la diana: si la mejoras, caerán más.";
-    [TextArea(1, 3)] public string lineaCinta = "¡Una cinta! Deja que trabaje ella mientras tú vas a por más.";
-    [TextArea(1, 3)] public string lineaFisionador = "El Fisionador ya está en marcha. Ocho esferas perfectas y tendrás algo muy gordo.";
-    [TextArea(1, 3)] public string lineaMisil = "¡El misil está listo! Llévalo al lanzador. Ya sabes a dónde apuntar.";
+    // Lo que dice Botro y cuándo: GuionBotro (Tools > PiedrasIncr > Botro: qué dice y cuándo).
 
     [Header("Faltan piedras")]
     [Tooltip("Con este número de piedras (o menos) en el mundo, Botro avisa.")]
@@ -39,12 +28,14 @@ public class HitosIntermedio : MonoBehaviour
 
     private readonly HashSet<string> dichos = new HashSet<string>();
     private int piedrasTragadas;
+    private int ultimoMinuto;
 
     private void OnEnable()
     {
         DesgastePiedra.OnAlgunaEsferaPerfecta += AlConseguirEsfera;
         EventosEconomia.OnCompraRealizada += AlComprar;
         AgujeroSimple.OnPiedraTragada += AlTragar;
+        SecuenciaIntro.OnTutorialTerminado += AlTerminarTutorial;
     }
 
     private void OnDisable()
@@ -52,43 +43,43 @@ public class HitosIntermedio : MonoBehaviour
         DesgastePiedra.OnAlgunaEsferaPerfecta -= AlConseguirEsfera;
         EventosEconomia.OnCompraRealizada -= AlComprar;
         AgujeroSimple.OnPiedraTragada -= AlTragar;
+        SecuenciaIntro.OnTutorialTerminado -= AlTerminarTutorial;
     }
 
-    private void Decir(string id, string texto)
+    private void Update()
     {
-        if (!dichos.Add(id)) return;
-        BotroDice.Decir("hito_" + id, texto);
+        int minuto = Mathf.FloorToInt(Time.timeSinceLevelLoad / 60f);
+        if (minuto <= ultimoMinuto) return;
+        ultimoMinuto = minuto;
+        BotroHabla.Lanzar(GuionBotro.Cuando.MinutoDePartida, null, minuto);
+    }
+
+    private void AlTerminarTutorial()
+    {
+        BotroHabla.Lanzar(GuionBotro.Cuando.TutorialTerminado);
     }
 
     private void AlConseguirEsfera(DesgastePiedra piedra)
     {
-        Decir("esfera", lineaEsferaPerfecta);
+        BotroHabla.Lanzar(GuionBotro.Cuando.EsferaPerfecta);
     }
 
     private void AlComprar(string id, int nivel, int coste)
     {
-        switch (id)
+        BotroHabla.Lanzar(GuionBotro.Cuando.Compra, id, nivel);
+
+        // Arma Lunar: la luna reacciona (sin explicación de Botro, salvo que se le ponga un momento).
+        if (id == EconomiaDemo.Ids.ArmaLunar && dichos.Add("arma_lunar"))
         {
-            case EconomiaDemo.Ids.FusilMonedas: Decir("fusil", lineaFusil); break;
-            case EconomiaDemo.Ids.Torbellino: Decir("torbellino", lineaTorbellino); break;
-            case EconomiaDemo.Ids.Pared: Decir("paredes", lineaParedes); break;
-            case EconomiaDemo.Ids.Cinta: Decir("cinta", lineaCinta); break;
-            case EconomiaDemo.Ids.Fisionador: Decir("fisionador", lineaFisionador); break;
-            case EconomiaDemo.Ids.MisilGrande: Decir("misil", lineaMisil); break;
-            case EconomiaDemo.Ids.ArmaLunar:
-                // Sin explicación: solo la luna reacciona.
-                if (dichos.Add("arma_lunar"))
-                {
-                    if (gestorLuna == null) gestorLuna = FindFirstObjectByType<GestorFasesLunares>();
-                    if (gestorLuna != null) gestorLuna.ReaccionarSinAvanzar();
-                }
-                break;
+            if (gestorLuna == null) gestorLuna = FindFirstObjectByType<GestorFasesLunares>();
+            if (gestorLuna != null) gestorLuna.ReaccionarSinAvanzar();
         }
     }
 
     private void AlTragar(AgujeroSimple agujero, float pureza, float gasolina)
     {
         piedrasTragadas++;
+        BotroHabla.Lanzar(GuionBotro.Cuando.PiedraMetida, null, piedrasTragadas);
         if (dichos.Contains("faltan_piedras") || piedrasTragadas < piedrasTragadasAntesDeAvisar) return;
         if (!SecuenciaIntro.TutorialTerminado) return;
 
@@ -102,7 +93,8 @@ public class HitosIntermedio : MonoBehaviour
         if (GestorPiedras.Instancia == null || dichos.Contains("faltan_piedras")) yield break;
         if (GestorPiedras.Instancia.CantidadPiedras > umbralPocasPiedras) yield break;
 
-        Decir("faltan_piedras", lineaFaltanPiedras);
+        dichos.Add("faltan_piedras");
+        BotroHabla.Lanzar(GuionBotro.Cuando.QuedanPocasPiedras);
         yield return ParpadearDiana();
     }
 

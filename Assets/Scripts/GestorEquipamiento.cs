@@ -7,7 +7,8 @@ public class GestorEquipamiento : MonoBehaviour
         ManosVacias,
         ArmaLanzadora,
         Torbellino,
-        Construccion
+        Construccion,
+        MonedaEnMano // sin el fusil: una moneda en la mano que se lanza despacio
     }
 
     [Header("Desbloqueos")]
@@ -25,6 +26,9 @@ public class GestorEquipamiento : MonoBehaviour
     public ArmaLanzadora armaLanzadora;
     public HerramientaTorbellino herramientaTorbellino;
     public SistemaConstruccion sistemaConstruccion;
+    [Tooltip("Sin el fusil, la tecla del fusil saca una moneda en la mano. Vacío = se crea sola.")]
+    public LanzamientoMonedaMano lanzamientoMoneda;
+    public bool monedaEnManoSinFusil = true;
 
     [Header("Controles")]
     public KeyCode teclaArmaLanzadora = KeyCode.Alpha3;
@@ -36,6 +40,16 @@ public class GestorEquipamiento : MonoBehaviour
 
     private void Start()
     {
+        if (lanzamientoMoneda == null && monedaEnManoSinFusil)
+        {
+            lanzamientoMoneda = GetComponentInChildren<LanzamientoMonedaMano>(true);
+            if (lanzamientoMoneda == null) lanzamientoMoneda = gameObject.AddComponent<LanzamientoMonedaMano>();
+        }
+        if (lanzamientoMoneda != null && armaLanzadora != null)
+        {
+            if (lanzamientoMoneda.prefabMoneda == null) lanzamientoMoneda.prefabMoneda = armaLanzadora.prefabProyectil;
+            if (lanzamientoMoneda.cartera == null) lanzamientoMoneda.cartera = armaLanzadora.cartera;
+        }
         AplicarEstado();
     }
 
@@ -47,6 +61,10 @@ public class GestorEquipamiento : MonoBehaviour
             if (armaLanzadoraDesbloqueada)
             {
                 AlternarEquipamiento(TipoEquipamiento.ArmaLanzadora);
+            }
+            else if (monedaEnManoSinFusil && lanzamientoMoneda != null)
+            {
+                AlternarEquipamiento(TipoEquipamiento.MonedaEnMano);
             }
             else
             {
@@ -121,6 +139,12 @@ public class GestorEquipamiento : MonoBehaviour
         {
             sistemaConstruccion.SetModoConstruccion(
                 equipamientoActual == TipoEquipamiento.Construccion);
+        }
+
+        if (lanzamientoMoneda != null)
+        {
+            lanzamientoMoneda.SetEquipada(
+                equipamientoActual == TipoEquipamiento.MonedaEnMano);
         }
     }
 

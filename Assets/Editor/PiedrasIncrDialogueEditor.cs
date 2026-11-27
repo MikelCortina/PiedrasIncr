@@ -494,12 +494,12 @@ public sealed class PiedrasIncrDialogueEditor : EditorWindow
 
         if (activeCharacter.displayName == "Botro")
         {
-            if (GUILayout.Button(
-                    "Conectar Botro de esta escena",
-                    GUILayout.Height(34f)))
-            {
-                BindBotro();
-            }
+            // Botro no tiene conversación: solo habla él (SecuenciaIntro apaga cualquier NPCDialogueAgent suyo).
+            EditorGUILayout.HelpBox(
+                "Botro no tiene conversación: es el único que habla. " +
+                "Lo que dice y cuándo: Tools > PiedrasIncr > Botro: qué dice y cuándo.",
+                MessageType.Info
+            );
         }
 
         if (GUILayout.Button(

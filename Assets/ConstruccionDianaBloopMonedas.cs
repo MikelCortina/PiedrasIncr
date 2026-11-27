@@ -150,6 +150,13 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     [Header("Economía demo v2")]
     [Tooltip("Precios y efectos por nivel de EconomiaDemo (Excel: Lanzapiedras). Si el nivel 1 cuesta 0, se construye sola al empezar.")]
     public bool usarEconomiaDemo = true;
+
+    [Header("Tutorial: empieza destruido")]
+    [Tooltip("Empieza en ruinas aunque su nivel 1 sea gratis en EconomiaDemo: hay que reconstruirlo lanzándole monedas. " +
+             "Los niveles 2 y 3 cuestan lo mismo que siempre.")]
+    public bool empezarDestruida = true;
+    [Tooltip("Monedas para reconstruirlo (solo si su nivel 1 es gratis en EconomiaDemo).")]
+    [Min(1)] public int precioReconstruccion = 1;
     public const string IdEconomia = EconomiaDemo.Ids.Lanzapiedras;
 
     public int PrecioActual
@@ -158,7 +165,11 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         {
             if (usarEconomiaDemo)
             {
-                if (!construida) return ProveedorEconomia.Actual.Coste(IdEconomia, 1);
+                if (!construida)
+                {
+                    int coste = ProveedorEconomia.Actual.Coste(IdEconomia, 1);
+                    return coste <= 0 && empezarDestruida ? Mathf.Max(1, precioReconstruccion) : coste;
+                }
                 if (nivelActual < 3) return ProveedorEconomia.Actual.Coste(IdEconomia, nivelActual + 1);
                 return 0;
             }
@@ -268,6 +279,38 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
         SincronizarAspecto(false);
         AplicarEstadisticas();
         ActualizarPresentacion();
+        PrepararRuinasParaCobrar();
+    }
+
+    // Las monedas que golpean las ruinas también pagan (la zona de pago puede estar donde irá el arma construida).
+    // Si una pieza no tiene collider, se le pone una caja trigger del tamaño de sus mallas.
+    private void PrepararRuinasParaCobrar()
+    {
+        if (construida || partesRuinas == null) return;
+        foreach (GameObject pieza in partesRuinas)
+        {
+            if (pieza == null) continue;
+            Collider[] colliders = pieza.GetComponentsInChildren<Collider>(true);
+            if (colliders.Length == 0)
+            {
+                Renderer[] mallas = pieza.GetComponentsInChildren<Renderer>(true);
+                if (mallas.Length == 0) continue;
+                Bounds limites = mallas[0].bounds;
+                foreach (Renderer r in mallas) limites.Encapsulate(r.bounds);
+
+                BoxCollider caja = pieza.AddComponent<BoxCollider>();
+                caja.isTrigger = true;
+                Vector3 escala = pieza.transform.lossyScale;
+                caja.center = pieza.transform.InverseTransformPoint(limites.center);
+                caja.size = new Vector3(limites.size.x / Mathf.Max(0.0001f, Mathf.Abs(escala.x)),
+                                        limites.size.y / Mathf.Max(0.0001f, Mathf.Abs(escala.y)),
+                                        limites.size.z / Mathf.Max(0.0001f, Mathf.Abs(escala.z)));
+                colliders = new Collider[] { caja };
+            }
+            foreach (Collider c in colliders)
+                if (c.GetComponent<ReceptorPagoConstruccion>() == null)
+                    c.gameObject.AddComponent<ReceptorPagoConstruccion>().construccion = this;
+        }
     }
 
     private void ApagarPiezasFuturas()
@@ -346,6 +389,12 @@ public class ConstruccionDianaBloopMonedas : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider otro)
+    {
+        IntentarCobrar(otro);
+    }
+
+    /// <summary>Si 'otro' es una moneda lanzada (fusil o mano), paga y la destruye. Lo usan también las ruinas.</summary>
+    public void IntentarCobrar(Collider otro)
     {
         if (otro == null || NivelMaximo) return;
 

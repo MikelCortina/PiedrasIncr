@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c5ec9091428434c90ea828672bed5ca, type: 3}
+  m_Name: GuionBotro
+  m_EditorClassIdentifier: Assembly-CSharp::GuionBotro
+  momentos:
+  - id: intro_PatearPiedra
+    activo: 1
+    cuando: PasoIntro
+    paso: PatearPiedra
+    compra: 
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases:
+    - texto: Hola? Hay alguien ahi? Un viajero espacial, ya era hora!
+      esInstruccion: 0
+      retraso: 0
+    - texto: Ves ese meteorito que ha caido ahi? Patealo hasta mi y te explicare
+        como repostar tu nave!
+      esInstruccion: 0
+      retraso: 0
+    repetirInstruccionCada: 0
+  - id: intro_LlevarPiedraABotro
+    activo: 1
+    cuando: PasoIntro
+    paso: BotroExplica
+    compra: 
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases:
+    - texto: 'Lo que imaginaba, esto son piedras lunares, sirven para fabricar gasolina,
+        desgastalas y tiralas al deposito de la gasolina, el sistema de pago automatico
+        de recompensara por ello.  '
+      esInstruccion: 0
+      retraso: 0
+    - texto: Cuando consigas una moneda, lanzala contra ese meteorito estrellado,
+        antiguamente era nuestro generador de piedras lunares, pero la misma lluvia
+        de estrellas que me dejo asi, acabo con todas nuestras herramientas.
+      esInstruccion: 0
+      retraso: 0
+      enfocar: Generador
+    repetirInstruccionCada: 0
+  - id: intro_Manguera
+    activo: 1
+    cuando: PasoIntro
+    paso: Manguera
+    compra: 
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases:
+    - texto: Antes de tirarla al deposito asegurate d econectar la manguera a tu
+        nave!
+      esInstruccion: 0
+      retraso: 0
+    repetirInstruccionCada: 0
+  - id: intro_MeterPiedra
+    activo: 1
+    cuando: PasoIntro
+    paso: MeterPiedra
+    compra: 
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases: []
+    repetirInstruccionCada: 0
+  - id: intro_RecogerRestos
+    activo: 1
+    cuando: PasoIntro
+    paso: RecogerRestos
+    compra: 
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases:
+    - texto: Perfecto, fijate como sube el contador, recoge la moneda y lanzala contra
+        el generador para repararlo!
+      esInstruccion: 0
+      retraso: 0
+    repetirInstruccionCada: 0

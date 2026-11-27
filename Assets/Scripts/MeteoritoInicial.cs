@@ -35,6 +35,15 @@ public class MeteoritoInicial : MonoBehaviour
 
     private Coroutine rutinaRepeticion;
 
+    /// <summary>Última piedra lanzada por el meteorito inicial (la que cae delante de la nave).</summary>
+    public static Rigidbody PiedraLanzada { get; private set; }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarEstatico()
+    {
+        PiedraLanzada = null;
+    }
+
     private void Update()
     {
         if (repetirConTecla && Input.GetKeyDown(teclaRepetir))
@@ -74,6 +83,7 @@ public class MeteoritoInicial : MonoBehaviour
     [ContextMenu("Lanzar meteorito inicial")]
     public void LanzarMeteorito()
     {
+        // (Lo llama CambioCamaraIntro al final del vuelo; SecuenciaIntro también si la intro se ha saltado.)
         if (!Application.isPlaying || meteoritoLanzado)
             return;
 
@@ -135,6 +145,7 @@ public class MeteoritoInicial : MonoBehaviour
         PrepararEfectosCaida(meteorito, visual);
 
         meteoritoLanzado = true;
+        PiedraLanzada = rb;
         StartCoroutine(SecuenciaCaida(rb, meteorito, visual, origen, entrada, destino, radio));
         Debug.Log("[METEORITO INICIAL] Salida Luna: " + origen + " | Entrada atmosfera: " + entrada + " | Impacto: " + destino);
     }

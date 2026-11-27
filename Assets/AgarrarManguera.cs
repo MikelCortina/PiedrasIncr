@@ -37,6 +37,7 @@ public class AgarrarManguera : MonoBehaviour
     private static void ReiniciarEventos() { OnMangueraConectada = null; }
 
     public bool Conectada => conectada;
+    public bool Agarrada => agarrada;
 
     private Rigidbody rb;
     private bool agarrada = false;

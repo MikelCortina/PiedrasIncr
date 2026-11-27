@@ -4,26 +4,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Guion de la INTRODUCCIÓN (objetivo ≤ 2 min). Cada paso avanza por EVENTOS del juego, no por tiempo:
-///  1 Llegas al planeta            (CambioCamaraIntro.OnNaveAterrizada)
-///  2 Abres la puerta              (CambioCamaraIntro.OnPuertaAbierta / OnIntroTerminada)
-///  3 Enchufas la manguera         (AgarrarManguera.OnMangueraConectada)
-///  4-5 Botro: "¡Hey!" / "¿Ves esa máquina?..."  (cada línea espera a que acabe la anterior)
-///  6 Vas hacia la piedra          (jugador cerca de una piedra, o ya la ha pateado)
-///  7 Tutorial de patada           (SistemaPatada.OnPiedraPateada)
-///  8 Llevas la piedra             (una piedra cerca del agujero)
-///  9 Botro: desgaste y trampilla
-/// 10 Metes la piedra              (AgujeroSimple.OnPiedraTragada)
-/// 11 Zoom a la pantalla de gasolina (+XX L)  (desactivado por defecto: 'hacerZoomGasolina')
-/// 12 Botro: "recoge los restos"   → termina al ganar la primera moneda (Cartera.OnMonedasCambiadas)
-/// Los eventos se "apuntan" aunque lleguen antes de tiempo: si el jugador se adelanta, el guion no se atasca.
+/// Guion de la INTRODUCCIÓN (objetivo ≤ 2 min). Todo te lo dice Botro.
+/// Este script decide CUÁNDO empieza y acaba cada paso (por EVENTOS del juego, no por tiempo);
+/// lo que dice Botro en cada paso está en GuionBotro (Tools > PiedrasIncr > Botro: qué dice y cuándo).
+///  1 Llegada               (CambioCamaraIntro.OnNaveAterrizada)
+///  2 Abrir la puerta       (CambioCamaraIntro.OnPuertaAbierta / OnIntroTerminada)
+///  3 Patear la piedra que ha caído delante de la nave (MeteoritoInicial.PiedraLanzada; SistemaPatada.OnPiedraPateada)
+///  4 Llevarla hasta Botro  (piedra y jugador cerca de Botro)
+///  5 Botro explica         (termina cuando acaba de hablar)
+///  6 Llevarla a la trampilla desgastándola (una piedra cerca del agujero)
+///    └ Manguera, EN PARALELO: tras la primera patada de vuelta, si no está enchufada (marca la manguera)
+///  7 Meterla               (AgujeroSimple.OnPiedraTragada)
+///  8 Zoom a la gasolina    (desactivado por defecto: 'hacerZoomGasolina')
+///  9 Recoger la moneda     (tras repostar; marca la moneda; Cartera.OnMonedasCambiadas)
+/// 10 Reconstruir el generador de meteoritos (marca el generador; ConstruccionDianaBloopMonedas.EstaConstruida)
+/// Cada frase puede "Enfocar" algo: la cámara hace zoom mientras Botro la dice.
+/// Si el jugador se adelanta, el paso se salta (y Botro no dice sus frases pendientes).
 /// </summary>
 public class SecuenciaIntro : MonoBehaviour
 {
+    // GuionBotro guarda los pasos por NOMBRE: renombrar un paso obliga a renombrarlo también en el guion.
     public enum Paso
     {
-        EsperandoLlegada, AbrirPuerta, Manguera, BotroPresentacion, IrAPiedra, Patada,
-        LlevarPiedra, BotroTrampilla, MeterPiedra, ZoomGasolina, BotroRestos, RecogerRestos, Terminado
+        EsperandoLlegada, AbrirPuerta, PatearPiedra, LlevarPiedraABotro, BotroExplica, LlevarATrampilla, Manguera,
+        MeterPiedra, ZoomGasolina, RecogerRestos, ReconstruirGenerador, Terminado
     }
 
     /// <summary>Cambio de paso (para UI, analíticas o pruebas).</summary>
@@ -38,26 +42,26 @@ public class SecuenciaIntro : MonoBehaviour
     [Tooltip("Escribe en la consola cada paso del guion ([GUION]).")]
     public bool registrarEnConsola = true;
 
-    [Header("Líneas de Botro (hoja INTRODUCCIÓN)")]
-    [TextArea(1, 3)] public string lineaHey = "¡Hey, qué haces!";
-    [TextArea(1, 3)] public string lineaMaquina = "¿Ves esa máquina? Consigue una piedra lunar y tráela hasta aquí.";
-    [TextArea(1, 3)] public string lineaTrampilla = "Mira el desgaste, fíjate en esa trampilla: tragará tus piedras y te recompensará por ello.";
-    [TextArea(1, 3)] public string lineaRestos = "No te olvides de recoger los restos, te servirán para conseguir monedas.";
+    // Lo que dice Botro en cada paso está en GuionBotro (Tools > PiedrasIncr > Botro: qué dice y cuándo).
 
-    [Header("Objetivos en pantalla")]
-    public string objetivoPalanca = "Baja la palanca para salir de la nave";
-    public string objetivoManguera = "Coge la manguera [E] y enchúfala a la nave";
-    public string objetivoBuscarPiedra = "Busca una piedra lunar";
-    public string objetivoPatada = "Patea la piedra  [Clic izquierdo]";
-    public string objetivoLlevar = "Lleva la piedra a patadas hasta la máquina";
-    public string objetivoMeter = "Métela por la trampilla";
-    public string objetivoRestos = "Recoge los restos con clic izquierdo";
+    [Header("Botro")]
+    [Tooltip("El robot de la escena. Vacío = se busca el objeto llamado 'Botro'.")]
+    public Transform botro;
+    public string nombreObjetoBotro = "Botro";
+    [Tooltip("Distancia (en horizontal) de la piedra a Botro para entregársela.")]
+    public float distanciaEntregaBotro = 6f;
+    [Tooltip("Distancia (en horizontal) del jugador a Botro para que empiece a explicar.")]
+    public float distanciaJugadorBotro = 9f;
+    [Tooltip("Segundos máximos esperando a que caiga la piedra; si no cae, vale cualquier piedra.")]
+    public float esperaMaximaPiedraCaida = 6f;
 
     [Header("Distancias")]
-    [Tooltip("Distancia del jugador a una piedra para pasar al tutorial de patada.")]
-    public float distanciaLlegarPiedra = 6f;
     [Tooltip("Distancia de una piedra al agujero para que Botro hable de la trampilla.")]
     public float distanciaPiedraAgujero = 12f;
+
+    [Header("Marcador del objetivo")]
+    [Tooltip("Rombo en pantalla sobre la piedra, Botro o la trampilla, con la distancia.")]
+    public bool mostrarMarcador = true;
 
     [Header("Zoom a la pantalla de gasolina")]
     [Tooltip("Al meter la primera piedra, la cámara hace zoom a la pantalla de la gasolinera. Desactivado: no hay zoom.")]
@@ -82,6 +86,15 @@ public class SecuenciaIntro : MonoBehaviour
     public ContadorGasolinera gasolinera;
     public Cartera cartera;
     public Transform jugador;
+    [Tooltip("El generador de meteoritos (empieza destruido). Vacío = se busca.")]
+    public ConstruccionDianaBloopMonedas generador;
+    public AgarrarManguera manguera;
+
+    [Header("Enfoque de cámara (opción 'Enfocar' de cada frase)")]
+    [Tooltip("FOV máximo al enfocar algo mientras Botro habla (se reduce si hace falta para encuadrarlo).")]
+    public float fovMaximoEnfoque = 35f;
+    [Tooltip("Tras meter la piedra, segundos máximos esperando a que suba la gasolina antes del paso de la moneda.")]
+    public float esperaMaximaRepostaje = 3f;
 
     [Header("Estilo (vacío = el del escáner de piedras)")]
     [Tooltip("Fuente con tildes y eñes para el objetivo. Vacío = la fuente por defecto.")]
@@ -100,7 +113,14 @@ public class SecuenciaIntro : MonoBehaviour
     private const string EvMoneda = "moneda";
 
     private readonly HashSet<string> ocurrido = new HashSet<string>();
+    // Instrucción de Botro que se queda en pantalla hasta que acaba el paso.
     private string objetivo = "";
+    private int contadorFrases;
+    private int contadorPatadas;
+    // Manguera en paralelo: su instrucción manda mientras esté pendiente; la del paso se guarda para después.
+    private bool mangueraPendiente;
+    private string instruccionPaso = "";
+    private string instruccionManguera = "";
     private float objetivoDesde;
     private int monedasPrevias;
     private GUIStyle estiloLED;
@@ -128,6 +148,7 @@ public class SecuenciaIntro : MonoBehaviour
 
     private void OnDisable()
     {
+        RestaurarZoom();
         CambioCamaraIntro.OnNaveAterrizada -= AlAterrizar;
         CambioCamaraIntro.OnPuertaAbierta -= AlAbrirPuerta;
         CambioCamaraIntro.OnIntroTerminada -= AlTerminarIntro;
@@ -149,7 +170,7 @@ public class SecuenciaIntro : MonoBehaviour
     private void AlAbrirPuerta() { Marcar(EvLlegada); Marcar(EvPuerta); }
     private void AlTerminarIntro() { Marcar(EvLlegada); Marcar(EvPuerta); Marcar(EvIntroFin); }
     private void AlConectarManguera() { Marcar(EvManguera); }
-    private void AlPatear(Rigidbody piedra) { Marcar(EvPatada); }
+    private void AlPatear(Rigidbody piedra) { contadorPatadas++; Marcar(EvPatada); }
     private void AlTragar(AgujeroSimple a, float pureza, float gasolina) { Marcar(EvTragada); }
     private void AlAnadirGasolina(float fraccion, float litros) { Marcar(EvGasolina); }
     private void AlTerminarLinea(string id) { Marcar("linea:" + id); }
@@ -177,6 +198,9 @@ public class SecuenciaIntro : MonoBehaviour
             GameObject j = GameObject.FindGameObjectWithTag("Player");
             if (j != null) jugador = j.transform;
         }
+        BuscarBotro();
+        if (generador == null) generador = FindFirstObjectByType<ConstruccionDianaBloopMonedas>();
+        if (manguera == null) manguera = FindFirstObjectByType<AgarrarManguera>();
         if (cartera != null)
         {
             monedasPrevias = cartera.Monedas;
@@ -194,7 +218,7 @@ public class SecuenciaIntro : MonoBehaviour
         Registrar("Iniciado. Intro: " + (intro == null ? "no encontrada" : (intro.OmitirIntro ? "saltada" : "normal")) +
                   " | Jugador: " + (jugador != null ? jugador.name : "NO ENCONTRADO") +
                   " | Agujero: " + (agujero != null) + " | Gasolinera: " + (gasolinera != null) +
-                  " | Botro: " + (BotroDice.Instancia != null));
+                  " | Radio de Botro: " + (BotroDice.Instancia != null) + " | Botro: " + (botro != null ? botro.name : "NO ENCONTRADO"));
 
         if (omitirTutorial || GuardadoPartidaJuego.InicioActual == GuardadoPartidaJuego.TipoInicio.PartidaCargada)
         {
@@ -212,61 +236,178 @@ public class SecuenciaIntro : MonoBehaviour
     private IEnumerator Guion()
     {
         // 1 · Llegas al planeta
-        IrA(Paso.EsperandoLlegada, "");
-        yield return new WaitUntil(() => Ocurrio(EvLlegada) || JugadorTieneControl());
+        yield return EjecutarPaso(Paso.EsperandoLlegada, () => Ocurrio(EvLlegada) || JugadorTieneControl());
 
         // 2 · Abres la puerta (bajas la palanca y la intro devuelve el control)
-        if (!JugadorTieneControl()) IrA(Paso.AbrirPuerta, objetivoPalanca);
-        yield return new WaitUntil(() => Ocurrio(EvPuerta) || JugadorTieneControl());
-        IrA(Paso.AbrirPuerta, "");
+        if (!JugadorTieneControl())
+            yield return EjecutarPaso(Paso.AbrirPuerta, () => Ocurrio(EvPuerta) || JugadorTieneControl());
         yield return new WaitUntil(() => Ocurrio(EvIntroFin) || JugadorTieneControl());
 
-        // 3 · Enchufas la manguera
-        IrA(Paso.Manguera, objetivoManguera);
-        yield return Esperar(EvManguera);
+        // La piedra cae delante de la nave al final del vuelo; se espera a que toque el suelo.
+        LanzarPiedraSiFalta();
+        float limite = Time.time + esperaMaximaPiedraCaida;
+        yield return new WaitUntil(() => PiedraCaidaEnElSuelo() || Time.time > limite);
 
-        // 4-5 · Botro se presenta
-        IrA(Paso.BotroPresentacion, "");
-        yield return DecirYEsperar("hey", lineaHey);
-        yield return DecirYEsperar("maquina", lineaMaquina);
+        // 3 · Botro te pide la piedra: primera patada
+        yield return EjecutarPaso(Paso.PatearPiedra, () => Ocurrio(EvPatada) || Ocurrio(EvTragada) || PiedraEntregadaABotro());
 
-        // 6 · Vas hacia la piedra
-        IrA(Paso.IrAPiedra, objetivoBuscarPiedra);
-        yield return new WaitUntil(() => Ocurrio(EvPatada) || JugadorCercaDeUnaPiedra());
+        // 4 · Llevas la piedra hasta Botro
+        yield return EjecutarPaso(Paso.LlevarPiedraABotro, () => Ocurrio(EvTragada) || (PiedraEntregadaABotro() && JugadorCercaDeBotro()));
 
-        // 7 · Tutorial de patada
-        IrA(Paso.Patada, objetivoPatada);
-        yield return Esperar(EvPatada);
+        // 5 · Botro explica (las frases pueden enfocar el generador, la gasolinera...)
+        yield return EjecutarPaso(Paso.BotroExplica, null);
 
-        // 8 · Llevas la piedra
-        IrA(Paso.LlevarPiedra, objetivoLlevar);
-        yield return new WaitUntil(() => Ocurrio(EvTragada) || PiedraCercaDelAgujero());
+        // 6 · Llevas la piedra de vuelta a la gasolinera; mientras, si falta, la manguera (en paralelo)
+        Coroutine rutinaManguera = StartCoroutine(MangueraMientrasLlevas());
+        yield return EjecutarPaso(Paso.LlevarATrampilla, () => Ocurrio(EvTragada) || PiedraCercaDelAgujero());
 
-        // 9 · Botro: desgaste y trampilla (si aún no la ha metido)
-        if (!Ocurrio(EvTragada))
-        {
-            IrA(Paso.BotroTrampilla, objetivoMeter);
-            yield return DecirYEsperar("trampilla", lineaTrampilla);
-        }
+        // 7 · La metes
+        yield return EjecutarPaso(Paso.MeterPiedra, () => Ocurrio(EvTragada));
+        if (rutinaManguera != null) StopCoroutine(rutinaManguera);
+        TerminarManguera();
 
-        // 10 · Meter la piedra en el agujero
-        IrA(Paso.MeterPiedra, objetivoMeter);
-        yield return Esperar(EvTragada);
-
-        // 11 · Zoom a la pantalla de gasolina (+XX L), solo si está activado
+        // 8 · Zoom a la pantalla de gasolina (+XX L), solo si está activado
         if (hacerZoomGasolina)
         {
-            IrA(Paso.ZoomGasolina, "");
+            IrA(Paso.ZoomGasolina);
             yield return ZoomGasolina();
         }
 
-        // 12 · Botro: recoge los restos → primera moneda
-        IrA(Paso.BotroRestos, "");
-        yield return DecirYEsperar("restos", lineaRestos);
-        IrA(Paso.RecogerRestos, objetivoRestos);
-        yield return Esperar(EvMoneda);
+        // 9 · Tras repostar: recoger la moneda (marcada)
+        float limiteRepostaje = Time.time + esperaMaximaRepostaje;
+        yield return new WaitUntil(() => Ocurrio(EvGasolina) || Time.time > limiteRepostaje);
+        yield return EjecutarPaso(Paso.RecogerRestos, () => Ocurrio(EvMoneda));
+
+        // 10 · Reconstruir el generador de meteoritos lanzándole la moneda (marcado)
+        yield return EjecutarPaso(Paso.ReconstruirGenerador, GeneradorConstruido);
 
         Terminar();
+    }
+
+    // Manguera en paralelo al paso 6: tras la primera patada de vuelta, si no está enchufada,
+    // Botro dice las frases del paso "Manguera" y el marcador señala la manguera hasta que la enchufas.
+    private IEnumerator MangueraMientrasLlevas()
+    {
+        if (MangueraConectada()) yield break;
+        int patadas = contadorPatadas;
+        yield return new WaitUntil(() => MangueraConectada() || contadorPatadas > patadas);
+        if (MangueraConectada()) yield break;
+
+        mangueraPendiente = true;
+        instruccionManguera = "";
+        Registrar("Manguera pendiente: Botro te pide enchufarla.");
+        Coroutine frases = StartCoroutine(DecirFrases(Paso.Manguera, GuionBotro.ParaPaso(Paso.Manguera), true, false));
+        yield return new WaitUntil(MangueraConectada);
+        if (frases != null) StopCoroutine(frases);
+        TerminarManguera();
+    }
+
+    private bool MangueraConectada()
+    {
+        return Ocurrio(EvManguera) || (manguera != null && manguera.Conectada);
+    }
+
+    private void TerminarManguera()
+    {
+        BotroDice.CancelarPendientes(PrefijoPaso(Paso.Manguera));
+        RestaurarZoom();
+        if (!mangueraPendiente) return;
+        mangueraPendiente = false;
+        instruccionManguera = "";
+        MostrarInstruccion(instruccionPaso);
+    }
+
+    private bool GeneradorConstruido()
+    {
+        return generador == null || generador.EstaConstruida;
+    }
+
+    // Un paso: Botro dice sus frases (GuionBotro) mientras se espera a que pase 'fin'.
+    // fin == null: el paso termina cuando Botro acaba de hablar. Si 'fin' ya se cumple, el paso se salta.
+    private IEnumerator EjecutarPaso(Paso paso, Func<bool> fin)
+    {
+        if (fin != null && fin()) yield break;
+
+        IrA(paso);
+        instruccionPaso = "";
+        GuionBotro.Momento guion = GuionBotro.ParaPaso(paso);
+
+        if (fin == null)
+        {
+            yield return DecirFrases(paso, guion, false, true);
+        }
+        else
+        {
+            Coroutine frases = StartCoroutine(DecirFrases(paso, guion, true, true));
+            yield return new WaitUntil(fin);
+            // Si el paso no tiene frases, la corrutina acaba al instante y Unity devuelve null.
+            if (frases != null) StopCoroutine(frases);
+            BotroDice.CancelarPendientes(PrefijoPaso(paso));
+            RestaurarZoom(); // por si se cortó a mitad de un enfoque
+        }
+        instruccionPaso = "";
+        MostrarInstruccion(mangueraPendiente ? instruccionManguera : "");
+    }
+
+    private static string PrefijoPaso(Paso paso)
+    {
+        return "guion_" + paso + "_";
+    }
+
+    // principal = false: frases de la manguera en paralelo (su instrucción manda mientras esté pendiente).
+    private IEnumerator DecirFrases(Paso paso, GuionBotro.Momento guion, bool repetir, bool principal)
+    {
+        if (guion == null) yield break;
+        if (guion.retraso > 0f) yield return new WaitForSeconds(guion.retraso);
+
+        string instruccion = null;
+        float duracionInstruccion = 0f;
+        foreach (GuionBotro.Frase frase in guion.frases)
+        {
+            if (frase == null || string.IsNullOrWhiteSpace(frase.texto)) continue;
+            if (frase.retraso > 0f) yield return new WaitForSeconds(frase.retraso);
+
+            IEnumerator decir = DecirYEsperar(PrefijoPaso(paso), frase.texto, frase.duracion);
+            Bounds limites;
+            string nombre;
+            if (frase.Enfocar != GuionBotro.Enfoque.Nada && LimitesEnfoque(frase.Enfocar, out limites, out nombre))
+                yield return HacerZoom(limites, nombre, fovMaximoEnfoque, decir);
+            else
+                yield return decir;
+
+            if (frase.esInstruccion)
+            {
+                instruccion = frase.texto;
+                duracionInstruccion = frase.duracion;
+                if (principal)
+                {
+                    instruccionPaso = instruccion;
+                    if (!mangueraPendiente) MostrarInstruccion(instruccion);
+                }
+                else
+                {
+                    instruccionManguera = instruccion;
+                    MostrarInstruccion(instruccion);
+                }
+            }
+        }
+
+        // Si el jugador tarda, Botro repite la instrucción.
+        if (!repetir || instruccion == null || guion.repetirInstruccionCada <= 0f) yield break;
+        while (true)
+        {
+            yield return new WaitForSeconds(guion.repetirInstruccionCada);
+            yield return DecirYEsperar(PrefijoPaso(paso), instruccion, duracionInstruccion);
+        }
+    }
+
+    private void MostrarInstruccion(string texto)
+    {
+        if (texto == null) texto = "";
+        if (objetivo == texto) return;
+        objetivo = texto;
+        objetivoDesde = Time.unscaledTime;
+        if (!string.IsNullOrEmpty(texto)) Registrar("Instrucción: " + texto);
     }
 
     // Red de seguridad: si la cámara en primera persona ya está activa, la intro ha acabado
@@ -286,19 +427,17 @@ public class SecuenciaIntro : MonoBehaviour
 
     private void Terminar()
     {
-        IrA(Paso.Terminado, "");
+        IrA(Paso.Terminado);
         if (TutorialTerminado) return;
         TutorialTerminado = true;
         OnTutorialTerminado?.Invoke();
     }
 
-    private void IrA(Paso paso, string textoObjetivo)
+    private void IrA(Paso paso)
     {
-        if (objetivo != textoObjetivo) objetivoDesde = Time.unscaledTime;
-        objetivo = textoObjetivo;
         if (PasoActual == paso) return;
         PasoActual = paso;
-        Registrar("Paso → " + paso + (string.IsNullOrEmpty(textoObjetivo) ? "" : " | Objetivo: " + textoObjetivo));
+        Registrar("Paso → " + paso);
         OnPasoCambiado?.Invoke(paso);
     }
 
@@ -307,20 +446,214 @@ public class SecuenciaIntro : MonoBehaviour
         while (!Ocurrio(evento)) yield return null;
     }
 
-    private IEnumerator DecirYEsperar(string id, string texto)
+    // Cada frase lleva un id único (para esperar a que acabe y poder cancelar las del paso).
+    private IEnumerator DecirYEsperar(string prefijo, string texto, float duracion)
     {
-        BotroDice.Decir(id, texto);
+        string id = prefijo + (contadorFrases++);
+        BotroDice.Decir(id, texto, duracion);
         yield return Esperar("linea:" + id);
     }
 
-    private bool JugadorCercaDeUnaPiedra()
+    // ---------- La piedra que cae delante de la nave ----------
+
+    // Si la intro se ha saltado, el meteorito no se ha lanzado: se lanza ahora.
+    private void LanzarPiedraSiFalta()
     {
-        if (jugador == null || GestorPiedras.Instancia == null) return false;
-        float d2 = distanciaLlegarPiedra * distanciaLlegarPiedra;
+        if (MeteoritoInicial.PiedraLanzada != null) return;
+        MeteoritoInicial meteorito = FindFirstObjectByType<MeteoritoInicial>();
+        if (meteorito != null) meteorito.LanzarMeteorito();
+    }
+
+    private bool PiedraCaidaEnElSuelo()
+    {
+        Rigidbody piedra = MeteoritoInicial.PiedraLanzada;
+        return piedra != null && !piedra.isKinematic;
+    }
+
+    // La piedra caída; si ya no existe (o no cayó), la piedra más cercana al jugador.
+    private Rigidbody PiedraObjetivo()
+    {
+        Rigidbody caida = MeteoritoInicial.PiedraLanzada;
+        if (caida != null) return caida;
+        if (jugador == null || GestorPiedras.Instancia == null) return null;
+
+        Rigidbody mejor = null;
+        float mejorD2 = float.MaxValue;
         foreach (Rigidbody piedra in GestorPiedras.Instancia.Piedras)
-            if (piedra != null && (piedra.position - jugador.position).sqrMagnitude <= d2)
+        {
+            if (piedra == null) continue;
+            float d2 = (piedra.position - jugador.position).sqrMagnitude;
+            if (d2 < mejorD2) { mejorD2 = d2; mejor = piedra; }
+        }
+        return mejor;
+    }
+
+    // ---------- Botro ----------
+
+    private void BuscarBotro()
+    {
+        if (botro != null)
+        {
+            DesactivarConversacion();
+            return;
+        }
+        GameObject objeto = GameObject.Find(nombreObjetoBotro);
+        if (objeto != null) botro = objeto.transform;
+        else Registrar("No encuentro a '" + nombreObjetoBotro + "': la piedra se entrega en la trampilla.");
+        DesactivarConversacion();
+    }
+
+    // Botro es el único que habla: si tiene una conversación (NPCDialogueAgent), se apaga.
+    private void DesactivarConversacion()
+    {
+        if (botro == null) return;
+        foreach (NPCDialogueAgent conversacion in botro.GetComponentsInChildren<NPCDialogueAgent>(true))
+        {
+            conversacion.enabled = false;
+            Registrar("Conversación de Botro desactivada: solo habla él (" + conversacion.name + ").");
+        }
+    }
+
+    // Donde está Botro (o la trampilla si no hay Botro).
+    private Vector3? PosicionBotro()
+    {
+        if (botro != null) return botro.position;
+        if (agujero != null) return agujero.transform.position;
+        return null;
+    }
+
+    private static float DistanciaHorizontal(Vector3 a, Vector3 b)
+    {
+        a.y = 0f;
+        b.y = 0f;
+        return Vector3.Distance(a, b);
+    }
+
+    private bool PiedraEntregadaABotro()
+    {
+        Vector3? destino = PosicionBotro();
+        if (destino == null) return true;
+
+        Rigidbody caida = MeteoritoInicial.PiedraLanzada;
+        if (caida != null) return DistanciaHorizontal(caida.position, destino.Value) <= distanciaEntregaBotro;
+
+        // Sin piedra caída, vale cualquiera.
+        if (GestorPiedras.Instancia == null) return false;
+        foreach (Rigidbody piedra in GestorPiedras.Instancia.Piedras)
+            if (piedra != null && DistanciaHorizontal(piedra.position, destino.Value) <= distanciaEntregaBotro)
                 return true;
         return false;
+    }
+
+    private bool JugadorCercaDeBotro()
+    {
+        Vector3? destino = PosicionBotro();
+        return destino == null || jugador == null || DistanciaHorizontal(jugador.position, destino.Value) <= distanciaJugadorBotro;
+    }
+
+    // Hacia dónde apunta el marcador en cada paso (la manguera pendiente tiene prioridad).
+    private Vector3? PosicionMarcador()
+    {
+        if (mangueraPendiente) return PosicionManguera();
+
+        switch (PasoActual)
+        {
+            case Paso.PatearPiedra:
+                Rigidbody piedra = PiedraObjetivo();
+                return piedra != null ? piedra.position : (Vector3?)null;
+            case Paso.LlevarPiedraABotro:
+                return PosicionBotro();
+            case Paso.LlevarATrampilla:
+            case Paso.MeterPiedra:
+                return agujero != null ? agujero.transform.position : (Vector3?)null;
+            case Paso.RecogerRestos:
+                return MonedaMasCercana();
+            case Paso.ReconstruirGenerador:
+                Bounds b;
+                string n;
+                return LimitesEnfoque(GuionBotro.Enfoque.Generador, out b, out n) ? b.center : (Vector3?)null;
+            default:
+                return null;
+        }
+    }
+
+    // Boquilla de la manguera; si ya la llevas en la mano, la toma de la nave.
+    private Vector3? PosicionManguera()
+    {
+        if (manguera == null) return null;
+        if (manguera.Agarrada && manguera.puntoConexionNave != null) return manguera.puntoConexionNave.position;
+        return manguera.transform.position;
+    }
+
+    // La moneda suelta más cercana al jugador (no las que se están lanzando). Se busca 4 veces por segundo.
+    private Moneda monedaMarcada;
+    private float siguienteBusquedaMoneda;
+
+    private Vector3? MonedaMasCercana()
+    {
+        if (jugador == null) return null;
+        if (Time.unscaledTime >= siguienteBusquedaMoneda || monedaMarcada == null)
+        {
+            siguienteBusquedaMoneda = Time.unscaledTime + 0.25f;
+            monedaMarcada = null;
+            float mejor = float.MaxValue;
+            foreach (Moneda m in FindObjectsByType<Moneda>(FindObjectsSortMode.None))
+            {
+                if (m == null || !m.isActiveAndEnabled || m.GetComponent<ProyectilArma>() != null) continue;
+                float d = (m.transform.position - jugador.position).sqrMagnitude;
+                if (d < mejor) { mejor = d; monedaMarcada = m; }
+            }
+        }
+        return monedaMarcada != null ? monedaMarcada.transform.position : (Vector3?)null;
+    }
+
+    // Qué encuadra la cámara para cada opción de "Enfocar".
+    private bool LimitesEnfoque(GuionBotro.Enfoque enfoque, out Bounds limites, out string nombre)
+    {
+        limites = new Bounds();
+        nombre = enfoque.ToString();
+        switch (enfoque)
+        {
+            case GuionBotro.Enfoque.Generador:
+                if (generador == null) return false;
+                nombre = generador.name;
+                return LimitesDe(generador.EstaConstruida ? generador.partesArmaDesbloqueada : generador.partesRuinas, out limites)
+                       || LimitesDe(new[] { generador.gameObject }, out limites);
+            case GuionBotro.Enfoque.Botro:
+                return botro != null && LimitesDe(new[] { botro.gameObject }, out limites);
+            case GuionBotro.Enfoque.Trampilla:
+                return agujero != null && LimitesDe(new[] { agujero.gameObject }, out limites);
+            case GuionBotro.Enfoque.Manguera:
+                return manguera != null && LimitesDe(new[] { manguera.gameObject }, out limites);
+            case GuionBotro.Enfoque.Piedra:
+                Rigidbody piedra = PiedraObjetivo();
+                return piedra != null && LimitesDe(new[] { piedra.gameObject }, out limites);
+            case GuionBotro.Enfoque.PantallaGasolina:
+                if (gasolinera == null) return false;
+                bool ok = ResolverPantallaGasolina(out limites);
+                nombre = nombrePantalla;
+                return ok;
+            default:
+                return false;
+        }
+    }
+
+    private static bool LimitesDe(GameObject[] objetos, out Bounds limites)
+    {
+        limites = new Bounds();
+        bool hay = false;
+        if (objetos == null) return false;
+        foreach (GameObject o in objetos)
+        {
+            if (o == null || !o.activeInHierarchy) continue;
+            foreach (Renderer r in o.GetComponentsInChildren<Renderer>())
+            {
+                if (!r.enabled || r is ParticleSystemRenderer || r is TrailRenderer) continue;
+                if (!hay) { limites = r.bounds; hay = true; }
+                else limites.Encapsulate(r.bounds);
+            }
+        }
+        return hay;
     }
 
     private bool PiedraCercaDelAgujero()
@@ -343,20 +676,42 @@ public class SecuenciaIntro : MonoBehaviour
         if (gasolinera == null) yield break;
         yield return Esperar(EvGasolina);
 
-        Camera cam = Camera.main;
-        if (cam == null) yield break;
-
         Bounds pantalla;
         if (!ResolverPantallaGasolina(out pantalla))
         {
             Registrar("Zoom: no encuentro la pantalla de gasolina; asigna 'Pantalla Gasolina'.");
             yield break;
         }
+        yield return HacerZoom(pantalla, nombrePantalla, fovZoom, new WaitForSeconds(segundosMirando));
+    }
+
+    // ---------- Zoom de cámara (gasolina y "Enfocar" de las frases) ----------
+
+    // Estado para poder deshacer el zoom aunque se corte la corrutina (StopCoroutine no ejecuta 'finally').
+    private bool zoomActivo;
+    private Camera camaraZoom;
+    private Quaternion rotacionAntesZoom;
+    private float fovAntesZoom;
+    private CamaraPrimeraPersona camaraFPSZoom;
+    private bool camaraYaBloqueadaZoom;
+    private readonly List<MonoBehaviour> desactivadosZoom = new List<MonoBehaviour>();
+
+    // Mira a 'objetivo' con zoom mientras dura 'mientras' (frase de Botro, espera...) y vuelve.
+    private IEnumerator HacerZoom(Bounds objetivo, string nombre, float fovMaximo, object mientras)
+    {
+        RestaurarZoom();
+        Camera cam = Camera.main;
+        if (cam == null)
+        {
+            yield return mientras;
+            yield break;
+        }
 
         // Bloquear la mirada (CamaraPrimeraPersona reescribe la rotación cada frame) y el movimiento.
-        CamaraPrimeraPersona camaraFPS = cam.GetComponent<CamaraPrimeraPersona>();
-        bool camaraYaBloqueada = camaraFPS != null && camaraFPS.EstaBloqueadaPorUI();
-        if (camaraFPS != null) camaraFPS.SetBloqueadaPorUI(true);
+        camaraZoom = cam;
+        camaraFPSZoom = cam.GetComponent<CamaraPrimeraPersona>();
+        camaraYaBloqueadaZoom = camaraFPSZoom != null && camaraFPSZoom.EstaBloqueadaPorUI();
+        if (camaraFPSZoom != null) camaraFPSZoom.SetBloqueadaPorUI(true);
 
         List<MonoBehaviour> bloqueados = new List<MonoBehaviour>();
         if (bloquearDuranteZoom != null && bloquearDuranteZoom.Length > 0)
@@ -371,40 +726,52 @@ public class SecuenciaIntro : MonoBehaviour
             if (movimiento != null) bloqueados.Add(movimiento);
         }
 
-        List<MonoBehaviour> desactivados = new List<MonoBehaviour>();
+        desactivadosZoom.Clear();
         foreach (MonoBehaviour script in bloqueados)
         {
-            if (script != null && script.enabled && script != camaraFPS)
+            if (script != null && script.enabled && script != camaraFPSZoom)
             {
                 script.enabled = false;
-                desactivados.Add(script);
+                desactivadosZoom.Add(script);
             }
         }
 
         Transform t = cam.transform;
-        Quaternion rotacionInicial = t.localRotation;
-        float fovInicial = cam.fieldOfView;
+        rotacionAntesZoom = t.localRotation;
+        fovAntesZoom = cam.fieldOfView;
+        zoomActivo = true;
 
-        // Mirar al centro de la pantalla y ajustar el FOV para que llene el plano.
-        Vector3 haciaPantalla = pantalla.center - t.position;
-        Quaternion rotacionZoomMundo = Quaternion.LookRotation(haciaPantalla, Vector3.up);
+        // Mirar al centro del objetivo y ajustar el FOV para encuadrarlo.
+        Vector3 haciaObjetivo = objetivo.center - t.position;
+        Quaternion rotacionZoomMundo = Quaternion.LookRotation(haciaObjetivo, Vector3.up);
         Quaternion rotacionZoom = t.parent != null ? Quaternion.Inverse(t.parent.rotation) * rotacionZoomMundo : rotacionZoomMundo;
-        float distancia = Mathf.Max(0.5f, haciaPantalla.magnitude);
-        float tamano = Mathf.Max(pantalla.extents.x, pantalla.extents.y, pantalla.extents.z) * 2f;
+        float distancia = Mathf.Max(0.5f, haciaObjetivo.magnitude);
+        float tamano = Mathf.Max(objetivo.extents.x, objetivo.extents.y, objetivo.extents.z) * 2f;
         float fovEncuadre = 2f * Mathf.Atan(tamano * 0.5f * margenEncuadre / distancia) * Mathf.Rad2Deg;
-        float fovObjetivo = Mathf.Clamp(fovEncuadre, fovMinimoZoom, Mathf.Min(fovZoom, fovInicial));
+        float fovObjetivo = Mathf.Clamp(fovEncuadre, fovMinimoZoom, Mathf.Min(fovMaximo, fovAntesZoom));
 
-        Registrar("Zoom a '" + nombrePantalla + "' a " + distancia.ToString("0.0") + " m, FOV " + fovObjetivo.ToString("0"));
+        Registrar("Zoom a '" + nombre + "' a " + distancia.ToString("0.0") + " m, FOV " + fovObjetivo.ToString("0"));
 
-        yield return Interpolar(cam, rotacionInicial, rotacionZoom, fovInicial, fovObjetivo);
-        yield return new WaitForSeconds(segundosMirando);
-        yield return Interpolar(cam, rotacionZoom, rotacionInicial, fovObjetivo, fovInicial);
+        yield return Interpolar(cam, rotacionAntesZoom, rotacionZoom, fovAntesZoom, fovObjetivo);
+        yield return mientras;
+        yield return Interpolar(cam, rotacionZoom, rotacionAntesZoom, fovObjetivo, fovAntesZoom);
+        RestaurarZoom();
+    }
 
-        t.localRotation = rotacionInicial;
-        cam.fieldOfView = fovInicial;
-        if (camaraFPS != null) camaraFPS.SetBloqueadaPorUI(camaraYaBloqueada);
-        foreach (MonoBehaviour script in desactivados)
+    // Deja la cámara y los controles como estaban antes del zoom.
+    private void RestaurarZoom()
+    {
+        if (!zoomActivo) return;
+        zoomActivo = false;
+        if (camaraZoom != null)
+        {
+            camaraZoom.transform.localRotation = rotacionAntesZoom;
+            camaraZoom.fieldOfView = fovAntesZoom;
+        }
+        if (camaraFPSZoom != null) camaraFPSZoom.SetBloqueadaPorUI(camaraYaBloqueadaZoom);
+        foreach (MonoBehaviour script in desactivadosZoom)
             if (script != null) script.enabled = true;
+        desactivadosZoom.Clear();
     }
 
     private string nombrePantalla = "";
@@ -473,7 +840,9 @@ public class SecuenciaIntro : MonoBehaviour
 
     private void OnGUI()
     {
-        if (string.IsNullOrEmpty(objetivo) || Event.current.type != EventType.Repaint) return;
+        if (Event.current.type != EventType.Repaint) return;
+        bool hayObjetivo = !string.IsNullOrEmpty(objetivo);
+        if (!hayObjetivo && (!mostrarMarcador || PasoActual == Paso.Terminado)) return;
 
         AimAssistVisual estilo = AimAssistVisual.Instancia;
         Color placa = estilo != null ? estilo.colorPlaca : new Color(0.035f, 0.025f, 0.09f, 0.88f);
@@ -488,16 +857,23 @@ public class SecuenciaIntro : MonoBehaviour
         }
         if (estiloTexto == null || estiloTexto.font != fuenteTexto)
         {
-            estiloTexto = new GUIStyle { font = fuenteTexto, fontStyle = FontStyle.Bold, clipping = TextClipping.Overflow };
+            estiloTexto = new GUIStyle { font = fuenteTexto, fontStyle = FontStyle.Bold, wordWrap = true, clipping = TextClipping.Overflow };
             estiloTexto.normal.textColor = Color.white;
         }
 
         float e = Screen.height / 1080f * escala;
+        DibujarMarcador(e);
+        if (!hayObjetivo) return;
+
         float aparicion = Mathf.Clamp01((Time.unscaledTime - objetivoDesde) / 0.25f);
         float pop = 1f + (1f - aparicion) * 0.12f;
         float k = e * pop;
 
-        float ancho = 560f * k, altoPanel = 62f * k;
+        // El panel crece hacia abajo con el texto de la instrucción.
+        float ancho = 560f * k;
+        estiloTexto.fontSize = Mathf.Max(8, Mathf.RoundToInt(21f * k));
+        float altoTexto = estiloTexto.CalcHeight(new GUIContent(objetivo), ancho - 32f * k);
+        float altoPanel = Mathf.Max(62f * k, 30f * k + altoTexto + 8f * k);
         Rect r = new Rect((Screen.width - ancho) * 0.5f, 28f * e, ancho, altoPanel);
 
         AimAssistVisual.Rectangulo(r, AimAssistVisual.ConAlfa(placa, placa.a * aparicion), 4f * k);
@@ -505,7 +881,37 @@ public class SecuenciaIntro : MonoBehaviour
         AimAssistVisual.EsquinasHUD(r, AimAssistVisual.ConAlfa(alto, aparicion), k);
 
         float m = 16f * k;
-        AimAssistVisual.TextoNeon(estiloLED, new Rect(r.x + m, r.y + 6f * k, r.width - 2f * m, 16f * k), "OBJETIVO", 14f * k, TextAnchor.UpperLeft, AimAssistVisual.ConAlfa(alto, aparicion), 0.5f);
-        AimAssistVisual.TextoNeon(estiloTexto, new Rect(r.x + m, r.y + 24f * k, r.width - 2f * m, 30f * k), objetivo, 21f * k, TextAnchor.MiddleCenter, AimAssistVisual.ConAlfa(neon, aparicion), 0.3f);
+        AimAssistVisual.TextoNeon(estiloLED, new Rect(r.x + m, r.y + 6f * k, r.width - 2f * m, 16f * k), (BotroDice.Instancia != null ? BotroDice.Instancia.nombre : "BOTRO") + "  ·  OBJETIVO", 14f * k, TextAnchor.UpperLeft, AimAssistVisual.ConAlfa(alto, aparicion), 0.5f);
+        AimAssistVisual.TextoNeon(estiloTexto, new Rect(r.x + m, r.y + 24f * k, r.width - 2f * m, altoTexto + 4f * k), objetivo, 21f * k, TextAnchor.MiddleCenter, AimAssistVisual.ConAlfa(neon, aparicion), 0.3f);
+    }
+
+    // Rombo de neón sobre el destino del paso actual, con la distancia debajo.
+    private void DibujarMarcador(float e)
+    {
+        if (!mostrarMarcador || jugador == null) return;
+        Vector3? destino = PosicionMarcador();
+        Camera cam = Camera.main;
+        if (destino == null || cam == null) return;
+
+        float distancia = Vector3.Distance(jugador.position, destino.Value);
+        if (distancia < 3f) return;
+
+        Vector3 p = cam.WorldToScreenPoint(destino.Value + Vector3.up * 1.5f);
+        if (p.z <= 0f) return;
+        Vector2 centro = new Vector2(p.x, Screen.height - p.y);
+
+        TemaUINeon tema = TemaUINeon.Actual;
+        float a = Mathf.Clamp01((Time.unscaledTime - objetivoDesde) / 0.25f);
+        float lado = 16f * e * (1f + Mathf.Sin(Time.unscaledTime * 5f) * 0.1f);
+        Rect rombo = new Rect(centro.x - lado * 0.5f, centro.y - lado * 0.5f, lado, lado);
+
+        Matrix4x4 matriz = GUI.matrix;
+        GUIUtility.RotateAroundPivot(45f, centro);
+        EstiloNeonIMGUI.Rectangulo(rombo, EstiloNeonIMGUI.ConAlfa(tema.colorPlaca, tema.colorPlaca.a * a), 2f * e);
+        EstiloNeonIMGUI.BordeNeon(rombo, EstiloNeonIMGUI.ConAlfa(tema.colorNeonAlto, a), e, 2f * e);
+        GUI.matrix = matriz;
+
+        EstiloNeonIMGUI.TextoNeon(estiloLED, new Rect(centro.x - 60f * e, centro.y + lado * 0.9f, 120f * e, 20f * e),
+            Mathf.RoundToInt(distancia) + " M", 15f * e, TextAnchor.UpperCenter, EstiloNeonIMGUI.ConAlfa(tema.colorNeon, a), 0.5f);
     }
 }
