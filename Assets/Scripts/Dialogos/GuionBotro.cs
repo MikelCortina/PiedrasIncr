@@ -160,7 +160,8 @@ public class GuionBotro : ScriptableObject
             case SecuenciaIntro.Paso.MeterPiedra: return "Termina cuando la trampilla se traga la piedra.";
             case SecuenciaIntro.Paso.ZoomGasolina: return "Solo si el zoom a la gasolina está activado.";
             case SecuenciaIntro.Paso.RecogerRestos: return "Después de repostar. Marca la moneda. Termina al recogerla.";
-            case SecuenciaIntro.Paso.ReconstruirGenerador: return "Marca el generador de meteoritos (destruido). Sin fusil, 3 = moneda en la mano y clic para lanzarla. Termina al reconstruirlo.";
+            case SecuenciaIntro.Paso.GeneradorReconstruido: return "Empieza justo al reparar el generador. Marca la diana. Termina al golpearla.";
+            case SecuenciaIntro.Paso.ReconstruirGenerador: return "Marca el generador de meteoritos (destruido). Sin fusil, 3 = moneda en la mano y clic para lanzarla. Termina al reconstruirlo (lo que deba decir DESPUÉS va en 'Generador reconstruido').";
             case SecuenciaIntro.Paso.Terminado: return "Fin del tutorial.";
             default: return "";
         }

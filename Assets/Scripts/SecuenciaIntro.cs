@@ -18,6 +18,7 @@ using UnityEngine;
 ///  8 Zoom a la gasolina    (desactivado por defecto: 'hacerZoomGasolina')
 ///  9 Recoger la moneda     (tras repostar; marca la moneda; Cartera.OnMonedasCambiadas)
 /// 10 Reconstruir el generador de meteoritos (marca el generador; ConstruccionDianaBloopMonedas.EstaConstruida)
+/// 11 Generador reconstruido: empieza al repararlo (marca la diana; termina al golpearla: DianaBloop.OnActivada)
 /// Cada frase puede "Enfocar" algo: la cámara hace zoom mientras Botro la dice.
 /// Si el jugador se adelanta, el paso se salta (y Botro no dice sus frases pendientes).
 /// </summary>
@@ -27,7 +28,7 @@ public class SecuenciaIntro : MonoBehaviour
     public enum Paso
     {
         EsperandoLlegada, AbrirPuerta, PatearPiedra, LlevarPiedraABotro, BotroExplica, LlevarATrampilla, Manguera,
-        MeterPiedra, ZoomGasolina, RecogerRestos, ReconstruirGenerador, Terminado
+        MeterPiedra, ZoomGasolina, RecogerRestos, ReconstruirGenerador, GeneradorReconstruido, Terminado
     }
 
     /// <summary>Cambio de paso (para UI, analíticas o pruebas).</summary>
@@ -111,6 +112,7 @@ public class SecuenciaIntro : MonoBehaviour
     private const string EvTragada = "tragada";
     private const string EvGasolina = "gasolina";
     private const string EvMoneda = "moneda";
+    private const string EvDiana = "diana";
 
     private readonly HashSet<string> ocurrido = new HashSet<string>();
     // Instrucción de Botro que se queda en pantalla hasta que acaba el paso.
@@ -144,6 +146,7 @@ public class SecuenciaIntro : MonoBehaviour
         AgujeroSimple.OnPiedraTragada += AlTragar;
         ContadorGasolinera.OnGasolinaAnadida += AlAnadirGasolina;
         BotroDice.OnLineaTerminada += AlTerminarLinea;
+        DianaBloop.OnActivada += AlActivarDiana;
     }
 
     private void OnDisable()
@@ -157,6 +160,7 @@ public class SecuenciaIntro : MonoBehaviour
         AgujeroSimple.OnPiedraTragada -= AlTragar;
         ContadorGasolinera.OnGasolinaAnadida -= AlAnadirGasolina;
         BotroDice.OnLineaTerminada -= AlTerminarLinea;
+        DianaBloop.OnActivada -= AlActivarDiana;
         if (cartera != null) cartera.OnMonedasCambiadas -= AlCambiarMonedas;
     }
 
@@ -174,6 +178,7 @@ public class SecuenciaIntro : MonoBehaviour
     private void AlTragar(AgujeroSimple a, float pureza, float gasolina) { Marcar(EvTragada); }
     private void AlAnadirGasolina(float fraccion, float litros) { Marcar(EvGasolina); }
     private void AlTerminarLinea(string id) { Marcar("linea:" + id); }
+    private void AlActivarDiana(DianaBloop diana) { if (!GeneradorConstruido() || generador == null) return; Marcar(EvDiana); }
 
     private void AlCambiarMonedas(int total)
     {
@@ -280,6 +285,10 @@ public class SecuenciaIntro : MonoBehaviour
 
         // 10 · Reconstruir el generador de meteoritos lanzándole la moneda (marcado)
         yield return EjecutarPaso(Paso.ReconstruirGenerador, GeneradorConstruido);
+
+        // 11 · Ya reparado: Botro habla de la diana (marcada) hasta que la golpeas
+        if (generador != null)
+            yield return EjecutarPaso(Paso.GeneradorReconstruido, () => Ocurrio(EvDiana));
 
         Terminar();
     }
@@ -568,6 +577,9 @@ public class SecuenciaIntro : MonoBehaviour
                 return agujero != null ? agujero.transform.position : (Vector3?)null;
             case Paso.RecogerRestos:
                 return MonedaMasCercana();
+            case Paso.GeneradorReconstruido:
+                if (generador != null && generador.dianaBloop != null) return generador.dianaBloop.transform.position;
+                goto case Paso.ReconstruirGenerador;
             case Paso.ReconstruirGenerador:
                 Bounds b;
                 string n;

@@ -1698,6 +1698,8 @@ MonoBehaviour:
   velocidadReboteArma: 12
   intensidadReboteArma: 0.15
   usarEconomiaDemo: 1
+  empezarDestruida: 1
+  precioReconstruccion: 1
 --- !u!65 &14543139
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5507,39 +5509,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 880.48
+      value: 897.85
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 395.52
+      value: 395.563
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 219.028
+      value: 200.589
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99999946
+      value: 0.9238239
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.0010395248
+      value: -0.012730028
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: -0.38256988
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: -0.005271704
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -0.119
+      value: -1.579
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -44.99
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -5553,13 +5555,133 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -5815535342682054033, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -10.952798
+      objectReference: {fileID: 0}
+    - target: {fileID: -5815535342682054033, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -5.538037
+      objectReference: {fileID: 0}
+    - target: {fileID: -5815535342682054033, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 39.79036
+      objectReference: {fileID: 0}
+    - target: {fileID: -4873056264756297264, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 89.98021
+      objectReference: {fileID: 0}
+    - target: {fileID: -4330981545642508851, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 33.805492
+      objectReference: {fileID: 0}
+    - target: {fileID: -4330981545642508851, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -9.686899
+      objectReference: {fileID: 0}
+    - target: {fileID: -4330981545642508851, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 28.671122
+      objectReference: {fileID: 0}
+    - target: {fileID: -3092819400979458626, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 8.130105
+      objectReference: {fileID: 0}
+    - target: {fileID: -3092819400979458626, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -0.000000045968836
+      objectReference: {fileID: 0}
+    - target: {fileID: -3092819400979458626, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -0.0000006468314
+      objectReference: {fileID: 0}
+    - target: {fileID: -1135752699189377509, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 51.949455
+      objectReference: {fileID: 0}
+    - target: {fileID: -1135752699189377509, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 10.110808
+      objectReference: {fileID: 0}
+    - target: {fileID: -1135752699189377509, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 23.25549
+      objectReference: {fileID: 0}
     - target: {fileID: -377834566283882371, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 6aa00f6831697754292759a89773574b, type: 2}
+    - target: {fileID: -360509063929093976, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -69.76689
+      objectReference: {fileID: 0}
+    - target: {fileID: -360509063929093976, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: -360509063929093976, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: -57964416073769836, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -4.0711098e-13
+      objectReference: {fileID: 0}
+    - target: {fileID: 326283302645529875, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -10.743628
+      objectReference: {fileID: 0}
+    - target: {fileID: 326283302645529875, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 118.18944
+      objectReference: {fileID: 0}
+    - target: {fileID: 326283302645529875, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 179.44893
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: m_Name
       value: Botro
+      objectReference: {fileID: 0}
+    - target: {fileID: 5371789610527914410, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -21.566784
+      objectReference: {fileID: 0}
+    - target: {fileID: 5371789610527914410, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -96.807076
+      objectReference: {fileID: 0}
+    - target: {fileID: 5371789610527914410, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 170.92397
+      objectReference: {fileID: 0}
+    - target: {fileID: 6112899228228565606, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -8.018641
+      objectReference: {fileID: 0}
+    - target: {fileID: 7699372726039216332, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -0.6612875
+      objectReference: {fileID: 0}
+    - target: {fileID: 7699372726039216332, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 7.6352086
+      objectReference: {fileID: 0}
+    - target: {fileID: 7699372726039216332, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -19.27633
+      objectReference: {fileID: 0}
+    - target: {fileID: 7918750149240589649, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -3.9532015
+      objectReference: {fileID: 0}
+    - target: {fileID: 7918750149240589649, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -8.926832
+      objectReference: {fileID: 0}
+    - target: {fileID: 7918750149240589649, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -11.9967575
       objectReference: {fileID: 0}
     - target: {fileID: 8442137758569561092, guid: dec08401f9c7641459c20c707d134106, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -5573,6 +5695,12 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 577262217}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dec08401f9c7641459c20c707d134106, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 577262216}
     - targetCorrespondingSourceObject: {fileID: -1857309847194865932, guid: dec08401f9c7641459c20c707d134106, type: 3}
       insertIndex: -1
       addedObject: {fileID: 57315005}
@@ -56875,6 +57003,46 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5dfef9ff15c0f4b4b9a97e3fc1bf37c4, type: 3}
+--- !u!1 &577262215 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: dec08401f9c7641459c20c707d134106, type: 3}
+  m_PrefabInstance: {fileID: 57314996}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &577262216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 577262215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d090fab766114832a2d7e37958e48c1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimacionBotro
+  esperaAntesDeCallar: 1.5
+--- !u!95 &577262217
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 577262215}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 80516c76f995a1a4eac471de1ca6bddd, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!198 &577428033 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 2961223106298079572, guid: 295d67c8cc4985e459ab27b2d104042b, type: 3}
@@ -58208,6 +58376,8 @@ MonoBehaviour:
   armaLanzadora: {fileID: 2046494809}
   herramientaTorbellino: {fileID: 2046494812}
   sistemaConstruccion: {fileID: 584387206}
+  lanzamientoMoneda: {fileID: 0}
+  monedaEnManoSinFusil: 1
   teclaArmaLanzadora: 51
   teclaTorbellino: 52
   teclaConstruccion: 98
@@ -58369,6 +58539,7 @@ MonoBehaviour:
       mallaNueva: {fileID: 4300000, guid: db1a1dd6652265c4c9b33c613a13d12c, type: 2}
       actualizarCollider: 0
   torbellino: {fileID: 2046494812}
+  seguirNivelTorbellino: 1
   objetoBloop: {fileID: 1114449087}
   multiplicadorBloop: 1.15
   velocidadBloop: 15
@@ -137387,7 +137558,7 @@ MonoBehaviour:
   segundosBase: 1.8
   segundosPorLetra: 0.055
   letrasPorSegundo: 45
-  teclaSaltar: 13
+  teclaOmitir: 103
   sonidoLinea: 
   fuenteTexto: {fileID: 0}
   escala: 1
@@ -162389,22 +162560,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SecuenciaIntro
   omitirTutorial: 0
   registrarEnConsola: 1
-  lineaHey: "\xA1Hey, qu\xE9 haces!"
-  lineaMaquina: "\xBFVes esa trampilla? Consigue una piedra lunar y tr\xE1ela hasta
-    aqu\xED."
-  lineaTrampilla: "Mira el desgaste, f\xEDjate en esa trampilla: tragar\xE1 tus piedras
-    y te recompensar\xE1 por ello."
-  lineaRestos: "No te olvides de recoger los restos, te servir\xE1n para conseguir
-    monedas."
-  objetivoPalanca: Baja la palanca para salir de la nave
-  objetivoManguera: "Coge la manguera [E] y ench\xFAfala a la nave"
-  objetivoBuscarPiedra: Busca una piedra lunar
-  objetivoPatada: 'Patea la piedra  [Clic izquierdo]'
-  objetivoLlevar: "Lleva la piedra a patadas hasta la m\xE1quina"
-  objetivoMeter: "M\xE9tela por la trampilla"
-  objetivoRestos: Recoge los restos con clic izquierdo
-  distanciaLlegarPiedra: 6
+  botro: {fileID: 0}
+  nombreObjetoBotro: Botro
+  distanciaEntregaBotro: 6
+  distanciaJugadorBotro: 9
+  esperaMaximaPiedraCaida: 6
   distanciaPiedraAgujero: 12
+  mostrarMarcador: 1
+  hacerZoomGasolina: 0
   pantallaGasolina: {fileID: 561415038}
   fovZoom: 22
   fovMinimoZoom: 8
@@ -162417,6 +162580,10 @@ MonoBehaviour:
   gasolinera: {fileID: 0}
   cartera: {fileID: 0}
   jugador: {fileID: 0}
+  generador: {fileID: 0}
+  manguera: {fileID: 0}
+  fovMaximoEnfoque: 35
+  esperaMaximaRepostaje: 3
   fuenteTexto: {fileID: 0}
   escala: 1
 --- !u!4 &1533470428 stripped
@@ -174298,19 +174465,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2292287254b84f0399dd143a09bb5532, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitosIntermedio
-  lineaEsferaPerfecta: "\xA1Una esfera perfecta! Esas son las que de verdad valen."
-  lineaFusil: "\xBFUn fusil de monedas? Disp\xE1rale monedas a las m\xE1quinas y
-    pagar\xE1s desde lejos."
-  lineaTorbellino: "Con el torbellino mueves un mont\xF3n de piedras a la vez. \xDAsalo
-    con cabeza."
-  lineaParedes: "Unas paredes bien puestas y las piedras ir\xE1n justo a donde quieras."
-  lineaFaltanPiedras: "Te est\xE1s quedando sin piedras... Mira la diana: si la mejoras,
-    caer\xE1n m\xE1s."
-  lineaCinta: "\xA1Una cinta! Deja que trabaje ella mientras t\xFA vas a por m\xE1s."
-  lineaFisionador: "El Fisionador ya est\xE1 en marcha. Ocho esferas perfectas y
-    tendr\xE1s algo muy gordo."
-  lineaMisil: "\xA1El misil est\xE1 listo! Ll\xE9valo al lanzador. Ya sabes a d\xF3nde
-    apuntar."
   umbralPocasPiedras: 2
   piedrasTragadasAntesDeAvisar: 6
   neonDiana: {fileID: 0}
@@ -216387,7 +216541,6 @@ MonoBehaviour:
   sonidoDisparo: {fileID: 8300000, guid: 6628ae0a1a19ba346a46f7fb5c8b99ad, type: 3}
   fuerzaRetrocesoVisual: 0.05
   velocidadRecuperacionRetroceso: 40
-  aspirarFragmentos: 0
 --- !u!114 &2046494810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216493,6 +216646,7 @@ MonoBehaviour:
   escalaEfectoNivel2: 1
   escalaEfectoNivel3: 1.25
   escalaEfectoNivel4: 1.5
+  escalaEfectoNivel5: 2
   nivelAlcance: 1
   alcanceNivel1: 20
   alcanceNivel2: 30
@@ -216504,6 +216658,7 @@ MonoBehaviour:
   multiplicadorMovilidadActual: 0.5
   limitarPiedrasPorNivel: 1
   nivelCapacidad: 1
+  nivelesUnificados: 1
 --- !u!114 &2046494813
 MonoBehaviour:
   m_ObjectHideFlags: 0

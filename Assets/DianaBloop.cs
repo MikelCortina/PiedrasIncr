@@ -160,6 +160,12 @@ public class DianaBloop : MonoBehaviour
         IniciarExpulsion();
     }
 
+    /// <summary>La diana se activa (la golpeas y expulsa piedras).</summary>
+    public static event System.Action<DianaBloop> OnActivada;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarEventoActivada() { OnActivada = null; }
+
     public void RecibirImpacto(Vector3 puntoExactoImpacto, Vector3 normalSuperficie = default)
     {
         InicializarTardio();
@@ -195,6 +201,7 @@ public class DianaBloop : MonoBehaviour
         if (enCooldown) return;
 
         enCooldown = true;
+        OnActivada?.Invoke(this);
         if (corrutinaOscilacion != null) StopCoroutine(corrutinaOscilacion);
 
         if (psCargando != null)

@@ -25,10 +25,14 @@ MonoBehaviour:
     - texto: Hola? Hay alguien ahi? Un viajero espacial, ya era hora!
       esInstruccion: 0
       retraso: 0
+      duracion: 0
+      enfocar: 
     - texto: Ves ese meteorito que ha caido ahi? Patealo hasta mi y te explicare
         como repostar tu nave!
       esInstruccion: 0
       retraso: 0
+      duracion: 0
+      enfocar: 
     repetirInstruccionCada: 0
   - id: intro_LlevarPiedraABotro
     activo: 1
@@ -40,15 +44,18 @@ MonoBehaviour:
     soloUnaVez: 1
     frases:
     - texto: 'Lo que imaginaba, esto son piedras lunares, sirven para fabricar gasolina,
-        desgastalas y tiralas al deposito de la gasolina, el sistema de pago automatico
+        desgastalas y tiralas al deposito de mi gasolinera, el sistema de pago automatico
         de recompensara por ello.  '
       esInstruccion: 0
       retraso: 0
+      duracion: 0
+      enfocar: 
     - texto: Cuando consigas una moneda, lanzala contra ese meteorito estrellado,
         antiguamente era nuestro generador de piedras lunares, pero la misma lluvia
         de estrellas que me dejo asi, acabo con todas nuestras herramientas.
       esInstruccion: 0
       retraso: 0
+      duracion: 0
       enfocar: Generador
     repetirInstruccionCada: 0
   - id: intro_Manguera
@@ -60,10 +67,12 @@ MonoBehaviour:
     retraso: 0
     soloUnaVez: 1
     frases:
-    - texto: Antes de tirarla al deposito asegurate d econectar la manguera a tu
+    - texto: Antes de tirarla al deposito asegurate de conectar la manguera a tu
         nave!
       esInstruccion: 0
       retraso: 0
+      duracion: 0
+      enfocar: 
     repetirInstruccionCada: 0
   - id: intro_MeterPiedra
     activo: 1
@@ -88,4 +97,37 @@ MonoBehaviour:
         el generador para repararlo!
       esInstruccion: 0
       retraso: 0
+      duracion: 0
+      enfocar: 
+    repetirInstruccionCada: 0
+  - id: intro_ReconstruirGenerador
+    activo: 1
+    cuando: PasoIntro
+    paso: ReconstruirGenerador
+    compra: 
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases:
+    - texto: Perfecto, patea la diana y generara piedras que podras desgastar.
+      esInstruccion: 0
+      retraso: 0
+      duracion: 0
+      enfocar: 
+    repetirInstruccionCada: 0
+  - id: momento
+    activo: 1
+    cuando: Compra
+    paso: 
+    compra: FusilMonedas
+    numero: 0
+    retraso: 0
+    soloUnaVez: 1
+    frases:
+    - texto: Este fusil te ayudara a recoger las monedas como un aspirador, ademas
+        las dispara contra los escombros a toda leche!
+      esInstruccion: 0
+      retraso: 0
+      duracion: 0
+      enfocar: 
     repetirInstruccionCada: 0
