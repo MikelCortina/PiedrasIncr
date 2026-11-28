@@ -80,6 +80,11 @@ public class AgarreLanzamiento : MonoBehaviour
 
     void IntentarAgarrar()
     {
+        // El mismo clic agarra la manguera: si la tienes en la mano o la estás mirando, no se coge piedra.
+        if (Camera.main != null &&
+            AgarrarManguera.OcupaElClic(Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0))))
+            return;
+
         if (AimAssistVisual.Instancia != null && AimAssistVisual.Instancia.objetivoActual != null)
         {
             Transform rocaInspeccionada = AimAssistVisual.Instancia.objetivoActual;

@@ -1,5 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Boquilla de la manguera: se agarra mirándola y MANTENIENDO el clic derecho (como las piedras);
+/// al soltar el clic se suelta o, si está junto a la toma de la nave, se enchufa.
+/// Nunca se queda en el vacío: si se suelta donde no hay suelo debajo, o se cae, vuelve al último sitio con suelo.
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class AgarrarManguera : MonoBehaviour
 {
@@ -8,8 +15,22 @@ public class AgarrarManguera : MonoBehaviour
     public Transform puntoAgarre;
 
     [Header("Interaccion")]
-    public KeyCode teclaAgarrar = KeyCode.E;
+    [Tooltip("Botón del ratón que hay que mantener (0 izquierdo, 1 derecho, 2 central).")]
+    public int botonAgarrar = 1;
+    [Tooltip("Distancia máxima desde la cámara para agarrarla.")]
     public float distanciaMaximaAgarrar = 8f;
+    [Tooltip("Margen al apuntar: no hace falta acertar justo en la boquilla.")]
+    public float radioApuntado = 0.5f;
+
+    [Header("Sin caer al vacío")]
+    [Tooltip("Capas del suelo. Vacío = las de la MangueraFisica.")]
+    public LayerMask capasSuelo;
+    [Tooltip("Hasta qué distancia por debajo de la boquilla se busca suelo.")]
+    public float alturaMaximaSobreSuelo = 6f;
+    [Tooltip("Metros que puede caer por debajo del último sitio seguro antes de devolverla.")]
+    public float caidaMaximaPermitida = 3f;
+    [Tooltip("Segundos que tarda en volver al último sitio con suelo.")]
+    public float duracionVuelta = 0.5f;
 
     [Header("Movimiento fisico")]
     public float fuerzaSeguimiento = 350f;
@@ -39,58 +60,110 @@ public class AgarrarManguera : MonoBehaviour
     public bool Conectada => conectada;
     public bool Agarrada => agarrada;
 
+    // Para que AgarreLanzamiento no coja una piedra con el mismo clic.
+    private static readonly List<AgarrarManguera> instancias = new List<AgarrarManguera>();
+
+    /// <summary>Alguna manguera está en la mano o la cámara la está apuntando (el clic derecho es para ella).</summary>
+    public static bool OcupaElClic(Ray rayo)
+    {
+        foreach (AgarrarManguera m in instancias)
+            if (m != null && (m.agarrada || m.EstaApuntada(rayo)))
+                return true;
+        return false;
+    }
+
     private Rigidbody rb;
     private bool agarrada = false;
     private bool conectada = false;
+    private bool volviendo = false;
+    private Vector3 ultimaPosicionSegura;
+    private GestorEquipamiento gestorEquipamiento;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        ultimaPosicionSegura = rb.position;
+    }
+
+    void OnEnable() { instancias.Add(this); }
+    void OnDisable() { instancias.Remove(this); }
+
+    void Start()
+    {
+        if (capasSuelo.value == 0)
+        {
+            MangueraFisica fisica = GetComponentInParent<MangueraFisica>();
+            if (fisica != null) capasSuelo = fisica.capasSuelo;
+        }
+        gestorEquipamiento = FindFirstObjectByType<GestorEquipamiento>();
     }
 
     void Update()
     {
-        if (!Input.GetKeyDown(teclaAgarrar))
-            return;
-
-        if (conectada)
+        if (conectada || volviendo)
             return;
 
         if (agarrada)
         {
-            // Si estamos cerca de la toma de combustible,
-            // conectamos la manguera en lugar de soltarla.
-            if (puntoConexionNave != null &&
-                Vector3.Distance(transform.position,
-                    puntoConexionNave.position) <= distanciaConexion)
+            // Al soltar el clic: si estamos junto a la toma de combustible se enchufa; si no, se suelta.
+            if (!Input.GetMouseButton(botonAgarrar))
             {
-                ConectarANave();
+                if (puntoConexionNave != null &&
+                    Vector3.Distance(transform.position, puntoConexionNave.position) <= distanciaConexion)
+                    ConectarANave();
+                else
+                    Soltar();
             }
-            else
-            {
-                Soltar();
-            }
-
             return;
         }
 
-        if (camaraJugador == null || puntoAgarre == null)
+        if (!Input.GetMouseButtonDown(botonAgarrar) || camaraJugador == null || puntoAgarre == null)
             return;
 
-        float distancia = Vector3.Distance(
-            camaraJugador.position,
-            rb.position
-        );
+        // Igual que las piedras: con una herramienta en la mano no se agarra.
+        if (gestorEquipamiento != null && !gestorEquipamiento.PuedeUsarManos())
+            return;
 
-        if (distancia <= distanciaMaximaAgarrar)
-        {
+        Camera cam = Camera.main;
+        Ray rayo = cam != null
+            ? cam.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f))
+            : new Ray(camaraJugador.position, camaraJugador.forward);
+
+        if (EstaApuntada(rayo))
             Agarrar();
-        }
+    }
+
+    // La cámara mira a la boquilla y está a distancia de agarre.
+    bool EstaApuntada(Ray rayo)
+    {
+        if (conectada || volviendo || rb == null) return false;
+        if (camaraJugador != null && Vector3.Distance(camaraJugador.position, rb.position) > distanciaMaximaAgarrar) return false;
+
+        RaycastHit[] impactos = Physics.SphereCastAll(rayo, radioApuntado, distanciaMaximaAgarrar,
+                                                      Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        foreach (RaycastHit impacto in impactos)
+            if (impacto.collider != null && impacto.collider.attachedRigidbody == rb)
+                return true;
+        return false;
     }
 
     void FixedUpdate()
     {
-        if (!agarrada || conectada || puntoAgarre == null)
+        if (conectada || volviendo)
+            return;
+
+        if (HaySueloDebajo(rb.position))
+        {
+            ultimaPosicionSegura = rb.position;
+        }
+        else if (!agarrada && rb.position.y < ultimaPosicionSegura.y - caidaMaximaPermitida)
+        {
+            // Se ha caído por un borde: vuelve.
+            StartCoroutine(VolverASitioSeguro());
+            return;
+        }
+
+        if (!agarrada || puntoAgarre == null)
             return;
 
         Vector3 diferencia = puntoAgarre.position - rb.position;
@@ -111,15 +184,57 @@ public class AgarrarManguera : MonoBehaviour
     {
         agarrada = true;
         rb.WakeUp();
-
-        Debug.Log("Manguera agarrada");
     }
 
     void Soltar()
     {
         agarrada = false;
 
-        Debug.Log("Manguera soltada");
+        // Soltada sobre el vacío: no se deja caer, vuelve al último sitio con suelo.
+        if (!HaySueloDebajo(rb.position))
+            StartCoroutine(VolverASitioSeguro());
+    }
+
+    bool HaySueloDebajo(Vector3 posicion)
+    {
+        int capas = capasSuelo.value != 0 ? capasSuelo.value : Physics.DefaultRaycastLayers;
+        RaycastHit[] impactos = Physics.RaycastAll(posicion + Vector3.up * 0.1f, Vector3.down,
+                                                   alturaMaximaSobreSuelo, capas, QueryTriggerInteraction.Ignore);
+        foreach (RaycastHit impacto in impactos)
+            if (impacto.collider != null && impacto.collider.attachedRigidbody != rb)
+                return true;
+        return false;
+    }
+
+    // Vuelve flotando al último sitio con suelo y allí se queda quieta.
+    IEnumerator VolverASitioSeguro()
+    {
+        volviendo = true;
+        agarrada = false;
+
+        bool eraCinematico = rb.isKinematic;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.isKinematic = true;
+
+        Vector3 desde = rb.position;
+        Vector3 hasta = ultimaPosicionSegura + Vector3.up * 0.3f;
+        float duracion = Mathf.Max(0.05f, duracionVuelta);
+
+        for (float t = 0f; t < duracion; t += Time.fixedDeltaTime)
+        {
+            float k = Mathf.SmoothStep(0f, 1f, t / duracion);
+            // Un pequeño arco para que se vea que vuelve, no que se teletransporta.
+            Vector3 punto = Vector3.Lerp(desde, hasta, k) + Vector3.up * Mathf.Sin(k * Mathf.PI) * 0.6f;
+            rb.MovePosition(punto);
+            yield return new WaitForFixedUpdate();
+        }
+
+        rb.position = hasta;
+        rb.isKinematic = eraCinematico;
+        rb.linearVelocity = Vector3.zero;
+        rb.WakeUp();
+        volviendo = false;
     }
 
     void ConectarANave()
