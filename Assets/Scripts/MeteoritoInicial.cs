@@ -7,7 +7,18 @@ public class MeteoritoInicial : MonoBehaviour
     public LluviaMeteoritos lluviaMeteoritos;
     public GameObject prefabMeteorito;
     public Transform puntoSalidaLuna;
+    [Tooltip("Solo se usa si 'Impactar Delante De Nave' está desactivado (o no se encuentra la nave).")]
     public Transform puntoImpacto;
+
+    [Header("Impacto delante de la nave")]
+    [Tooltip("Activado: cae delante de donde se para la nave (se calcula con su spline). Desactivado: cae en 'Punto Impacto'.")]
+    public bool impactarDelanteDeNave = true;
+    [Tooltip("La intro de la nave. Vacío = se busca sola.")]
+    public CambioCamaraIntro intro;
+    [Tooltip("Metros por delante del morro de la nave parada.")]
+    [Min(0f)] public float distanciaDelanteNave = 12f;
+    [Tooltip("Metros hacia la derecha de la nave (negativo = izquierda).")]
+    public float desplazamientoLateral = 0f;
 
     [Header("Viaje desde la Luna")]
     [Min(0.1f)] public float duracionViaje = 2f;
@@ -37,6 +48,10 @@ public class MeteoritoInicial : MonoBehaviour
 
     /// <summary>Última piedra lanzada por el meteorito inicial (la que cae delante de la nave).</summary>
     public static Rigidbody PiedraLanzada { get; private set; }
+
+    /// <summary>Segundos desde que se lanza hasta que llega al suelo (CambioCamaraIntro lo usa para que caiga al aparcar).</summary>
+    public float DuracionCaida => duracionViaje + duracionDescenso;
+    public bool Lanzado => meteoritoLanzado;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ReiniciarEstatico()
@@ -83,7 +98,7 @@ public class MeteoritoInicial : MonoBehaviour
     [ContextMenu("Lanzar meteorito inicial")]
     public void LanzarMeteorito()
     {
-        // (Lo llama CambioCamaraIntro al final del vuelo; SecuenciaIntro también si la intro se ha saltado.)
+        // (Lo llama CambioCamaraIntro antes de aparcar, para que caiga justo al parar; SecuenciaIntro también si la intro se ha saltado.)
         if (!Application.isPlaying || meteoritoLanzado)
             return;
 
@@ -105,14 +120,15 @@ public class MeteoritoInicial : MonoBehaviour
             ? lluviaMeteoritos.prefabPiedra
             : prefabMeteorito;
 
-        if (prefab == null || puntoSalidaLuna == null || puntoImpacto == null)
+        Vector3 impactoDeseado;
+        if (prefab == null || puntoSalidaLuna == null || !ObtenerPuntoImpacto(out impactoDeseado))
         {
             Debug.LogError("[METEORITO INICIAL] Faltan el prefab, la salida de la Luna o el punto de impacto.");
             return;
         }
 
         Vector3 origen = puntoSalidaLuna.position;
-        Vector3 suelo = ObtenerPosicionSuelo(puntoImpacto.position);
+        Vector3 suelo = ObtenerPosicionSuelo(impactoDeseado);
         GameObject meteorito = Instantiate(prefab, origen, Random.rotation);
         Rigidbody rb = meteorito.GetComponent<Rigidbody>();
 
@@ -233,6 +249,27 @@ public class MeteoritoInicial : MonoBehaviour
         Debug.Log("[METEORITO INICIAL] Llegada al suelo: " + destino);
     }
 
+    // Delante de donde se para la nave; si no se puede calcular, el 'Punto Impacto' de la escena.
+    private bool ObtenerPuntoImpacto(out Vector3 punto)
+    {
+        if (impactarDelanteDeNave)
+        {
+            if (intro == null && Application.isPlaying)
+                intro = FindFirstObjectByType<CambioCamaraIntro>();
+
+            Vector3 posicionNave, frente;
+            if (intro != null && intro.ObtenerPoseParadaNave(out posicionNave, out frente))
+            {
+                Vector3 derecha = Vector3.Cross(Vector3.up, frente);
+                punto = posicionNave + frente * distanciaDelanteNave + derecha * desplazamientoLateral;
+                return true;
+            }
+        }
+
+        punto = puntoImpacto != null ? puntoImpacto.position : Vector3.zero;
+        return puntoImpacto != null;
+    }
+
     private Vector3 ObtenerPosicionSuelo(Vector3 posicion)
     {
         Vector3 origenRaycast = posicion + Vector3.up * (alcanceBusquedaSuelo * 0.5f);
@@ -340,11 +377,11 @@ public class MeteoritoInicial : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (!mostrarTrayectoria || puntoSalidaLuna == null || puntoImpacto == null)
+        Vector3 destino;
+        if (!mostrarTrayectoria || puntoSalidaLuna == null || !ObtenerPuntoImpacto(out destino))
             return;
 
         Vector3 origen = puntoSalidaLuna.position;
-        Vector3 destino = puntoImpacto.position;
         Vector3 entrada = ObtenerPuntoEntrada(destino);
         Vector3 control = ObtenerPuntoControl(entrada, destino);
 

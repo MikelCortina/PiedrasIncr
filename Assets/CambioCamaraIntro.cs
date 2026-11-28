@@ -150,6 +150,9 @@ public class CambioCamaraIntro : MonoBehaviour
     [Range(0f, 1f)] public float puntoFinIntroduccion = 0.99f;
     [Header("Meteorito Inicial")]
     public MeteoritoInicial meteoritoInicial;
+    [Tooltip("Se lanza con antelación para que caiga delante de la nave justo cuando se para. " +
+             "Segundos que impacta ANTES de parar (0 = a la vez; negativo = después).")]
+    public float segundosImpactoAntesDeParar = 0f;
 
     [Header("Salida con Palanca")]
     [Tooltip("Palanca de la cabina que el jugador debe bajar para salir. Vacía = la intro termina sola como antes.")]
@@ -581,8 +584,16 @@ public class CambioCamaraIntro : MonoBehaviour
             }
 
 
+            // El meteorito tarda unos segundos en caer: se lanza antes para que impacte al aparcar.
+            if (meteoritoInicial != null && !meteoritoInicial.Lanzado && progreso < puntoFinIntroduccion &&
+                SegundosHastaParar(progreso) <= meteoritoInicial.DuracionCaida - segundosImpactoAntesDeParar)
+            {
+                meteoritoInicial.LanzarMeteorito();
+            }
+
             if (progreso >= puntoFinIntroduccion)
             {
+                // Respaldo: si no se lanzó antes (no hay tiempo, retraso negativo...), se lanza al parar.
                 if (meteoritoInicial != null)
                     meteoritoInicial.LanzarMeteorito();
 
@@ -681,6 +692,65 @@ public class CambioCamaraIntro : MonoBehaviour
 
         movimientoNave.NormalizedTime = progresoPersonalizado;
         return progresoPersonalizado;
+    }
+
+    // Segundos que le faltan a la nave para llegar a puntoFinIntroduccion (integra la curva de velocidad).
+    private float SegundosHastaParar(float progreso)
+    {
+        float restante = puntoFinIntroduccion - progreso;
+        if (restante <= 0f)
+            return 0f;
+
+        if (!usarCurvaVelocidad)
+            return restante * movimientoNave.Duration;
+
+        float duracionSegura = Mathf.Max(0.1f, duracionBaseRecorrido);
+        const int pasos = 32;
+        float paso = restante / pasos;
+        float segundos = 0f;
+
+        for (int i = 0; i < pasos; i++)
+        {
+            float p = progreso + paso * (i + 0.5f);
+            segundos += paso * duracionSegura / Mathf.Max(0.01f, curvaMultiplicadorVelocidad.Evaluate(p));
+        }
+
+        return segundos;
+    }
+
+    /// <summary>
+    /// Dónde se para la nave (punto 'puntoFinIntroduccion' del spline) y hacia dónde mira, en horizontal.
+    /// MeteoritoInicial lo usa para caer delante de ella.
+    /// </summary>
+    public bool ObtenerPoseParadaNave(out Vector3 posicion, out Vector3 frente)
+    {
+        posicion = Vector3.zero;
+        frente = Vector3.forward;
+
+        if (movimientoNave == null || movimientoNave.Container == null)
+            return false;
+
+        SplineContainer ruta = movimientoNave.Container;
+        if (ruta.Splines.Count == 0 || ruta.Spline == null || ruta.Spline.Count < 2)
+            return false;
+
+        float t = Mathf.Clamp01(puntoFinIntroduccion);
+        posicion = ruta.EvaluatePosition(t);
+
+        // Al final del spline la tangente puede ser nula: se mira un poco antes.
+        Vector3 tangente = ruta.EvaluateTangent(t);
+        tangente.y = 0f;
+        if (tangente.sqrMagnitude < 0.0001f)
+        {
+            tangente = ruta.EvaluateTangent(Mathf.Clamp01(t - 0.01f));
+            tangente.y = 0f;
+        }
+
+        if (tangente.sqrMagnitude < 0.0001f)
+            return false;
+
+        frente = tangente.normalized;
+        return true;
     }
 
     // Mide cuánto gira el spline alrededor de la nave (en horizontal) y calcula la inclinación,
