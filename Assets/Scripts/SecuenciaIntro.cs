@@ -94,6 +94,14 @@ public class SecuenciaIntro : MonoBehaviour
     public ConstruccionDianaBloopMonedas generador;
     public AgarrarManguera manguera;
 
+    [Header("Primeras monedas")]
+    [Tooltip("La primera vez que salen monedas (partida nueva), la cámara gira hacia el PayZone y mira cómo salen.")]
+    public bool mirarPrimerasMonedas = true;
+    [Tooltip("Segundos mirando las monedas antes de devolver la cámara.")]
+    public float segundosMirandoMonedas = 2.5f;
+    [Tooltip("Tamaño (m) de la zona que se encuadra alrededor de la ranura. Más grande = menos zoom.")]
+    public float tamanoEncuadreMonedas = 2.5f;
+
     [Header("Enfoque de cámara (opción 'Enfocar' de cada frase)")]
     [Tooltip("FOV máximo al enfocar algo mientras Botro habla (se reduce si hace falta para encuadrarlo).")]
     public float fovMaximoEnfoque = 35f;
@@ -150,10 +158,12 @@ public class SecuenciaIntro : MonoBehaviour
         ContadorGasolinera.OnGasolinaAnadida += AlAnadirGasolina;
         BotroDice.OnLineaTerminada += AlTerminarLinea;
         DianaBloop.OnActivada += AlActivarDiana;
+        AgujeroSimple.OnMonedasEscupidas += AlEscupirMonedas;
     }
 
     private void OnDisable()
     {
+        zoomMonedasEnCurso = false;
         RestaurarZoom();
         CambioCamaraIntro.OnNaveAterrizada -= AlAterrizar;
         CambioCamaraIntro.OnPuertaAbierta -= AlAbrirPuerta;
@@ -164,6 +174,7 @@ public class SecuenciaIntro : MonoBehaviour
         ContadorGasolinera.OnGasolinaAnadida -= AlAnadirGasolina;
         BotroDice.OnLineaTerminada -= AlTerminarLinea;
         DianaBloop.OnActivada -= AlActivarDiana;
+        AgujeroSimple.OnMonedasEscupidas -= AlEscupirMonedas;
         if (cartera != null) cartera.OnMonedasCambiadas -= AlCambiarMonedas;
     }
 
@@ -182,6 +193,35 @@ public class SecuenciaIntro : MonoBehaviour
     private void AlAnadirGasolina(float fraccion, float litros) { Marcar(EvGasolina); }
     private void AlTerminarLinea(string id) { Marcar("linea:" + id); }
     private void AlActivarDiana(DianaBloop diana) { if (!GeneradorConstruido() || generador == null) return; Marcar(EvDiana); }
+
+    // ---------- Giro de cámara a las primeras monedas ----------
+
+    private bool primerasMonedasVistas;
+    private bool zoomMonedasEnCurso;
+
+    private void AlEscupirMonedas(AgujeroSimple agujeroMonedas, Vector3 salida, int cantidad)
+    {
+        if (!mirarPrimerasMonedas || primerasMonedasVistas || cantidad <= 0) return;
+        // Partida cargada: ya las vio en su día.
+        if (GuardadoPartidaJuego.InicioActual == GuardadoPartidaJuego.TipoInicio.PartidaCargada) return;
+        primerasMonedasVistas = true;
+        StartCoroutine(MirarPrimerasMonedas(salida));
+    }
+
+    private IEnumerator MirarPrimerasMonedas(Vector3 salida)
+    {
+        zoomMonedasEnCurso = true;
+        // Se espera a que termine el paso de meter la piedra (al acabar restaura la cámara)
+        // y a que no haya otro enfoque en marcha.
+        yield return null;
+        yield return null;
+        while (zoomActivo) yield return null;
+
+        Registrar("Primeras monedas: la cámara mira cómo salen.");
+        Bounds zona = new Bounds(salida, Vector3.one * Mathf.Max(0.5f, tamanoEncuadreMonedas));
+        yield return HacerZoom(zona, "Primeras monedas", fovMaximoEnfoque, new WaitForSeconds(segundosMirandoMonedas));
+        zoomMonedasEnCurso = false;
+    }
 
     private void AlCambiarMonedas(int total)
     {
@@ -378,6 +418,9 @@ public class SecuenciaIntro : MonoBehaviour
         {
             if (frase == null || string.IsNullOrWhiteSpace(frase.texto)) continue;
             if (frase.retraso > 0f) yield return new WaitForSeconds(frase.retraso);
+
+            // Si la cámara está mirando las primeras monedas, Botro espera a que vuelva.
+            while (zoomMonedasEnCurso) yield return null;
 
             IEnumerator decir = DecirYEsperar(PrefijoPaso(paso), frase.texto, frase.duracion);
             Bounds limites;

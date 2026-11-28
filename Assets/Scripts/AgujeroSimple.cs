@@ -28,6 +28,15 @@ public class AgujeroSimple : MonoBehaviour
     public bool darMonedasPorTramos = true;
 
     public static event System.Action<AgujeroSimple, float, float> OnPiedraTragada;
+    /// <summary>Empiezan a salir monedas: (agujero, punto por el que salen, cantidad).</summary>
+    public static event System.Action<AgujeroSimple, Vector3, int> OnMonedasEscupidas;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarEventos()
+    {
+        OnPiedraTragada = null;
+        OnMonedasEscupidas = null;
+    }
 
     [Header("Recompensas (Tramos de Pureza)")]
     public GameObject prefabDinero;
@@ -250,6 +259,10 @@ public class AgujeroSimple : MonoBehaviour
         }
 
         Transform ranura = RanuraPayzone();
+
+        Transform salida = ranura != null ? ranura : puntoDeExpulsion;
+        if (OnMonedasEscupidas != null && salida != null && prefabDinero != null)
+            OnMonedasEscupidas(this, salida.position, cantidad);
 
         for (int i = 0; i < cantidad; i++)
         {
