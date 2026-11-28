@@ -26466,8 +26466,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  m_sharedMaterial: {fileID: 534718275566134188, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  m_sharedMaterial: {fileID: 224532291537869747, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -44690,11 +44690,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b062d0999eca07747abc0384b82ac2fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teclaAbrir: 101
-  avisoInteraccion: {fileID: 0}
-  panelCompraBots: {fileID: 1484447925}
-  tiendaTrabajo: {fileID: 1616845191}
-  controlCamaraJugador: {fileID: 2046494810}
 --- !u!4 &446501502 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3327440404566659752, guid: 21e7026a4a060ff4483470ab3002a942, type: 3}
@@ -49275,12 +49270,9 @@ MonoBehaviour:
   botonAgarrar: 1
   distanciaMaximaAgarrar: 8
   radioApuntado: 0.5
-  capasSuelo:
-    serializedVersion: 2
-    m_Bits: 0
-  alturaMaximaSobreSuelo: 6
+  velocidadRecogida: 5
+  alturaArcoRecogida: 1
   caidaMaximaPermitida: 3
-  duracionVuelta: 0.5
   fuerzaSeguimiento: 350
   amortiguacionSeguimiento: 45
   fuerzaMaxima: 500
@@ -69619,6 +69611,9 @@ MonoBehaviour:
   teclaInteractuar: 113
   textoInteraccion: {fileID: 543666606}
   mensajeInteraccion: Pulsa Q para abrir la tienda
+  piedrasParaAbrir: 2
+  mensajeCerrada: "Tienda cerrada: mete m\xE1s piedras en el dep\xF3sito"
+  fusilGratisAlAbrir: 1
 --- !u!65 &707432501
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -72332,8 +72327,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  m_sharedMaterial: {fileID: 534718275566134188, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  m_sharedMaterial: {fileID: 224532291537869747, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -95722,7 +95717,7 @@ MonoBehaviour:
   velocidadRecuperacion: 15
   teclaMostrarTodas: 112
   mostrarDesgasteTodas: 0
-  fuentePanel: {fileID: 12800000, guid: 1d43eb51a5293dd4dad6075de564c3f8, type: 3}
+  fuentePanel: {fileID: 12800000, guid: f7b4aaf1b43fb1b478a5be3f2af2eef9, type: 3}
   escalaPanel: 1
   porcentajeListo: 95
   colorPlaca: {r: 0.035, g: 0.025, b: 0.09, a: 0.88}
@@ -99606,8 +99601,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  m_sharedMaterial: {fileID: 534718275566134188, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  m_sharedMaterial: {fileID: 224532291537869747, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -139211,6 +139206,7 @@ MonoBehaviour:
   precioDesbloqueo: 300
   cartera: {fileID: 0}
   teclaComprar: 101
+  compraConTecla: 1
   distanciaCompra: 6
   jugador: {fileID: 0}
   objetosBloqueado:
@@ -151653,8 +151649,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  m_sharedMaterial: {fileID: 534718275566134188, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  m_sharedMaterial: {fileID: 224532291537869747, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -157024,8 +157020,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  m_sharedMaterial: {fileID: 534718275566134188, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  m_sharedMaterial: {fileID: 224532291537869747, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -171192,6 +171188,7 @@ MonoBehaviour:
   precioJetpackNivel3: 20
   precioJetpackNivel4: 40
   precioArmaLuna: 1
+  fusilGratis: 0
   precioTorbellino: 1
   herramientaTorbellino: {fileID: 0}
   precioRadioNivel2: 5
@@ -200698,8 +200695,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  m_sharedMaterial: {fileID: 534718275566134188, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  m_sharedMaterial: {fileID: 224532291537869747, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -216593,6 +216590,7 @@ MonoBehaviour:
     m_Bits: 16384
   distanciaInteraccion: 5
   sensibilidadGiro: 0.5
+  palancaPegadaALaMano: 1
   sensibilidadArrastre: 0.01
   mismoRecorridoTodasPalancas: 1
   recorridoMiradaPalancas: 0.08

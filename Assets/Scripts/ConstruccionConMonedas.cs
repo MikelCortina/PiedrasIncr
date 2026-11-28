@@ -58,7 +58,18 @@ public class ConstruccionConMonedas : MonoBehaviour
     [Tooltip("Generador de Arañas: arañas extra que se pueden tener por cada nivel por encima del 1.")]
     [Min(0)] public int aranasExtraPorNivel = 2;
 
-    [Header("Cartel")]
+    [Header("Antena con el número (como los otros edificios)")]
+    [Tooltip("Pone junto al edificio una copia de la antena de los otros edificios (poste, LED y pantalla con las " +
+             "monedas que faltan). Se copia de la ametralladora, la diana o la desgastadora de la escena.")]
+    public bool usarAntena = true;
+    [Tooltip("Dónde va la antena (un objeto vacío). Vacío = a un lado del edificio, en el suelo.")]
+    public Transform puntoAntena;
+    [Tooltip("Metros de separación del edificio si no hay Punto Antena.")]
+    public float separacionAntena = 1f;
+    [Tooltip("Velocidad a la que baja el número de la pantalla.")]
+    public float velocidadNumerosPantalla = 15f;
+
+    [Header("Cartel de texto (si no hay antena que copiar)")]
     public bool mostrarCartel = true;
     [Tooltip("Metros por encima del edificio.")]
     public float alturaCartel = 1.2f;
@@ -103,6 +114,22 @@ public class ConstruccionConMonedas : MonoBehaviour
     private readonly Dictionary<Transform, Vector3> escalas = new Dictionary<Transform, Vector3>();
     private float bloop;
     private TextMeshPro cartel;
+
+    // Antena copiada (null si no hay ninguna en la escena que copiar).
+    private Transform antena;
+    private Transform antenaVisual;
+    private ControladorNeon ledAntena;
+    private TMP_Text textoPantalla;
+    private Color colorLedInicio = Color.red, colorLedFinal = Color.green;
+    private float intensidadLedInicio = 1f, intensidadLedFinal = 5f;
+    private float progresoLed;
+    private float numeroMostrado;
+    private Vector3 escalaAntenaVisual;
+    private float bloopAntena;
+    private GameObject camaraPantalla;   // cámara y canvas propios de la pantalla (se destruyen con el edificio)
+    private GameObject canvasPantalla;
+    private RenderTexture texturaPantalla;
+    private static int copiasAntena;     // para separar las cámaras de cada copia
     private AudioSource audioSource;
     private Bounds limitesEdificio;
 
@@ -216,7 +243,8 @@ public class ConstruccionConMonedas : MonoBehaviour
 
         AplicarEstado(false);
         PrepararCobro();
-        CrearCartel();
+        if (!usarAntena || !CrearAntena()) CrearCartel();
+        numeroMostrado = MonedasRestantes;
         ActualizarCartel();
         iniciado = true;
     }
@@ -229,6 +257,14 @@ public class ConstruccionConMonedas : MonoBehaviour
             AplicarBloop();
         }
         OrientarCartel();
+        ActualizarAntena();
+    }
+
+    private void OnDestroy()
+    {
+        if (camaraPantalla != null) Destroy(camaraPantalla);
+        if (canvasPantalla != null) Destroy(canvasPantalla);
+        if (texturaPantalla != null) texturaPantalla.Release();
     }
 
     private bool YaDesbloqueadoPorSuScript()
@@ -300,6 +336,7 @@ public class ConstruccionConMonedas : MonoBehaviour
 
         Aportar(Mathf.Max(1, moneda.valor));
         bloop = fuerzaBloop;
+        bloopAntena = 1f;
         if (sonidoMoneda != null) audioSource.PlayOneShot(sonidoMoneda, volumen);
         Destroy(proyectil.gameObject);
     }
@@ -442,7 +479,7 @@ public class ConstruccionConMonedas : MonoBehaviour
     {
         if (hijosModelo.Count == 0)
             foreach (Transform hijo in transform)
-                if (hijo.gameObject.activeSelf && !EsRuina(hijo.gameObject) && (cartel == null || hijo != cartel.transform))
+                if (hijo.gameObject.activeSelf && !EsRuina(hijo.gameObject) && !EsIndicador(hijo))
                     hijosModelo.Add(hijo.gameObject);
 
         foreach (GameObject hijo in hijosModelo)
@@ -560,7 +597,7 @@ public class ConstruccionConMonedas : MonoBehaviour
         {
             foreach (Transform hijo in transform)
             {
-                if (cartel != null && hijo == cartel.transform) continue;
+                if (EsIndicador(hijo)) continue;
                 if (!hijo.gameObject.activeSelf || EsRuina(hijo.gameObject)) continue;
                 GuardarEscala(hijo);
                 hijo.localScale = escalas[hijo] * factor;
@@ -571,6 +608,200 @@ public class ConstruccionConMonedas : MonoBehaviour
     // =====================================================
     // CARTEL
     // =====================================================
+
+    private bool EsIndicador(Transform t)
+    {
+        return (cartel != null && t == cartel.transform) || (antena != null && t == antena);
+    }
+
+    // =====================================================
+    // ANTENA (copia de la de los otros edificios)
+    // =====================================================
+
+    // Antena de un edificio de la escena que se pueda copiar: su modelo, su LED, el texto de su pantalla y sus colores.
+    private struct FuenteAntena
+    {
+        public Transform raizEdificio, antenaVisual;
+        public ControladorNeon led;
+        public TMP_Text texto;
+        public Color colorInicio, colorFinal;
+        public float intensidadInicio, intensidadFinal;
+    }
+
+    private static bool BuscarFuenteAntena(out FuenteAntena f)
+    {
+        f = default;
+        foreach (ConstruccionAmetralladoraMonedas c in FindObjectsByType<ConstruccionAmetralladoraMonedas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (c.antenaVisual != null && c.textoPantallaAntena != null)
+            {
+                f = new FuenteAntena { raizEdificio = c.transform.root, antenaVisual = c.antenaVisual, led = c.ledAntena, texto = c.textoPantallaAntena,
+                                       colorInicio = c.colorInicio, colorFinal = c.colorFinal, intensidadInicio = c.intensidadInicio, intensidadFinal = c.intensidadFinal };
+                return true;
+            }
+        foreach (ConstruccionDianaBloopMonedas c in FindObjectsByType<ConstruccionDianaBloopMonedas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (c.antenaVisual != null && c.textoPantallaAntena != null)
+            {
+                f = new FuenteAntena { raizEdificio = c.transform.root, antenaVisual = c.antenaVisual, led = c.ledAntena, texto = c.textoPantallaAntena,
+                                       colorInicio = c.colorInicio, colorFinal = c.colorFinal, intensidadInicio = c.intensidadInicio, intensidadFinal = c.intensidadFinal };
+                return true;
+            }
+        foreach (DesbloqueoProcesadoraMonedas c in FindObjectsByType<DesbloqueoProcesadoraMonedas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (c.antenaVisual != null && c.textoPantallaAntena != null)
+            {
+                f = new FuenteAntena { raizEdificio = c.transform.root, antenaVisual = c.antenaVisual, led = c.ledAntena, texto = c.textoPantallaAntena,
+                                       colorInicio = c.colorInicio, colorFinal = c.colorFinal, intensidadInicio = c.intensidadInicio, intensidadFinal = c.intensidadFinal };
+                return true;
+            }
+        return false;
+    }
+
+    private bool CrearAntena()
+    {
+        FuenteAntena f;
+        if (!BuscarFuenteAntena(out f))
+        {
+            Debug.LogWarning("[" + nombre + "] No hay ninguna antena en la escena que copiar: se usa el cartel de texto.", this);
+            return false;
+        }
+
+        // 1. El modelo: desde la antena hacia arriba hasta colgar del edificio, incluyendo el LED si está dentro.
+        Transform raiz = f.antenaVisual;
+        while (raiz.parent != null && raiz.parent != f.raizEdificio &&
+               (f.led == null || !f.led.transform.IsChildOf(raiz)))
+            raiz = raiz.parent;
+
+        Canvas canvasOriginal = f.texto.canvas != null ? f.texto.canvas.rootCanvas : null;
+        Camera camaraOriginal = canvasOriginal != null ? canvasOriginal.worldCamera : null;
+        RenderTexture texturaOriginal = camaraOriginal != null ? camaraOriginal.targetTexture : null;
+        if (texturaOriginal == null)
+        {
+            Debug.LogWarning("[" + nombre + "] La pantalla de la antena no usa una cámara con textura: se usa el cartel de texto.", this);
+            return false;
+        }
+
+        GameObject copia = Instantiate(raiz.gameObject);
+        copia.name = "Antena " + nombre;
+        // Que no cobre para el edificio del que se ha copiado.
+        // (Inmediato: más abajo se le ponen los receptores de este edificio y no deben encontrarse los viejos.)
+        foreach (ReceptorPagoConstruccion r in copia.GetComponentsInChildren<ReceptorPagoConstruccion>(true)) DestroyImmediate(r);
+        foreach (ReceptorMonedasConstruccion r in copia.GetComponentsInChildren<ReceptorMonedasConstruccion>(true)) DestroyImmediate(r);
+        copia.transform.localScale = raiz.lossyScale;
+        antena = copia.transform;
+
+        // Rotación: la misma respecto a su edificio que la original respecto al suyo.
+        Quaternion rotacionRelativa = Quaternion.Inverse(f.raizEdificio.rotation) * raiz.rotation;
+        if (puntoAntena != null)
+        {
+            antena.SetPositionAndRotation(puntoAntena.position, puntoAntena.rotation);
+        }
+        else
+        {
+            Vector3 derecha = transform.right; derecha.y = 0f;
+            if (derecha.sqrMagnitude < 0.001f) derecha = Vector3.right;
+            derecha.Normalize();
+            float ancho = Mathf.Abs(Vector3.Dot(limitesEdificio.extents, new Vector3(Mathf.Abs(derecha.x), 0f, Mathf.Abs(derecha.z))));
+            Vector3 posicion = limitesEdificio.center + derecha * (ancho + separacionAntena);
+            posicion.y = limitesEdificio.min.y;
+            antena.SetPositionAndRotation(posicion, transform.rotation * rotacionRelativa);
+        }
+        antena.SetParent(transform, true);
+
+        // Las piezas que se corresponden en la copia (mismo camino desde la raíz).
+        antenaVisual = Correspondiente(raiz, antena, f.antenaVisual);
+        ledAntena = f.led != null && f.led.transform.IsChildOf(raiz) ? Correspondiente(raiz, antena, f.led.transform).GetComponent<ControladorNeon>() : null;
+        if (antenaVisual != null) escalaAntenaVisual = antenaVisual.localScale;
+
+        // 2. La pantalla: cámara y canvas propios, pintando en una textura propia (si no, saldría el número del otro).
+        texturaPantalla = new RenderTexture(texturaOriginal.descriptor) { name = "Pantalla " + nombre };
+        texturaPantalla.Create();
+
+        camaraPantalla = Instantiate(camaraOriginal.gameObject);
+        camaraPantalla.name = "Camara Pantalla " + nombre;
+        copiasAntena++;
+        // Lejos de la original: cada cámara solo ve su canvas.
+        camaraPantalla.transform.position = camaraOriginal.transform.position + Vector3.up * (300f * copiasAntena);
+        Camera camara = camaraPantalla.GetComponent<Camera>();
+        camara.targetTexture = texturaPantalla;
+        foreach (AudioListener oido in camaraPantalla.GetComponentsInChildren<AudioListener>(true)) Destroy(oido);
+
+        canvasPantalla = Instantiate(canvasOriginal.gameObject);
+        canvasPantalla.name = "Canvas Pantalla " + nombre;
+        Canvas canvas = canvasPantalla.GetComponent<Canvas>();
+        canvas.worldCamera = camara;
+        Transform textoCopia = Correspondiente(canvasOriginal.transform, canvasPantalla.transform, f.texto.transform);
+        textoPantalla = textoCopia != null ? textoCopia.GetComponent<TMP_Text>() : null;
+
+        // La pantalla del modelo copiado muestra la textura nueva.
+        foreach (Renderer r in copia.GetComponentsInChildren<Renderer>(true))
+        {
+            Material[] materiales = r.sharedMaterials;
+            bool cambia = false;
+            for (int i = 0; i < materiales.Length; i++)
+            {
+                Material m = materiales[i];
+                if (m == null) continue;
+                foreach (int id in m.GetTexturePropertyNameIDs())
+                {
+                    if (m.GetTexture(id) != texturaOriginal) continue;
+                    if (!cambia) { materiales = r.materials; m = materiales[i]; cambia = true; }
+                    else m = materiales[i];
+                    m.SetTexture(id, texturaPantalla);
+                }
+            }
+            if (cambia) r.materials = materiales;
+        }
+
+        colorLedInicio = f.colorInicio; colorLedFinal = f.colorFinal;
+        intensidadLedInicio = f.intensidadInicio; intensidadLedFinal = f.intensidadFinal;
+
+        // Las monedas que le den a la antena también pagan.
+        foreach (Collider c in copia.GetComponentsInChildren<Collider>(true)) AnadirReceptor(c);
+        return true;
+    }
+
+    // El objeto de 'copiaRaiz' que está en el mismo sitio (camino de hijos) que 'original' dentro de 'originalRaiz'.
+    private static Transform Correspondiente(Transform originalRaiz, Transform copiaRaiz, Transform original)
+    {
+        if (original == null) return null;
+        List<int> camino = new List<int>();
+        for (Transform t = original; t != null && t != originalRaiz; t = t.parent) camino.Insert(0, t.GetSiblingIndex());
+        Transform actual = copiaRaiz;
+        foreach (int indice in camino)
+        {
+            if (indice >= actual.childCount) return null;
+            actual = actual.GetChild(indice);
+        }
+        return actual;
+    }
+
+    // Número de monedas que faltan (baja poco a poco, sube de golpe), LED según el progreso y bloop con cada moneda.
+    private void ActualizarAntena()
+    {
+        if (antena == null) return;
+
+        float faltan = EnMaximo ? 0f : MonedasRestantes;
+        float progreso = EnMaximo ? 1f : (PrecioSiguiente > 0 ? (float)monedasAportadas / PrecioSiguiente : 0f);
+
+        if (textoPantalla != null)
+        {
+            if (numeroMostrado < faltan) numeroMostrado = faltan;
+            numeroMostrado = Mathf.MoveTowards(numeroMostrado, faltan, velocidadNumerosPantalla * Time.deltaTime);
+            textoPantalla.text = EnMaximo && numeroMostrado <= 0.01f ? "MAX" : Mathf.CeilToInt(numeroMostrado).ToString();
+        }
+
+        if (ledAntena != null)
+        {
+            progresoLed = Mathf.Lerp(progresoLed, progreso, Time.deltaTime * 5f);
+            ledAntena.colorNeon = Color.Lerp(colorLedInicio, colorLedFinal, progresoLed);
+            ledAntena.intensidad = Mathf.Lerp(intensidadLedInicio, intensidadLedFinal, progresoLed);
+        }
+
+        if (antenaVisual != null)
+        {
+            bloopAntena = Mathf.MoveTowards(bloopAntena, 0f, Time.deltaTime * 6f);
+            antenaVisual.localScale = escalaAntenaVisual * (1f + 0.15f * bloopAntena);
+        }
+    }
 
     private void CrearCartel()
     {
