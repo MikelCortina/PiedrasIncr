@@ -1,20 +1,31 @@
 using UnityEngine;
 
+/// <summary>
+/// Ruleta que se gira con la mano (GestorRuletasFPS) para abrir una tapa o válvula.
+/// La ruleta gira exactamente lo mismo que la mano y en el mismo sentido en pantalla:
+/// las vueltas que das son las vueltas que da ella.
+/// </summary>
 public class RuletaInteractivaGasoil : MonoBehaviour
 {
+    // Ángulo con el que se ajustaron las velocidades de retorno (2 vueltas).
+    private const float AnguloReferenciaRetorno = 720f;
+
     [Header("Ajustes de Giro de la Ruleta")]
-    [Tooltip("Ángulo objetivo para activar el mecanismo (Ej: 720 grados = 2 vueltas completas)")]
-    public float anguloObjetivo = 720f;
+    [Tooltip("Vueltas que hay que dar (con la mano y con la ruleta, es lo mismo) para abrir.")]
+    [Min(0.25f)] public float vueltasParaAbrir = 6f;
     [Tooltip("Eje local sobre el cual girará la ruleta (Normalmente Vector3.forward, Vector3.up o Vector3.right)")]
     public Vector3 ejeGiroLocal = Vector3.forward;
+    [Tooltip("El sentido visual se calcula solo para que la ruleta acompañe a la mano. Márcalo si en esta ruleta sale al revés.")]
+    public bool invertirGiroVisual = false;
 
     [Min(1f)]
-    [Tooltip("Velocidad lineal a la que la ruleta se desenrosca (grados por segundo)")]
+    [Tooltip("Velocidad a la que la ruleta se desenrosca, en grados por segundo para 2 vueltas. " +
+             "Con más vueltas va proporcionalmente más rápida: tarda lo mismo en volver.")]
     public float velocidadRetorno = 300f;
 
-    [Header("Sensación Física (Game Feel)")]
-    [Tooltip("Multiplicador de velocidad cuando está a punto de llegar al objetivo (0.15 = muy dura, 1 = suave siempre)")]
-    [Range(0.01f, 1f)] public float suavidadFinal = 0.15f;
+    /// <summary>Grados totales de giro para abrir.</summary>
+    public float AnguloObjetivo => Mathf.Max(1f, vueltasParaAbrir * 360f);
+    private float VelocidadRetornoEfectiva => velocidadRetorno * AnguloObjetivo / AnguloReferenciaRetorno;
 
     [Header("Segundo Objeto (Activación)")]
     [Tooltip("El objeto que rotará al alcanzar el objetivo")]
@@ -47,6 +58,8 @@ public class RuletaInteractivaGasoil : MonoBehaviour
     // Variables de Estado Internas
     private float gradosAcumuladosGiro = 0f;
     private Quaternion rotacionOrigen;
+    // +1 o -1: para que el giro visual vaya en el mismo sentido que la mano en pantalla.
+    private float signoVisual = 1f;
 
     // Variables para el objeto secundario (Tapa / Válvula)
     private Quaternion rotacionOrigenSecundario;
@@ -63,7 +76,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
 
     // --- Lectura para el indicador de sentido de giro (IndicadorGiroRuleta) ---
     /// <summary>Cuánto se ha girado hacia la apertura (0-1).</summary>
-    public float Progreso => anguloObjetivo > 0f ? Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo) : 0f;
+    public float Progreso => Mathf.Clamp01(gradosAcumuladosGiro / AnguloObjetivo);
     /// <summary>True desde que llega al objetivo (se vacía, se abre y queda bloqueada).</summary>
     public bool Abierta => estadoActual != EstadoRuleta.Girando;
     /// <summary>Último giro que mandó el jugador (positivo = hacia abrir, negativo = al revés).</summary>
@@ -77,6 +90,7 @@ public class RuletaInteractivaGasoil : MonoBehaviour
     void Start()
     {
         rotacionOrigen = transform.localRotation;
+        CalcularSignoVisual(Camera.main);
         if (objetoSecundario != null)
         {
             rotacionOrigenSecundario = objetoSecundario.localRotation;
@@ -95,18 +109,17 @@ public class RuletaInteractivaGasoil : MonoBehaviour
             if (!estaSiendoGirada)
             {
                 // Vuelve a 0 a velocidad constante
-                gradosAcumuladosGiro = Mathf.MoveTowards(gradosAcumuladosGiro, 0f, velocidadRetorno * Time.deltaTime);
-                transform.localRotation = rotacionOrigen * Quaternion.AngleAxis(gradosAcumuladosGiro, ejeGiroLocal);
+                gradosAcumuladosGiro = Mathf.MoveTowards(gradosAcumuladosGiro, 0f, VelocidadRetornoEfectiva * Time.deltaTime);
+                AplicarRotacionRuleta();
 
                 // LED se adapta al giro actual
-                float progresoGiro = Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo);
-                ActualizarLed(progresoGiro);
+                ActualizarLed(Progreso);
             }
 
             // Aseguramos que el objeto secundario esté cerrado
             if (objetoSecundario != null)
             {
-                float tiempoDeRetornoTotal = anguloObjetivo / velocidadRetorno;
+                float tiempoDeRetornoTotal = AnguloObjetivo / VelocidadRetornoEfectiva;
                 float velocidadProgresoSecundario = 1f / tiempoDeRetornoTotal;
                 progresoSecundario = Mathf.MoveTowards(progresoSecundario, 0f, velocidadProgresoSecundario * Time.deltaTime);
 
@@ -156,13 +169,13 @@ public class RuletaInteractivaGasoil : MonoBehaviour
             }
 
             // B. La ruleta se desenrosca a velocidad constante
-            gradosAcumuladosGiro = Mathf.MoveTowards(gradosAcumuladosGiro, 0f, velocidadRetorno * Time.deltaTime);
-            transform.localRotation = rotacionOrigen * Quaternion.AngleAxis(gradosAcumuladosGiro, ejeGiroLocal);
+            gradosAcumuladosGiro = Mathf.MoveTowards(gradosAcumuladosGiro, 0f, VelocidadRetornoEfectiva * Time.deltaTime);
+            AplicarRotacionRuleta();
 
             // C. El objeto secundario se ROTA abriéndose
             if (objetoSecundario != null)
             {
-                float tiempoDeRetornoTotal = anguloObjetivo / velocidadRetorno;
+                float tiempoDeRetornoTotal = AnguloObjetivo / VelocidadRetornoEfectiva;
                 float velocidadProgresoSecundario = 1f / tiempoDeRetornoTotal;
 
                 progresoSecundario = Mathf.MoveTowards(progresoSecundario, 1f, velocidadProgresoSecundario * Time.deltaTime);
@@ -186,8 +199,10 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         estaSiendoGirada = false;
     }
 
-    // Método llamado desde GestorRuletasFPS
-    public void ModificarDesdeGiroVisual(float deltaGiro)
+    // Método llamado desde GestorRuletasFPS.
+    // deltaGiro: grados que ha girado la mano alrededor de la ruleta en pantalla (positivo = hacia abrir).
+    // Se aplican tal cual, sin multiplicar: la ruleta va exactamente con la mano.
+    public void ModificarDesdeGiroVisual(float deltaGiro, Camera camara)
     {
         // Si no estamos en la fase normal de giro, ignoramos el input del jugador por completo
         if (estadoActual != EstadoRuleta.Girando) return;
@@ -195,24 +210,15 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         estaSiendoGirada = true;
         UltimoDeltaGiro = deltaGiro;
         TiempoUltimoGiro = Time.time;
-
-        // TENSIÓN
-        float progresoActual = Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo);
-        float multiplicadorTension = Mathf.Lerp(1f, suavidadFinal, progresoActual);
-
-        // Solo aplicamos resistencia si estamos intentando avanzar
-        if (deltaGiro > 0)
-        {
-            deltaGiro *= multiplicadorTension;
-        }
+        CalcularSignoVisual(camara);
 
         gradosAcumuladosGiro += deltaGiro;
         if (gradosAcumuladosGiro < 0f) gradosAcumuladosGiro = 0f;
 
-        // COMPROBAR ACTIVACIÓN (Alcanzar los 720 grados)
-        if (gradosAcumuladosGiro >= anguloObjetivo)
+        // COMPROBAR ACTIVACIÓN (Alcanzar el ángulo objetivo)
+        if (gradosAcumuladosGiro >= AnguloObjetivo)
         {
-            gradosAcumuladosGiro = anguloObjetivo;
+            gradosAcumuladosGiro = AnguloObjetivo;
             estaSiendoGirada = false; // Forzamos el soltado visual de la interacción
 
             // Activamos la fase de vaciado
@@ -234,11 +240,25 @@ public class RuletaInteractivaGasoil : MonoBehaviour
         }
 
         // Aplicamos rotación física de la ruleta manual
-        transform.localRotation = rotacionOrigen * Quaternion.AngleAxis(gradosAcumuladosGiro, ejeGiroLocal);
+        AplicarRotacionRuleta();
 
         // LED acompaña al giro manual
-        float progresoLed = Mathf.Clamp01(gradosAcumuladosGiro / anguloObjetivo);
-        ActualizarLed(progresoLed);
+        ActualizarLed(Progreso);
+    }
+
+    private void AplicarRotacionRuleta()
+    {
+        transform.localRotation = rotacionOrigen * Quaternion.AngleAxis(gradosAcumuladosGiro * signoVisual, ejeGiroLocal);
+    }
+
+    // El gesto se mide en pantalla con ángulo antihorario positivo. Un giro positivo de Unity se ve
+    // horario si el eje apunta hacia la cámara y antihorario si apunta hacia el otro lado.
+    private void CalcularSignoVisual(Camera camara)
+    {
+        if (camara == null) return;
+        Vector3 ejeMundo = transform.TransformDirection(ejeGiroLocal);
+        float signo = Vector3.Dot(ejeMundo, camara.transform.forward) < 0f ? -1f : 1f;
+        signoVisual = invertirGiroVisual ? -signo : signo;
     }
 
     void ActualizarLed(float progreso)

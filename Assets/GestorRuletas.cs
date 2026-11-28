@@ -252,7 +252,8 @@ public class GestorRuletasFPS : MonoBehaviour
 
             if (Mathf.Abs(deltaAngulo) > 0.01f)
             {
-                ruletaGasoilActiva.ModificarDesdeGiroVisual(deltaAngulo * sensibilidadGiro);
+                // 1:1 con la mano: solo se usa el signo de la sensibilidad (qué sentido abre), no su valor.
+                ruletaGasoilActiva.ModificarDesdeGiroVisual(deltaAngulo * Mathf.Sign(sensibilidadGiro), camaraPrincipal);
                 anguloPantallaAnterior = anguloActual;
             }
         }
