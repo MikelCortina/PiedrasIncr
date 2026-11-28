@@ -65,6 +65,8 @@ public class TemaUINeon : ScriptableObject
 
     [Header("Aplicación automática al cargar escena")]
     public bool aplicarAutomaticamente = true;
+    [Tooltip("Escenas en las que NO se aplica el tema: su UI se ve tal cual está en el editor (fuentes y textos).")]
+    public List<string> escenasSinTema = new List<string> { "MenuPrincipal" };
     [Tooltip("Rutas en la jerarquía de los paneles que se tematizan solos al cargar la escena (sin tocar la escena). " +
              "Formato: Raiz/Hijo/Panel. Ojo con los espacios en los nombres.")]
     public List<string> rutasPaneles = new List<string> { "Canvas/PanelTienda" };

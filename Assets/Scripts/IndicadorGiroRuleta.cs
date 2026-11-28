@@ -164,10 +164,18 @@ public class IndicadorGiroRuleta : MonoBehaviour
         alfa = Mathf.MoveTowards(alfa, mostrar ? 1f : 0f, dt * velocidadFundido);
     }
 
+    private bool? hayIntro;
+
     private bool DebeVerse()
     {
         if (cam == null || !cam.isActiveAndEnabled) return false;
         if (Cursor.visible && Cursor.lockState == CursorLockMode.None) return false; // hay un menú abierto
+        // Durante la intro (vuelo, cabina, aterrizaje) no: aún no se puede girar.
+        if (!CambioCamaraIntro.IntroTerminada)
+        {
+            if (hayIntro == null) hayIntro = FindFirstObjectByType<CambioCamaraIntro>() != null;
+            if (hayIntro.Value) return false;
+        }
 
         Vector3 centro = Centro();
         float maximo = distanciaMostrar > 0f ? distanciaMostrar : (gestor != null ? gestor.distanciaInteraccion + 1.5f : 6.5f);

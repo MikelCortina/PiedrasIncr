@@ -32,6 +32,10 @@ public class MeteoritoInicial : MonoBehaviour
     [Header("Suelo")]
     public string tagSuelo = "Floor";
     [Min(1f)] public float alcanceBusquedaSuelo = 2000f;
+    [Tooltip("Si en el punto elegido no hay suelo, se busca el suelo más cercano hasta esta distancia (m).")]
+    [Min(1f)] public float radioBusquedaSueloSeguro = 40f;
+    [Tooltip("Metros de suelo que tiene que haber alrededor del impacto, para que la piedra no caiga por un borde.")]
+    [Min(0f)] public float margenBordeSuelo = 3f;
 
     [Header("Depuracion")]
     public bool mostrarTrayectoria = true;
@@ -128,7 +132,13 @@ public class MeteoritoInicial : MonoBehaviour
         }
 
         Vector3 origen = puntoSalidaLuna.position;
-        Vector3 suelo = ObtenerPosicionSuelo(impactoDeseado);
+        Vector3 suelo;
+        if (!BuscarSueloSeguro(impactoDeseado, out suelo))
+        {
+            Debug.LogWarning("[METEORITO INICIAL] No encuentro suelo (tag " + tagSuelo + ") cerca de " + impactoDeseado +
+                             ": cae en ese punto. Revisa 'Distancia Delante Nave' o el tag del suelo.", this);
+            suelo = impactoDeseado;
+        }
         GameObject meteorito = Instantiate(prefab, origen, Random.rotation);
         Rigidbody rb = meteorito.GetComponent<Rigidbody>();
 
@@ -270,13 +280,73 @@ public class MeteoritoInicial : MonoBehaviour
         return puntoImpacto != null;
     }
 
-    private Vector3 ObtenerPosicionSuelo(Vector3 posicion)
+    // Suelo bajo el punto deseado, con margen hasta el borde para que la piedra no ruede al vacío.
+    // Si ahí no hay, el punto con suelo más cercano (y, entre los de la misma distancia, el más cercano a la nave).
+    private bool BuscarSueloSeguro(Vector3 deseado, out Vector3 suelo)
+    {
+        if (SueloConMargen(deseado, out suelo))
+            return true;
+
+        Vector3 referencia = deseado;
+        Vector3 posicionNave, frente;
+        if (intro != null && intro.ObtenerPoseParadaNave(out posicionNave, out frente))
+            referencia = posicionNave;
+        else if (puntoImpacto != null)
+            referencia = puntoImpacto.position;
+
+        const int muestras = 24;
+        for (float radio = 1.5f; radio <= radioBusquedaSueloSeguro; radio += 1.5f)
+        {
+            bool hay = false;
+            float mejor = float.MaxValue;
+            Vector3 elegido = deseado;
+
+            for (int i = 0; i < muestras; i++)
+            {
+                float angulo = i * Mathf.PI * 2f / muestras;
+                Vector3 candidato = deseado + new Vector3(Mathf.Cos(angulo), 0f, Mathf.Sin(angulo)) * radio;
+                Vector3 sueloCandidato;
+                if (!SueloConMargen(candidato, out sueloCandidato)) continue;
+
+                float d = (sueloCandidato - referencia).sqrMagnitude;
+                if (d < mejor) { mejor = d; elegido = sueloCandidato; hay = true; }
+            }
+
+            if (hay)
+            {
+                suelo = elegido;
+                Debug.Log("[METEORITO INICIAL] Sin suelo en el punto pedido; cae en el suelo más cercano: " + suelo, this);
+                return true;
+            }
+        }
+
+        // Último recurso: el punto de impacto de la escena.
+        return puntoImpacto != null && SueloDebajo(puntoImpacto.position, out suelo);
+    }
+
+    private bool SueloConMargen(Vector3 posicion, out Vector3 suelo)
+    {
+        if (!SueloDebajo(posicion, out suelo))
+            return false;
+
+        if (margenBordeSuelo <= 0f)
+            return true;
+
+        Vector3 ignorado;
+        return SueloDebajo(posicion + Vector3.forward * margenBordeSuelo, out ignorado) &&
+               SueloDebajo(posicion + Vector3.back * margenBordeSuelo, out ignorado) &&
+               SueloDebajo(posicion + Vector3.right * margenBordeSuelo, out ignorado) &&
+               SueloDebajo(posicion + Vector3.left * margenBordeSuelo, out ignorado);
+    }
+
+    // Collider con el tag del suelo bajo el punto (el más cercano en altura al punto).
+    private bool SueloDebajo(Vector3 posicion, out Vector3 suelo)
     {
         Vector3 origenRaycast = posicion + Vector3.up * (alcanceBusquedaSuelo * 0.5f);
         RaycastHit[] impactos = Physics.RaycastAll(origenRaycast, Vector3.down, alcanceBusquedaSuelo, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
         bool encontrado = false;
         float menorDistancia = float.MaxValue;
-        Vector3 suelo = posicion;
+        suelo = posicion;
 
         foreach (RaycastHit impacto in impactos)
         {
@@ -292,10 +362,7 @@ public class MeteoritoInicial : MonoBehaviour
             }
         }
 
-        if (!encontrado)
-            Debug.LogWarning("[METEORITO INICIAL] No encuentro un Collider con tag " + tagSuelo + " bajo el punto de impacto. Utilizare su posicion actual.");
-
-        return suelo;
+        return encontrado;
     }
 
     private Vector3 ObtenerPuntoEntrada(Vector3 destino)

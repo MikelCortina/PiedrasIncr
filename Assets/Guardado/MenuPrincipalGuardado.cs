@@ -73,6 +73,29 @@ public class MenuPrincipalGuardado : MonoBehaviour
     [SerializeField]
     private TMP_Text textoConfirmacion;
 
+    // Textos que cambia el código. {0} = número de ranura (o el detalle, donde se indica).
+    [Header("Textos (los fijos de los botones se cambian en cada objeto de la escena)")]
+    [SerializeField] private string textoBotonContinuar = "CONTINUAR";
+    [Tooltip("{0} = número de la ranura que se va a cargar.")]
+    [SerializeField] private string textoBotonContinuarConRanura = "CONTINUAR  <size=60%>RANURA {0}</size>";
+    [SerializeField] private string tituloNuevaPartida = "NUEVA PARTIDA";
+    [SerializeField] private string tituloCargarPartida = "CARGAR PARTIDA";
+    [Tooltip("{0} = número de ranura, {1} = detalle (monedas y tiempo, 'Vacía'...).")]
+    [SerializeField] private string textoRanura = "RANURA {0}\n<size=60%>{1}</size>";
+    [SerializeField] private string textoRanuraVacia = "Vacía";
+    [SerializeField] private string textoRanuraDanada = "Archivos dañados";
+    [Tooltip("{0} = monedas, {1} = tiempo jugado, {2} = fecha.")]
+    [SerializeField] private string textoRanuraDetalle = "{0} monedas · {1} jugados · {2}";
+    [SerializeField] private string textoRanuraRespaldo = " · respaldo";
+    [SerializeField] private string mensajeSinPartidas = "No hay partidas guardadas.";
+    [SerializeField] private string mensajeRanuraNoValida = "La ranura {0} no contiene una partida válida.";
+    [SerializeField] private string mensajeCargando = "Cargando la ranura {0}...";
+    [SerializeField] private string mensajeEmpezando = "Empezando una partida nueva...";
+    [SerializeField] private string mensajeRanuraOcupada = "La ranura {0} no está vacía.";
+    [SerializeField, TextArea] private string textoConfirmarSobrescritura =
+        "La ranura {0} ya tiene una partida.\nSi empiezas de cero, se borrará y no se podrá recuperar.";
+    [SerializeField] private string mensajeNoSePudoBorrar = "No se ha podido borrar la ranura {0}.";
+
     private SaveStorage almacenamiento;
 
     private enum ModoSeleccion
@@ -131,12 +154,12 @@ public class MenuPrincipalGuardado : MonoBehaviour
 
     public void NuevaPartida()
     {
-        MostrarSeleccion(ModoSeleccion.NuevaPartida, "NUEVA PARTIDA");
+        MostrarSeleccion(ModoSeleccion.NuevaPartida, tituloNuevaPartida);
     }
 
     public void CargarPartida()
     {
-        MostrarSeleccion(ModoSeleccion.CargarPartida, "CARGAR PARTIDA");
+        MostrarSeleccion(ModoSeleccion.CargarPartida, tituloCargarPartida);
     }
 
     public void ContinuarPartida()
@@ -145,7 +168,7 @@ public class MenuPrincipalGuardado : MonoBehaviour
 
         if (ultimaRanura == 0)
         {
-            MostrarMensaje("No hay partidas guardadas.");
+            MostrarMensaje(mensajeSinPartidas);
             ActualizarMenuPrincipal();
             return;
         }
@@ -187,7 +210,7 @@ public class MenuPrincipalGuardado : MonoBehaviour
         {
             if (!almacenamiento.HasValidSave(numero))
             {
-                MostrarMensaje("La ranura " + numero + " no contiene una partida válida.");
+                MostrarMensaje(Formato(mensajeRanuraNoValida, numero));
                 ActualizarRanuras();
                 return;
             }
@@ -205,14 +228,14 @@ public class MenuPrincipalGuardado : MonoBehaviour
 
     private void Cargar(int numero)
     {
-        MostrarMensaje("Cargando la ranura " + numero + "...");
+        MostrarMensaje(Formato(mensajeCargando, numero));
         Debug.Log("[MENU] Cargar: ranura=" + numero);
         sistemaGuardado.CargarDesdeMenu(numero);
     }
 
     private void Empezar(int numero)
     {
-        MostrarMensaje("Empezando una partida nueva...");
+        MostrarMensaje(mensajeEmpezando);
         Debug.Log("[MENU] Nueva partida: ranura=" + numero);
         sistemaGuardado.IniciarNuevaPartidaDesdeMenu(numero);
     }
@@ -225,7 +248,7 @@ public class MenuPrincipalGuardado : MonoBehaviour
     {
         if (panelConfirmacion == null)
         {
-            MostrarMensaje("La ranura " + numero + " no está vacía.");
+            MostrarMensaje(Formato(mensajeRanuraOcupada, numero));
             return;
         }
 
@@ -233,9 +256,7 @@ public class MenuPrincipalGuardado : MonoBehaviour
 
         if (textoConfirmacion != null)
         {
-            textoConfirmacion.text =
-                "La ranura " + numero + " ya tiene una partida.\n" +
-                "Si empiezas de cero, se borrará y no se podrá recuperar.";
+            textoConfirmacion.text = Formato(textoConfirmarSobrescritura, numero);
         }
 
         Mostrar(panelConfirmacion, true);
@@ -260,7 +281,7 @@ public class MenuPrincipalGuardado : MonoBehaviour
 
         if (TieneArchivos(numero))
         {
-            MostrarMensaje("No se ha podido borrar la ranura " + numero + ".");
+            MostrarMensaje(Formato(mensajeNoSePudoBorrar, numero));
             ActualizarRanuras();
             return;
         }
@@ -329,8 +350,8 @@ public class MenuPrincipalGuardado : MonoBehaviour
         if (textoContinuar != null)
         {
             textoContinuar.text = ultimaRanura != 0
-                ? "CONTINUAR  <size=60%>RANURA " + ultimaRanura + "</size>"
-                : "CONTINUAR";
+                ? Formato(textoBotonContinuarConRanura, ultimaRanura)
+                : textoBotonContinuar;
         }
     }
 
@@ -360,19 +381,17 @@ public class MenuPrincipalGuardado : MonoBehaviour
 
         if (existe)
         {
-            detalle =
-                partida.economy.coins + " monedas · " +
-                FormatoTiempo(partida.totalPlaySeconds) + " jugados · " +
-                FormatoFecha(partida.savedUtc);
+            detalle = Formato(textoRanuraDetalle, partida.economy.coins,
+                FormatoTiempo(partida.totalPlaySeconds), FormatoFecha(partida.savedUtc));
 
-            if (desdeRespaldo) detalle += " · respaldo";
+            if (desdeRespaldo) detalle += textoRanuraRespaldo;
         }
         else
         {
-            detalle = TieneArchivos(numero) ? "Archivos dañados" : "Vacía";
+            detalle = TieneArchivos(numero) ? textoRanuraDanada : textoRanuraVacia;
         }
 
-        texto.text = "RANURA " + numero + "\n<size=60%>" + detalle + "</size>";
+        texto.text = Formato(textoRanura, numero, detalle);
     }
 
     private bool TieneArchivos(int numero)
@@ -437,6 +456,14 @@ public class MenuPrincipalGuardado : MonoBehaviour
         return minutos >= 60
             ? (minutos / 60) + " h " + (minutos % 60) + " min"
             : minutos + " min";
+    }
+
+    // Como string.Format, pero si el texto del Inspector está mal escrito ({ sin cerrar...) no rompe el menú.
+    private static string Formato(string plantilla, params object[] valores)
+    {
+        if (string.IsNullOrEmpty(plantilla)) return "";
+        try { return string.Format(CultureInfo.CurrentCulture, plantilla, valores); }
+        catch (FormatException) { return plantilla; }
     }
 
     private void MostrarMensaje(string mensaje)

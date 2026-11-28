@@ -25,6 +25,8 @@ public static class ArranqueTemaUI
     {
         TemaUINeon tema = TemaUINeon.Actual;
         if (!tema.aplicarAutomaticamente || !escena.isLoaded) return;
+        // Escenas cuya UI se ajusta a mano en el editor (p. ej. el menú principal).
+        if (tema.escenasSinTema != null && tema.escenasSinTema.Contains(escena.name)) return;
 
         GameObject[] raices = escena.GetRootGameObjects();
         int paneles = 0, contenidos = 0;

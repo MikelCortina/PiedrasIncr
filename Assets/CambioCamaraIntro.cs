@@ -207,7 +207,19 @@ public class CambioCamaraIntro : MonoBehaviour
 
     [Header("Jugador")]
     public Transform jugador;
+    [Tooltip("Dónde aparece el jugador al bajar. Vacío = delante de 'Mirar Al Salir' (la válvula de la gasolina).")]
     public Transform puntoSalidaJugador;
+
+    [Header("Al bajar de la nave")]
+    [Tooltip("El jugador aparece mirando esto (la válvula de la gasolina, para abrirla). " +
+             "Vacío = la RuletaInteractivaGasoil más cercana a la nave aparcada.")]
+    public Transform mirarAlSalir;
+    [Tooltip("Busca sola la válvula si 'Mirar Al Salir' está vacío. Desactivado: aparece como antes.")]
+    public bool buscarValvulaAlSalir = true;
+    [Tooltip("Metros entre el jugador y la válvula al aparecer (solo si no hay 'Punto Salida Jugador').")]
+    [Min(0.5f)] public float distanciaValvulaAlSalir = 2.2f;
+    [Tooltip("Tag del suelo sobre el que se le pone de pie.")]
+    public string tagSueloSalida = "Floor";
 
     [Tooltip("Scripts de movimiento, mirada e interaccion del jugador (la CamaraPrimeraPersona de la cámara principal se desactiva sola aunque no esté aquí)")]
     public MonoBehaviour[] controlesJugador;
@@ -1370,7 +1382,14 @@ public class CambioCamaraIntro : MonoBehaviour
         // Con la pantalla en negro, la cara frontal vuelve a como estaba antes de abrirse.
         RestaurarCaraFrontal();
 
-        if (jugador != null && puntoSalidaJugador != null)
+        // La nave ya está aparcada: los colliders (y la válvula, si va en ella) en su sitio para buscar suelo y válvula.
+        Physics.SyncTransforms();
+
+        Quaternion rotacionCamaraSalida = rotacionInicialCamara;
+        Vector3 posicionSalida;
+        Quaternion rotacionSalida;
+
+        if (jugador != null && CalcularSalidaJugador(out posicionSalida, out rotacionSalida, out Vector3? puntoAMirar))
         {
             CharacterController controlador = jugador.GetComponent<CharacterController>();
             bool estabaActivo = controlador != null && controlador.enabled;
@@ -1378,17 +1397,14 @@ public class CambioCamaraIntro : MonoBehaviour
             if (controlador != null)
                 controlador.enabled = false;
 
-            jugador.SetPositionAndRotation(
-                puntoSalidaJugador.position,
-                puntoSalidaJugador.rotation
-            );
+            jugador.SetPositionAndRotation(posicionSalida, rotacionSalida);
 
             Rigidbody cuerpo = jugador.GetComponent<Rigidbody>();
 
             if (cuerpo != null)
             {
-                cuerpo.position = puntoSalidaJugador.position;
-                cuerpo.rotation = puntoSalidaJugador.rotation;
+                cuerpo.position = posicionSalida;
+                cuerpo.rotation = rotacionSalida;
 
                 if (!cuerpo.isKinematic)
                 {
@@ -1401,6 +1417,16 @@ public class CambioCamaraIntro : MonoBehaviour
 
             if (controlador != null)
                 controlador.enabled = estabaActivo;
+
+            // La cámara se inclina para mirar la válvula (el giro horizontal ya lo lleva el cuerpo).
+            if (puntoAMirar.HasValue && camaraPrincipal != null && camaraPrincipal.parent != null)
+            {
+                Vector3 ojos = camaraPrincipal.parent.TransformPoint(posicionInicialCamara);
+                Vector3 hacia = puntoAMirar.Value - ojos;
+                float horizontal = new Vector2(hacia.x, hacia.z).magnitude;
+                float inclinacion = -Mathf.Atan2(hacia.y, Mathf.Max(0.01f, horizontal)) * Mathf.Rad2Deg;
+                rotacionCamaraSalida = Quaternion.Euler(Mathf.Clamp(inclinacion, -80f, 80f), 0f, 0f);
+            }
         }
 
         if (brainCamaraPrincipal != null)
@@ -1419,13 +1445,13 @@ public class CambioCamaraIntro : MonoBehaviour
             {
                 camaraFPS.RestaurarTrasIntro(
                     posicionInicialCamara,
-                    rotacionInicialCamara
+                    rotacionCamaraSalida
                 );
             }
             else
             {
                 camaraPrincipal.localPosition = posicionInicialCamara;
-                camaraPrincipal.localRotation = rotacionInicialCamara;
+                camaraPrincipal.localRotation = rotacionCamaraSalida;
             }
         }
 
@@ -1434,10 +1460,9 @@ public class CambioCamaraIntro : MonoBehaviour
             float espera = Mathf.Max(0f, duracionPantallaNegra - 2f * tiempoFundido);
             if (espera > 0f)
                 yield return new WaitForSeconds(espera);
-
-            yield return Fundido(1f, 0f, tiempoFundido);
         }
 
+        // El control vuelve en cuanto empieza a verse la imagen, no al final del fundido.
         if (controlesJugador != null && controlesOriginalmenteActivos != null)
         {
             for (int i = 0; i < controlesJugador.Length; i++)
@@ -1446,6 +1471,9 @@ public class CambioCamaraIntro : MonoBehaviour
                     controlesJugador[i].enabled = controlesOriginalmenteActivos[i];
             }
         }
+
+        if (!omitiendoIntroEstaSesion)
+            yield return Fundido(1f, 0f, tiempoFundido);
 
         // Devolvemos la cámara del jugador si la apagó la intro por su cuenta.
         if (camaraFPSDesactivadaPorIntro != null)
@@ -1459,6 +1487,101 @@ public class CambioCamaraIntro : MonoBehaviour
 
         IntroTerminada = true;
         OnIntroTerminada?.Invoke();
+    }
+
+    // Dónde y cómo aparece el jugador al bajar de la nave.
+    //  - 'Punto Salida Jugador' asignado: en ese punto (y mirando a la válvula si la hay).
+    //  - Si no: delante de la válvula, de pie en el suelo y mirándola.
+    // Partida cargada: como antes (el guardado lo recoloca).
+    private bool CalcularSalidaJugador(out Vector3 posicion, out Quaternion rotacion, out Vector3? puntoAMirar)
+    {
+        posicion = jugador != null ? jugador.position : Vector3.zero;
+        rotacion = jugador != null ? jugador.rotation : Quaternion.identity;
+        puntoAMirar = null;
+
+        bool partidaCargada = GuardadoPartidaJuego.InicioActual == GuardadoPartidaJuego.TipoInicio.PartidaCargada;
+        Transform valvula = partidaCargada ? null : BuscarValvulaSalida();
+
+        if (valvula == null)
+        {
+            if (puntoSalidaJugador == null) return false;
+            posicion = puntoSalidaJugador.position;
+            rotacion = puntoSalidaJugador.rotation;
+            return true;
+        }
+
+        Renderer render = valvula.GetComponentInChildren<Renderer>();
+        Vector3 centro = render != null ? render.bounds.center : valvula.position;
+        puntoAMirar = centro;
+
+        if (puntoSalidaJugador != null)
+        {
+            posicion = puntoSalidaJugador.position;
+        }
+        else
+        {
+            // La cara de la válvula es su eje de giro; se elige el lado que da hacia fuera de la nave.
+            RuletaInteractivaGasoil ruleta = valvula.GetComponent<RuletaInteractivaGasoil>();
+            Vector3 cara = ruleta != null ? valvula.TransformDirection(ruleta.ejeGiroLocal) : valvula.forward;
+            cara.y = 0f;
+            if (cara.sqrMagnitude < 0.0001f) cara = valvula.forward;
+            cara.y = 0f;
+            cara.Normalize();
+
+            if (movimientoNave != null && Vector3.Dot(cara, centro - movimientoNave.transform.position) < 0f)
+                cara = -cara;
+
+            posicion = PonerDePie(centro + cara * distanciaValvulaAlSalir, centro.y);
+        }
+
+        Vector3 mirando = centro - posicion;
+        mirando.y = 0f;
+        rotacion = mirando.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(mirando, Vector3.up) : rotacion;
+        return true;
+    }
+
+    private Transform BuscarValvulaSalida()
+    {
+        if (mirarAlSalir != null) return mirarAlSalir;
+        if (!buscarValvulaAlSalir) return null;
+
+        Vector3 referencia = puntoAparcamientoNave != null ? puntoAparcamientoNave.position
+                           : movimientoNave != null ? movimientoNave.transform.position : Vector3.zero;
+
+        Transform mejor = null;
+        float mejorDistancia = float.MaxValue;
+        foreach (RuletaInteractivaGasoil ruleta in FindObjectsByType<RuletaInteractivaGasoil>(FindObjectsSortMode.None))
+        {
+            float d = (ruleta.transform.position - referencia).sqrMagnitude;
+            if (d < mejorDistancia) { mejorDistancia = d; mejor = ruleta.transform; }
+        }
+        return mejor;
+    }
+
+    // Posición del jugador (su raíz) de pie sobre el suelo que hay bajo 'punto'.
+    private Vector3 PonerDePie(Vector3 punto, float alturaReferencia)
+    {
+        Vector3 suelo = new Vector3(punto.x, alturaReferencia - 1.5f, punto.z);
+        RaycastHit[] impactos = Physics.RaycastAll(punto + Vector3.up * 3f, Vector3.down, 20f,
+                                                   Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        float mejor = float.MaxValue;
+        bool conTag = false;
+        foreach (RaycastHit impacto in impactos)
+        {
+            if (impacto.collider == null || (jugador != null && impacto.collider.transform.IsChildOf(jugador))) continue;
+            bool esSuelo = !string.IsNullOrEmpty(tagSueloSalida) && impacto.collider.CompareTag(tagSueloSalida);
+            // Preferimos el suelo con tag; si no hay, la primera superficie.
+            if (esSuelo && !conTag) { conTag = true; mejor = float.MaxValue; }
+            if (conTag && !esSuelo) continue;
+            if (impacto.distance < mejor) { mejor = impacto.distance; suelo = impacto.point; }
+        }
+
+        // Lo que hay entre la raíz del jugador y sus pies (CharacterController).
+        CharacterController controlador = jugador != null ? jugador.GetComponent<CharacterController>() : null;
+        float alturaPies = controlador != null
+            ? (controlador.height * 0.5f - controlador.center.y) * jugador.lossyScale.y + controlador.skinWidth
+            : 0.05f;
+        return suelo + Vector3.up * Mathf.Max(0.05f, alturaPies);
     }
 
     private IEnumerator Fundido(float desde, float hasta, float duracion)
