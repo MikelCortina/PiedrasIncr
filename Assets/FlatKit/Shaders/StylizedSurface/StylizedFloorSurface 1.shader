@@ -116,6 +116,28 @@
     	HLSLINCLUDE
     	// #define FLAT_KIT_DOTS_INSTANCING_ON // Uncomment to enable DOTS instancing
     	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+
+    	// Bocas de los agujeros (las rellena MascaraAgujeros.cs): xyz = centro de la boca, w = radio.
+    	// El suelo no se dibuja dentro de una boca y a su altura. Antes se hacía con el stencil de Hole.shader,
+    	// pero eso borraba cualquier superficie de suelo que quedara DELANTE de la boca en pantalla
+    	// (la plataforma vista desde abajo, paredes...) y el agujero se veía a través de ellas.
+    	float4 _AgujerosBoca[8];
+    	float _NumAgujeros;
+    	float _ToleranciaAlturaAgujero;
+
+    	void RecortarAgujeros(float3 posicionWS)
+    	{
+    		for (int i = 0; i < 8; i++)
+    		{
+    			if (i >= (int)_NumAgujeros) break;
+    			float4 boca = _AgujerosBoca[i];
+    			float2 d = posicionWS.xz - boca.xz;
+    			// Solo el suelo a la altura de la boca: desde un poco por encima hasta _ToleranciaAlturaAgujero por debajo.
+    			if (dot(d, d) < boca.w * boca.w &&
+    			    posicionWS.y < boca.y + 0.1 && posicionWS.y > boca.y - _ToleranciaAlturaAgujero)
+    				discard;
+    		}
+    	}
     	ENDHLSL
 
         Pass
@@ -123,13 +145,7 @@
             Name "ForwardLit"
             Tags {"LightMode" = "UniversalForwardOnly"}
 
-            // No se dibuja donde la máscara del agujero (Hole.shader) marcó el stencil.
-            Stencil
-            {
-                Ref 1
-                Comp NotEqual
-            }
-
+            // No se dibuja en la boca de los agujeros (RecortarAgujeros, en FragmentoConAgujeros).
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
@@ -229,7 +245,7 @@
             SAMPLER(sampler_DetailMap);
 
             #pragma vertex StylizedPassVertex
-            #pragma fragment StylizedPassFragment
+            #pragma fragment FragmentoConAgujeros
             #if UNITY_VERSION >= 202230
             #define BUMP_SCALE_NOT_SUPPORTED 1
             #endif
@@ -240,6 +256,12 @@
             #include "LibraryUrp/StylizedInput.hlsl"
             #include "LibraryUrp/LitForwardPass_DR.hlsl"
             #include "LibraryUrp/Lighting_DR.hlsl"
+
+            half4 FragmentoConAgujeros(Varyings input) : SV_Target
+            {
+                RecortarAgujeros(input.positionWS);
+                return StylizedPassFragment(input);
+            }
 
 			/* start CurvedWorld */
 			//#define CURVEDWORLD_BEND_TYPE_CLASSICRUNNER_X_POSITIVE
@@ -260,13 +282,7 @@
 
             Cull Front
 
-            // Tampoco el contorno del suelo dentro del agujero.
-            Stencil
-            {
-                Ref 1
-                Comp NotEqual
-            }
-
+            // Tampoco el contorno del suelo dentro del agujero (RecortarAgujeros en FragmentProgram).
             HLSLPROGRAM
             #include "LibraryUrp/StylizedInput.hlsl"
 
@@ -300,6 +316,7 @@
             {
                 float4 position : SV_POSITION;
                 float fogCoord : TEXCOORD1;
+                float3 positionWS : TEXCOORD2;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -356,6 +373,7 @@
 
 	                o.position = clipPosition;
 	                o.fogCoord = ComputeFogFactor(o.position.z);
+	                o.positionWS = mul(UNITY_MATRIX_M, float4(v.position.xyz, 1)).xyz;
                 #endif
             	
                 return o;
@@ -364,6 +382,7 @@
             half4 FragmentProgram(VertexOutput i) : SV_TARGET
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                RecortarAgujeros(i.positionWS);
                 half4 color = _OutlineColor;
                 color.rgb = MixFog(color.rgb, i.fogCoord);
                 return color;

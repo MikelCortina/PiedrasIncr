@@ -30,6 +30,8 @@ public class TemaUINeon : ScriptableObject
     public Font fuenteIMGUI;
     [Tooltip("Pone los textos en mayúsculas, como el panel del escáner.")]
     public bool forzarMayusculas = true;
+    [Tooltip("La fuente no tiene tildes ni Ñ: se dibujan como la letra normal (Á → A, Ñ → N, ¡ → !).")]
+    public bool quitarTildes = true;
     [Tooltip("Añade un halo de neón a los textos TMP (material compartido con Glow).")]
     public bool brilloTexto = true;
     [Range(0f, 1f)] public float intensidadBrilloTexto = 0.35f;

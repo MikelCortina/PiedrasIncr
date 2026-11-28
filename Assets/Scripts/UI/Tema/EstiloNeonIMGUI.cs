@@ -52,6 +52,8 @@ public static class EstiloNeonIMGUI
     // Texto luminoso: copias desplazadas y tenues alrededor (halo) y el texto nítido encima.
     public static void TextoNeon(GUIStyle estilo, Rect r, string texto, float tamano, TextAnchor anclaje, Color color, float halo)
     {
+        // La fuente del juego no tiene tildes: se dibujan como la letra normal.
+        texto = SinTildes.Quitar(texto);
         estilo.fontSize = Mathf.Max(8, Mathf.RoundToInt(tamano));
         estilo.alignment = anclaje;
 

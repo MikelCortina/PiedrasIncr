@@ -19,9 +19,10 @@ MonoBehaviour:
   colorNeonAlto: {r: 0.914, g: 0.616, b: 0.992, a: 1}
   colorNeonListo: {r: 0.926, g: 0.887, b: 1, a: 1}
   colorSombra: {r: 0, g: 0, b: 0, a: 0.4}
-  fuenteTMP: {fileID: 11400000, guid: 7c81b4b54a0936944846c78632b9b393, type: 2}
-  fuenteIMGUI: {fileID: 12800000, guid: 1d43eb51a5293dd4dad6075de564c3f8, type: 3}
+  fuenteTMP: {fileID: 11400000, guid: 3161a956ded9ba4409f07c2c1510a526, type: 2}
+  fuenteIMGUI: {fileID: 12800000, guid: f7b4aaf1b43fb1b478a5be3f2af2eef9, type: 3}
   forzarMayusculas: 1
+  quitarTildes: 1
   brilloTexto: 1
   intensidadBrilloTexto: 0.35
   grosorBorde: 1.2
@@ -42,6 +43,8 @@ MonoBehaviour:
   fraccionParpadeoEncendido: 0.65
   porcentajeListo: 95
   aplicarAutomaticamente: 1
+  escenasSinTema:
+  - MenuPrincipal
   rutasPaneles:
   - Canvas/PanelTienda
   - Canvas/PanelBot

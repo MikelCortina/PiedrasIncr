@@ -127,6 +127,11 @@ public static class FuenteDigital7
         }
 
         fuente.TryAddCharacters(CaracteresIniciales, out string faltan);
+
+        // Tildes, Ñ, ¡ ¿: se dibujan como la letra normal (Digital-7 no las tiene).
+        int tildes = SinTildes.PrepararFuente(fuente);
+        if (tildes > 0) informe.AppendLine("· " + tildes + " letras con tilde (y Ñ, ¡ ¿) se dibujan como la letra normal.");
+
         EditorUtility.SetDirty(fuente);
         return fuente;
     }

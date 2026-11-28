@@ -33,6 +33,8 @@ public class Fisionador : MonoBehaviour
     [Tooltip("Vacío = se busca en la escena.")]
     public Cartera cartera;
     public KeyCode teclaComprar = KeyCode.E;
+    [Tooltip("Se compra con la tecla y la Cartera. Desactivado: se construye lanzándole monedas (ConstruccionConMonedas).")]
+    public bool compraConTecla = true;
     [Tooltip("Distancia al collider de la máquina para poder comprarla.")]
     [Min(0.5f)] public float distanciaCompra = 6f;
     [Tooltip("Vacío = la cámara principal.")]
@@ -353,7 +355,7 @@ public class Fisionador : MonoBehaviour
 
     private void ManejarCompra()
     {
-        bool mostrarAviso = !desbloqueado && JugadorCerca();
+        bool mostrarAviso = compraConTecla && !desbloqueado && JugadorCerca();
 
         if (textoAvisoCompra != null)
         {
