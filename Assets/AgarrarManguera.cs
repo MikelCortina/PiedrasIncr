@@ -4,8 +4,8 @@ using UnityEngine;
 
 /// <summary>
 /// Boquilla de la manguera: se agarra mirándola y MANTENIENDO el clic derecho (como las piedras);
-/// al soltar el clic se suelta o, si está junto a la toma de la nave, se enchufa.
-/// Nunca se queda en el vacío: si se suelta donde no hay suelo debajo, o se cae, vuelve al último sitio con suelo.
+/// al soltar el clic se enchufa si está junto a la toma de la nave; si no, la manguera se recoge
+/// sola hasta su sitio inicial (así nunca se queda tirada ni cae al vacío). Se puede volver a agarrar mientras vuelve.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class AgarrarManguera : MonoBehaviour
@@ -22,15 +22,13 @@ public class AgarrarManguera : MonoBehaviour
     [Tooltip("Margen al apuntar: no hace falta acertar justo en la boquilla.")]
     public float radioApuntado = 0.5f;
 
-    [Header("Sin caer al vacío")]
-    [Tooltip("Capas del suelo. Vacío = las de la MangueraFisica.")]
-    public LayerMask capasSuelo;
-    [Tooltip("Hasta qué distancia por debajo de la boquilla se busca suelo.")]
-    public float alturaMaximaSobreSuelo = 6f;
-    [Tooltip("Metros que puede caer por debajo del último sitio seguro antes de devolverla.")]
-    public float caidaMaximaPermitida = 3f;
-    [Tooltip("Segundos que tarda en volver al último sitio con suelo.")]
-    public float duracionVuelta = 0.5f;
+    [Header("Recogida al soltar")]
+    [Tooltip("Metros por segundo a los que la boquilla vuelve a su sitio inicial al soltarla.")]
+    [Min(0.1f)] public float velocidadRecogida = 5f;
+    [Tooltip("Altura máxima del arco que hace al volver (para no arrastrarse por el suelo).")]
+    [Min(0f)] public float alturaArcoRecogida = 1f;
+    [Tooltip("Si se cae (p. ej. por un borde) más de estos metros por debajo de su sitio inicial, se recoge sola.")]
+    [Min(0.5f)] public float caidaMaximaPermitida = 6f;
 
     [Header("Movimiento fisico")]
     public float fuerzaSeguimiento = 350f;
@@ -76,13 +74,18 @@ public class AgarrarManguera : MonoBehaviour
     private bool agarrada = false;
     private bool conectada = false;
     private bool volviendo = false;
-    private Vector3 ultimaPosicionSegura;
+    private Coroutine rutinaRecogida;
+    private bool eraCinematicoAntesDeRecoger;
+    private Vector3 posicionInicial;
+    private Quaternion rotacionInicial;
     private GestorEquipamiento gestorEquipamiento;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        ultimaPosicionSegura = rb.position;
+        // Sitio al que vuelve al soltarla (en el espacio del padre, por si el surtidor se mueve).
+        posicionInicial = transform.localPosition;
+        rotacionInicial = transform.localRotation;
     }
 
     void OnEnable() { instancias.Add(this); }
@@ -90,17 +93,12 @@ public class AgarrarManguera : MonoBehaviour
 
     void Start()
     {
-        if (capasSuelo.value == 0)
-        {
-            MangueraFisica fisica = GetComponentInParent<MangueraFisica>();
-            if (fisica != null) capasSuelo = fisica.capasSuelo;
-        }
         gestorEquipamiento = FindFirstObjectByType<GestorEquipamiento>();
     }
 
     void Update()
     {
-        if (conectada || volviendo)
+        if (conectada)
             return;
 
         if (agarrada)
@@ -136,7 +134,7 @@ public class AgarrarManguera : MonoBehaviour
     // La cámara mira a la boquilla y está a distancia de agarre.
     bool EstaApuntada(Ray rayo)
     {
-        if (conectada || volviendo || rb == null) return false;
+        if (conectada || rb == null) return false;
         if (camaraJugador != null && Vector3.Distance(camaraJugador.position, rb.position) > distanciaMaximaAgarrar) return false;
 
         RaycastHit[] impactos = Physics.SphereCastAll(rayo, radioApuntado, distanciaMaximaAgarrar,
@@ -152,14 +150,10 @@ public class AgarrarManguera : MonoBehaviour
         if (conectada || volviendo)
             return;
 
-        if (HaySueloDebajo(rb.position))
+        // Se ha caído por un borde (o algo la ha empujado lejos hacia abajo): se recoge.
+        if (!agarrada && rb.position.y < PosicionInicialMundo().y - caidaMaximaPermitida)
         {
-            ultimaPosicionSegura = rb.position;
-        }
-        else if (!agarrada && rb.position.y < ultimaPosicionSegura.y - caidaMaximaPermitida)
-        {
-            // Se ha caído por un borde: vuelve.
-            StartCoroutine(VolverASitioSeguro());
+            EmpezarRecogida();
             return;
         }
 
@@ -182,6 +176,8 @@ public class AgarrarManguera : MonoBehaviour
 
     void Agarrar()
     {
+        // Si se estaba recogiendo, se corta y vuelve a ser física.
+        PararRecogida();
         agarrada = true;
         rb.WakeUp();
     }
@@ -189,52 +185,70 @@ public class AgarrarManguera : MonoBehaviour
     void Soltar()
     {
         agarrada = false;
-
-        // Soltada sobre el vacío: no se deja caer, vuelve al último sitio con suelo.
-        if (!HaySueloDebajo(rb.position))
-            StartCoroutine(VolverASitioSeguro());
+        EmpezarRecogida();
     }
 
-    bool HaySueloDebajo(Vector3 posicion)
+    Vector3 PosicionInicialMundo()
     {
-        int capas = capasSuelo.value != 0 ? capasSuelo.value : Physics.DefaultRaycastLayers;
-        RaycastHit[] impactos = Physics.RaycastAll(posicion + Vector3.up * 0.1f, Vector3.down,
-                                                   alturaMaximaSobreSuelo, capas, QueryTriggerInteraction.Ignore);
-        foreach (RaycastHit impacto in impactos)
-            if (impacto.collider != null && impacto.collider.attachedRigidbody != rb)
-                return true;
-        return false;
+        return transform.parent != null ? transform.parent.TransformPoint(posicionInicial) : posicionInicial;
     }
 
-    // Vuelve flotando al último sitio con suelo y allí se queda quieta.
-    IEnumerator VolverASitioSeguro()
+    Quaternion RotacionInicialMundo()
+    {
+        return transform.parent != null ? transform.parent.rotation * rotacionInicial : rotacionInicial;
+    }
+
+    void EmpezarRecogida()
+    {
+        if (volviendo || conectada) return;
+        rutinaRecogida = StartCoroutine(Recoger());
+    }
+
+    void PararRecogida()
+    {
+        if (!volviendo) return;
+        if (rutinaRecogida != null) StopCoroutine(rutinaRecogida);
+        rutinaRecogida = null;
+        volviendo = false;
+        rb.isKinematic = eraCinematicoAntesDeRecoger;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+
+    // La boquilla vuelve a su sitio inicial a velocidad constante, con un pequeño arco,
+    // y la manguera se va recogiendo en el carrete (MangueraFisica recoge lo que sobra).
+    IEnumerator Recoger()
     {
         volviendo = true;
-        agarrada = false;
 
-        bool eraCinematico = rb.isKinematic;
+        eraCinematicoAntesDeRecoger = rb.isKinematic;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
 
         Vector3 desde = rb.position;
-        Vector3 hasta = ultimaPosicionSegura + Vector3.up * 0.3f;
-        float duracion = Mathf.Max(0.05f, duracionVuelta);
+        Quaternion rotacionDesde = rb.rotation;
+        float distancia = Vector3.Distance(desde, PosicionInicialMundo());
+        float duracion = Mathf.Max(0.15f, distancia / velocidadRecogida);
+        float arco = Mathf.Min(alturaArcoRecogida, distancia * 0.25f);
 
         for (float t = 0f; t < duracion; t += Time.fixedDeltaTime)
         {
             float k = Mathf.SmoothStep(0f, 1f, t / duracion);
-            // Un pequeño arco para que se vea que vuelve, no que se teletransporta.
-            Vector3 punto = Vector3.Lerp(desde, hasta, k) + Vector3.up * Mathf.Sin(k * Mathf.PI) * 0.6f;
+            Vector3 punto = Vector3.Lerp(desde, PosicionInicialMundo(), k) + Vector3.up * Mathf.Sin(k * Mathf.PI) * arco;
             rb.MovePosition(punto);
+            rb.MoveRotation(Quaternion.Slerp(rotacionDesde, RotacionInicialMundo(), k));
             yield return new WaitForFixedUpdate();
         }
 
-        rb.position = hasta;
-        rb.isKinematic = eraCinematico;
+        rb.position = PosicionInicialMundo();
+        rb.rotation = RotacionInicialMundo();
+        rb.isKinematic = eraCinematicoAntesDeRecoger;
         rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
         rb.WakeUp();
         volviendo = false;
+        rutinaRecogida = null;
     }
 
     void ConectarANave()

@@ -14,6 +14,9 @@ public class GestorRuletasFPS : MonoBehaviour
     public float distanciaInteraccion = 3f;
     public float sensibilidadGiro = 1f;
 
+    [Tooltip("El mango de la palanca va pegado a la mirilla: baja exactamente lo que bajas la vista (como la ruleta). " +
+             "Desactivado: baja según cuánto se mueve el ratón (Sensibilidad Arrastre y Recorrido Mirada Palancas).")]
+    public bool palancaPegadaALaMano = true;
     [Tooltip("Sensibilidad para arrastrar palancas al mirar hacia abajo")]
     public float sensibilidadArrastre = 100f;
     [Tooltip("Todas las palancas se completan bajando la mirada lo mismo (Recorrido Mirada Palancas), " +
@@ -55,6 +58,8 @@ public class GestorRuletasFPS : MonoBehaviour
     // --- NUEVAS VARIABLES PARA LA PALANCA ---
     private PalancaTirador palancaActiva = null;
     private float desplazamientoYAcumulado = 0f;
+    // Palanca pegada a la mano: dónde estaba la mirilla sobre el recorrido al agarrarla (0 = arriba, 1 = abajo).
+    private float progresoMirillaAlAgarrar = 0f;
 
     // Estado del debug para escribir solo cuando cambia lo que toca el rayo.
     private bool debugInicializado;
@@ -198,6 +203,7 @@ public class GestorRuletasFPS : MonoBehaviour
                 {
                     // Reiniciamos el acumulador al enganchar la palanca
                     desplazamientoYAcumulado = 0f;
+                    progresoMirillaAlAgarrar = ProgresoMirillaEnPalanca(palancaActiva, centroPantalla) ?? 0f;
                     palancaActiva.IniciarArrastre();
                 }
                 else if (palancaDetectada == null)
@@ -256,6 +262,13 @@ public class GestorRuletasFPS : MonoBehaviour
                 ruletaGasoilActiva.ModificarDesdeGiroVisual(deltaAngulo * Mathf.Sign(sensibilidadGiro), camaraPrincipal);
                 anguloPantallaAnterior = anguloActual;
             }
+        }
+        else if (palancaActiva != null && Input.GetMouseButton(0) && palancaPegadaALaMano &&
+                 ProgresoMirillaEnPalanca(palancaActiva, centroPantalla) is float progresoMirilla)
+        {
+            // El mango se coloca en el punto de su recorrido que queda bajo la mirilla
+            // (contando desde donde estaba la mirilla al agarrarla): baja lo mismo que la vista.
+            palancaActiva.ActualizarProgresoArrastre(progresoMirilla - progresoMirillaAlAgarrar);
         }
         else if (palancaActiva != null && Input.GetMouseButton(0))
         {
@@ -455,6 +468,24 @@ public class GestorRuletasFPS : MonoBehaviour
         }
 
         return nombres.Count > 0 ? string.Join(", ", nombres) : "NINGUNA";
+    }
+
+    // Posición de la mirilla a lo largo del recorrido del mango, en pantalla (0 = arriba, 1 = abajo, sin limitar).
+    // null si no se puede calcular (recorrido detrás de la cámara o casi de punta).
+    float? ProgresoMirillaEnPalanca(PalancaTirador palanca, Vector2 mirilla)
+    {
+        if (palanca == null || !palanca.ObtenerRecorridoMundo(out Vector3 inicio, out Vector3 fin))
+            return null;
+
+        Vector3 a = camaraPrincipal.WorldToScreenPoint(inicio);
+        Vector3 b = camaraPrincipal.WorldToScreenPoint(fin);
+        if (a.z <= 0f || b.z <= 0f) return null;
+
+        Vector2 recorrido = new Vector2(b.x - a.x, b.y - a.y);
+        // Recorrido de menos de ~1% de la pantalla: se mira de punta, no sirve.
+        if (recorrido.magnitude < Screen.height * 0.01f) return null;
+
+        return Vector2.Dot(mirilla - new Vector2(a.x, a.y), recorrido) / recorrido.sqrMagnitude;
     }
 
     float CalcularAnguloCircular(Transform transformRuleta, Vector2 mirilla)

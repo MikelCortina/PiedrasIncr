@@ -250,6 +250,22 @@ public class PalancaTirador : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Puntos del mundo donde está el mango arriba (progreso 0) y abajo del todo (progreso 1).
+    /// GestorRuletasFPS los usa para que el mango vaya pegado a la mirilla.
+    /// </summary>
+    public bool ObtenerRecorridoMundo(out Vector3 inicio, out Vector3 fin)
+    {
+        inicio = fin = transform.position;
+        if (objetoTirador == null) return false;
+
+        Transform padre = objetoTirador.parent;
+        Vector3 finalLocal = posOriginalTirador + direccionMovimientoPadre * distanciaMaximaTirador;
+        inicio = padre != null ? padre.TransformPoint(posOriginalTirador) : posOriginalTirador;
+        fin = padre != null ? padre.TransformPoint(finalLocal) : finalLocal;
+        return (fin - inicio).sqrMagnitude > 0.000001f;
+    }
+
     public bool EstanPuertasAbiertas => (estado == 3);
 
     // Propiedad para avisar al cargador de que ya está todo cerrado y reseteado
