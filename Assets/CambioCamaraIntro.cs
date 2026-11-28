@@ -731,6 +731,65 @@ public class CambioCamaraIntro : MonoBehaviour
     }
 
     /// <summary>
+    /// Desde dónde y hacia dónde mirará la cámara de la cabina cuando la nave se pare
+    /// (lo que se ve por el cristal). MeteoritoInicial lo usa para caer justo ahí.
+    /// Se calcula con la posición actual de la cámara respecto a la nave, llevada a la pose de parada.
+    /// </summary>
+    public bool ObtenerVistaCabinaEnParada(out Vector3 origen, out Vector3 direccion)
+    {
+        origen = Vector3.zero;
+        direccion = Vector3.forward;
+
+        Transform camara = camaraInterior != null ? camaraInterior.transform : null;
+        if (camara == null || movimientoNave == null || movimientoNave.Container == null)
+            return false;
+
+        SplineContainer ruta = movimientoNave.Container;
+        if (ruta.Splines.Count == 0 || ruta.Spline == null || ruta.Spline.Count < 2)
+            return false;
+
+        Transform nave = movimientoNave.transform;
+
+        // Marco del spline ahora y en la parada: así se respeta cómo va orientado el modelo de la nave.
+        Quaternion marcoAhora, marcoParada;
+        if (!MarcoSpline(ruta, Mathf.Clamp01(movimientoNave.NormalizedTime), out _, out marcoAhora) ||
+            !MarcoSpline(ruta, Mathf.Clamp01(puntoFinIntroduccion), out Vector3 posicionParada, out marcoParada))
+            return false;
+
+        Quaternion rotacionParada = marcoParada * (Quaternion.Inverse(marcoAhora) * nave.rotation);
+
+        // Sin lo que el jugador haya movido el ratón: la vista de reposo de la cabina.
+        Quaternion rotacionCamara = camara.rotation;
+        if (pivoteCamaraCabina != null)
+        {
+            Quaternion relativaAlPivote = Quaternion.Inverse(pivoteCamaraCabina.rotation) * camara.rotation;
+            Quaternion padre = pivoteCamaraCabina.parent != null ? pivoteCamaraCabina.parent.rotation : Quaternion.identity;
+            rotacionCamara = padre * rotacionInicialCabina * relativaAlPivote;
+        }
+
+        Vector3 local = Quaternion.Inverse(nave.rotation) * (camara.position - nave.position);
+        Vector3 haciaLocal = Quaternion.Inverse(nave.rotation) * (rotacionCamara * Vector3.forward);
+
+        origen = posicionParada + rotacionParada * local;
+        direccion = (rotacionParada * haciaLocal).normalized;
+        return true;
+    }
+
+    private static bool MarcoSpline(SplineContainer ruta, float t, out Vector3 posicion, out Quaternion marco)
+    {
+        posicion = ruta.EvaluatePosition(t);
+        Vector3 tangente = ruta.EvaluateTangent(t);
+        if (tangente.sqrMagnitude < 0.000001f)
+            tangente = ruta.EvaluateTangent(Mathf.Clamp01(t - 0.01f));
+        Vector3 arriba = ruta.EvaluateUpVector(t);
+
+        marco = Quaternion.identity;
+        if (tangente.sqrMagnitude < 0.000001f) return false;
+        marco = Quaternion.LookRotation(tangente, arriba.sqrMagnitude > 0.000001f ? arriba : Vector3.up);
+        return true;
+    }
+
+    /// <summary>
     /// Dónde se para la nave (punto 'puntoFinIntroduccion' del spline) y hacia dónde mira, en horizontal.
     /// MeteoritoInicial lo usa para caer delante de ella.
     /// </summary>

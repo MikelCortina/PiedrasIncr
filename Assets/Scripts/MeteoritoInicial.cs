@@ -11,6 +11,12 @@ public class MeteoritoInicial : MonoBehaviour
     public Transform puntoImpacto;
 
     [Header("Impacto delante de la nave")]
+    [Tooltip("Activado: cae justo donde mira la cámara de la cabina cuando la nave se para (se ve por el cristal). " +
+             "Tiene prioridad sobre 'Impactar Delante De Nave'.")]
+    public bool caerDondeMiraLaCabina = true;
+    [Tooltip("Hasta qué distancia se busca el suelo en la dirección de la cámara de la cabina. Si mira por encima del " +
+             "suelo, cae a 'Distancia Delante Nave' metros en esa dirección.")]
+    [Min(5f)] public float distanciaMaximaVistaCabina = 80f;
     [Tooltip("Activado: cae delante de donde se para la nave (se calcula con su spline). Desactivado: cae en 'Punto Impacto'.")]
     public bool impactarDelanteDeNave = true;
     [Tooltip("La intro de la nave. Vacío = se busca sola.")]
@@ -262,10 +268,27 @@ public class MeteoritoInicial : MonoBehaviour
     // Delante de donde se para la nave; si no se puede calcular, el 'Punto Impacto' de la escena.
     private bool ObtenerPuntoImpacto(out Vector3 punto)
     {
+        if (intro == null && Application.isPlaying)
+            intro = FindFirstObjectByType<CambioCamaraIntro>();
+
+        // Lo que se verá por el cristal de la cabina al parar: donde la mirada toca el suelo.
+        Vector3 ojos, mirada;
+        if (caerDondeMiraLaCabina && intro != null && intro.ObtenerVistaCabinaEnParada(out ojos, out mirada))
+        {
+            if (RayoAlSuelo(ojos, mirada, distanciaMaximaVistaCabina, out punto))
+                return true;
+
+            // Mira por encima del horizonte: en esa dirección, a 'Distancia Delante Nave' (luego se busca suelo).
+            Vector3 plano = new Vector3(mirada.x, 0f, mirada.z);
+            if (plano.sqrMagnitude > 0.0001f)
+            {
+                punto = ojos + plano.normalized * distanciaDelanteNave;
+                return true;
+            }
+        }
+
         if (impactarDelanteDeNave)
         {
-            if (intro == null && Application.isPlaying)
-                intro = FindFirstObjectByType<CambioCamaraIntro>();
 
             Vector3 posicionNave, frente;
             if (intro != null && intro.ObtenerPoseParadaNave(out posicionNave, out frente))
@@ -278,6 +301,23 @@ public class MeteoritoInicial : MonoBehaviour
 
         punto = puntoImpacto != null ? puntoImpacto.position : Vector3.zero;
         return puntoImpacto != null;
+    }
+
+    // Primer collider con el tag del suelo en esa dirección.
+    private bool RayoAlSuelo(Vector3 origen, Vector3 direccion, float distancia, out Vector3 punto)
+    {
+        punto = origen;
+        RaycastHit[] impactos = Physics.RaycastAll(origen, direccion, distancia, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        float mejor = float.MaxValue;
+        bool hay = false;
+        foreach (RaycastHit impacto in impactos)
+        {
+            if (impacto.collider == null || !impacto.collider.CompareTag(tagSuelo) || impacto.distance >= mejor) continue;
+            mejor = impacto.distance;
+            punto = impacto.point;
+            hay = true;
+        }
+        return hay;
     }
 
     // Suelo bajo el punto deseado, con margen hasta el borde para que la piedra no ruede al vacío.
