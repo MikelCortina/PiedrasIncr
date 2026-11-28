@@ -253,6 +253,20 @@ public class TiendaTrabajo : MonoBehaviour
     // START
     // =====================================================
 
+    private void Awake()
+    {
+        // Si sigue colgada del panel viejo de la tienda (escena sin limpiar con
+        // Tools > PiedrasIncr > Limpiar tiendas de la escena), el panel no se ve ni se puede pulsar.
+        if (transform is RectTransform)
+        {
+            CanvasGroup grupo = GetComponent<CanvasGroup>();
+            if (grupo == null) grupo = gameObject.AddComponent<CanvasGroup>();
+            grupo.alpha = 0f;
+            grupo.interactable = false;
+            grupo.blocksRaycasts = false;
+        }
+    }
+
     private void Start()
     {
         Iniciar();
