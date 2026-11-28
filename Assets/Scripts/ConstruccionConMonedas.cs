@@ -88,6 +88,11 @@ public class ConstruccionConMonedas : MonoBehaviour
 
     public bool Construida => nivelActual > 0;
     public int NivelActual => nivelActual;
+    public int MonedasAportadas => monedasAportadas;
+
+    /// <summary>Con qué nombre se guarda en la partida (no cambiarlo o las partidas viejas no lo encuentran).</summary>
+    public string IdGuardado => tipo != Tipo.Personalizado ? tipo.ToString()
+                              : !string.IsNullOrEmpty(idEconomia) ? idEconomia : gameObject.name;
     public int NivelMaximo => Mathf.Max(1, niveles.Count);
     public bool EnMaximo => nivelActual >= NivelMaximo;
     public int PrecioSiguiente => EnMaximo ? 0 : Precio(nivelActual + 1);
@@ -175,10 +180,17 @@ public class ConstruccionConMonedas : MonoBehaviour
     // CICLO DE VIDA
     // =====================================================
 
-    private void Start()
+    private bool iniciado;
+
+    private void AsegurarConfiguracion()
     {
         if (niveles == null || niveles.Count == 0) ConfigurarPorDefecto();
         if (niveles == null || niveles.Count == 0) CrearNiveles(20, 40, 80);
+    }
+
+    private void Start()
+    {
+        AsegurarConfiguracion();
 
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
@@ -195,10 +207,18 @@ public class ConstruccionConMonedas : MonoBehaviour
         // Ya construido por otro lado (guardado, Inspector): empieza en nivel 1.
         if (YaDesbloqueadoPorSuScript()) nivelActual = Mathf.Max(nivelActual, 1);
 
+        // Partida cargada antes de que este componente existiera: se aplica ahora.
+        if (Pendientes.TryGetValue(IdGuardado, out Vector2Int pendiente))
+        {
+            Pendientes.Remove(IdGuardado);
+            FijarEstadoGuardado(pendiente.x, pendiente.y);
+        }
+
         AplicarEstado(false);
         PrepararCobro();
         CrearCartel();
         ActualizarCartel();
+        iniciado = true;
     }
 
     private void Update()
@@ -614,13 +634,59 @@ public class ConstruccionConMonedas : MonoBehaviour
     // GUARDADO
     // =====================================================
 
-    /// <summary>Restaura nivel y monedas aportadas sin cobrar ni animar (cargar partida).</summary>
+    // Estados de la partida cargada para edificios que aún no se han montado (id → nivel, monedas).
+    private static readonly Dictionary<string, Vector2Int> Pendientes = new Dictionary<string, Vector2Int>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ReiniciarPendientes() => Pendientes.Clear();
+
+    /// <summary>
+    /// Carga de partida (DemoSaveAdapter): restaura el edificio con ese id. Si aún no existe
+    /// (se monta solo al empezar), se aplica en cuanto aparezca.
+    /// </summary>
+    public static void RestaurarPorId(string id, int nivel, int aportadas)
+    {
+        if (string.IsNullOrEmpty(id)) return;
+
+        bool encontrado = false;
+        foreach (ConstruccionConMonedas c in FindObjectsByType<ConstruccionConMonedas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (c == null || c.IdGuardado != id) continue;
+            c.RestaurarEstado(nivel, aportadas);
+            encontrado = true;
+        }
+
+        if (!encontrado) Pendientes[id] = new Vector2Int(nivel, aportadas);
+    }
+
+    /// <summary>Restaura nivel y monedas aportadas sin cobrar ni animar ni avisar de compras (cargar partida).</summary>
     public void RestaurarEstado(int nivel, int aportadas)
     {
-        nivelActual = Mathf.Clamp(nivel, 0, NivelMaximo);
-        monedasAportadas = EnMaximo ? 0 : Mathf.Clamp(aportadas, 0, Mathf.Max(0, PrecioSiguiente - 1));
+        AsegurarConfiguracion();
+        FijarEstadoGuardado(nivel, aportadas);
+        if (!iniciado) return; // Start lo aplica todo
+
         AplicarEstado(false);
         ActualizarCartel();
+    }
+
+    // Nivel y monedas guardados + los efectos de los niveles alcanzados (no se guardan aparte).
+    private void FijarEstadoGuardado(int nivel, int aportadas)
+    {
+        int anterior = nivelActual;
+        nivelActual = Mathf.Clamp(nivel, 0, NivelMaximo);
+        monedasAportadas = EnMaximo ? 0 : Mathf.Clamp(aportadas, 0, Mathf.Max(0, PrecioSiguiente - 1));
+
+        for (int n = Mathf.Max(1, anterior + 1); n <= nivelActual; n++)
+        {
+            if (n >= 2 && tipo == Tipo.GeneradorAranas && aranasExtraPorNivel > 0)
+            {
+                TiendaTrabajo tienda = FindAnyObjectByType<TiendaTrabajo>(FindObjectsInactive.Include);
+                if (tienda != null) tienda.maximoBots += aranasExtraPorNivel;
+            }
+            if (n <= niveles.Count) niveles[n - 1].alLlegar?.Invoke();
+            if (n == 1) alConstruir?.Invoke();
+        }
     }
 }
 

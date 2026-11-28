@@ -131,8 +131,24 @@ public class CaraLedArana : MonoBehaviour
 
     void OnEnable()
     {
-        if (!Application.isPlaying) RefrescarVistaPrevia();
+        if (!Application.isPlaying)
+        {
+            RefrescarVistaPrevia();
+            return;
+        }
+
+        // Al desactivarse se destruye el quad de la cara (OnDisable). Si vuelve a activarse después de su Start
+        // (p. ej. el generador de arañas al desbloquearse), se crea de nuevo: si no, 'pantalla' apuntaría al destruido.
+        if (iniciadaEnJuego && superponerQuad && quadCreado == null)
+        {
+            pantalla = GetComponent<Renderer>();
+            ElegirSlotPorNombre();
+            if (CrearQuad()) Aplicar(sonriendo == false ? triste : sonriente);
+            else enabled = false;
+        }
     }
+
+    private bool iniciadaEnJuego;
 
     void OnDisable()
     {
@@ -333,11 +349,13 @@ public class CaraLedArana : MonoBehaviour
         // Cada pantalla falla a su ritmo.
         estadoFallos = EstadoFallos.Sonriendo;
         finEstado = Time.time + Random.Range(intervaloFallos.x, intervaloFallos.y);
+        iniciadaEnJuego = true;
     }
 
     void Update()
     {
         if (!Application.isPlaying) return;
+        if (pantalla == null) return; // quad destruido y aún sin rehacer
 
         if (expresion == Expresion.SonrienteConFallos)
         {

@@ -19,6 +19,7 @@ public sealed class DemoSceneReferences
     public GestorFasesLunares luna;
     public ControladorFinDemo finDemo;
     public LluviaMeteoritos lluvia;
+    public List<ConstruccionConMonedas> construccionesConMonedas = new List<ConstruccionConMonedas>();
 
     public static DemoSceneReferences Buscar(InventarioEdificios inventario, HerramientaTorbellino torbellino)
     {
@@ -33,8 +34,19 @@ public sealed class DemoSceneReferences
             fisionador = Primero<Fisionador>(),
             luna = Primero<GestorFasesLunares>(),
             finDemo = Primero<ControladorFinDemo>(),
-            lluvia = Primero<LluviaMeteoritos>()
+            lluvia = Primero<LluviaMeteoritos>(),
+            construccionesConMonedas = Todos<ConstruccionConMonedas>()
         };
+    }
+
+    private static List<T> Todos<T>() where T : Component
+    {
+        List<T> lista = new List<T>();
+        Scene escena = SceneManager.GetActiveScene();
+        foreach (T componente in UnityEngine.Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (componente != null && componente.gameObject.scene == escena)
+                lista.Add(componente);
+        return lista;
     }
 
     private static T Primero<T>() where T : Component
@@ -118,6 +130,20 @@ public static class DemoSaveAdapter
         {
             d.hasFaseLunar = true;
             d.faseLunar = r.luna.FaseActual;
+        }
+
+        if (r.construccionesConMonedas != null)
+        {
+            foreach (ConstruccionConMonedas c in r.construccionesConMonedas)
+            {
+                if (c == null || string.IsNullOrEmpty(c.IdGuardado)) continue;
+                d.construccionesConMonedas.Add(new DemoConstruccionMonedasSaveData
+                {
+                    id = c.IdGuardado,
+                    nivel = Mathf.Max(0, c.NivelActual),
+                    monedasAportadas = Mathf.Max(0, c.MonedasAportadas)
+                });
+            }
         }
 
         d.demoCompletada = r.finDemo != null && r.finDemo.FinalEnCurso;
@@ -215,6 +241,15 @@ public static class DemoSaveAdapter
         if (d.monedasPorFragmentosEnSuelo < 0)
             throw new InvalidOperationException("Monedas de fragmentos inválidas.");
 
+        // Partidas antiguas: JsonUtility puede dejar la lista a null.
+        if (d.construccionesConMonedas == null)
+            d.construccionesConMonedas = new List<DemoConstruccionMonedasSaveData>();
+        foreach (DemoConstruccionMonedasSaveData c in d.construccionesConMonedas)
+        {
+            if (c == null || string.IsNullOrEmpty(c.id) || c.nivel < 0 || c.nivel > 10 || c.monedasAportadas < 0)
+                throw new InvalidOperationException("Edificio construido con monedas guardado inválido.");
+        }
+
         if (d.piedras == null || d.piedras.Count > MaximoPiedras)
             throw new InvalidOperationException("Lista de piedras inválida.");
         foreach (DemoPiedraSaveData p in d.piedras)
@@ -305,6 +340,13 @@ public static class DemoSaveAdapter
         {
             if (r.fisionador != null && d.hasFisionador)
                 r.fisionador.RestaurarEstado(d.fisionadorDesbloqueado, d.esferasEnFisionador, d.fisionadorCompletado, d.misilesSinLanzar);
+        });
+
+        // Después del Fisionador: si su edificio estaba construido, lo deja desbloqueado.
+        fallos += Intentar("edificios construidos con monedas", () =>
+        {
+            foreach (DemoConstruccionMonedasSaveData c in d.construccionesConMonedas)
+                ConstruccionConMonedas.RestaurarPorId(c.id, c.nivel, c.monedasAportadas);
         });
 
         fallos += Intentar("piedras", () =>

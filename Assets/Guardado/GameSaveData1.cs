@@ -113,6 +113,21 @@ public sealed class DemoSaveData
 
     // Fragmentos que estaban en el suelo, ya pagados en economy.coins al guardar.
     public int monedasPorFragmentosEnSuelo;
+
+    // Edificios que se construyen lanzándoles monedas (ConstruccionConMonedas):
+    // Generador de Arañas, Fisionador, tienda de edificios... Partidas antiguas: lista vacía (en ruinas).
+    public List<DemoConstruccionMonedasSaveData> construccionesConMonedas =
+        new List<DemoConstruccionMonedasSaveData>();
+}
+
+[Serializable]
+public sealed class DemoConstruccionMonedasSaveData
+{
+    // ConstruccionConMonedas.IdGuardado (GeneradorAranas, Fisionador, TiendaEdificios o el nombre del objeto).
+    public string id;
+    // 0 = en ruinas.
+    public int nivel;
+    public int monedasAportadas;
 }
 
 [Serializable]
