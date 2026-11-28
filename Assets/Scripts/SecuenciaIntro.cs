@@ -63,6 +63,9 @@ public class SecuenciaIntro : MonoBehaviour
     [Header("Marcador del objetivo")]
     [Tooltip("Rombo en pantalla sobre la piedra, Botro o la trampilla, con la distancia.")]
     public bool mostrarMarcador = true;
+    [Tooltip("Si el objetivo no se ve (fuera de pantalla o detrás), el rombo se queda en el borde señalando hacia dónde está. " +
+             "Separación del borde en píxeles (a 1080 de alto).")]
+    public float margenBordeMarcador = 60f;
 
     [Header("Zoom a la pantalla de gasolina")]
     [Tooltip("Al meter la primera piedra, la cámara hace zoom a la pantalla de la gasolinera. Desactivado: no hay zoom.")]
@@ -898,6 +901,7 @@ public class SecuenciaIntro : MonoBehaviour
     }
 
     // Rombo de neón sobre el destino del paso actual, con la distancia debajo.
+    // Si no se ve (fuera de pantalla o detrás), se queda en el borde con una flecha hacia donde está.
     private void DibujarMarcador(float e)
     {
         if (!mostrarMarcador || jugador == null) return;
@@ -908,9 +912,46 @@ public class SecuenciaIntro : MonoBehaviour
         float distancia = Vector3.Distance(jugador.position, destino.Value);
         if (distancia < 3f) return;
 
-        Vector3 p = cam.WorldToScreenPoint(destino.Value + Vector3.up * 1.5f);
-        if (p.z <= 0f) return;
-        Vector2 centro = new Vector2(p.x, Screen.height - p.y);
+        Vector3 punto = destino.Value + Vector3.up * 1.5f;
+        Vector3 p = cam.WorldToScreenPoint(punto);
+        float margen = margenBordeMarcador * e;
+        bool enPantalla = p.z > 0f &&
+                          p.x >= margen && p.x <= Screen.width - margen &&
+                          p.y >= margen && p.y <= Screen.height - margen;
+
+        // Coordenadas de GUI: la Y crece hacia abajo.
+        Vector2 mitadPantalla = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        Vector2 centro;
+        Vector2 direccion = Vector2.zero;
+
+        if (enPantalla)
+        {
+            centro = new Vector2(p.x, Screen.height - p.y);
+        }
+        else
+        {
+            // Delante: la dirección en pantalla. Detrás: la del espacio de la cámara (la proyección sale invertida).
+            Vector2 d;
+            if (p.z > 0f)
+            {
+                d = new Vector2(p.x, Screen.height - p.y) - mitadPantalla;
+            }
+            else
+            {
+                Vector3 local = cam.transform.InverseTransformPoint(punto);
+                d = new Vector2(local.x, -local.y);
+                // Justo detrás y centrado: abajo, como "date la vuelta".
+                if (Mathf.Abs(d.x) < 0.01f && Mathf.Abs(d.y) < 0.01f) d = Vector2.up;
+            }
+            direccion = d.sqrMagnitude > 0.0001f ? d.normalized : Vector2.up;
+
+            // Hasta el borde del rectángulo de pantalla (menos el margen) en esa dirección.
+            float limiteX = Mathf.Max(1f, mitadPantalla.x - margen);
+            float limiteY = Mathf.Max(1f, mitadPantalla.y - margen);
+            float t = Mathf.Min(limiteX / Mathf.Max(Mathf.Abs(direccion.x), 0.0001f),
+                                limiteY / Mathf.Max(Mathf.Abs(direccion.y), 0.0001f));
+            centro = mitadPantalla + direccion * t;
+        }
 
         TemaUINeon tema = TemaUINeon.Actual;
         float a = Mathf.Clamp01((Time.unscaledTime - objetivoDesde) / 0.25f);
@@ -923,7 +964,38 @@ public class SecuenciaIntro : MonoBehaviour
         EstiloNeonIMGUI.BordeNeon(rombo, EstiloNeonIMGUI.ConAlfa(tema.colorNeonAlto, a), e, 2f * e);
         GUI.matrix = matriz;
 
-        EstiloNeonIMGUI.TextoNeon(estiloLED, new Rect(centro.x - 60f * e, centro.y + lado * 0.9f, 120f * e, 20f * e),
-            Mathf.RoundToInt(distancia) + " M", 15f * e, TextAnchor.UpperCenter, EstiloNeonIMGUI.ConAlfa(tema.colorNeon, a), 0.5f);
+        Rect etiqueta;
+        if (enPantalla)
+        {
+            etiqueta = new Rect(centro.x - 60f * e, centro.y + lado * 0.9f, 120f * e, 20f * e);
+        }
+        else
+        {
+            DibujarFlecha(centro + direccion * (lado * 1.25f), direccion, lado * 0.7f, 2f * e,
+                          EstiloNeonIMGUI.ConAlfa(tema.colorNeonAlto, a));
+            // La distancia, hacia el centro de la pantalla para que no se salga.
+            Vector2 posEtiqueta = centro - direccion * (lado * 1.6f + 12f * e);
+            etiqueta = new Rect(posEtiqueta.x - 60f * e, posEtiqueta.y - 10f * e, 120f * e, 20f * e);
+        }
+
+        EstiloNeonIMGUI.TextoNeon(estiloLED, etiqueta, Mathf.RoundToInt(distancia) + " M", 15f * e,
+            enPantalla ? TextAnchor.UpperCenter : TextAnchor.MiddleCenter, EstiloNeonIMGUI.ConAlfa(tema.colorNeon, a), 0.5f);
+    }
+
+    // Flecha ">" con la punta en 'punta', apuntando en 'direccion' (coordenadas de GUI).
+    private static void DibujarFlecha(Vector2 punta, Vector2 direccion, float largo, float grosor, Color color)
+    {
+        float angulo = Mathf.Atan2(direccion.y, direccion.x) * Mathf.Rad2Deg;
+        Matrix4x4 matriz = GUI.matrix;
+        Rect brazo = new Rect(punta.x - largo, punta.y - grosor * 0.5f, largo, grosor);
+
+        foreach (float abertura in new[] { 40f, -40f })
+        {
+            GUI.matrix = matriz;
+            GUIUtility.RotateAroundPivot(angulo + abertura, punta);
+            EstiloNeonIMGUI.Rectangulo(brazo, color, grosor * 0.5f);
+        }
+
+        GUI.matrix = matriz;
     }
 }
