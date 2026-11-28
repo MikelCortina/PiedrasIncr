@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Lógica de todas las compras (precios del Excel, guardado, eventos). No tiene interfaz propia:
+/// la tienda principal se ve con TiendaHolografica y las arañas con el panel del GeneradorAranas.
+/// </summary>
 public class TiendaTrabajo : MonoBehaviour
 {
     // =====================================================
@@ -43,33 +45,26 @@ public class TiendaTrabajo : MonoBehaviour
 
     [Header("Botas de velocidad")]
     public MovimientoPersonaje movimientoPersonaje;
-    public Button botonComprarBotas;
-    public TextMeshProUGUI textoBotonBotas;
     [HideInInspector] [Min(1)] public int precioBotasNivel1 = 5;
     [HideInInspector] [Min(1)] public int precioBotasNivel2 = 10;
     [HideInInspector] [Min(1)] public int precioBotasNivel3 = 20;
 
 
 
-    // =====================================================
-    // ARMA DE LA LUNA
-    // =====================================================
-
     [Header("Jetpack")]
-    public Button botonComprarJetpack;
-    public TextMeshProUGUI textoBotonJetpack;
     [HideInInspector] [Min(1)] public int precioJetpackNivel1 = 5;
     [HideInInspector] [Min(1)] public int precioJetpackNivel2 = 10;
     [HideInInspector] [Min(1)] public int precioJetpackNivel3 = 20;
     [HideInInspector] [Min(1)] public int precioJetpackNivel4 = 40;
 
 
+    // =====================================================
+    // ARMA DE LA LUNA
+    // =====================================================
+
     [Header("Arma de la Luna")]
 
     public int precioArmaLuna = 1;
-
-    public Button botonComprarArma;
-    public TextMeshProUGUI textoBotonArma;
 
 
     // =====================================================
@@ -80,19 +75,7 @@ public class TiendaTrabajo : MonoBehaviour
 
     [HideInInspector] public int precioTorbellino = 1;
 
-    public Button botonComprarTorbellino;
-    public TextMeshProUGUI textoBotonTorbellino;
-
     public HerramientaTorbellino herramientaTorbellino;
-
-
-    // =====================================================
-    // TORBELLINO - PANEL
-    // =====================================================
-
-    [Header("Torbellino - Panel Mejoras")]
-
-    public GameObject panelMejorasTorbellino;
 
 
     // =====================================================
@@ -100,9 +83,6 @@ public class TiendaTrabajo : MonoBehaviour
     // =====================================================
 
     [Header("Torbellino - Mejora Radio")]
-
-    public Button botonMejorarRadio;
-    public TextMeshProUGUI textoBotonRadio;
 
     public int precioRadioNivel2 = 5;
     public int precioRadioNivel3 = 10;
@@ -115,9 +95,6 @@ public class TiendaTrabajo : MonoBehaviour
 
     [Header("Torbellino - Mejora Alcance")]
 
-    public Button botonMejorarAlcance;
-    public TextMeshProUGUI textoBotonAlcance;
-
     [HideInInspector] public int precioAlcanceNivel2 = 5;
     [HideInInspector] public int precioAlcanceNivel3 = 10;
 
@@ -127,9 +104,6 @@ public class TiendaTrabajo : MonoBehaviour
     // =====================================================
 
     [Header("Torbellino - Mejora Movilidad")]
-
-    public Button botonMejorarMovilidad;
-    public TextMeshProUGUI textoBotonMovilidad;
 
     [HideInInspector] public int precioMovilidadNivel2 = 5;
     [HideInInspector] public int precioMovilidadNivel3 = 10;
@@ -143,9 +117,6 @@ public class TiendaTrabajo : MonoBehaviour
 
     public RecolectorMagnetico recolectorMagnetico;
 
-    public Button botonMejorarIman;
-    public TextMeshProUGUI textoBotonIman;
-
     [HideInInspector] public int precioImanNivel2 = 5;
     [HideInInspector] public int precioImanNivel3 = 10;
 
@@ -153,11 +124,6 @@ public class TiendaTrabajo : MonoBehaviour
     [Header("Imán - Compra")]
 
     [HideInInspector] public int precioIman = 3;
-
-    public Button botonComprarIman;
-    public TextMeshProUGUI textoBotonComprarIman;
-
-    public GameObject panelMejorasIman;
 
 
     // =====================================================
@@ -176,29 +142,11 @@ public class TiendaTrabajo : MonoBehaviour
     public int precioProcesadora = 10;
 
 
-    [Tooltip(
-        "Botón antiguo de compra. Ahora permanece oculto."
-    )]
-    public Button botonComprarProcesadora;
-
-
-    [Tooltip(
-        "Texto del antiguo botón de compra."
-    )]
-    public TextMeshProUGUI textoBotonComprarProcesadora;
-
-
-    public GameObject panelMejorasProcesadora;
-
-
     // =====================================================
     // PROCESADORA - VELOCIDAD
     // =====================================================
 
     [Header("Procesadora - Velocidad")]
-
-    public Button botonMejorarProcesadora;
-    public TextMeshProUGUI textoBotonProcesadora;
 
     public int precioProcesadoraNivel2 = 10;
     public int precioProcesadoraNivel3 = 20;
@@ -211,9 +159,6 @@ public class TiendaTrabajo : MonoBehaviour
     [Header("Martillo - Compra")]
 
     [HideInInspector] public int precioMartillo = 10;
-
-    public Button botonComprarMartillo;
-    public TextMeshProUGUI textoBotonMartillo;
 
 
     // =====================================================
@@ -274,17 +219,6 @@ public class TiendaTrabajo : MonoBehaviour
 
 
     // =====================================================
-    // BOTS - UI
-    // =====================================================
-
-    [Header("Bots - UI")]
-
-    public Button botonComprarBot;
-
-    public TextMeshProUGUI textoBotonBot;
-
-
-    // =====================================================
     // BOTS - CONFIGURACIÓN
     // =====================================================
 
@@ -328,7 +262,7 @@ public class TiendaTrabajo : MonoBehaviour
 
     /// <summary>
     /// Busca las referencias y prepara la tienda. Se llama en Start y también desde la tienda
-    /// holográfica, porque con ella el panel viejo no se activa nunca y su Start no llegaría a ejecutarse.
+    /// holográfica, por si este objeto estuviera desactivado y su Start no llegara a ejecutarse.
     /// </summary>
     public void Iniciar()
     {
@@ -1508,10 +1442,12 @@ public class TiendaTrabajo : MonoBehaviour
     // ACTUALIZAR TIENDA
     // =====================================================
 
+    /// <summary>Algo de la tienda ha cambiado (compra, desbloqueo...). La interfaz (TiendaHolografica) puede escucharlo.</summary>
+    public event System.Action OnTiendaCambiada;
+
     private void ActualizarTienda()
     {
-        ActualizarTiendaBase();
-        if (usarEconomiaDemo) ActualizarBotonesDemo();
+        OnTiendaCambiada?.Invoke();
     }
 
     private ArmaLanzadora FusilMonedas => gestorEquipamiento != null ? gestorEquipamiento.armaLanzadora : null;
@@ -1568,793 +1504,6 @@ public class TiendaTrabajo : MonoBehaviour
         ActualizarTienda();
     }
 
-    private void ActualizarBotonesDemo()
-    {
-        if (gestorEquipamiento == null) return;
-
-        bool fusilComprado = gestorEquipamiento.ArmaLanzadoraDesbloqueada();
-        ArmaLanzadora fusil = FusilMonedas;
-        int nivelFusil = fusilComprado && fusil != null ? fusil.NivelFusil : 0;
-        bool fusilMaximo = fusilComprado && (fusil == null || nivelFusil >= Eco.NivelesMax(EconomiaDemo.Ids.FusilMonedas));
-        if (textoBotonArma != null)
-        {
-            if (!fusilComprado) textoBotonArma.text = "COMPRAR FUSIL MONEDAS - " + Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1) + " monedas";
-            else if (fusilMaximo) textoBotonArma.text = "FUSIL NIVEL MÁXIMO";
-            else textoBotonArma.text = "MEJORAR FUSIL NIVEL " + (nivelFusil + 1) + " - " + Eco.Coste(EconomiaDemo.Ids.FusilMonedas, nivelFusil + 1) + " monedas";
-        }
-        if (botonComprarArma != null) botonComprarArma.interactable = !fusilMaximo;
-
-        if (herramientaTorbellino != null && gestorEquipamiento.TorbellinoDesbloqueado())
-        {
-            int nivel = herramientaTorbellino.NivelCapacidad;
-            bool maximo = herramientaTorbellino.CapacidadAlMaximo();
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text = maximo
-                    ? "TORBELLINO NIVEL MÁXIMO (5 PIEDRAS)"
-                    : "MEJORAR TORBELLINO NIVEL " + (nivel + 1) + " (" + (nivel + 1) + " piedras) - " + Eco.Coste(EconomiaDemo.Ids.Torbellino, nivel + 1) + " monedas";
-            }
-            if (botonMejorarRadio != null) botonMejorarRadio.interactable = !maximo;
-        }
-    }
-
-    private void ActualizarTiendaBase()
-    {
-        ActualizarBotas();
-        ActualizarJetpack();
-
-        // =================================================
-        // ARMA
-        // =================================================
-
-        if (gestorEquipamiento != null)
-        {
-            bool armaComprada =
-                gestorEquipamiento
-                    .ArmaLanzadoraDesbloqueada();
-
-
-            if (textoBotonArma != null)
-            {
-                textoBotonArma.text =
-                    armaComprada
-                    ? "COMPRADO"
-                    : "COMPRAR - " +
-                      precioArmaLuna +
-                      " moneda";
-            }
-
-
-            if (botonComprarArma != null)
-            {
-                botonComprarArma
-                    .interactable =
-                    !armaComprada;
-            }
-        }
-
-
-        // =================================================
-        // TORBELLINO
-        // =================================================
-
-        if (gestorEquipamiento != null)
-        {
-            bool torbellinoComprado =
-                gestorEquipamiento
-                    .TorbellinoDesbloqueado();
-
-
-            if (botonComprarTorbellino != null)
-            {
-                botonComprarTorbellino
-                    .gameObject
-                    .SetActive(
-                        !torbellinoComprado
-                    );
-            }
-
-
-            if (textoBotonTorbellino != null)
-            {
-                textoBotonTorbellino.text =
-                    "COMPRAR TORBELLINO - " +
-                    Ep_precioTorbellino +
-                    " monedas";
-            }
-
-
-            if (panelMejorasTorbellino != null)
-            {
-                panelMejorasTorbellino
-                    .SetActive(
-                        torbellinoComprado
-                    );
-            }
-
-
-            // =================================================
-            // MEJORAS TORBELLINO
-            // =================================================
-
-            if (torbellinoComprado &&
-                herramientaTorbellino != null)
-            {
-                ActualizarMejorasTorbellino();
-            }
-
-
-            // =================================================
-            // MARTILLO
-            // =================================================
-
-            bool martilloComprado =
-                gestorEquipamiento
-                    .MartilloDesbloqueado();
-
-
-            if (textoBotonMartillo != null)
-            {
-                textoBotonMartillo.text =
-                    martilloComprado
-                    ? "COMPRADO"
-                    : "COMPRAR MARTILLO - " +
-                      Ep_precioMartillo +
-                      " monedas";
-            }
-
-
-            if (botonComprarMartillo != null)
-            {
-                botonComprarMartillo
-                    .interactable =
-                    !martilloComprado;
-            }
-        }
-
-
-        // =================================================
-        // IMÁN
-        // =================================================
-
-        if (recolectorMagnetico != null)
-        {
-            bool imanComprado =
-                recolectorMagnetico
-                    .EstaImanDesbloqueado();
-
-
-            if (botonComprarIman != null)
-            {
-                botonComprarIman
-                    .gameObject
-                    .SetActive(true);
-
-
-                botonComprarIman
-                    .interactable =
-                    !imanComprado;
-            }
-
-
-            if (textoBotonComprarIman != null)
-            {
-                if (imanComprado)
-                {
-                    textoBotonComprarIman.text =
-                        "COMPRADO";
-                }
-                else
-                {
-                    textoBotonComprarIman.text =
-                        "COMPRAR IMÁN - " +
-                        Ep_precioIman +
-                        " monedas";
-                }
-            }
-
-
-            if (panelMejorasIman != null)
-            {
-                panelMejorasIman
-                    .SetActive(
-                        imanComprado
-                    );
-            }
-
-
-            if (imanComprado)
-            {
-                ActualizarMejoraIman();
-            }
-        }
-
-
-        // =================================================
-        // PROCESADORA
-        // =================================================
-
-        if (maquinaErosion != null)
-        {
-            // Desactivada en escena (demo) = panel de mejoras oculto.
-            bool procesadoraDesbloqueada =
-                ProcesadoraDisponible;
-
-
-            // =================================================
-            // NO SE COMPRA DESDE LA TIENDA
-            // =================================================
-
-            if (botonComprarProcesadora != null)
-            {
-                botonComprarProcesadora
-                    .gameObject
-                    .SetActive(false);
-            }
-
-
-            // =================================================
-            // MOSTRAR MEJORAS SOLO AL DESBLOQUEARLA
-            // =================================================
-
-            if (panelMejorasProcesadora != null)
-            {
-                panelMejorasProcesadora
-                    .SetActive(
-                        procesadoraDesbloqueada
-                    );
-            }
-
-
-            if (procesadoraDesbloqueada)
-            {
-                ActualizarMejoraProcesadora();
-            }
-        }
-        else
-        {
-            if (botonComprarProcesadora != null)
-            {
-                botonComprarProcesadora
-                    .gameObject
-                    .SetActive(false);
-            }
-
-
-            if (panelMejorasProcesadora != null)
-            {
-                panelMejorasProcesadora
-                    .SetActive(false);
-            }
-        }
-
-
-        // =================================================
-        // BOTS
-        // =================================================
-
-        ActualizarCompraBot();
-    }
-
-
-    // =====================================================
-    // ACTUALIZAR MEJORAS TORBELLINO
-    // =====================================================
-
-    private void ActualizarMejorasTorbellino()
-    {
-        if (herramientaTorbellino == null)
-            return;
-
-        // Nivel unificado: un único botón (Radio = nivel del Torbellino), sin apartados de alcance y movilidad.
-        bool unificado = herramientaTorbellino.nivelesUnificados;
-        if (botonMejorarAlcance != null) botonMejorarAlcance.gameObject.SetActive(!unificado);
-        if (botonMejorarMovilidad != null) botonMejorarMovilidad.gameObject.SetActive(!unificado);
-
-
-        // =================================================
-        // RADIO
-        // =================================================
-
-        if (herramientaTorbellino
-            .NivelRadio == 1)
-        {
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text =
-                    "MEJORAR RADIO NIVEL 2 - " +
-                    precioRadioNivel2 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarRadio != null)
-            {
-                botonMejorarRadio.interactable =
-                    true;
-            }
-        }
-        else if (
-            herramientaTorbellino
-                .NivelRadio == 2)
-        {
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text =
-                    "MEJORAR RADIO NIVEL 3 - " +
-                    precioRadioNivel3 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarRadio != null)
-            {
-                botonMejorarRadio.interactable =
-                    true;
-            }
-        }
-        else if (
-            herramientaTorbellino
-                .NivelRadio == 3)
-        {
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text =
-                    "MEJORAR RADIO NIVEL 4 - " +
-                    precioRadioNivel4 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarRadio != null)
-            {
-                botonMejorarRadio.interactable =
-                    true;
-            }
-        }
-        else
-        {
-            if (textoBotonRadio != null)
-            {
-                textoBotonRadio.text =
-                    "RADIO NIVEL MÁXIMO";
-            }
-
-
-            if (botonMejorarRadio != null)
-            {
-                botonMejorarRadio.interactable =
-                    false;
-            }
-        }
-
-
-        // =================================================
-        // ALCANCE
-        // =================================================
-
-        if (herramientaTorbellino
-            .NivelAlcance == 1)
-        {
-            if (textoBotonAlcance != null)
-            {
-                textoBotonAlcance.text =
-                    "MEJORAR ALCANCE NIVEL 2 - " +
-                    Ep_precioAlcanceNivel2 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarAlcance != null)
-            {
-                botonMejorarAlcance.interactable =
-                    true;
-            }
-        }
-        else if (
-            herramientaTorbellino
-                .NivelAlcance == 2)
-        {
-            if (textoBotonAlcance != null)
-            {
-                textoBotonAlcance.text =
-                    "MEJORAR ALCANCE NIVEL 3 - " +
-                    Ep_precioAlcanceNivel3 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarAlcance != null)
-            {
-                botonMejorarAlcance.interactable =
-                    true;
-            }
-        }
-        else
-        {
-            if (textoBotonAlcance != null)
-            {
-                textoBotonAlcance.text =
-                    "ALCANCE NIVEL MÁXIMO";
-            }
-
-
-            if (botonMejorarAlcance != null)
-            {
-                botonMejorarAlcance.interactable =
-                    false;
-            }
-        }
-
-
-        // =================================================
-        // MOVILIDAD
-        // =================================================
-
-        if (herramientaTorbellino
-            .NivelMovilidad == 1)
-        {
-            if (textoBotonMovilidad != null)
-            {
-                textoBotonMovilidad.text =
-                    "MEJORAR MOVILIDAD NIVEL 2 - " +
-                    Ep_precioMovilidadNivel2 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarMovilidad != null)
-            {
-                botonMejorarMovilidad
-                    .interactable =
-                    true;
-            }
-        }
-        else if (
-            herramientaTorbellino
-                .NivelMovilidad == 2)
-        {
-            if (textoBotonMovilidad != null)
-            {
-                textoBotonMovilidad.text =
-                    "MEJORAR MOVILIDAD NIVEL 3 - " +
-                    Ep_precioMovilidadNivel3 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarMovilidad != null)
-            {
-                botonMejorarMovilidad
-                    .interactable =
-                    true;
-            }
-        }
-        else
-        {
-            if (textoBotonMovilidad != null)
-            {
-                textoBotonMovilidad.text =
-                    "MOVILIDAD NIVEL MÁXIMO";
-            }
-
-
-            if (botonMejorarMovilidad != null)
-            {
-                botonMejorarMovilidad
-                    .interactable =
-                    false;
-            }
-        }
-    }
-
-
-    // =====================================================
-    // ACTUALIZAR MEJORA IMÁN
-    // =====================================================
-
-    private void ActualizarMejoraIman()
-    {
-        if (recolectorMagnetico == null)
-            return;
-
-
-        if (recolectorMagnetico
-            .NivelAlcance == 1)
-        {
-            if (textoBotonIman != null)
-            {
-                textoBotonIman.text =
-                    "MEJORAR ALCANCE NIVEL 2 - " +
-                    Ep_precioImanNivel2 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarIman != null)
-            {
-                botonMejorarIman
-                    .interactable =
-                    true;
-            }
-        }
-        else if (
-            recolectorMagnetico
-                .NivelAlcance == 2)
-        {
-            if (textoBotonIman != null)
-            {
-                textoBotonIman.text =
-                    "MEJORAR ALCANCE NIVEL 3 - " +
-                    Ep_precioImanNivel3 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarIman != null)
-            {
-                botonMejorarIman
-                    .interactable =
-                    true;
-            }
-        }
-        else
-        {
-            if (textoBotonIman != null)
-            {
-                textoBotonIman.text =
-                    "ALCANCE MÁXIMO";
-            }
-
-
-            if (botonMejorarIman != null)
-            {
-                botonMejorarIman
-                    .interactable =
-                    false;
-            }
-        }
-    }
-
-
-    // =====================================================
-    // ACTUALIZAR MEJORA PROCESADORA
-    // =====================================================
-
-    private void ActualizarMejoraProcesadora()
-    {
-        if (maquinaErosion == null)
-            return;
-
-
-        if (!maquinaErosion
-            .ProcesadoraDesbloqueada)
-        {
-            return;
-        }
-
-
-        if (maquinaErosion
-            .NivelProcesado == 1)
-        {
-            if (textoBotonProcesadora != null)
-            {
-                textoBotonProcesadora.text =
-                    "VELOCIDAD NIVEL 2 - " +
-                    precioProcesadoraNivel2 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarProcesadora != null)
-            {
-                botonMejorarProcesadora
-                    .interactable =
-                    true;
-            }
-        }
-        else if (
-            maquinaErosion
-                .NivelProcesado == 2)
-        {
-            if (textoBotonProcesadora != null)
-            {
-                textoBotonProcesadora.text =
-                    "VELOCIDAD NIVEL 3 - " +
-                    precioProcesadoraNivel3 +
-                    " monedas";
-            }
-
-
-            if (botonMejorarProcesadora != null)
-            {
-                botonMejorarProcesadora
-                    .interactable =
-                    true;
-            }
-        }
-        else
-        {
-            if (textoBotonProcesadora != null)
-            {
-                textoBotonProcesadora.text =
-                    "VELOCIDAD MÁXIMA";
-            }
-
-
-            if (botonMejorarProcesadora != null)
-            {
-                botonMejorarProcesadora
-                    .interactable =
-                    false;
-            }
-        }
-    }
-
-
-    // =====================================================
-    // ACTUALIZAR COMPRA BOT
-    // =====================================================
-
-    private void ActualizarCompraBot()
-    {
-        if (GeneradorBloqueado)
-        {
-            if (textoBotonBot != null)
-                textoBotonBot.text = "GENERADOR BLOQUEADO";
-
-            if (botonComprarBot != null)
-                botonComprarBot.interactable = false;
-
-            return;
-        }
-
-
-        // =================================================
-        // PRIMERO: REQUIERE PROCESADORA (desactivado en la demo)
-        // =================================================
-
-        if (BotBloqueadoPorProcesadora)
-        {
-            if (textoBotonBot != null)
-            {
-                textoBotonBot.text =
-                    "BOT BLOQUEADO\n" +
-                    "REQUIERE PROCESADORA";
-            }
-
-
-            if (botonComprarBot != null)
-            {
-                botonComprarBot
-                    .interactable =
-                    false;
-            }
-
-
-            return;
-        }
-
-
-        // =================================================
-        // BUSCAR GESTOR
-        // =================================================
-
-        if (gestorBots == null)
-        {
-            gestorBots =
-                GestorBots.Instancia;
-        }
-
-
-        if (gestorBots == null)
-        {
-            gestorBots =
-                FindFirstObjectByType<
-                    GestorBots
-                >();
-        }
-
-
-        // =================================================
-        // SIN GESTOR
-        // =================================================
-
-        if (gestorBots == null)
-        {
-            if (textoBotonBot != null)
-            {
-                textoBotonBot.text =
-                    "BOT NO DISPONIBLE";
-            }
-
-
-            if (botonComprarBot != null)
-            {
-                botonComprarBot
-                    .interactable =
-                    false;
-            }
-
-
-            return;
-        }
-
-
-        // =================================================
-        // CANTIDAD ACTUAL
-        // =================================================
-
-        int cantidadActual =
-            gestorBots
-                .ObtenerCantidadBots();
-
-
-        // =================================================
-        // MÁXIMO
-        // =================================================
-
-        if (cantidadActual >=
-            maximoBots)
-        {
-            if (textoBotonBot != null)
-            {
-                textoBotonBot.text =
-                    "BOTS AL MÁXIMO (" +
-                    cantidadActual +
-                    "/" +
-                    maximoBots +
-                    ")";
-            }
-
-
-            if (botonComprarBot != null)
-            {
-                botonComprarBot
-                    .interactable =
-                    false;
-            }
-
-
-            return;
-        }
-
-
-        // =================================================
-        // SIGUIENTE BOT
-        // =================================================
-
-        int precio =
-            ObtenerPrecioSiguienteBot(
-                cantidadActual
-            );
-
-
-        int numeroSiguienteBot =
-            cantidadActual +
-            1;
-
-
-        if (textoBotonBot != null)
-        {
-            textoBotonBot.text =
-                "COMPRAR BOT-" +
-                numeroSiguienteBot
-                    .ToString("00") +
-                " - " +
-                precio +
-                " monedas";
-        }
-
-
-        if (botonComprarBot != null)
-        {
-            botonComprarBot
-                .interactable =
-                true;
-        }
-    }
-
 
     public void ComprarMejoraBotas()
     {
@@ -2387,37 +1536,6 @@ public class TiendaTrabajo : MonoBehaviour
         movimientoPersonaje.MejorarBotas();
         EventosEconomia.NotificarCompra(EconomiaDemo.Ids.Botas, movimientoPersonaje.NivelBotas, precio);
         ActualizarTienda();
-    }
-
-    private void ActualizarBotas()
-    {
-        if (movimientoPersonaje == null)
-        {
-            if (botonComprarBotas != null)
-                botonComprarBotas.interactable = false;
-            if (textoBotonBotas != null)
-                textoBotonBotas.text = "BOTAS NO DISPONIBLES";
-            return;
-        }
-
-        int nivel = movimientoPersonaje.NivelBotas;
-        int precio = nivel == 0 ? Ep_precioBotasNivel1 :
-                     nivel == 1 ? Ep_precioBotasNivel2 : Ep_precioBotasNivel3;
-
-        if (botonComprarBotas != null)
-            botonComprarBotas.interactable = nivel < 3 && precio > 0 &&
-                cartera != null && cartera.PuedeGastar(precio);
-
-        if (textoBotonBotas == null)
-            return;
-
-        if (nivel >= 3)
-            textoBotonBotas.text = "BOTAS NIVEL MÁXIMO";
-        else if (nivel == 0)
-            textoBotonBotas.text = "COMPRAR BOTAS - " + precio + " monedas";
-        else
-            textoBotonBotas.text = "MEJORAR BOTAS NIVEL " + (nivel + 1) +
-                                  " - " + precio + " monedas";
     }
 
 
@@ -2462,36 +1580,6 @@ public class TiendaTrabajo : MonoBehaviour
             case 3: return Ep_precioJetpackNivel4;
             default: return 0;
         }
-    }
-
-    private void ActualizarJetpack()
-    {
-        if (movimientoPersonaje == null)
-        {
-            if (botonComprarJetpack != null)
-                botonComprarJetpack.interactable = false;
-            if (textoBotonJetpack != null)
-                textoBotonJetpack.text = "JETPACK NO DISPONIBLE";
-            return;
-        }
-
-        int nivel = movimientoPersonaje.NivelJetpack;
-        int precio = ObtenerPrecioJetpack(nivel);
-
-        if (botonComprarJetpack != null)
-            botonComprarJetpack.interactable = nivel < 4 && precio > 0 &&
-                cartera != null && cartera.PuedeGastar(precio);
-
-        if (textoBotonJetpack == null)
-            return;
-
-        if (nivel >= 4)
-            textoBotonJetpack.text = "JETPACK NIVEL MAXIMO";
-        else if (nivel == 0)
-            textoBotonJetpack.text = "COMPRAR JETPACK - " + precio + " monedas";
-        else
-            textoBotonJetpack.text = "MEJORAR JETPACK NIVEL " + (nivel + 1) +
-                                     " - " + precio + " monedas";
     }
 
 

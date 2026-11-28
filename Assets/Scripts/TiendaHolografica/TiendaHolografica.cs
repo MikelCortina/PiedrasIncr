@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Tienda holográfica (sustituye la presentación de la tienda vieja, no su lógica).
+/// Tienda holográfica: la única interfaz de la tienda principal (la lógica está en TiendaTrabajo).
 ///
 /// - En el suelo, junto a la MesaTrabajo, hay un PROYECTOR: un disco con anillos cian que laten.
 ///   Al acercarte se encienden unos rayos en abanico y un haz de luz.
@@ -166,8 +166,6 @@ public class TiendaHolografica : MonoBehaviour
         AplicarTema();
 
         if (mesa == null) mesa = GetComponent<MesaTrabajo>();
-        if (tienda == null && mesa != null && mesa.panelTienda != null)
-            tienda = mesa.panelTienda.GetComponentInChildren<TiendaTrabajo>(true);
         if (tienda == null)
             tienda = FindAnyObjectByType<TiendaTrabajo>(FindObjectsInactive.Include);
 

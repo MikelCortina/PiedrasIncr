@@ -36,9 +36,7 @@ public class GeneradorAranas : MonoBehaviour
     [Tooltip("Distancia extra alrededor del modelo en la que el jugador puede interactuar.")]
     public float margenInteraccion = 2f;
 
-    [Tooltip("Vacío = usa el texto de interacción de la MesaTrabajo de la escena.")]
-    public TextMeshProUGUI textoInteraccion;
-
+    [Tooltip("El aviso sale en el texto de interacción común (el de la MesaTrabajo).")]
     public string mensajeInteraccion = "Pulsa E para comprar arañas";
 
 
@@ -47,8 +45,9 @@ public class GeneradorAranas : MonoBehaviour
     // =====================================================
 
     [Header("Menú de compra")]
-    [Tooltip("Panel con los botones de comprar araña (PanelComprarBots).")]
+    [Tooltip("Panel con los botones de comprar araña. Vacío = el objeto llamado 'Nombre Panel Compra Bots'.")]
     public GameObject panelCompraBots;
+    public string nombrePanelCompraBots = "PanelComprarBots";
 
     [Tooltip("Vacío = el TiendaTrabajo de la escena.")]
     public TiendaTrabajo tiendaTrabajo;
@@ -56,17 +55,8 @@ public class GeneradorAranas : MonoBehaviour
     [Tooltip("Opcional: botón de cerrar del panel (ButtonCerrarBot). Se le añade cerrar este menú.")]
     public Button botonCerrar;
 
-    [Tooltip("Opcional: botón de comprar del panel (ButtonComprarBot). Muestra el precio o por qué no se puede comprar.")]
+    [Tooltip("Opcional: botón de comprar del panel (ButtonComprarBot). Compra una araña y muestra el precio o por qué no se puede.")]
     public Button botonComprar;
-
-    [Tooltip("Vacío = se busca en la escena.")]
-    public CamaraPrimeraPersona controladorCamara;
-
-    [Tooltip("Vacío = se busca en la escena.")]
-    public ArmaLanzadora armaLanzadora;
-
-    [Tooltip("Pausa el juego con el menú abierto, como la mesa de trabajo. La araña sale al cerrarlo.")]
-    public bool pausarConMenu = true;
 
 
     // =====================================================
@@ -136,8 +126,6 @@ public class GeneradorAranas : MonoBehaviour
     private TextMeshProUGUI textoBotonComprar;
     private bool jugadorCerca;
     private bool menuAbierto;
-    private bool armaEstabaActiva;
-    private string textoOriginal;
 
     private Transform bisagra;
     private bool puertaMedida;             // datos de la puerta tomados con ella cerrada
@@ -212,21 +200,11 @@ public class GeneradorAranas : MonoBehaviour
         if (tiendaTrabajo == null) tiendaTrabajo = FindFirstObjectByType<TiendaTrabajo>();
         if (tiendaTrabajo != null && tiendaTrabajo.generadorAranas == null) tiendaTrabajo.generadorAranas = this;
 
-        if (controladorCamara == null) controladorCamara = FindFirstObjectByType<CamaraPrimeraPersona>();
-        if (armaLanzadora == null) armaLanzadora = FindFirstObjectByType<ArmaLanzadora>();
-
-        if (textoInteraccion == null)
-        {
-            MesaTrabajo mesa = FindFirstObjectByType<MesaTrabajo>();
-            if (mesa != null) textoInteraccion = mesa.textoInteraccion;
-        }
-
-        // Sin asignar: el mismo panel que usa el terminal de compra de bots, y su botón "Cerrar".
+        // Sin asignar: el panel de la escena por su nombre (empieza oculto), y sus botones "Cerrar" y "Comprar".
         if (panelCompraBots == null)
-        {
-            TerminalCompraBots terminal = FindFirstObjectByType<TerminalCompraBots>(FindObjectsInactive.Include);
-            if (terminal != null) panelCompraBots = terminal.panelCompraBots;
-        }
+            panelCompraBots = BuscarObjetoInactivo(nombrePanelCompraBots);
+        if (panelCompraBots != null)
+            panelCompraBots.SetActive(false);
         if (botonCerrar == null && panelCompraBots != null)
             foreach (Button boton in panelCompraBots.GetComponentsInChildren<Button>(true))
                 if (boton.name.Contains("Cerrar")) { botonCerrar = boton; break; }
@@ -240,9 +218,29 @@ public class GeneradorAranas : MonoBehaviour
         if (botonComprar != null)
         {
             textoBotonComprar = botonComprar.GetComponentInChildren<TextMeshProUGUI>(true);
-            // Se ejecuta después de TiendaTrabajo.ComprarBot (listener del Inspector): si no compró, dice por qué.
-            botonComprar.onClick.AddListener(RefrescarBotonComprar);
+
+            // La compra la hace este script: se apaga la del Inspector (TiendaTrabajo.ComprarBot) para no comprar dos.
+            for (int i = 0; i < botonComprar.onClick.GetPersistentEventCount(); i++)
+                if (botonComprar.onClick.GetPersistentTarget(i) is TiendaTrabajo)
+                    botonComprar.onClick.SetPersistentListenerState(i, UnityEngine.Events.UnityEventCallState.Off);
+
+            botonComprar.onClick.AddListener(ComprarArana);
         }
+    }
+
+    private static GameObject BuscarObjetoInactivo(string nombre)
+    {
+        if (string.IsNullOrEmpty(nombre)) return null;
+        foreach (RectTransform t in FindObjectsByType<RectTransform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (t.name == nombre && t.gameObject.scene.IsValid()) return t.gameObject;
+        return null;
+    }
+
+    private void ComprarArana()
+    {
+        if (tiendaTrabajo != null) tiendaTrabajo.ComprarBot();
+        // Si no compró, el botón dice por qué.
+        RefrescarBotonComprar();
     }
 
     // Trigger que rodea todo el modelo con un margen: el jugador lo pisa para poder interactuar.
@@ -329,23 +327,10 @@ public class GeneradorAranas : MonoBehaviour
         MostrarAviso(false);
     }
 
-    // El texto puede ser el mismo que usa la mesa: se guarda el suyo y se devuelve al ocultarlo.
     private void MostrarAviso(bool mostrar)
     {
-        if (textoInteraccion == null) return;
-        if (mostrar && !desbloqueado) return;
-
-        if (mostrar)
-        {
-            textoOriginal = textoInteraccion.text;
-            textoInteraccion.text = mensajeInteraccion;
-            textoInteraccion.gameObject.SetActive(true);
-        }
-        else if (textoInteraccion.text == mensajeInteraccion)
-        {
-            textoInteraccion.gameObject.SetActive(false);
-            if (textoOriginal != null) textoInteraccion.text = textoOriginal;
-        }
+        if (mostrar && desbloqueado) MenuTienda.MostrarAviso(this, mensajeInteraccion);
+        else MenuTienda.OcultarAviso(this);
     }
 
     public void AbrirMenu()
@@ -361,19 +346,9 @@ public class GeneradorAranas : MonoBehaviour
         MostrarAviso(false);
 
         panelCompraBots.SetActive(true);
-        tiendaTrabajo.RefrescarTienda();
         RefrescarBotonComprar();
-
-        if (controladorCamara != null) controladorCamara.SetBloqueadaPorUI(true);
-        if (armaLanzadora != null)
-        {
-            armaEstabaActiva = armaLanzadora.enabled;
-            armaLanzadora.enabled = false;
-        }
-
-        if (pausarConMenu) Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // El juego queda en pausa: la araña comprada sale al cerrar el menú.
+        MenuTienda.Abrir();
     }
 
     public void CerrarMenu()
@@ -382,18 +357,9 @@ public class GeneradorAranas : MonoBehaviour
         menuAbierto = false;
 
         if (panelCompraBots != null) panelCompraBots.SetActive(false);
-        RestaurarJuego();
+        MenuTienda.Cerrar();
 
         if (jugadorCerca) MostrarAviso(true);
-    }
-
-    private void RestaurarJuego()
-    {
-        if (pausarConMenu) Time.timeScale = 1f;
-        if (controladorCamara != null) controladorCamara.SetBloqueadaPorUI(false);
-        if (armaLanzadora != null) armaLanzadora.enabled = armaEstabaActiva;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
     public bool EstaMenuAbierto() => menuAbierto;
@@ -414,10 +380,11 @@ public class GeneradorAranas : MonoBehaviour
 
     private void OnDisable()
     {
+        MenuTienda.OcultarAviso(this);
         if (!menuAbierto) return;
         menuAbierto = false;
         if (panelCompraBots != null) panelCompraBots.SetActive(false);
-        RestaurarJuego();
+        MenuTienda.Cerrar();
     }
 
 

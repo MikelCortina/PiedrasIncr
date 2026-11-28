@@ -1,439 +1,103 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Mesa de la tienda principal: al pulsar E cerca abre la tienda holográfica (TiendaHolografica, que se añade sola).
+/// Pausa, ratón, cámara y arma: MenuTienda. Las compras: TiendaTrabajo.
+/// </summary>
 public class MesaTrabajo : MonoBehaviour
 {
-    // =====================================================
-    // INTERACCIÓN
-    // =====================================================
-
     [Header("Interacción")]
     public KeyCode teclaInteractuar = KeyCode.E;
 
-
-    // =====================================================
-    // UI
-    // =====================================================
-
-    [Header("UI")]
-    public GameObject panelTienda;
+    [Tooltip("Texto en pantalla de los avisos 'Pulsa E...'. Lo usan también el resto de tiendas.")]
     public TextMeshProUGUI textoInteraccion;
 
+    public string mensajeInteraccion = "Pulsa E para abrir la tienda";
 
-    // =====================================================
-    // TEXTO
-    // =====================================================
-
-    [Header("Texto")]
-    public string mensajeInteraccion =
-        "Pulsa E para abrir la tienda";
-
-
-    // =====================================================
-    // BLOQUEO DE GAMEPLAY
-    // =====================================================
-
-    [Header("Bloqueo de gameplay")]
-
-    [Tooltip(
-        "Arrastra aquí el componente CamaraPrimeraPersona."
-    )]
-    public CamaraPrimeraPersona controladorCamara;
-
-
-    [Tooltip(
-        "Arrastra aquí el componente ArmaLanzadora."
-    )]
-    public ArmaLanzadora armaLanzadora;
-
-
-    // =====================================================
-    // INTERNAS
-    // =====================================================
-
-    private bool jugadorCerca = false;
-
-    private bool tiendaAbierta = false;
-
-    private bool armaEstabaActiva = false;
+    private bool jugadorCerca;
+    private bool tiendaAbierta;
+    private TiendaHolografica holografica;
 
     /// <summary>El jugador está dentro del trigger de la tienda.</summary>
     public bool JugadorCerca => jugadorCerca;
 
-    // Si hay tienda holográfica en este objeto, se usa en lugar del panel viejo.
+    private void Awake()
+    {
+        MenuTienda.RegistrarTextoAviso(textoInteraccion);
+    }
+
     private TiendaHolografica Holografica
     {
         get
         {
-            TiendaHolografica holo = GetComponent<TiendaHolografica>();
-            return holo != null && holo.isActiveAndEnabled ? holo : null;
+            if (holografica == null) holografica = GetComponent<TiendaHolografica>();
+            return holografica != null && holografica.isActiveAndEnabled ? holografica : null;
         }
     }
-
-
-    // =====================================================
-    // START
-    // =====================================================
-
-    private void Start()
-    {
-        // =================================================
-        // TIENDA CERRADA AL EMPEZAR
-        // =================================================
-
-        if (panelTienda != null)
-        {
-            panelTienda.SetActive(false);
-        }
-
-
-        // =================================================
-        // TEXTO
-        // =================================================
-
-        if (textoInteraccion != null)
-        {
-            textoInteraccion.text =
-                mensajeInteraccion;
-
-
-            textoInteraccion
-                .gameObject
-                .SetActive(false);
-        }
-    }
-
-
-    // =====================================================
-    // UPDATE
-    // =====================================================
 
     private void Update()
     {
-        // =================================================
-        // TIENDA ABIERTA
-        // =================================================
-
         if (tiendaAbierta)
         {
-            if (Input.GetKeyDown(
-                    teclaInteractuar) ||
-                Input.GetKeyDown(
-                    KeyCode.Escape))
-            {
+            if (Input.GetKeyDown(teclaInteractuar) || Input.GetKeyDown(KeyCode.Escape))
                 CerrarTienda();
-            }
-
-
             return;
         }
 
-
-        // =================================================
-        // ABRIR TIENDA
-        // =================================================
-
-        if (jugadorCerca &&
-            Input.GetKeyDown(
-                teclaInteractuar))
-        {
+        if (jugadorCerca && Input.GetKeyDown(teclaInteractuar))
             AbrirTienda();
-        }
     }
 
-
-    // =====================================================
-    // JUGADOR ENTRA EN ZONA
-    // =====================================================
-
-    private void OnTriggerEnter(
-        Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player"))
-            return;
-
-
-        jugadorCerca =
-            true;
-
-
-        if (textoInteraccion != null &&
-            !tiendaAbierta)
-        {
-            textoInteraccion
-                .gameObject
-                .SetActive(true);
-        }
+        if (!other.CompareTag("Player")) return;
+        jugadorCerca = true;
+        if (!tiendaAbierta) MenuTienda.MostrarAviso(this, mensajeInteraccion);
     }
 
-
-    // =====================================================
-    // JUGADOR SALE DE ZONA
-    // =====================================================
-
-    private void OnTriggerExit(
-        Collider other)
+    private void OnTriggerExit(Collider other)
     {
-        if (!other.CompareTag("Player"))
-            return;
-
-
-        jugadorCerca =
-            false;
-
-
-        if (textoInteraccion != null)
-        {
-            textoInteraccion
-                .gameObject
-                .SetActive(false);
-        }
+        if (!other.CompareTag("Player")) return;
+        jugadorCerca = false;
+        MenuTienda.OcultarAviso(this);
     }
-
-
-    // =====================================================
-    // ABRIR TIENDA
-    // =====================================================
 
     public void AbrirTienda()
     {
         TiendaHolografica holo = Holografica;
+        if (tiendaAbierta || holo == null) return;
 
-        if (panelTienda == null && holo == null)
-            return;
-
-
-        if (tiendaAbierta)
-            return;
-
-
-        tiendaAbierta =
-            true;
-
-
-        // =================================================
-        // MOSTRAR PANEL
-        // =================================================
-
-        if (holo != null)
-            holo.Mostrar();
-        else
-            panelTienda.SetActive(
-                true
-            );
-
-
-        if (textoInteraccion != null)
-        {
-            textoInteraccion
-                .gameObject
-                .SetActive(false);
-        }
-
-
-        // =================================================
-        // BLOQUEAR CÁMARA
-        // =================================================
-
-        if (controladorCamara != null)
-        {
-            controladorCamara
-                .SetBloqueadaPorUI(
-                    true
-                );
-        }
-
-
-        // =================================================
-        // BLOQUEAR ARMA
-        // =================================================
-
-        if (armaLanzadora != null)
-        {
-            // Guardamos cómo estaba
-            // antes de abrir la tienda.
-
-            armaEstabaActiva =
-                armaLanzadora.enabled;
-
-
-            armaLanzadora.enabled =
-                false;
-        }
-
-
-        // =================================================
-        // PAUSAR JUEGO
-        // =================================================
-
-        Time.timeScale =
-            0f;
-
-
-        // =================================================
-        // LIBERAR RATÓN
-        // =================================================
-
-        Cursor.lockState =
-            CursorLockMode.None;
-
-
-        Cursor.visible =
-            true;
+        tiendaAbierta = true;
+        MenuTienda.OcultarAviso(this);
+        holo.Mostrar();
+        MenuTienda.Abrir();
     }
-
-
-    // =====================================================
-    // CERRAR TIENDA
-    // =====================================================
 
     public void CerrarTienda()
     {
-        if (!tiendaAbierta)
-            return;
-
-
-        tiendaAbierta =
-            false;
-
-
-        // =================================================
-        // OCULTAR PANEL
-        // =================================================
+        if (!tiendaAbierta) return;
+        tiendaAbierta = false;
 
         TiendaHolografica holo = Holografica;
+        if (holo != null) holo.Ocultar();
 
-        if (holo != null)
-        {
-            holo.Ocultar();
-        }
-        else if (panelTienda != null)
-        {
-            panelTienda.SetActive(
-                false
-            );
-        }
-
-
-        // =================================================
-        // REANUDAR JUEGO
-        // =================================================
-
-        Time.timeScale =
-            1f;
-
-
-        // =================================================
-        // DESBLOQUEAR CÁMARA
-        // =================================================
-
-        if (controladorCamara != null)
-        {
-            controladorCamara
-                .SetBloqueadaPorUI(
-                    false
-                );
-        }
-
-
-        // =================================================
-        // RESTAURAR ARMA
-        // =================================================
-
-        if (armaLanzadora != null)
-        {
-            armaLanzadora.enabled =
-                armaEstabaActiva;
-        }
-
-
-        // =================================================
-        // BLOQUEAR RATÓN
-        // =================================================
-
-        Cursor.lockState =
-            CursorLockMode.Locked;
-
-
-        Cursor.visible =
-            false;
-
-
-        // =================================================
-        // VOLVER A MOSTRAR INTERACCIÓN
-        // =================================================
-
-        if (textoInteraccion != null &&
-            jugadorCerca)
-        {
-            textoInteraccion
-                .gameObject
-                .SetActive(true);
-        }
+        MenuTienda.Cerrar();
+        if (jugadorCerca) MenuTienda.MostrarAviso(this, mensajeInteraccion);
     }
-
-
-    // =====================================================
-    // CONSULTAR ESTADO
-    // =====================================================
 
     public bool EstaTiendaAbierta()
     {
         return tiendaAbierta;
     }
 
-
-    // =====================================================
-    // SEGURIDAD
-    // =====================================================
-
     private void OnDisable()
     {
-        if (!tiendaAbierta)
-            return;
-
-
-        // =================================================
-        // REANUDAR JUEGO
-        // =================================================
-
-        Time.timeScale =
-            1f;
-
-
-        // =================================================
-        // DESBLOQUEAR CÁMARA
-        // =================================================
-
-        if (controladorCamara != null)
+        if (tiendaAbierta)
         {
-            controladorCamara
-                .SetBloqueadaPorUI(
-                    false
-                );
+            tiendaAbierta = false;
+            MenuTienda.Cerrar();
         }
-
-
-        // =================================================
-        // RESTAURAR ARMA
-        // =================================================
-
-        if (armaLanzadora != null)
-        {
-            armaLanzadora.enabled =
-                armaEstabaActiva;
-        }
-
-
-        // =================================================
-        // CURSOR
-        // =================================================
-
-        Cursor.lockState =
-            CursorLockMode.Locked;
-
-
-        Cursor.visible =
-            false;
+        MenuTienda.OcultarAviso(this);
     }
 }

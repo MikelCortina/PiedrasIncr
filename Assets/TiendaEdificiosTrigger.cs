@@ -26,8 +26,8 @@ public class TiendaEdificiosTrigger : MonoBehaviour
     public InventarioEdificios inventario;
 
     [Header("Interfaz")]
-    [Tooltip("TMP sobre la pantalla: Pulsa E para abrir la tienda de edificios")]
-    public TMP_Text textoAviso;
+    [Tooltip("El aviso sale en el texto de interacción común (el de la MesaTrabajo).")]
+    public string mensajeAviso = "Pulsa E para abrir la tienda de edificios";
     [Tooltip("Panel entero, oculto al iniciar. Debe estar dentro de un Canvas activo.")]
     public GameObject panelTienda;
     public TMP_Text textoResultado;
@@ -46,8 +46,7 @@ public class TiendaEdificiosTrigger : MonoBehaviour
 
     private readonly HashSet<Collider> collidersJugador = new HashSet<Collider>();
     private bool abierta;
-    private CursorLockMode bloqueoCursorAnterior;
-    private bool cursorVisibleAnterior;
+    private bool avisoVisible;
 
     private bool JugadorEnZona => collidersJugador.Count > 0;
 
@@ -58,7 +57,6 @@ public class TiendaEdificiosTrigger : MonoBehaviour
         if (inventario == null && sistemaConstruccion != null)
             inventario = sistemaConstruccion.inventarioEdificios;
 
-        if (textoAviso != null) textoAviso.gameObject.SetActive(false);
         if (panelTienda != null) panelTienda.SetActive(false);
 
         if (filas != null)
@@ -119,12 +117,12 @@ public class TiendaEdificiosTrigger : MonoBehaviour
     {
         // Si pierde el desbloqueo o abandona la zona, no queda la UI colgada.
         if (!PuedeUsarTienda() && abierta) CerrarTienda();
-        if (textoAviso != null)
+        bool mostrarAviso = PuedeUsarTienda() && !abierta;
+        if (mostrarAviso != avisoVisible)
         {
-            bool mostrar = PuedeUsarTienda() && !abierta;
-            if (textoAviso.gameObject.activeSelf != mostrar)
-                textoAviso.gameObject.SetActive(mostrar);
-            if (mostrar) textoAviso.text = "[" + teclaAbrirCerrar + "] Abrir tienda de edificios";
+            avisoVisible = mostrarAviso;
+            if (mostrarAviso) MenuTienda.MostrarAviso(this, mensajeAviso);
+            else MenuTienda.OcultarAviso(this);
         }
 
         if (abierta)
@@ -144,10 +142,7 @@ public class TiendaEdificiosTrigger : MonoBehaviour
             return;
 
         abierta = true;
-        bloqueoCursorAnterior = Cursor.lockState;
-        cursorVisibleAnterior = Cursor.visible;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        MenuTienda.Abrir();
         if (sistemaConstruccion != null) sistemaConstruccion.BloquearPorTienda(true);
         panelTienda.SetActive(true);
         if (textoResultado != null) textoResultado.text = "Compra unidades para colocarlas con el martillo.";
@@ -160,8 +155,7 @@ public class TiendaEdificiosTrigger : MonoBehaviour
         abierta = false;
         if (panelTienda != null) panelTienda.SetActive(false);
         if (sistemaConstruccion != null) sistemaConstruccion.BloquearPorTienda(false);
-        Cursor.lockState = bloqueoCursorAnterior;
-        Cursor.visible = cursorVisibleAnterior;
+        MenuTienda.Cerrar();
     }
 
     private void Comprar(SistemaConstruccion.TipoEdificio tipo)
@@ -218,7 +212,8 @@ public class TiendaEdificiosTrigger : MonoBehaviour
     {
         CerrarTienda();
         collidersJugador.Clear();
-        if (textoAviso != null) textoAviso.gameObject.SetActive(false);
+        avisoVisible = false;
+        MenuTienda.OcultarAviso(this);
     }
 
     private void OnDestroy()
