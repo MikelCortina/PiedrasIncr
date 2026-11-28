@@ -37,6 +37,22 @@ public class SecuenciaIntro : MonoBehaviour
     public static event Action OnTutorialTerminado;
     public static bool TutorialTerminado { get; private set; }
 
+    /// <summary>
+    /// Algo que señalar con el rombo fuera de los pasos del tutorial (p. ej. la tienda al abrirse).
+    /// Si el paso actual del tutorial ya señala algo, manda el tutorial. null = nada.
+    /// </summary>
+    public static Transform ObjetivoExtra { get; private set; }
+
+    public static void SenalarObjetivo(Transform objetivo)
+    {
+        ObjetivoExtra = objetivo;
+    }
+
+    public static void QuitarObjetivo(Transform objetivo)
+    {
+        if (ObjetivoExtra == objetivo) ObjetivoExtra = null;
+    }
+
     [Header("General")]
     [Tooltip("Marca para no hacer el tutorial (partida cargada, pruebas).")]
     public bool omitirTutorial = false;
@@ -145,6 +161,7 @@ public class SecuenciaIntro : MonoBehaviour
         OnPasoCambiado = null;
         OnTutorialTerminado = null;
         TutorialTerminado = false;
+        ObjetivoExtra = null;
     }
 
     private void OnEnable()
@@ -611,6 +628,13 @@ public class SecuenciaIntro : MonoBehaviour
     {
         if (mangueraPendiente) return PosicionManguera();
 
+        Vector3? delPaso = PosicionMarcadorPaso();
+        if (delPaso.HasValue) return delPaso;
+        return ObjetivoExtra != null ? ObjetivoExtra.position : (Vector3?)null;
+    }
+
+    private Vector3? PosicionMarcadorPaso()
+    {
         switch (PasoActual)
         {
             case Paso.PatearPiedra:
@@ -900,7 +924,7 @@ public class SecuenciaIntro : MonoBehaviour
     {
         if (Event.current.type != EventType.Repaint) return;
         bool hayObjetivo = !string.IsNullOrEmpty(objetivo);
-        if (!hayObjetivo && (!mostrarMarcador || PasoActual == Paso.Terminado)) return;
+        if (!hayObjetivo && (!mostrarMarcador || (PasoActual == Paso.Terminado && ObjetivoExtra == null))) return;
 
         AimAssistVisual estilo = AimAssistVisual.Instancia;
         Color placa = estilo != null ? estilo.colorPlaca : new Color(0.035f, 0.025f, 0.09f, 0.88f);

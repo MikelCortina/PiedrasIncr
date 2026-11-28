@@ -17,7 +17,8 @@ public class GuionBotro : ScriptableObject
     // Se guarda por NOMBRE en el archivo (campo 'cuando'): se pueden añadir valores en cualquier sitio.
     public enum Cuando
     {
-        PasoIntro, TutorialTerminado, EsferaPerfecta, Compra, PiedraMetida, QuedanPocasPiedras, MinutoDePartida
+        PasoIntro, TutorialTerminado, EsferaPerfecta, Compra, PiedraMetida, QuedanPocasPiedras, MinutoDePartida,
+        TiendaAbierta
     }
 
     // Qué enfoca la cámara mientras Botro dice una frase (solo en la intro). Se guarda por NOMBRE.
@@ -141,6 +142,7 @@ public class GuionBotro : ScriptableObject
             case Cuando.PiedraMetida: return "Al meter la piedra número…";
             case Cuando.QuedanPocasPiedras: return "Cuando quedan pocas piedras";
             case Cuando.MinutoDePartida: return "En el minuto… de partida";
+            case Cuando.TiendaAbierta: return "Al abrirse la tienda (piedras metidas: MesaTrabajo)";
             default: return c.ToString();
         }
     }

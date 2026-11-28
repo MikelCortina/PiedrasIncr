@@ -129,5 +129,27 @@ MonoBehaviour:
       esInstruccion: 0
       retraso: 0
       duracion: 0
-      enfocar: 
+      enfocar:
+    repetirInstruccionCada: 0
+  - id: tienda_abierta
+    activo: 1
+    cuando: TiendaAbierta
+    paso:
+    compra:
+    numero: 0
+    retraso: 1
+    soloUnaVez: 1
+    frases:
+    - texto: Ya tienes monedas de sobra! Pasate por la tienda, la mesa holografica
+        que tienes al lado.
+      esInstruccion: 0
+      retraso: 0
+      duracion: 0
+      enfocar:
+    - texto: Alli puedes conseguir herramientas y mejorarlas. Te he dejado el Fusil
+        de monedas gratis, cogelo!
+      esInstruccion: 0
+      retraso: 0
+      duracion: 0
+      enfocar:
     repetirInstruccionCada: 0

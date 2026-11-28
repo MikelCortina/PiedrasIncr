@@ -32,16 +32,30 @@ public class LanzamientoMonedaMano : MonoBehaviour
     [Tooltip("Segundos en los que la moneda lanzada no se puede volver a recoger.")]
     public float tiempoInmunidad = 1.5f;
 
-    [Header("Moneda en la mano")]
-    [Tooltip("Solo si no hay fusil en la escena: posición respecto a la cámara.")]
-    public Vector3 posicionEnMano = new Vector3(0.28f, -0.24f, 0.55f);
+    [Header("Moneda en la mano (como un arma)")]
+    [Tooltip("Posición respecto a la cámara (X derecha, Y arriba, Z delante).")]
+    public Vector3 posicionEnMano = new Vector3(0.3f, -0.26f, 0.6f);
     [Tooltip("Tamaño de la moneda en la mano, en metros (lo más ancho). No depende de la escala del prefab ni del padre.")]
-    public float tamanoEnMano = 0.12f;
+    public float tamanoEnMano = 0.2f;
+    [Tooltip("Inclinación de la moneda (grados). Con 0,0,0 se ve de frente, con la cara hacia la cámara.")]
+    public Vector3 inclinacionEnMano = new Vector3(12f, -28f, 10f);
+    [Tooltip("Cuánto se balancea al mover la vista (se queda un poco atrás y vuelve).")]
+    public float balanceoMirada = 0.02f;
+    [Tooltip("Respiración: subida y bajada suave en reposo (metros).")]
+    public float respiracion = 0.008f;
+    [Tooltip("Segundos que tarda en subir la siguiente moneda a la mano después de lanzar.")]
+    public float duracionAparicion = 0.25f;
+    [Tooltip("Lo que se retira la mano hacia abajo cuando no hay moneda (metros).")]
+    public float bajadaSinMoneda = 0.18f;
 
     private bool equipada;
     private GameObject visual;
-    private Vector3 posicionVisual;
+    private Transform modeloVisual;
     private float proximoLanzamiento;
+    private float presencia;          // 0 = mano bajada (sin moneda), 1 = moneda en la mano
+    private Vector2 balanceo;
+    private Quaternion rotacionCamaraAnterior;
+    private float empujon;            // pequeño golpe hacia delante al lanzar
 
     public bool Equipada => equipada;
 
@@ -67,16 +81,44 @@ public class LanzamientoMonedaMano : MonoBehaviour
         if (camara == null) return;
 
         bool lista = Time.time >= proximoLanzamiento && cartera != null && cartera.Monedas >= valorMoneda;
-        if (visual != null)
-        {
-            // Sin monedas (o recargando) la mano se queda vacía.
-            visual.SetActive(lista);
-            visual.transform.localPosition = posicionVisual + Vector3.up * Mathf.Sin(Time.time * 2f) * 0.01f;
-            visual.transform.Rotate(0f, 90f * Time.deltaTime, 0f, Space.Self);
-        }
+        if (visual != null) AnimarVisual(lista);
 
         if (Input.GetKeyDown(teclaLanzar) && Time.time >= proximoLanzamiento) Lanzar();
     }
+
+    // La moneda va como un arma: abajo a la derecha, con balanceo al mirar y respiración.
+    // Sin monedas (o recién lanzada) baja fuera de la vista y vuelve a subir cuando hay otra.
+    private void AnimarVisual(bool lista)
+    {
+        float dt = Time.deltaTime;
+        presencia = Mathf.MoveTowards(presencia, lista ? 1f : 0f, dt / Mathf.Max(0.01f, duracionAparicion));
+        float subida = 1f - (1f - presencia) * (1f - presencia); // sale rápido y frena al llegar
+        visual.SetActive(presencia > 0.01f);
+
+        // Balanceo: la moneda se queda un poco atrás cuando giras la vista y vuelve a su sitio.
+        Quaternion rotacionCamara = camara.transform.rotation;
+        Quaternion giro = Quaternion.Inverse(rotacionCamaraAnterior) * rotacionCamara;
+        rotacionCamaraAnterior = rotacionCamara;
+        Vector3 euler = giro.eulerAngles;
+        Vector2 delta = new Vector2(Mathf.DeltaAngle(0f, euler.y), Mathf.DeltaAngle(0f, euler.x));
+        balanceo = Vector2.Lerp(balanceo, Vector2.ClampMagnitude(-delta * balanceoMirada, 0.06f), 1f - Mathf.Exp(-12f * dt));
+        balanceo = Vector2.Lerp(balanceo, Vector2.zero, 1f - Mathf.Exp(-6f * dt));
+
+        empujon = Mathf.MoveTowards(empujon, 0f, dt * 6f);
+
+        Vector3 posicion = posicionEnMano
+                           + new Vector3(balanceo.x, -balanceo.y, 0f)
+                           + Vector3.up * (Mathf.Sin(Time.time * 2f) * respiracion - (1f - subida) * bajadaSinMoneda)
+                           + Vector3.forward * empujon * 0.12f;
+        visual.transform.localPosition = posicion;
+        visual.transform.localRotation = Quaternion.Euler(inclinacionEnMano + new Vector3(-balanceo.y * 300f, balanceo.x * 300f, 0f));
+
+        // Un leve vaivén de la moneda sobre sí misma para que brille y se note que es 3D.
+        if (modeloVisual != null)
+            modeloVisual.localRotation = Quaternion.AngleAxis(Mathf.Sin(Time.time * 1.3f) * 12f, Vector3.up) * rotacionBaseModelo;
+    }
+
+    private Quaternion rotacionBaseModelo = Quaternion.identity;
 
     private void Lanzar()
     {
@@ -116,39 +158,48 @@ public class LanzamientoMonedaMano : MonoBehaviour
         Destroy(proyectil, delFusil ? Mathf.Max(fusil.vidaProyectil, vidaProyectil) : vidaProyectil);
 
         proximoLanzamiento = Time.time + esperaEntreLanzamientos;
+
+        // La moneda ha salido de la mano: desaparece de golpe y la siguiente subirá desde abajo.
+        presencia = 0f;
+        empujon = 1f;
     }
 
-    // Copia solo las mallas del prefab de la moneda (sin física ni scripts) y la cuelga de la cámara.
+    // Copia solo las mallas del prefab de la moneda (sin física ni scripts) y la cuelga de la cámara,
+    // girada para que se vea de cara (no de canto).
     private void CrearVisual()
     {
         BuscarReferencias();
         if (visual != null || prefabMoneda == null || camara == null) return;
 
         visual = new GameObject("MonedaEnMano");
-        // Donde va el modelo del fusil (mismo padre y misma posición); si no hay fusil, delante de la cámara.
-        Transform modelo = fusil != null && fusil.modeloArma != null ? fusil.modeloArma.transform : null;
-        if (modelo != null && modelo.parent != null)
-        {
-            visual.transform.SetParent(modelo.parent, false);
-            posicionVisual = modelo.localPosition;
-            visual.transform.localRotation = modelo.localRotation;
-        }
-        else
-        {
-            visual.transform.SetParent(camara.transform, false);
-            posicionVisual = posicionEnMano;
-        }
-        visual.transform.localPosition = posicionVisual;
+        visual.transform.SetParent(camara.transform, false);
+        visual.transform.localPosition = posicionEnMano;
         visual.transform.localScale = Vector3.one;
+        rotacionCamaraAnterior = camara.transform.rotation;
+
+        modeloVisual = new GameObject("Modelo").transform;
+        modeloVisual.SetParent(visual.transform, false);
 
         Transform raiz = prefabMoneda.transform;
+        Bounds limitesLocales = new Bounds();
+        bool hayLimites = false;
         foreach (MeshFilter mf in prefabMoneda.GetComponentsInChildren<MeshFilter>(true))
         {
             MeshRenderer mr = mf.GetComponent<MeshRenderer>();
             if (mf.sharedMesh == null || mr == null) continue;
 
+            // Límites de la moneda en el espacio del prefab, para saber cuál es su eje "fino" (la cara).
+            Bounds b = mf.sharedMesh.bounds;
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 esquina = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                Vector3 local = raiz.InverseTransformPoint(mf.transform.TransformPoint(esquina));
+                if (!hayLimites) { limitesLocales = new Bounds(local, Vector3.zero); hayLimites = true; }
+                else limitesLocales.Encapsulate(local);
+            }
+
             GameObject pieza = new GameObject(mf.name);
-            pieza.transform.SetParent(visual.transform, false);
+            pieza.transform.SetParent(modeloVisual, false);
             pieza.transform.localPosition = raiz.InverseTransformPoint(mf.transform.position);
             pieza.transform.localRotation = Quaternion.Inverse(raiz.rotation) * mf.transform.rotation;
             pieza.transform.localScale = mf.transform.lossyScale;
@@ -157,7 +208,20 @@ public class LanzamientoMonedaMano : MonoBehaviour
             copia.sharedMaterials = mr.sharedMaterials;
             copia.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
+
+        // Centrada en la mano y con la cara (su eje más fino) mirando a la cámara.
+        if (hayLimites)
+        {
+            Vector3 s = limitesLocales.size;
+            Vector3 ejeFino = s.x <= s.y && s.x <= s.z ? Vector3.right : (s.y <= s.z ? Vector3.up : Vector3.forward);
+            rotacionBaseModelo = Quaternion.FromToRotation(ejeFino, Vector3.back);
+            modeloVisual.localRotation = rotacionBaseModelo;
+            foreach (Transform pieza in modeloVisual)
+                pieza.localPosition -= limitesLocales.center;
+        }
+
         AjustarTamano();
+        presencia = 0f;
         visual.SetActive(equipada);
     }
 

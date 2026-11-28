@@ -28,6 +28,10 @@ public class TiendaHolografica : MonoBehaviour
     public MesaTrabajo mesa;
     public TiendaTrabajo tienda;
 
+    [Header("Artículos")]
+    [Tooltip("Desactivado: el Imán no sale en la tienda (su compra sigue en TiendaTrabajo por si se recupera).")]
+    public bool mostrarIman = false;
+
     [Header("Textos")]
     public string titulo = "TIENDA HOLOGRÁFICA";
     public string nombreMoneda = "MONEDAS";
@@ -276,7 +280,8 @@ public class TiendaHolografica : MonoBehaviour
             extras = torbellinoUnificado ? null : new[] { TiendaTrabajo.Articulo.TorbellinoAlcance, TiendaTrabajo.Articulo.TorbellinoMovilidad },
             nombresExtras = torbellinoUnificado ? null : new[] { "ALCANCE", "MOVILIDAD" }
         });
-        tarjetas.Add(new Tarjeta { nombre = "Imán", principal = TiendaTrabajo.Articulo.Iman, siguiente = TiendaTrabajo.Articulo.ImanAlcance });
+        if (mostrarIman)
+            tarjetas.Add(new Tarjeta { nombre = "Imán", principal = TiendaTrabajo.Articulo.Iman, siguiente = TiendaTrabajo.Articulo.ImanAlcance });
         tarjetas.Add(new Tarjeta { nombre = "Martillo", principal = TiendaTrabajo.Articulo.Martillo });
         tarjetas.Add(new Tarjeta { nombre = "Botas", principal = TiendaTrabajo.Articulo.Botas });
         tarjetas.Add(new Tarjeta { nombre = "Jetpack", principal = TiendaTrabajo.Articulo.Jetpack });
@@ -349,7 +354,7 @@ public class TiendaHolografica : MonoBehaviour
             }
             else
             {
-                precio = e.precio + " " + nombreMoneda;
+                precio = e.gratis ? "GRATIS" : e.precio + " " + nombreMoneda;
                 bool falta = e.precio > monedas;
                 if (falta) { boton = "SIN FONDOS"; colorBoton = colorAviso; }
                 else { boton = nivel == 0 ? "COMPRAR" : (actual == TiendaTrabajo.Articulo.ImanAlcance ? "MEJORAR ALCANCE" : "MEJORAR"); colorBoton = colorHolograma; }

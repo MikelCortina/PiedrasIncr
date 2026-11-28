@@ -66,6 +66,9 @@ public class TiendaTrabajo : MonoBehaviour
 
     public int precioArmaLuna = 1;
 
+    [Tooltip("El primer nivel del Fusil de monedas no cuesta nada (lo activa MesaTrabajo al abrirse la tienda).")]
+    public bool fusilGratis = false;
+
 
     // =====================================================
     // TORBELLINO - COMPRA
@@ -408,7 +411,7 @@ public class TiendaTrabajo : MonoBehaviour
         }
 
 
-        if (!cartera.GastarMonedas(
+        if (!fusilGratis && !cartera.GastarMonedas(
                 precioArmaLuna))
         {
             Debug.Log(
@@ -424,7 +427,7 @@ public class TiendaTrabajo : MonoBehaviour
             .DesbloquearArmaLanzadora();
 
 
-        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, 1, precioArmaLuna);
+        EventosEconomia.NotificarCompra(EconomiaDemo.Ids.FusilMonedas, 1, fusilGratis ? 0 : precioArmaLuna);
 
 
         Debug.Log(
@@ -1473,8 +1476,8 @@ public class TiendaTrabajo : MonoBehaviour
 
         if (!gestorEquipamiento.ArmaLanzadoraDesbloqueada())
         {
-            int coste = Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1);
-            if (!cartera.GastarMonedas(coste))
+            int coste = fusilGratis ? 0 : Eco.Coste(EconomiaDemo.Ids.FusilMonedas, 1);
+            if (coste > 0 && !cartera.GastarMonedas(coste))
             {
                 Debug.Log("No tienes monedas suficientes para el Fusil Monedas.");
                 return;
@@ -1627,11 +1630,13 @@ public class TiendaTrabajo : MonoBehaviour
         /// <summary>0 = sin comprar.</summary>
         public int nivel;
         public int nivelMax;
-        /// <summary>Precio del siguiente nivel (0 si ya está al máximo).</summary>
+        /// <summary>Precio del siguiente nivel (0 si ya está al máximo o es gratis).</summary>
         public int precio;
+        /// <summary>El siguiente nivel no cuesta nada (p. ej. el Fusil al abrirse la tienda).</summary>
+        public bool gratis;
 
         public bool Maximo => nivel >= nivelMax;
-        public bool SePuedeComprar => !requisitoPendiente && !noDisponible && !Maximo && precio > 0;
+        public bool SePuedeComprar => !requisitoPendiente && !noDisponible && !Maximo && (precio > 0 || gratis);
     }
 
     public int MonedasDisponibles
@@ -1659,6 +1664,11 @@ public class TiendaTrabajo : MonoBehaviour
                 e.nivel = comprado ? (FusilMonedas != null ? FusilMonedas.NivelFusil : 1) : 0;
                 if (!e.Maximo)
                     e.precio = usarEconomiaDemo ? Eco.Coste(EconomiaDemo.Ids.FusilMonedas, e.nivel + 1) : precioArmaLuna;
+                if (e.nivel == 0 && fusilGratis)
+                {
+                    e.precio = 0;
+                    e.gratis = true;
+                }
                 break;
             }
             case Articulo.Torbellino:
