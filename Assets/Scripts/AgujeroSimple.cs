@@ -94,6 +94,9 @@ public class AgujeroSimple : MonoBehaviour
     public AudioClip sonidoEscupir;
 
     [Header("Game Feel (Efecto Bloop X/Z)")]
+    [Tooltip("El agujero se infla ('bloop') al tragar una piedra o una moneda. Desactivado: no se mueve nunca. " +
+             "(El PayZone tiene su propio bloop al escupir monedas.)")]
+    public bool bloopAlTragar = false;
     public Transform modeloVisual;
     public float fuerzaBloop = 0.3f;
     public float velocidadRecuperacionBloop = 15f;
@@ -409,6 +412,7 @@ public class AgujeroSimple : MonoBehaviour
 
     private void HacerBloop()
     {
+        if (!bloopAlTragar) return;
         impulsoBloopActual = fuerzaBloop;
     }
 }

@@ -31,6 +31,8 @@ public class TiendaHolografica : MonoBehaviour
     [Header("Artículos")]
     [Tooltip("Desactivado: el Imán no sale en la tienda (su compra sigue en TiendaTrabajo por si se recupera).")]
     public bool mostrarIman = false;
+    [Tooltip("Desactivado: el Martillo no sale en la tienda (su compra sigue en TiendaTrabajo por si se recupera).")]
+    public bool mostrarMartillo = false;
 
     [Header("Textos")]
     public string titulo = "TIENDA HOLOGRÁFICA";
@@ -282,7 +284,8 @@ public class TiendaHolografica : MonoBehaviour
         });
         if (mostrarIman)
             tarjetas.Add(new Tarjeta { nombre = "Imán", principal = TiendaTrabajo.Articulo.Iman, siguiente = TiendaTrabajo.Articulo.ImanAlcance });
-        tarjetas.Add(new Tarjeta { nombre = "Martillo", principal = TiendaTrabajo.Articulo.Martillo });
+        if (mostrarMartillo)
+            tarjetas.Add(new Tarjeta { nombre = "Martillo", principal = TiendaTrabajo.Articulo.Martillo });
         tarjetas.Add(new Tarjeta { nombre = "Botas", principal = TiendaTrabajo.Articulo.Botas });
         tarjetas.Add(new Tarjeta { nombre = "Jetpack", principal = TiendaTrabajo.Articulo.Jetpack });
     }

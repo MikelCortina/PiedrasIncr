@@ -256,6 +256,16 @@ public class MeteoritoInicial : MonoBehaviour
         rb.useGravity = true;
         rb.linearVelocity = Vector3.down * 4f;
 
+        // Nació en la Luna: el rescate del vacío tomó esa altura como suelo. Se le da la del suelo real
+        // para que, si rueda por un borde, vuelva arriba como las demás piedras.
+        RescateVacioPiedra rescate = rb.GetComponent<RescateVacioPiedra>();
+        if (rescate != null)
+        {
+            Collider colision = rb.GetComponent<Collider>();
+            float radio = colision != null ? colision.bounds.extents.y : 0.5f;
+            rescate.EstablecerAlturaSuelo(destino.y - radio);
+        }
+
         if (visual != null)
         {
             visual.ConfigurarAlturas(alturaInicial, destino.y + 0.05f);

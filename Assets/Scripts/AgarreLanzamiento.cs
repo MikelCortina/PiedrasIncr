@@ -88,7 +88,10 @@ public class AgarreLanzamiento : MonoBehaviour
         if (AimAssistVisual.Instancia != null && AimAssistVisual.Instancia.objetivoActual != null)
         {
             Transform rocaInspeccionada = AimAssistVisual.Instancia.objetivoActual;
-            float distanciaAlJugador = Vector3.Distance(transform.position, rocaInspeccionada.position);
+            // Distancia hasta la superficie de la piedra (no su centro): las grandes también se cogen de cerca.
+            Collider colisionRoca = rocaInspeccionada.GetComponentInChildren<Collider>();
+            Vector3 puntoRoca = colisionRoca != null ? colisionRoca.ClosestPoint(transform.position) : rocaInspeccionada.position;
+            float distanciaAlJugador = Vector3.Distance(transform.position, puntoRoca);
 
             if (distanciaAlJugador <= distanciaAgarre)
             {
@@ -105,19 +108,37 @@ public class AgarreLanzamiento : MonoBehaviour
         if (Camera.main == null) return;
         Ray rayo = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0));
 
-        if (Physics.SphereCast(rayo, radioDeAgarre, out RaycastHit golpe, distanciaAgarre, capaInteraccion))
-        {
-            if (golpe.collider.CompareTag("Piedra") || golpe.collider.CompareTag("Misil"))
-            {
-                Rigidbody rbGolpeado = golpe.collider.GetComponent<Rigidbody>();
-                if (rbGolpeado == null) rbGolpeado = golpe.collider.attachedRigidbody;
+        // Todo lo que toca el rayo (sin triggers): la piedra más cercana, aunque delante haya otra cosa
+        // (el borde del agujero, una rampa...). Antes solo se miraba lo primero que tocaba.
+        RaycastHit[] golpes = Physics.SphereCastAll(rayo, radioDeAgarre, distanciaAgarre, capaInteraccion, QueryTriggerInteraction.Ignore);
+        Rigidbody mejor = null;
+        float mejorDistancia = float.MaxValue;
 
-                if (rbGolpeado != null)
-                {
-                    objetoSostenido = rbGolpeado;
-                    PrepararObjetoAgarrado();
-                }
+        foreach (RaycastHit golpe in golpes)
+        {
+            Collider c = golpe.collider;
+            if (c == null) continue;
+
+            Rigidbody rbGolpeado = c.GetComponent<Rigidbody>();
+            if (rbGolpeado == null) rbGolpeado = c.attachedRigidbody;
+            if (rbGolpeado == null) continue;
+
+            bool esAgarrable = c.CompareTag("Piedra") || c.CompareTag("Misil") ||
+                               rbGolpeado.CompareTag("Piedra") || rbGolpeado.CompareTag("Misil");
+            if (!esAgarrable) continue;
+
+            // Un SphereCast que empieza ya dentro de un collider da distancia 0: también vale.
+            if (golpe.distance < mejorDistancia)
+            {
+                mejorDistancia = golpe.distance;
+                mejor = rbGolpeado;
             }
+        }
+
+        if (mejor != null)
+        {
+            objetoSostenido = mejor;
+            PrepararObjetoAgarrado();
         }
     }
 

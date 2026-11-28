@@ -632,6 +632,17 @@ public class RescateVacioPiedra : MonoBehaviour
     }
 
     /// <summary>Llamar cuando el jugador recoja la piedra.</summary>
+    /// <summary>
+    /// Fija la altura del suelo de referencia (para detectar que se ha caído al vacío).
+    /// Lo usa el meteorito inicial: nace en la Luna y allí no hay suelo que medir.
+    /// </summary>
+    public void EstablecerAlturaSuelo(float altura)
+    {
+        alturaReferenciaSuelo = altura;
+        hayAlturaReferencia = true;
+        proximoIntentoRescate = 0f;
+    }
+
     public void NotificarRecogida()
     {
         // Cede la propiedad del Rigidbody a AgarreLanzamiento.
