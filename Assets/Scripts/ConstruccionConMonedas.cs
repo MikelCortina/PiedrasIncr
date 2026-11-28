@@ -69,8 +69,8 @@ public class ConstruccionConMonedas : MonoBehaviour
     [Tooltip("Velocidad a la que baja el número de la pantalla.")]
     public float velocidadNumerosPantalla = 15f;
 
-    [Header("Cartel de texto (si no hay antena que copiar)")]
-    public bool mostrarCartel = true;
+    [Header("Cartel de texto (desactivado: los edificios solo usan la antena)")]
+    [HideInInspector] public bool mostrarCartel = false;
     [Tooltip("Metros por encima del edificio.")]
     public float alturaCartel = 1.2f;
     public float tamanoCartel = 2.2f;
@@ -243,7 +243,8 @@ public class ConstruccionConMonedas : MonoBehaviour
 
         AplicarEstado(false);
         PrepararCobro();
-        if (!usarAntena || !CrearAntena()) CrearCartel();
+        // Sin textos (como los otros edificios): solo la antena con el LED y el número.
+        if (usarAntena) CrearAntena();
         numeroMostrado = MonedasRestantes;
         ActualizarCartel();
         iniciado = true;
@@ -660,7 +661,7 @@ public class ConstruccionConMonedas : MonoBehaviour
         FuenteAntena f;
         if (!BuscarFuenteAntena(out f))
         {
-            Debug.LogWarning("[" + nombre + "] No hay ninguna antena en la escena que copiar: se usa el cartel de texto.", this);
+            Debug.LogWarning("[" + nombre + "] No hay ninguna antena en la escena que copiar (ametralladora, diana o desgastadora): este edificio no tendrá indicador.", this);
             return false;
         }
 
@@ -675,7 +676,7 @@ public class ConstruccionConMonedas : MonoBehaviour
         RenderTexture texturaOriginal = camaraOriginal != null ? camaraOriginal.targetTexture : null;
         if (texturaOriginal == null)
         {
-            Debug.LogWarning("[" + nombre + "] La pantalla de la antena no usa una cámara con textura: se usa el cartel de texto.", this);
+            Debug.LogWarning("[" + nombre + "] La pantalla de la antena que se iba a copiar no usa una cámara con textura: este edificio no tendrá indicador.", this);
             return false;
         }
 
@@ -708,7 +709,8 @@ public class ConstruccionConMonedas : MonoBehaviour
 
         // Las piezas que se corresponden en la copia (mismo camino desde la raíz).
         antenaVisual = Correspondiente(raiz, antena, f.antenaVisual);
-        ledAntena = f.led != null && f.led.transform.IsChildOf(raiz) ? Correspondiente(raiz, antena, f.led.transform).GetComponent<ControladorNeon>() : null;
+        Transform ledCopia = f.led != null && f.led.transform.IsChildOf(raiz) ? Correspondiente(raiz, antena, f.led.transform) : null;
+        ledAntena = ledCopia != null ? ledCopia.GetComponent<ControladorNeon>() : null;
         if (antenaVisual != null) escalaAntenaVisual = antenaVisual.localScale;
 
         // 2. La pantalla: cámara y canvas propios, pintando en una textura propia (si no, saldría el número del otro).
